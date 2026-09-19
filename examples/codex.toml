@@ -1,0 +1,10 @@
+# Copy this table into the project's .codex/config.toml and replace the paths.
+# Run `uv sync --locked` before connecting.
+[mcp_servers.epistemics]
+command = "/absolute/path/to/epistemics/.venv/bin/epistemics-mcp"
+cwd = "/absolute/path/to/epistemics"
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+
+[mcp_servers.epistemics.env]
+EPISTEMICS_DB = "/absolute/path/to/epistemics/.epistemics/evaluations.sqlite3"

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "epistemics": {
+      "command": "uv",
+      "args": ["--directory", "/absolute/path/to/epistemics", "run", "--locked", "epistemics-mcp"],
+      "env": { "EPISTEMICS_DB": "/absolute/path/to/epistemics/.epistemics/evaluations.sqlite3" }
+    }
+  }
+}

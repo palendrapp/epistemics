@@ -1,0 +1,407 @@
+{
+  "$defs": {
+    "AgentDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "context_policy": {
+          "default": "continuous",
+          "enum": [
+            "continuous",
+            "reset_per_trial",
+            "reset_per_task"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "agent_id",
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentDescriptor",
+      "type": "object"
+    },
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "source_probability": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Probability"
+        }
+      },
+      "required": [
+        "probability"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Metrics": {
+      "additionalProperties": false,
+      "properties": {
+        "n": {
+          "title": "N",
+          "type": "integer"
+        },
+        "brier": {
+          "title": "Brier",
+          "type": "number"
+        },
+        "log_loss": {
+          "title": "Log Loss",
+          "type": "number"
+        },
+        "reference_rmse": {
+          "title": "Reference Rmse",
+          "type": "number"
+        },
+        "endpoint_reports": {
+          "title": "Endpoint Reports",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "n",
+        "brier",
+        "log_loss",
+        "reference_rmse",
+        "endpoint_reports"
+      ],
+      "title": "Metrics",
+      "type": "object"
+    },
+    "ModelFit": {
+      "additionalProperties": false,
+      "properties": {
+        "parameter": {
+          "title": "Parameter",
+          "type": "number"
+        },
+        "train_rmse": {
+          "title": "Train Rmse",
+          "type": "number"
+        },
+        "heldout_rmse": {
+          "title": "Heldout Rmse",
+          "type": "number"
+        },
+        "train_n": {
+          "title": "Train N",
+          "type": "integer"
+        },
+        "heldout_n": {
+          "title": "Heldout N",
+          "type": "integer"
+        },
+        "near_optimal_range": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Near Optimal Range",
+          "type": "array"
+        },
+        "range_definition": {
+          "default": "Grid values with train MSE <= minimum MSE + 0.0001; not a CI",
+          "title": "Range Definition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "parameter",
+        "train_rmse",
+        "heldout_rmse",
+        "train_n",
+        "heldout_n",
+        "near_optimal_range"
+      ],
+      "title": "ModelFit",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "trial": {
+          "$ref": "#/$defs/Trial"
+        },
+        "answer": {
+          "$ref": "#/$defs/Answer"
+        },
+        "answered_at": {
+          "title": "Answered At",
+          "type": "string"
+        },
+        "truth": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Truth",
+          "type": "object"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at",
+        "truth"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "Parameter": {
+      "additionalProperties": false,
+      "properties": {
+        "estimate": {
+          "title": "Estimate",
+          "type": "number"
+        },
+        "interval_95": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval 95"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "n": {
+          "title": "N",
+          "type": "integer"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "estimate",
+        "method",
+        "n"
+      ],
+      "title": "Parameter",
+      "type": "object"
+    },
+    "Trial": {
+      "additionalProperties": false,
+      "properties": {
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        },
+        "task": {
+          "enum": [
+            "evidence_integration",
+            "source_reliability",
+            "reversal_learning"
+          ],
+          "title": "Task",
+          "type": "string"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "stimulus": {
+          "additionalProperties": true,
+          "title": "Stimulus",
+          "type": "object"
+        }
+      },
+      "required": [
+        "trial_id",
+        "task",
+        "index",
+        "instructions",
+        "stimulus"
+      ],
+      "title": "Trial",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.report.v1",
+      "default": "epistemics.report.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "evaluator_version": {
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "battery_version": {
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "battery_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Battery Sha256",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "agent": {
+      "$ref": "#/$defs/AgentDescriptor"
+    },
+    "started_at": {
+      "title": "Started At",
+      "type": "string"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Metrics"
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Parameter"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "model_fits": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ModelFit"
+      },
+      "title": "Model Fits",
+      "type": "object"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/Observation"
+      },
+      "maxItems": 88,
+      "minItems": 88,
+      "title": "Observations",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "evaluator_version",
+    "battery_version",
+    "battery_sha256",
+    "session_id",
+    "agent",
+    "started_at",
+    "completed_at",
+    "seed",
+    "metrics",
+    "parameters",
+    "model_fits",
+    "observations",
+    "limitations"
+  ],
+  "title": "Report",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
