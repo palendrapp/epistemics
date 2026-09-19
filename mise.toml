@@ -4,7 +4,7 @@ pnpm = "11.20.0"
 uv = "0.10.12"
 
 [tasks.setup]
-run = ["uv sync --locked"]
+run = ["uv sync --locked", "pnpm install --frozen-lockfile"]
 
 [tasks.dev]
 run = "uv run epistemics-mcp"
@@ -13,10 +13,10 @@ run = "uv run epistemics-mcp"
 run = "uv run epistemics demo --output output/demo-report.json"
 
 [tasks.test]
-run = ["uv run pytest"]
+run = ["uv run pytest", "pnpm test"]
 
 [tasks.check]
-run = ["uv run ruff check .", "uv run ruff format --check .", "uv run pytest"]
+run = ["uv run ruff check .", "uv run ruff format --check .", "uv run pytest", "pnpm check"]
 
 [tasks.format]
-run = ["uv run ruff check --fix .", "uv run ruff format ."]
+run = ["uv run ruff check --fix .", "uv run ruff format .", "pnpm --filter @epistemics/solana format"]

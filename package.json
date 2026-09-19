@@ -1,0 +1,12 @@
+{
+  "name": "epistemics-workspace",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "check": "pnpm --filter @epistemics/solana check",
+    "test": "pnpm --filter @epistemics/solana test",
+    "record": "node --import tsx packages/solana/src/cli.ts"
+  },
+  "devDependencies": { "tsx": "^4.19.0" }
+}

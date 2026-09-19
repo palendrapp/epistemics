@@ -1,0 +1,27 @@
+{
+  "name": "@epistemics/solana",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "record": "node --import tsx src/cli.ts",
+    "check": "tsc --noEmit && biome check . && node --import tsx --test test/*.test.ts",
+    "format": "biome check --write .",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@solana/kit": "^8.2.0",
+    "@solana/kit-plugin-rpc": "^0.19.0",
+    "@solana-program/memo": "^0.14.1",
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
