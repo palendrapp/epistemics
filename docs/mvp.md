@@ -10,4 +10,6 @@ The discovery battery adds ten checkpoints with source archives, inferred relati
 
 Matched discovery studies support frozen assignments, isolated collection and held-out inference checks.
 
+Draft passports add human/agent metadata and six interpretable, task-conditional dimensions with evidence pointers.
+
 The next release adds broader profiling, shared participant interfaces and identity-linked issuance. Current results remain task-conditional, and synthetic validation does not establish real-agent traits.

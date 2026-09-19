@@ -1,0 +1,5 @@
+{
+  "schema_version": "epistemics.participant.v1",
+  "kind": "human",
+  "subject_id": "local:example-participant"
+}

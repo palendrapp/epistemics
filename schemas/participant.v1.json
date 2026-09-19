@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    }
+  },
+  "description": "Standalone schema/validator for the discriminated participant union.",
+  "discriminator": {
+    "mapping": {
+      "agent": "#/$defs/AgentParticipant",
+      "human": "#/$defs/HumanParticipant"
+    },
+    "propertyName": "kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AgentParticipant"
+    },
+    {
+      "$ref": "#/$defs/HumanParticipant"
+    }
+  ],
+  "title": "ParticipantDescriptor",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

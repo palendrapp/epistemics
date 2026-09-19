@@ -1,0 +1,114 @@
+"""Passport contracts are additive; signed legacy report bytes remain untouched."""
+
+from typing import Literal
+
+from pydantic import AwareDatetime, Field, model_validator
+
+from epistemics.models import Model
+from epistemics.participants import Digest, SessionContext
+
+DimensionId = Literal[
+    "evidence_weighting",
+    "source_judgment",
+    "belief_revision",
+    "dependence_and_causal_reasoning",
+    "uncertainty_and_calibration",
+    "decision_consistency",
+]
+DIMENSIONS = {
+    "evidence_weighting": "Evidence weighting",
+    "source_judgment": "Source judgment",
+    "belief_revision": "Belief revision",
+    "dependence_and_causal_reasoning": "Dependence and causal reasoning",
+    "uncertainty_and_calibration": "Uncertainty and calibration",
+    "decision_consistency": "Decision consistency",
+}
+
+
+class EvidenceReference(Model):
+    artifact_id: Literal["source-report"] = "source-report"
+    json_pointer: str = Field(pattern=r"^/")
+
+
+class Measurement(Model):
+    label: str
+    value: float
+    unit: str
+    reference: float | None = None
+    interval_95: tuple[float, float] | None = None
+    method: str
+    evidence: list[EvidenceReference] = Field(min_length=1)
+    limitations: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def interval_order(self):
+        if self.interval_95 is not None and self.interval_95[0] > self.interval_95[1]:
+            raise ValueError("Interval endpoints must be ordered")
+        return self
+
+
+class ObservationExample(Model):
+    description: str
+    evidence: list[EvidenceReference] = Field(min_length=1)
+
+
+class Dimension(Model):
+    dimension_id: DimensionId
+    title: str
+    evidence_status: Literal["provisional", "insufficient_evidence"]
+    summary: str
+    measurements: list[Measurement] = Field(default_factory=list)
+    examples: list[ObservationExample] = Field(default_factory=list)
+    limitations: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def observed(self):
+        if self.evidence_status == "provisional" and not (self.measurements or self.examples):
+            raise ValueError("A provisional dimension needs observations")
+        return self
+
+
+class CandidateSupport(Model):
+    dimension_id: DimensionId
+    status: Literal["untested"] = "untested"
+    hypothesis: str
+    support: str
+    evaluation_needed: str
+    evidence: list[EvidenceReference] = Field(min_length=1)
+
+
+class SourceArtifact(Model):
+    artifact_id: Literal["source-report"] = "source-report"
+    schema_version: Literal["epistemics.report.v1", "epistemics.report.v2", "epistemics.report.v3"]
+    sha256: Digest
+    access: Literal["private_local"] = "private_local"
+    validation: Literal["schema_only_not_execution_verified"] = "schema_only_not_execution_verified"
+
+
+class Passport(Model):
+    schema_version: Literal["epistemics.passport.v1"] = "epistemics.passport.v1"
+    passport_version: Literal["passport/0.1.0"] = "passport/0.1.0"
+    interpretation_version: Literal["passport-interpretation/0.1.0"] = (
+        "passport-interpretation/0.1.0"
+    )
+    passport_id: Digest
+    created_at: AwareDatetime
+    issuance_status: Literal["draft_unsigned"] = "draft_unsigned"
+    scope: Literal["single_report_partial_profile"] = "single_report_partial_profile"
+    context: SessionContext
+    source: SourceArtifact
+    dimensions: list[Dimension] = Field(min_length=6, max_length=6)
+    support_candidates: list[CandidateSupport] = Field(default_factory=list)
+    limitations: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def complete_dimensions(self):
+        if [d.dimension_id for d in self.dimensions] != list(DIMENSIONS):
+            raise ValueError("Include each of the six dimensions once, in canonical order")
+        if self.context.completion != "complete":
+            raise ValueError("This importer requires a completed source evaluation")
+        return self
+
+
+def read_passport(raw: bytes) -> Passport:
+    return Passport.model_validate_json(raw)

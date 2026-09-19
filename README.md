@@ -12,6 +12,8 @@ The discovery battery adds ten checkpoints with source archives, inferred relati
 
 Matched discovery studies support frozen assignments, isolated collection and held-out inference checks.
 
+Draft passports add human/agent metadata and six interpretable, task-conditional dimensions with evidence pointers.
+
 ## Development
 
 Use `uv sync --locked` and `pnpm install --frozen-lockfile`. Run `mise run check` for the offline checks.

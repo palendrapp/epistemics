@@ -34,6 +34,9 @@ def demo(seed: int = 42, prior_weight: float = 1, evidence_weight: float = 1) ->
 def main() -> None:
     parser = argparse.ArgumentParser(description="Epistemics local evaluator")
     commands = parser.add_subparsers(dest="command", required=True)
+    from epistemics.passport.cli import add_commands as add_passport_commands
+
+    add_passport_commands(commands)
     run = commands.add_parser("demo", help="Run a synthetic reference agent, offline")
     run.add_argument("--seed", type=int, default=42)
     run.add_argument("--prior-weight", type=float, default=1)
@@ -90,7 +93,17 @@ def main() -> None:
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
     check.add_argument("path", type=Path)
     args = parser.parse_args()
+    if args.command == "passport":
+        from epistemics.passport.cli import run as run_passport
+
+        try:
+            run_passport(args)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
+        return
     if args.command == "validate":
+        from epistemics.participants import ParticipantDescriptor, SessionContext
+        from epistemics.passport.models import Passport
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         data = json.loads(args.path.read_bytes())
@@ -101,12 +114,17 @@ def main() -> None:
             "epistemics.study.v1": StudyManifest,
             "epistemics.study-episode.v1": EpisodeReport,
             "epistemics.study-profile.v1": StudyProfile,
+            "epistemics.participant.v1": ParticipantDescriptor,
+            "epistemics.session-context.v1": SessionContext,
+            "epistemics.passport.v1": Passport,
         }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
         print("Valid report structure")
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.command == "schema":
+        from epistemics.participants import ParticipantDescriptor, SessionContext
+        from epistemics.passport.models import Passport
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         for contract, path in [
@@ -116,6 +134,9 @@ def main() -> None:
             (StudyManifest, args.output.with_name("study.v1.json")),
             (EpisodeReport, args.output.with_name("study-episode.v1.json")),
             (StudyProfile, args.output.with_name("study-profile.v1.json")),
+            (ParticipantDescriptor, args.output.with_name("participant.v1.json")),
+            (SessionContext, args.output.with_name("session-context.v1.json")),
+            (Passport, args.output.with_name("passport.v1.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"
