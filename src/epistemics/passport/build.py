@@ -139,7 +139,9 @@ def belief_dimensions(report, data):
         ],
         examples=[
             example(
-                f"At prior {o.trial.stimulus['prior_h']:.0%}, reported probability was {o.answer.probability:.1%}; the disclosed model gives {o.truth['reference']:.1%}. This is the trial with the largest absolute reference discrepancy.",
+                f"At prior {o.trial.stimulus['prior_h']:.0%}, reported probability was "
+                f"{o.answer.probability:.1%}; the disclosed model gives {o.truth['reference']:.1%}. "
+                "This is the trial with the largest absolute reference discrepancy.",
                 f"/observations/{index}",
             )
         ],
@@ -170,7 +172,8 @@ def belief_dimensions(report, data):
     fits = report.model_fits
     dims["belief_revision"] = dimension(
         "belief_revision",
-        "A fixed learning-rate rule and a changing-regime model describe this sequence. Their errors on held-out reports indicate fit, not which internal mechanism was used.",
+        "A fixed learning-rate rule and a changing-regime model describe this sequence. "
+        "Their errors on held-out reports indicate fit, not which internal mechanism was used.",
         measurements=[
             Measurement(
                 label=name.replace("_", " "),
@@ -194,7 +197,8 @@ def belief_dimensions(report, data):
     )
     dims["uncertainty_and_calibration"] = dimension(
         "uncertainty_and_calibration",
-        "Forecast scores are available for the 24 evidence-integration trials. This run does not establish general calibration or overconfidence.",
+        "Forecast scores are available for the 24 evidence-integration trials. "
+        "This run does not establish general calibration or overconfidence.",
         measurements=[
             metric(
                 data,
@@ -219,10 +223,11 @@ def belief_dimensions(report, data):
 
 
 def company_change(report, index, field="growth_probability"):
-    before, after = (report.observations[index - 1], report.observations[index])
-    p, q = (getattr(before.answer, field), getattr(after.answer, field))
+    before, after = report.observations[index - 1], report.observations[index]
+    p, q = getattr(before.answer, field), getattr(after.answer, field)
     return example(
-        f"In {after.trial.episode_id}, {field.replace('_', ' ')} moved from {p:.1%} to {q:.1%} at step {after.trial.step} ({(q - p) * 100:+.1f} pp).",
+        f"In {after.trial.episode_id}, {field.replace('_', ' ')} moved "
+        f"from {p:.1%} to {q:.1%} at step {after.trial.step} ({(q - p) * 100:+.1f} pp).",
         f"/observations/{index - 1}/answer/{field}",
         f"/observations/{index}",
     )
@@ -235,9 +240,12 @@ def company_dimensions(report, data):
     negative = report.parameters["negative_weight"].estimate
     dims["evidence_weighting"] = dimension(
         "evidence_weighting",
-        f"Under the weighted-evidence model, favorable evidence weight was {positive:.3f} and unfavorable evidence weight was {negative:.3f}; the reference is 1 for each."
-        if fit.identified
-        else "This run does not separate the weighted-evidence parameters; no directional interpretation is assigned.",
+        (
+            f"Under the weighted-evidence model, favorable evidence weight was {positive:.3f} "
+            f"and unfavorable evidence weight was {negative:.3f}; the reference is 1 for each."
+            if fit.identified
+            else "This run does not separate the weighted-evidence parameters; no directional interpretation is assigned."
+        ),
         measurements=[
             parameter(report, "positive_weight", "Favorable evidence weight"),
             parameter(report, "negative_weight", "Unfavorable evidence weight"),
@@ -302,7 +310,7 @@ def company_dimensions(report, data):
                 "pp",
                 scale=100,
                 reference=0,
-            )
+            ),
         ]
         + (
             [parameter(report, "duplicate_weight", "Duplicate-counting coefficient", reference=0)]
@@ -390,7 +398,8 @@ def discovery_dimensions(report, data):
             p, index = last_sources[name]
             source_examples.append(
                 example(
-                    f"Reported accuracy for {name} was {p:.1%} at checkpoint {index} and {q:.1%} at audit checkpoint {audit}; other evidence arrived between probes.",
+                    f"Reported accuracy for {name} was {p:.1%} at checkpoint {index} "
+                    f"and {q:.1%} at audit checkpoint {audit}; other evidence arrived between probes.",
                     f"/observations/{index}/answer/source_accuracy",
                     f"/observations/{audit}/answer/source_accuracy",
                 )
@@ -463,7 +472,8 @@ def discovery_dimensions(report, data):
         ],
         examples=[
             example(
-                f"Final 80% growth interval: [{final.p10:.2f}%, {final.p90:.2f}%]; realized growth: {report.private_case.realized_growth_pct:.2f}%.",
+                f"Final 80% growth interval: [{final.p10:.2f}%, {final.p90:.2f}%]; "
+                f"realized growth: {report.private_case.realized_growth_pct:.2f}%.",
                 "/observations/9/answer/growth_quantiles_pct",
                 "/private_case/realized_growth_pct",
             )
@@ -483,6 +493,10 @@ def discovery_dimensions(report, data):
 
 def build_passport(raw: bytes, *, response_origin="unspecified", created_at=None) -> Passport:
     data = json.loads(raw)
+    if isinstance(data, dict) and data.get("schema_version") == "epistemics.report.v4":
+        from epistemics.live.passport import build_core_passport
+
+        return build_core_passport(raw, response_origin=response_origin, created_at=created_at)
     contract = CONTRACTS.get(data.get("schema_version")) if isinstance(data, dict) else None
     if contract is None:
         raise ValueError(
@@ -526,7 +540,7 @@ def build_passport(raw: bytes, *, response_origin="unspecified", created_at=None
     supports = []
     if isinstance(report, Report):
         p = report.parameters["evidence_weight"]
-        if p.estimate < 0.9995 and p.interval_95 is not None and (p.interval_95[1] < 1):
+        if p.estimate < 0.9995 and p.interval_95 is not None and p.interval_95[1] < 1:
             supports.append(
                 CandidateSupport(
                     dimension_id="evidence_weighting",
@@ -548,6 +562,7 @@ def build_passport(raw: bytes, *, response_origin="unspecified", created_at=None
         support_candidates=supports,
         limitations=LIMITATIONS + report.limitations,
     )
+    # Every displayed observation/statistic has a resolvable location in the exact source artifact.
     for item in passport.dimensions:
         for entry in [*item.measurements, *item.examples]:
             for ref in entry.evidence:

@@ -110,5 +110,23 @@ class Passport(Model):
         return self
 
 
-def read_passport(raw: bytes) -> Passport:
-    return Passport.model_validate_json(raw)
+class CoreSourceArtifact(SourceArtifact):
+    schema_version: Literal["epistemics.report.v4"] = "epistemics.report.v4"
+
+
+class CorePassport(Passport):
+    schema_version: Literal["epistemics.passport.v2"] = "epistemics.passport.v2"
+    passport_version: Literal["passport/0.2.0"] = "passport/0.2.0"
+    interpretation_version: Literal["passport-interpretation/0.2.0"] = (
+        "passport-interpretation/0.2.0"
+    )
+    scope: Literal["core_battery_provisional_profile"] = "core_battery_provisional_profile"
+    source: CoreSourceArtifact
+
+
+def read_passport(raw: bytes) -> Passport | CorePassport:
+    import json
+
+    data = json.loads(raw)
+    contract = CorePassport if data.get("schema_version") == "epistemics.passport.v2" else Passport
+    return contract.model_validate(data)

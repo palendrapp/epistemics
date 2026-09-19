@@ -10,12 +10,12 @@ from epistemics.passport.render import render_html, render_markdown
 def add_commands(commands):
     parser = commands.add_parser("passport", help="Create and inspect a local draft passport")
     actions = parser.add_subparsers(dest="passport_command", required=True)
-    create = actions.add_parser("create", help="Derive a draft from a completed v1–v3 report")
+    create = actions.add_parser("create", help="Derive a draft from a completed v1–v4 report")
     create.add_argument("--report", type=Path, required=True)
     create.add_argument("--output", type=Path, default=Path("output/passport"))
     create.add_argument(
         "--response-origin",
-        choices=["agent", "synthetic", "unspecified"],
+        choices=["agent", "human", "synthetic", "unspecified"],
         default="unspecified",
         help="Operator assertion; legacy reports do not record whether responses were synthetic",
     )

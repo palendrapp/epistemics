@@ -10,7 +10,7 @@ A second purpose is cognitive security: use the explicit model to identify where
 
 “Phenotype” means observed tendencies across the declared evaluation conditions. The ambition is broad coverage of epistemic behavior. Every issued passport must make its actual coverage clear: a finite evaluation cannot fully characterize an agent in every setting, and elicited probabilities are observations rather than direct access to internal beliefs.
 
-
+This document defines the product direction. The repository implements a [shared core battery and human/MCP interfaces](live-core.md), draft passports, and legacy signed-report components. Broader phenotype coverage and the identity-linked issuance flow remain proposed.
 
 ## The experience
 
@@ -21,11 +21,11 @@ A second purpose is cognitive security: use the explicit model to identify where
 5. Let consumers verify provenance, inspect scope and compare compatible passports. Re-evaluate changed configurations and retain evaluation history.
 6. Where authorized, use the profile to select support, compare assisted and baseline performance on fresh cases, and record the conditions under which that support helps.
 
-
+The intended public surface is one evaluation command or API operation and one resulting passport. `epistemics serve` and the dedicated core MCP adapter now run a combined 34-checkpoint evaluation and produce a draft. `epistemics passport create` also derives drafts from existing reports. Signing and publication remain separate work.
 
 ## Same evaluation for humans and agents
 
-
+Human participation is a requirement of the shared evaluator design. Core 0.1 now serves the same public scenarios, evidence sequence, response semantics and scoring through a human browser interface and agent MCP adapter. The participant/session boundary supports both kinds without requiring humans to supply model/version fields. The original agent report contracts remain unchanged; the shared workflow uses report.v4 and passport.v2.
 
 The human interface adds task instructions, practice, response controls, progress and pause/resume. It must not silently supply extra hints, evidence or feedback. Record interface, tools, assistance, time and context policies so comparisons have a clear scope. The same behavioral model can describe responses from both kinds of participant while its interpretation and population references require separate support.
 
@@ -105,7 +105,7 @@ The current client signs individual v1–v3 evaluation reports and supports devn
 
 ## Next implementation boundary
 
-
+The draft profile contract, renderer and shared 34-checkpoint core workflow are implemented. Coverage gaps and synthetic demonstrations are explicit. Next, run actual humans and fresh agents through their respective interfaces to check whether the questions and profiles are understandable, useful and reasonably repeatable. Use that feedback to revise the bounded composition and add discriminating contrasts.
 
 The draft contract includes untested support candidates, with an initial evidence-ledger suggestion rule. After the baseline workflow, implement one bounded comparison of a targeted support against no assistance and generic assistance, using the same report and configuration discipline.
 

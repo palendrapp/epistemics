@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "epistemics-core": {
+      "command": "/ABSOLUTE/PATH/epistemics/.venv/bin/python",
+      "args": ["-m", "epistemics.live.mcp_server"],
+      "env": {
+        "EPISTEMICS_LIVE_DB": "/ABSOLUTE/PATH/epistemics/.epistemics/live.sqlite3"
+      }
+    }
+  }
+}

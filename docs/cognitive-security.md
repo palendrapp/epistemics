@@ -2,7 +2,7 @@
 
 ## Purpose
 
-
+The epistemic passport should support a second use: choosing and evaluating interventions that help a decision maker use evidence effectively and remain resilient to misleading information. The [shared core](live-core.md) now accepts human and agent responses through browser and MCP interfaces. Human usability, appropriate task burden and interpretation rules still need real participant feedback; the intervention layer remains proposed in the [roadmap](mvp.md).
 
 The product loop is **evaluate → model → select support → test → record what helps**. An interpretable profile is useful both for deciding how to work with someone and for choosing how to support them.
 

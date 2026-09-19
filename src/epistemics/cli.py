@@ -37,6 +37,12 @@ def main() -> None:
     from epistemics.passport.cli import add_commands as add_passport_commands
 
     add_passport_commands(commands)
+    serve = commands.add_parser("serve", help="Run the shared core evaluation in a local browser")
+    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--database", type=Path, default=Path(".epistemics/live.sqlite3"))
+    serve.add_argument(
+        "--synthetic-demo", action="store_true", help="Label all collected responses synthetic"
+    )
     run = commands.add_parser("demo", help="Run a synthetic reference agent, offline")
     run.add_argument("--seed", type=int, default=42)
     run.add_argument("--prior-weight", type=float, default=1)
@@ -93,6 +99,13 @@ def main() -> None:
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
     check.add_argument("path", type=Path)
     args = parser.parse_args()
+    if args.command == "serve":
+        from epistemics.live.web import serve as serve_core
+
+        if not 0 <= args.port <= 65535:
+            parser.error("Port must be between 0 and 65535")
+        serve_core(args.port, args.database, synthetic=args.synthetic_demo)
+        return
     if args.command == "passport":
         from epistemics.passport.cli import run as run_passport
 
@@ -102,41 +115,52 @@ def main() -> None:
             parser.error(str(error))
         return
     if args.command == "validate":
+        from epistemics.live.models import CoreReport
         from epistemics.participants import ParticipantDescriptor, SessionContext
-        from epistemics.passport.models import Passport
+        from epistemics.passport.models import CorePassport, Passport
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         data = json.loads(args.path.read_bytes())
         contract = {
-            "epistemics.report.v1": Report,
             "epistemics.report.v2": CompanyReport,
             "epistemics.report.v3": DiscoveryReport,
+            "epistemics.report.v4": CoreReport,
             "epistemics.study.v1": StudyManifest,
             "epistemics.study-episode.v1": EpisodeReport,
             "epistemics.study-profile.v1": StudyProfile,
             "epistemics.participant.v1": ParticipantDescriptor,
             "epistemics.session-context.v1": SessionContext,
             "epistemics.passport.v1": Passport,
+            "epistemics.passport.v2": CorePassport,
         }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
-        print("Valid report structure")
+        if isinstance(report, ParticipantDescriptor):
+            report = report.root
+        identifier = getattr(
+            report, "session_id", getattr(report, "study_id", getattr(report, "passport_id", ""))
+        )
+        print(f"Valid {report.schema_version}: {identifier}")
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.command == "schema":
+        from epistemics.live.models import CoreReport, CoreTrial
         from epistemics.participants import ParticipantDescriptor, SessionContext
-        from epistemics.passport.models import Passport
+        from epistemics.passport.models import CorePassport, Passport
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         for contract, path in [
             (Report, args.output),
             (CompanyReport, args.output.with_name("report.v2.json")),
             (DiscoveryReport, args.output.with_name("report.v3.json")),
+            (CoreReport, args.output.with_name("report.v4.json")),
+            (CoreTrial, args.output.with_name("core-trial.v1.json")),
             (StudyManifest, args.output.with_name("study.v1.json")),
             (EpisodeReport, args.output.with_name("study-episode.v1.json")),
             (StudyProfile, args.output.with_name("study-profile.v1.json")),
             (ParticipantDescriptor, args.output.with_name("participant.v1.json")),
             (SessionContext, args.output.with_name("session-context.v1.json")),
             (Passport, args.output.with_name("passport.v1.json")),
+            (CorePassport, args.output.with_name("passport.v2.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"

@@ -12,4 +12,6 @@ Matched discovery studies support frozen assignments, isolated collection and he
 
 Draft passports add human/agent metadata and six interpretable, task-conditional dimensions with evidence pointers.
 
+The shared core provides 34 checkpoints through a human browser and dedicated MCP adapter. Run `uv run epistemics serve` to begin locally.
+
 The next release adds broader profiling, shared participant interfaces and identity-linked issuance. Current results remain task-conditional, and synthetic validation does not establish real-agent traits.

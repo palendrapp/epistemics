@@ -41,7 +41,7 @@ uv run epistemics schema
 | `epistemics.session-context.v1` | Common public metadata: participant, protocol, recorded conditions, completion, timestamps and response origin. Contains no evaluator seed, hidden truth or future tasks. |
 | `epistemics.passport.v1` | One completed source report, six profile dimensions, evidence pointers, source byte digest and optional untested supports. Always a private, unsigned draft with partial profile coverage in this release. |
 
-
+Python models live in `participants.py` and `passport/models.py`; `epistemics schema` exports their schemas alongside the unchanged legacy schemas. This document describes the original single-report passport release. The subsequent [core 0.1 release](live-core.md) adds shared live collection through browser and MCP, using report.v4 and passport.v2. Human interpretation thresholds remain unestablished.
 
 Missing condition metadata is represented as unknown (`null` or `unspecified`), not inferred. In particular, importing an agent report does not establish which interface or tools were used. Existing report versions, source bytes, task generation, fitting methods and record signatures are preserved. New interpretation behavior is versioned as `passport-interpretation/0.1.0`; the battery/evaluator versions remain unchanged because this release does not change experimental behavior.
 
@@ -59,7 +59,7 @@ Example selection is explicit: the original evidence task shows its largest refe
 
 The first untested support rule suggests an evidence ledger when the original battery's evidence weight is below reference to displayed precision and its within-run interval is wholly below 1. This is a candidate selected under the fitted model, not evidence that the intervention helps. No intervention benefit estimate is produced.
 
-
+The v1 passport adapter accepts one v1–v3 report at a time. The CLI also supports core v4 reports through a separate passport.v2 adapter. Neither combines configurations or aggregates sessions. Matched-study profiles need their manifest/episode context and are not imported. The existing Solana signer accepts legacy reports only, not either passport format. Publishing and identity association remain roadmap work.
 
 ## Privacy and inspection
 
