@@ -117,7 +117,12 @@ def test_observers_only_use_public_inputs_and_reweight_old_evidence(trials, monk
     assert abs(before.growth_probability - after.growth_probability) > 1e-6
     assert abs(before.source_accuracy["morrow"] - after.source_accuracy["morrow"]) > 1e-6
     # With source uncertainty removed the unrelated archive update cannot move the company.
-    assert forecast(trials[5], model="fixed_sources") == forecast(trials[6], model="fixed_sources")
+    fixed_before = forecast(trials[5], model="fixed_sources").model_dump()
+    fixed_after = forecast(trials[6], model="fixed_sources").model_dump()
+    # BLAS implementations can differ in the final floating-point bits. Check every
+    # field with a tolerance far smaller than the meaningful audit changes above.
+    for field, expected in fixed_before.items():
+        assert fixed_after[field] == pytest.approx(expected, rel=0, abs=1e-12)
     for step in range(10):
         q = posterior(trials[step])
         assert np.isfinite(q).all() and q.sum() == pytest.approx(1)
