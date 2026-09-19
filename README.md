@@ -10,7 +10,7 @@ The [product brief](docs/epistemic-passport.md) defines the experience and dimen
 
 The broader purpose includes [cognitive security and targeted support](docs/cognitive-security.md): use an explicit model to propose interventions, test whether they improve decisions, and record what helps under which conditions. The shared evaluator accepts humans and agents; the intervention layer is proposed.
 
-Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) puts a [predictive-usefulness pilot](docs/predictive-usefulness-pilot.md) alongside identity integration: predict behavior on unseen evidence sequences, then test whether profile-guided assistance improves decisions relative to cost. Actual human/fresh-agent core acceptance remains pending. Later stages add active information acquisition, continuous observation, historical replay, team coordination and paid verified contributions. These are proposed capabilities, not current results.
+Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) puts a [predictive-usefulness pilot](docs/predictive-usefulness-pilot.md) alongside identity integration: predict behavior on unseen evidence sequences, then test whether profile-guided assistance improves decisions relative to cost. The [provenance pilot's first slice](docs/provenance-pilot-v1.md) now supplies a matched-case generator and synthetic validation; real collection and intervention results remain pending. Actual human/fresh-agent core acceptance also remains pending. Later proposed stages add active information acquisition, continuous observation, historical replay, team coordination and paid verified contributions.
 
 ## Implemented components
 
@@ -22,6 +22,7 @@ Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser inte
 | Agent interface | Five MCP tools over stdio; persistent SQLite sessions; immutable answers; retry/resume support |
 | Analysis | Original/company fits; discovery source learning and joint inference, conditional observer comparisons, matched input/output recovery |
 | Matched studies | Frozen assignments, fresh-process MCP collection, joint parameter fitting, held-out predictions and uncertainty reports |
+| Provenance pilot | Separate matched independent/copied-evidence design; profile/policy/held-out partitions; synthetic recovery, structural prediction and a nonlinear negative control |
 | Records | Versioned JSON Schema, complete transcript and replay seed, report byte hash, detached Ed25519 evaluator signature |
 | Passport attestations | Offline signing of agent core passports; exact-byte artifact/configuration binding, explicit issuer trust and validity checks; JSON CLI output |
 | Solana client | Kit-based Memo transaction construction, devnet simulation/submission, finalized inclusion verification |
@@ -104,6 +105,8 @@ pnpm passport-record verify --passport output/core-passport.json --attestation o
 These commands require saved artifacts from a completed agent core session. They preserve draft/synthetic labels and send no transactions. See [issuance semantics and verification limits](docs/passport-attestation.md). Human passports remain private and are not accepted by this signer.
 
 ## Evaluate an agent through MCP
+
+To design and validate the new provenance pilot offline, see [the versioned protocol and commands](docs/provenance-pilot-v1.md). Its operator preview is not a subject-facing MCP session; real-agent collection for that protocol is the next implementation step.
 
 For the new shared core, use [the dedicated core adapter](docs/live-core.md#connect-an-agent). The following commands describe the unchanged legacy batteries.
 

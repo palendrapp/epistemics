@@ -1,6 +1,6 @@
 # Predictive usefulness pilot
 
-Status: proposed next measurement milestone. This document defines a bounded product demonstration, not results or an implemented protocol. The existing core, discovery models and recovery tools are starting components. Any new collection behavior needs a version review and recovery validation before use.
+Status: first software slice implemented as [provenance pilot 0.1](provenance-pilot-v1.md): matched-case generator, frozen three-way design, public checkpoint views, behavioral fitting and synthetic validation. Real-agent collection, intervention comparisons and empirical predictive usefulness remain pending. This document defines the full product demonstration; the implementation specification makes its narrower current scope explicit.
 
 ## Product question
 
@@ -12,7 +12,7 @@ This demonstrates the proposed loop: **measure → predict → choose support �
 
 Use several distinct agent configurations with repeated runs and multiple fictional company cases. Define a configuration by model/revision, prompt, tools, sampling settings and context/memory policy. Hold it fixed within a comparison. Complete the current core's real human/fresh-agent usability acceptance separately; the initial predictive pilot concerns agents and supplies no human population norms.
 
-Build matched evidence sequences in which apparent corroboration comes either from independent observations or from copies of a common source. Cross evidence direction and strength, preserving substantive content where the manipulation requires it. Include uncertain provenance and corrections only as separately specified contrasts. The first claim concerns the declared dependence contrast; it does not establish a general vulnerability to adversarial content.
+The implemented generator builds matched evidence sequences in which apparent corroboration comes either from independent observations or from copies of a common source. It crosses evidence direction and track-record strength, preserving substantive content within pairs. Provenance is explicit; uncertain provenance and corrections remain separate future contrasts. The first claim concerns the declared dependence contrast; it does not establish a general vulnerability to adversarial content.
 
 Participants receive public task material, provenance cues and declared decision payoffs. Evaluator truth, seeds, future evidence and assignment remain private during a run. Preserve accepted answers, idempotent retries and attempted-run records. Collect reported probabilities/confidence and decisions; neither explanations nor reported probabilities provide direct access to internal beliefs.
 
@@ -22,11 +22,13 @@ Participants receive public task material, provenance cues and declared decision
 | --- | --- | --- |
 | Profile estimation | Fit a behavioral model for each configuration and quantify uncertainty | Do not use later test responses to revise the fitted profile |
 | Policy development | Choose prediction models, intervention-selection rules, thresholds and budgets | Freeze these choices before opening the final test outcomes |
-| Held-out evaluation | Score frozen predictions and compare assistance policies | New case families/evidence structures, not merely reskins or reused seeds of fitting cases |
+| Held-out evaluation | Score frozen predictions and compare assistance policies | New evidence structures with separate case groups; current graph/cover-story transfer stays within one binary-source model |
 
 Use repeated runs to estimate variability, and declare which kinds of transfer the held-out cases test. Record all configuration attempts, failures and exclusions. Reusing final-test cases for revisions turns them into development data and requires a new held-out set.
 
 Before final-test collection, freeze an evaluation manifest with case partitions, configurations, primary endpoints, comparator policies, sample/run budget, stopping rule, exclusions and minimum useful effect. Set numerical thresholds from a costed design and development-run variance estimates; do not choose them after seeing final-test results. Those quantities are open design decisions, not implied by this roadmap.
+
+The current operator manifest fixes 72 episodes / 360 checkpoints per configuration at one replicate and supplies engineering tolerances for synthetic validation. It does not yet fix real-agent configurations, inference cost, an empirical minimum useful effect or an assistance policy. The policy-development partition is generated but reserved from the current fitter and prediction comparisons.
 
 ## Two separate tests
 

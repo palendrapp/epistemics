@@ -18,7 +18,7 @@ The [product brief](epistemic-passport.md) defines the intended dimensions. The 
 | Profile | Deterministic HTML/Markdown/JSON; six dimensions; source references and explicit provisional/insufficient coverage | Broader scenarios and contrasts; stable metric identifiers for consumer policies |
 | Collection | Transactional state, immutable answers, idempotent retry/resume, private evaluator state, byte-stable completion | Hosted tenant boundaries and evaluator/subject execution isolation |
 | Validation | Synthetic recovery; matched discovery assignments, fresh-process collection and held-out prediction tooling | Real-agent evidence for intended product claims and task selection utility |
-| Predictive usefulness | Tools for developing and checking models | Demonstrate that individual profiles predict unseen behavior beyond simple baselines and improve a subsequent choice |
+| Predictive usefulness | Separate provenance pilot: frozen three-way matched design, public checkpoint generator, effective reporting-weight fits and synthetic structural-holdout validation | Sequential real-agent collection, empirical prediction beyond simple baselines and a demonstrated support-selection benefit |
 | Passport signature | Offline passport-attestation.v1 for agent core passport.v2; exact-byte hashes, explicit issuer, validity window and machine verification output | Registry association, availability, withdrawal/correction status and policy decisions |
 | Legacy Solana records | v1–v3 report signatures, devnet Memo construction/simulation/submission and finalized inclusion verifier | Validator/live-network validation; current RPC integration coverage is mocked |
 | Commerce | Source-reviewed integration and commercial design | x402 gateway, durable payment/job ledger, pricing evidence and paying pilot |
@@ -40,7 +40,7 @@ Stages 1 and 2 proceed together. The shared core's actual human/fresh-agent usab
 
 ## Next demonstration: predict a failure and use the prediction
 
-The [predictive-usefulness pilot](predictive-usefulness-pilot.md) is the next bounded measurement deliverable. Evaluate several agent configurations, estimate their response to genuinely independent versus copied evidence, and predict their updates on unseen company cases. Then use the frozen profiles to select an evidence ledger or independent review, and test whether that choice improves new decisions relative to its cost.
+The [predictive-usefulness pilot](predictive-usefulness-pilot.md) is the next bounded measurement deliverable. Its [first software slice](provenance-pilot-v1.md) now implements the case generator and synthetic checks; no real predictive claim or intervention result has been collected. Next add sequential collection, evaluate several agent configurations, estimate their response to genuinely independent versus copied evidence, and predict their updates on unseen company cases. Then use frozen profiles to select an evidence ledger or independent review, and test whether that choice improves decisions relative to cost.
 
 Keep profile estimation, policy development and final evaluation cases separate. Compare individualized predictions with pooled behavior, persistence and simple calibration/performance summaries. Compare profile-guided assistance with no assistance, generic review and an untailored assistance policy under declared budgets. Test favorable and unfavorable evidence, including cases where little updating is appropriate. Report predictive performance separately from forecasting/decision quality.
 
@@ -92,4 +92,4 @@ The later [contribution network](agent-economy.md#paid-contributions--later-expa
 - Browser/MCP evaluation, draft rendering and offline signatures are implemented. Public hosting, lifecycle status, registry binding and payments are not.
 - Human use remains private by default and does not require a wallet. Identity-linked publication is a separate choice.
 - Legacy report.v1–v3 record signing and Memo semantics remain unchanged. New passport signatures have a separate schema and signature domain.
-- This roadmap revision changes priorities and acceptance criteria only. New tasks, prediction/support selection, production observation, team routing and contributor payments remain proposed; runtime behavior and schemas are unchanged.
+- The separate provenance pilot implements new task generation and synthetic fitting under its own version. Shared-core collection is unchanged. Real-agent pilot collection, support selection, production observation, team routing and contributor payments remain pending.
