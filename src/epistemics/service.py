@@ -11,6 +11,8 @@ from uuid import uuid4
 from epistemics import __version__
 from epistemics.analysis import analyze
 from epistemics.battery import BATTERY_SHA256, BATTERY_VERSION, generate_battery
+from epistemics.company import battery as company_battery
+from epistemics.company.models import CompanyAnswer, CompanyObservation, CompanyReport
 from epistemics.models import AgentDescriptor, Answer, Observation, Report
 
 
@@ -51,12 +53,12 @@ class EvaluationService:
         battery: str = "belief",
         discovery_variant: dict[str, str] | None = None,
     ) -> dict:
-        if battery not in {"belief"}:
+        if battery not in {"belief", "company"}:
             raise ValueError("Unknown battery")
         if discovery_variant is not None and battery != "discovery":
             raise ValueError("discovery_variant applies only to the discovery battery")
         seed = secrets.randbits(52) if seed is None else seed
-        module = {}.get(battery)
+        module = {"company": company_battery}.get(battery)
         version = module.BATTERY_VERSION if module else BATTERY_VERSION
         digest = module.battery_sha256() if module else BATTERY_SHA256
         generate = module.generate_battery if module else generate_battery
@@ -96,9 +98,12 @@ class EvaluationService:
                 "trial": session["trials"][position]["trial"],
             }
 
-    def submit(self, session_id: str, trial_id: str, answer: Answer | Answer | Answer) -> dict:
+    def submit(
+        self, session_id: str, trial_id: str, answer: Answer | CompanyAnswer | Answer
+    ) -> dict:
         with self._session(session_id) as session:
-            expected = Answer
+            is_company = session.get("battery") == "company"
+            expected = CompanyAnswer if is_company else Answer
             if not isinstance(answer, expected):
                 raise ValueError(f"This session requires {expected.__name__}")
             trials, answers = (session["trials"], session["answers"])
@@ -113,8 +118,15 @@ class EvaluationService:
             if current["trial"]["trial_id"] != trial_id:
                 raise ValueError("Answer must reference the current trial")
             requires_source = current["trial"]["task"] == "source_reliability"
-            if True and requires_source != (answer.source_probability is not None):
+            if not is_company and requires_source != (answer.source_probability is not None):
                 raise ValueError("source_probability is required only for source_reliability")
+            if is_company:
+                key = "evidence"
+                available = {e["document_id"] for e in current["trial"][key]}
+                if len(set(answer.evidence_ids)) != len(answer.evidence_ids):
+                    raise ValueError("evidence_ids must not contain duplicates")
+                if not set(answer.evidence_ids) <= available:
+                    raise ValueError("evidence_ids must reference documents already available")
             receipt = {
                 "accepted": True,
                 "trial_id": trial_id,
@@ -128,19 +140,51 @@ class EvaluationService:
             )
             return receipt
 
-    def finish(self, session_id: str) -> Report | Report | Report:
+    def finish(self, session_id: str) -> Report | CompanyReport | Report:
         with self._session(session_id) as session:
-            report_type = Report
+            is_company = session.get("battery") == "company"
+            report_type = CompanyReport if is_company else Report
             if session["report"] is not None:
                 return report_type.model_validate(session["report"])
             if len(session["answers"]) != len(session["trials"]):
                 raise ValueError("Complete every trial before requesting a report")
-            module = {}.get(session.get("battery"))
+            module = {"company": company_battery}.get(session.get("battery"))
             if (
                 session["battery_sha256"] != (module.battery_sha256() if module else BATTERY_SHA256)
                 or session["evaluator_version"] != __version__
             ):
                 raise ValueError("Finish this session using its original evaluator version")
+            if is_company:
+                from epistemics.company.analysis import LIMITATIONS
+                from epistemics.company.analysis import analyze as analyze_company
+
+                observations = [
+                    CompanyObservation(
+                        trial=t["trial"],
+                        truth=t["truth"],
+                        answer=a["answer"],
+                        answered_at=a["answered_at"],
+                    )
+                    for t, a in zip(session["trials"], session["answers"], strict=True)
+                ]
+                metrics, diagnostics, parameters, fits = analyze_company(observations)
+                report = CompanyReport(
+                    evaluator_version=__version__,
+                    battery_sha256=session["battery_sha256"],
+                    session_id=session_id,
+                    agent=session["agent"],
+                    started_at=session["started_at"],
+                    completed_at=now(),
+                    seed=session["seed"],
+                    metrics=metrics,
+                    diagnostics=diagnostics,
+                    parameters=parameters,
+                    model_fits=fits,
+                    observations=observations,
+                    limitations=LIMITATIONS,
+                )
+                session["report"] = report.model_dump(mode="json")
+                return report
             observations = [
                 Observation(
                     trial=t["trial"],

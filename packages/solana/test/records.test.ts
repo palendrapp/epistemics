@@ -44,6 +44,32 @@ const uri = "ipfs://bafy-example-report";
 const signer = await generateKeyPairSigner();
 const record = await createRecord(report, signer, uri);
 
+test("signs and verifies the Python company v2 report without changing the envelope", async () => {
+  const companyReport = execFileSync(
+    python,
+    [
+      "-c",
+      "from epistemics.company.simulation import demo; print(demo().model_dump_json())",
+    ],
+    { cwd: root },
+  );
+  assert.equal(readReport(companyReport).agent.agent_id, "demo:company-policy");
+  const signed = await createRecord(companyReport, signer, uri);
+  assert.deepEqual(await verifyRecord(signed, companyReport), signed);
+  const incomplete = JSON.parse(companyReport.toString());
+  incomplete.observations.pop();
+  assert.throws(
+    () => readReport(Buffer.from(JSON.stringify(incomplete))),
+    /Invalid report/,
+  );
+  const invalid = JSON.parse(companyReport.toString());
+  invalid.observations[0].answer.growth_probability = 2;
+  assert.throws(
+    () => readReport(Buffer.from(JSON.stringify(invalid))),
+    /Invalid report/,
+  );
+});
+
 test("accepts the actual Python report and signs/verifies exact bytes", async () => {
   assert.equal(readReport(report).agent.agent_id, "demo:reference");
   assert.deepEqual(await verifyRecord(record, report), record);

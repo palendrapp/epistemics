@@ -6,6 +6,8 @@ The 88-trial numeric evaluator and persistent stdio MCP interface are available.
 
 Signed report envelopes and a devnet Solana Memo client are available; default RPC tests are mocked.
 
+The company battery adds 54 disclosed-model checkpoints across six fictional businesses.
+
 ## Development
 
 Use `uv sync --locked` and `pnpm install --frozen-lockfile`. Run `mise run check` for the offline checks.

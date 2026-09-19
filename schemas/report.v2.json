@@ -1,0 +1,877 @@
+{
+  "$defs": {
+    "AgentDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "context_policy": {
+          "default": "continuous",
+          "enum": [
+            "continuous",
+            "reset_per_trial",
+            "reset_per_task"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "agent_id",
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentDescriptor",
+      "type": "object"
+    },
+    "CompanyAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "growth_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth Probability",
+          "type": "number"
+        },
+        "margin_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Margin Probability",
+          "type": "number"
+        },
+        "temporary_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Temporary Probability",
+          "type": "number"
+        },
+        "source_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Source Probability",
+          "type": "number"
+        },
+        "growth_quantiles_pct": {
+          "$ref": "#/$defs/GrowthQuantiles"
+        },
+        "decision": {
+          "enum": [
+            "invest",
+            "hold"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "growth_probability",
+        "margin_probability",
+        "temporary_probability",
+        "source_probability",
+        "growth_quantiles_pct",
+        "decision",
+        "evidence_ids"
+      ],
+      "title": "CompanyAnswer",
+      "type": "object"
+    },
+    "CompanyFit": {
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "train_rmse": {
+          "title": "Train Rmse",
+          "type": "number"
+        },
+        "heldout_rmse": {
+          "title": "Heldout Rmse",
+          "type": "number"
+        },
+        "train_episodes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Train Episodes",
+          "type": "array"
+        },
+        "heldout_episodes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Heldout Episodes",
+          "type": "array"
+        },
+        "identified": {
+          "title": "Identified",
+          "type": "boolean"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "parameters",
+        "train_rmse",
+        "heldout_rmse",
+        "train_episodes",
+        "heldout_episodes",
+        "identified",
+        "method"
+      ],
+      "title": "CompanyFit",
+      "type": "object"
+    },
+    "CompanyMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoints": {
+          "title": "Checkpoints",
+          "type": "integer"
+        },
+        "episodes": {
+          "title": "Episodes",
+          "type": "integer"
+        },
+        "brier": {
+          "title": "Brier",
+          "type": "number"
+        },
+        "log_loss": {
+          "title": "Log Loss",
+          "type": "number"
+        },
+        "reference_rmse": {
+          "title": "Reference Rmse",
+          "type": "number"
+        },
+        "final_brier": {
+          "title": "Final Brier",
+          "type": "number"
+        },
+        "final_log_loss": {
+          "title": "Final Log Loss",
+          "type": "number"
+        }
+      },
+      "required": [
+        "checkpoints",
+        "episodes",
+        "brier",
+        "log_loss",
+        "reference_rmse",
+        "final_brier",
+        "final_log_loss"
+      ],
+      "title": "CompanyMetric",
+      "type": "object"
+    },
+    "CompanyObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "trial": {
+          "$ref": "#/$defs/CompanyTrial"
+        },
+        "answer": {
+          "$ref": "#/$defs/CompanyAnswer"
+        },
+        "answered_at": {
+          "title": "Answered At",
+          "type": "string"
+        },
+        "truth": {
+          "$ref": "#/$defs/CompanyTruth"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at",
+        "truth"
+      ],
+      "title": "CompanyObservation",
+      "type": "object"
+    },
+    "CompanyTrial": {
+      "additionalProperties": false,
+      "properties": {
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        },
+        "task": {
+          "const": "company_evaluation",
+          "default": "company_evaluation",
+          "title": "Task",
+          "type": "string"
+        },
+        "index": {
+          "maximum": 53,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "episode_id": {
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "step": {
+          "maximum": 8,
+          "minimum": 0,
+          "title": "Step",
+          "type": "integer"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "dossier": {
+          "$ref": "#/$defs/Dossier"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "maxItems": 8,
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trial_id",
+        "index",
+        "episode_id",
+        "step",
+        "instructions",
+        "dossier",
+        "evidence"
+      ],
+      "title": "CompanyTrial",
+      "type": "object"
+    },
+    "CompanyTruth": {
+      "additionalProperties": false,
+      "properties": {
+        "growth": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth",
+          "type": "integer"
+        },
+        "margin": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Margin",
+          "type": "integer"
+        },
+        "temporary": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Temporary",
+          "type": "integer"
+        },
+        "source_validity": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Source Validity",
+          "type": "integer"
+        },
+        "realized_growth_pct": {
+          "title": "Realized Growth Pct",
+          "type": "number"
+        },
+        "reference": {
+          "$ref": "#/$defs/Forecast"
+        },
+        "incremental_log_lr": {
+          "title": "Incremental Log Lr",
+          "type": "number"
+        },
+        "standalone_log_lr": {
+          "title": "Standalone Log Lr",
+          "type": "number"
+        },
+        "negative": {
+          "title": "Negative",
+          "type": "boolean"
+        },
+        "redundant": {
+          "title": "Redundant",
+          "type": "boolean"
+        },
+        "arm": {
+          "enum": [
+            "copy",
+            "independent"
+          ],
+          "title": "Arm",
+          "type": "string"
+        }
+      },
+      "required": [
+        "growth",
+        "margin",
+        "temporary",
+        "source_validity",
+        "realized_growth_pct",
+        "reference",
+        "incremental_log_lr",
+        "standalone_log_lr",
+        "negative",
+        "redundant",
+        "arm"
+      ],
+      "title": "CompanyTruth",
+      "type": "object"
+    },
+    "Dossier": {
+      "additionalProperties": false,
+      "properties": {
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "background": {
+          "title": "Background",
+          "type": "string"
+        },
+        "world": {
+          "$ref": "#/$defs/WorldModel"
+        },
+        "mandate": {
+          "$ref": "#/$defs/Mandate"
+        },
+        "assumptions": {
+          "title": "Assumptions",
+          "type": "string"
+        }
+      },
+      "required": [
+        "company",
+        "background",
+        "world",
+        "mandate",
+        "assumptions"
+      ],
+      "title": "Dossier",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "headline",
+            "news_summary",
+            "operating_table",
+            "model",
+            "audit",
+            "update"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "published_at": {
+          "title": "Published At",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "signal": {
+          "$ref": "#/$defs/Signal"
+        }
+      },
+      "required": [
+        "document_id",
+        "source",
+        "format",
+        "published_at",
+        "text",
+        "content_sha256",
+        "signal"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Forecast": {
+      "additionalProperties": false,
+      "properties": {
+        "growth_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth Probability",
+          "type": "number"
+        },
+        "margin_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Margin Probability",
+          "type": "number"
+        },
+        "temporary_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Temporary Probability",
+          "type": "number"
+        },
+        "source_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Source Probability",
+          "type": "number"
+        },
+        "growth_quantiles_pct": {
+          "$ref": "#/$defs/GrowthQuantiles"
+        }
+      },
+      "required": [
+        "growth_probability",
+        "margin_probability",
+        "temporary_probability",
+        "source_probability",
+        "growth_quantiles_pct"
+      ],
+      "title": "Forecast",
+      "type": "object"
+    },
+    "GrowthQuantiles": {
+      "additionalProperties": false,
+      "properties": {
+        "p10": {
+          "title": "P10",
+          "type": "number"
+        },
+        "p50": {
+          "title": "P50",
+          "type": "number"
+        },
+        "p90": {
+          "title": "P90",
+          "type": "number"
+        }
+      },
+      "required": [
+        "p10",
+        "p50",
+        "p90"
+      ],
+      "title": "GrowthQuantiles",
+      "type": "object"
+    },
+    "Mandate": {
+      "additionalProperties": false,
+      "properties": {
+        "gain_if_growth_target_met": {
+          "exclusiveMinimum": 0,
+          "title": "Gain If Growth Target Met",
+          "type": "number"
+        },
+        "loss_if_growth_target_missed": {
+          "exclusiveMinimum": 0,
+          "title": "Loss If Growth Target Missed",
+          "type": "number"
+        },
+        "instruction": {
+          "default": "At each checkpoint choose invest or hold for this separate hypothetical contract. Invest pays the stated gain if next-year revenue growth exceeds 12%, otherwise minus the stated loss. Hold pays zero. Maximize expected payoff with linear utility. No switching costs, portfolio constraints or accumulated positions. Break ties by holding.",
+          "title": "Instruction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gain_if_growth_target_met",
+        "loss_if_growth_target_missed"
+      ],
+      "title": "Mandate",
+      "type": "object"
+    },
+    "Parameter": {
+      "additionalProperties": false,
+      "properties": {
+        "estimate": {
+          "title": "Estimate",
+          "type": "number"
+        },
+        "interval_95": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval 95"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "n": {
+          "title": "N",
+          "type": "integer"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "estimate",
+        "method",
+        "n"
+      ],
+      "title": "Parameter",
+      "type": "object"
+    },
+    "Signal": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "management",
+            "independent_growth",
+            "operations",
+            "margin",
+            "source_audit",
+            "temporary_check",
+            "copy",
+            "derived_model"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maximum": 30,
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        },
+        "parents": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Parents",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "Signal",
+      "type": "object"
+    },
+    "WorldModel": {
+      "additionalProperties": false,
+      "properties": {
+        "prior_growth": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Prior Growth",
+          "type": "number"
+        },
+        "prior_temporary": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Prior Temporary",
+          "type": "number"
+        },
+        "prior_source_validity": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Prior Source Validity",
+          "type": "number"
+        },
+        "margin_probabilities": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Margin Probabilities",
+          "type": "array"
+        },
+        "operations_positive_rates": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Operations Positive Rates",
+          "type": "array"
+        },
+        "management_accuracy": {
+          "default": 0.85,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Management Accuracy",
+          "type": "number"
+        },
+        "independent_accuracy": {
+          "default": 0.8,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Independent Accuracy",
+          "type": "number"
+        },
+        "margin_accuracy": {
+          "default": 0.8,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Margin Accuracy",
+          "type": "number"
+        },
+        "audit_accuracy": {
+          "default": 0.9,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Audit Accuracy",
+          "type": "number"
+        },
+        "growth_threshold_pct": {
+          "const": 12,
+          "default": 12,
+          "title": "Growth Threshold Pct",
+          "type": "integer"
+        },
+        "margin_threshold_pct": {
+          "const": 18,
+          "default": 18,
+          "title": "Margin Threshold Pct",
+          "type": "integer"
+        },
+        "growth_support_pct": {
+          "default": [
+            0,
+            24
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "const": 0,
+              "type": "integer"
+            },
+            {
+              "const": 24,
+              "type": "integer"
+            }
+          ],
+          "title": "Growth Support Pct",
+          "type": "array"
+        }
+      },
+      "required": [
+        "prior_growth",
+        "prior_temporary",
+        "prior_source_validity",
+        "margin_probabilities",
+        "operations_positive_rates"
+      ],
+      "title": "WorldModel",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.report.v2",
+      "default": "epistemics.report.v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "evaluator_version": {
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "battery_version": {
+      "const": "company-dossier/0.2.0",
+      "default": "company-dossier/0.2.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "battery_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Battery Sha256",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "agent": {
+      "$ref": "#/$defs/AgentDescriptor"
+    },
+    "started_at": {
+      "title": "Started At",
+      "type": "string"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CompanyMetric"
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "diagnostics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Diagnostics",
+      "type": "object"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Parameter"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "model_fits": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CompanyFit"
+      },
+      "title": "Model Fits",
+      "type": "object"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/CompanyObservation"
+      },
+      "maxItems": 54,
+      "minItems": 54,
+      "title": "Observations",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "evaluator_version",
+    "battery_sha256",
+    "session_id",
+    "agent",
+    "started_at",
+    "completed_at",
+    "seed",
+    "metrics",
+    "diagnostics",
+    "parameters",
+    "model_fits",
+    "observations",
+    "limitations"
+  ],
+  "title": "CompanyReport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

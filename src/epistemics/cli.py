@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 from epistemics.baselines import answer_trial
+from epistemics.company.models import CompanyReport
 from epistemics.models import AgentDescriptor, Report, Trial
 from epistemics.service import EvaluationService
 
@@ -37,6 +38,25 @@ def main() -> None:
     run.add_argument("--prior-weight", type=float, default=1)
     run.add_argument("--evidence-weight", type=float, default=1)
     run.add_argument("--output", type=Path, default=Path("output/demo-report.json"))
+    company = commands.add_parser(
+        "company-demo", help="Run a synthetic company respondent, offline"
+    )
+    company.add_argument("--seed", type=int, default=42)
+    company.add_argument("--positive-weight", type=float, default=1)
+    company.add_argument("--negative-weight", type=float, default=1)
+    company.add_argument("--duplicate-weight", type=float, default=0)
+    company.add_argument("--auxiliary-shift", type=float, default=0)
+    company.add_argument("--output", type=Path, default=Path("output/company-report.json"))
+    recovery = commands.add_parser(
+        "company-recovery", help="Run a multi-seed synthetic recovery study"
+    )
+    recovery.add_argument("--seeds", type=int, default=20)
+    recovery.add_argument("--output", type=Path, default=Path("output/company-recovery.json"))
+    preview = commands.add_parser(
+        "company-preview", help="Export an evaluator-side preview of a sample episode"
+    )
+    preview.add_argument("--seed", type=int, default=42)
+    preview.add_argument("--output", type=Path, default=Path("output/company-preview.md"))
     schema = commands.add_parser("schema", help="Export the Python report contract as JSON Schema")
     schema.add_argument("--output", type=Path, default=Path("schemas/report.v1.json"))
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
@@ -44,16 +64,68 @@ def main() -> None:
     args = parser.parse_args()
     if args.command == "validate":
         data = json.loads(args.path.read_bytes())
-        contract = {"epistemics.report.v1": Report}.get(data.get("schema_version"), Report)
+        contract = {"epistemics.report.v1": Report, "epistemics.report.v2": CompanyReport}.get(
+            data.get("schema_version"), Report
+        )
         report = contract.model_validate(data)
         print("Valid report structure")
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.command == "schema":
-        for contract, path in [(Report, args.output)]:
+        for contract, path in [
+            (Report, args.output),
+            (CompanyReport, args.output.with_name("report.v2.json")),
+        ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"
             path.write_text(json.dumps(data, indent=2) + "\n")
+        return
+    if args.command == "company-preview":
+        from epistemics.company.simulation import preview
+
+        args.output.write_text(preview(args.seed))
+        print(args.output)
+        return
+    if args.command == "company-recovery":
+        from epistemics.company.simulation import recovery_study
+
+        data = recovery_study(args.seeds)
+        args.output.write_text(json.dumps(data, indent=2, allow_nan=False) + "\n")
+        print(
+            json.dumps(
+                {
+                    "output": str(args.output),
+                    "passed": data["passed_recovery_gates"],
+                    "summary": data["summary"],
+                },
+                indent=2,
+            )
+        )
+        if not data["passed_recovery_gates"]:
+            raise SystemExit(1)
+        return
+    if args.command == "company-demo":
+        from epistemics.company.simulation import demo as company_demo
+
+        report = company_demo(
+            args.seed,
+            positive=args.positive_weight,
+            negative=args.negative_weight,
+            duplicate=args.duplicate_weight,
+            auxiliary_shift=args.auxiliary_shift,
+        )
+        args.output.write_text(report.model_dump_json(indent=2) + "\n")
+        print(
+            json.dumps(
+                {
+                    "report": str(args.output),
+                    "trials": len(report.observations),
+                    "parameters": {k: v.estimate for k, v in report.parameters.items()},
+                    "model_fits": {k: v.model_dump() for k, v in report.model_fits.items()},
+                },
+                indent=2,
+            )
+        )
         return
     report = demo(args.seed, args.prior_weight, args.evidence_weight)
     args.output.write_text(report.model_dump_json(indent=2) + "\n")

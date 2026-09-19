@@ -6,6 +6,8 @@ from typing import Literal
 from mcp.server.fastmcp import FastMCP
 
 from epistemics.battery import BATTERY_SHA256, SPEC
+from epistemics.company import battery as company_battery
+from epistemics.company.models import CompanyAnswer
 from epistemics.models import AgentDescriptor, Answer
 from epistemics.service import EvaluationService
 
@@ -20,12 +22,20 @@ def create_server(database: str | None = None) -> FastMCP:
     )
 
     @server.tool()
-    def describe_battery(battery: Literal["belief",] = "belief") -> dict:
+    def describe_battery(battery: Literal["belief", "company"] = "belief") -> dict:
         """Describe the public protocol and assumptions, without seeds or answer keys."""
+        if battery == "company":
+            return {
+                "specification": company_battery.SPEC,
+                "battery_sha256": company_battery.battery_sha256(),
+                "total_trials": 54,
+            }
         return {"specification": SPEC, "battery_sha256": BATTERY_SHA256, "total_trials": 88}
 
     @server.tool()
-    def start_evaluation(agent: AgentDescriptor, battery: Literal["belief",] = "belief") -> dict:
+    def start_evaluation(
+        agent: AgentDescriptor, battery: Literal["belief", "company"] = "belief"
+    ) -> dict:
         """Start the selected battery. Record the actual model and configuration fingerprint."""
         return service.start(agent, battery=battery)
 
@@ -35,7 +45,9 @@ def create_server(database: str | None = None) -> FastMCP:
         return service.get_trial(session_id)
 
     @server.tool()
-    def submit_answer(session_id: str, trial_id: str, answer: Answer | Answer | Answer) -> dict:
+    def submit_answer(
+        session_id: str, trial_id: str, answer: Answer | CompanyAnswer | Answer
+    ) -> dict:
         """Submit one immutable probability report. Exact retries are idempotent."""
         return service.submit(session_id, trial_id, answer)
 
