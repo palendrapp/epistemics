@@ -72,7 +72,7 @@ uv run epistemics passport verify PATH/passport.json --report PATH/report.json
 uv run epistemics passport create --report PATH/report.json --output output/core-passport
 ```
 
-The core report binds response origin at collection; passport import cannot relabel it. Imports check structure and deterministic derivation, not honest execution. These new reports and passports are **not yet supported by the Solana signing client**; identity association and issuance remain separate roadmap work.
+The core report binds response origin at collection; passport import cannot relabel it. Imports check structure and deterministic derivation, not honest execution. Agent core passports can now receive a separate [offline issuer attestation](passport-attestation.md), preserving their exact bytes and provisional scope. The legacy report/Memo client still accepts v1–v3 only. Registry association, publication, withdrawal status and paid services remain roadmap work; human profiles remain private.
 
 ## Validation and local boundary
 

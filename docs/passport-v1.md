@@ -59,7 +59,7 @@ Example selection is explicit: the original evidence task shows its largest refe
 
 The first untested support rule suggests an evidence ledger when the original battery's evidence weight is below reference to displayed precision and its within-run interval is wholly below 1. This is a candidate selected under the fitted model, not evidence that the intervention helps. No intervention benefit estimate is produced.
 
-The v1 passport adapter accepts one v1–v3 report at a time. The CLI also supports core v4 reports through a separate passport.v2 adapter. Neither combines configurations or aggregates sessions. Matched-study profiles need their manifest/episode context and are not imported. The existing Solana signer accepts legacy reports only, not either passport format. Publishing and identity association remain roadmap work.
+The v1 passport adapter accepts one v1–v3 report at a time. The CLI also supports core v4 reports through a separate passport.v2 adapter. Neither combines configurations or aggregates sessions. Matched-study profiles need their manifest/episode context and are not imported. The legacy Solana report signer accepts v1–v3 reports only. A separate [offline attestation](passport-attestation.md) now supports agent core passport.v2; passport.v1 remains outside that signing contract. Publishing and identity association remain roadmap work.
 
 ## Privacy and inspection
 

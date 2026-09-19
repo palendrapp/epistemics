@@ -6,7 +6,8 @@
   "scripts": {
     "check": "pnpm --filter @epistemics/solana check",
     "test": "pnpm --filter @epistemics/solana test",
-    "record": "node --import tsx packages/solana/src/cli.ts"
+    "record": "node --import tsx packages/solana/src/cli.ts",
+    "passport-record": "node --import tsx packages/solana/src/passport-cli.ts"
   },
   "devDependencies": { "tsx": "^4.19.0" }
 }
