@@ -128,6 +128,7 @@ def main() -> None:
         from epistemics.live.models import CoreReport
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
+        from epistemics.predictive.collection_models import CollectionExport, CollectionManifest
         from epistemics.predictive.models import (
             DesignManifest,
             PublicCheckpoint,
@@ -150,6 +151,8 @@ def main() -> None:
             "epistemics.predictive-design.v1": DesignManifest,
             "epistemics.predictive-checkpoint.v1": PublicCheckpoint,
             "epistemics.predictive-validation.v1": SyntheticValidation,
+            "epistemics.predictive-collection.v1": CollectionManifest,
+            "epistemics.predictive-responses.v1": CollectionExport,
         }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
         if isinstance(report, ParticipantDescriptor):
@@ -164,6 +167,11 @@ def main() -> None:
         from epistemics.live.models import CoreReport, CoreTrial
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
+        from epistemics.predictive.collection_models import (
+            CollectionExport,
+            CollectionManifest,
+            CollectionSpec,
+        )
         from epistemics.predictive.models import (
             DesignManifest,
             PublicCheckpoint,
@@ -187,6 +195,9 @@ def main() -> None:
             (DesignManifest, args.output.with_name("predictive-design.v1.json")),
             (PublicCheckpoint, args.output.with_name("predictive-checkpoint.v1.json")),
             (SyntheticValidation, args.output.with_name("predictive-validation.v1.json")),
+            (CollectionSpec, args.output.with_name("predictive-collection-spec.v1.json")),
+            (CollectionManifest, args.output.with_name("predictive-collection.v1.json")),
+            (CollectionExport, args.output.with_name("predictive-responses.v1.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"

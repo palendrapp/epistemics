@@ -1,6 +1,6 @@
 # Predictive usefulness pilot
 
-Status: first software slice implemented as [provenance pilot 0.1](provenance-pilot-v1.md): matched-case generator, frozen three-way design, public checkpoint views, behavioral fitting and synthetic validation. Real-agent collection, intervention comparisons and empirical predictive usefulness remain pending. This document defines the full product demonstration; the implementation specification makes its narrower current scope explicit.
+Status: [provenance pilot 0.1](provenance-pilot-v1.md) implements a matched-case generator, frozen three-way design, public checkpoint views, behavioral fitting and synthetic validation. The [sequential MCP collector](provenance-collection.md) now supports real respondents with frozen metadata, immutable answers and restart history. Complete empirical prediction and intervention comparisons remain pending. This document defines the full product demonstration; the implementation specifications make their narrower current scope explicit.
 
 ## Product question
 

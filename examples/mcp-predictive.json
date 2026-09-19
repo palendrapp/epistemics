@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "epistemics-company": {
+      "command": "/absolute/path/to/epistemics/.venv/bin/python",
+      "args": ["-m", "epistemics.predictive.mcp_server"],
+      "env": {
+        "EPISTEMICS_COLLECTION": "/absolute/path/to/private/collection",
+        "EPISTEMICS_ASSIGNMENT": "REPLACE_WITH_OPERATOR_ASSIGNED_ID"
+      }
+    }
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "participant": {
+      "discriminator": {
+        "mapping": {
+          "agent": "#/$defs/AgentParticipant",
+          "human": "#/$defs/HumanParticipant"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AgentParticipant"
+        },
+        {
+          "$ref": "#/$defs/HumanParticipant"
+        }
+      ],
+      "title": "Participant"
+    },
+    "response_origin": {
+      "enum": [
+        "agent",
+        "human",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "purpose": {
+      "enum": [
+        "full_pilot",
+        "transport_smoke"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "assignment_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Assignment Ids",
+      "type": "array"
+    },
+    "context_policy": {
+      "const": "fresh_per_assignment_continuous_within",
+      "default": "fresh_per_assignment_continuous_within",
+      "title": "Context Policy",
+      "type": "string"
+    },
+    "configuration_scope": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Configuration Scope",
+      "type": "string"
+    },
+    "execution_notes": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Execution Notes",
+      "type": "string"
+    },
+    "allowed_tools": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Tools",
+      "type": "array"
+    },
+    "assistance": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Assistance",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "epistemics.predictive-collection.v1",
+      "default": "epistemics.predictive-collection.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "collector_version": {
+      "const": "provenance-collector/0.1.0",
+      "default": "provenance-collector/0.1.0",
+      "title": "Collector Version",
+      "type": "string"
+    },
+    "design_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Design Sha256",
+      "type": "string"
+    },
+    "instructions_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Instructions Sha256",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "metadata_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Metadata Verification",
+      "type": "string"
+    },
+    "execution_verification": {
+      "const": "not_independently_verified",
+      "default": "not_independently_verified",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "sharing": {
+      "const": "private",
+      "default": "private",
+      "title": "Sharing",
+      "type": "string"
+    }
+  },
+  "required": [
+    "participant",
+    "response_origin",
+    "purpose",
+    "assignment_ids",
+    "configuration_scope",
+    "execution_notes",
+    "allowed_tools",
+    "assistance",
+    "design_sha256",
+    "instructions_sha256",
+    "created_at"
+  ],
+  "title": "CollectionManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

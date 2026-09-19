@@ -1,0 +1,705 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[0-9a-f]{20}$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "matched_group": {
+          "pattern": "^[0-9a-f]{20}$",
+          "title": "Matched Group",
+          "type": "string"
+        },
+        "split": {
+          "enum": [
+            "profile",
+            "policy",
+            "heldout"
+          ],
+          "title": "Split",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            "paired_reports",
+            "repeated_chain",
+            "interleaved_chains"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "seed": {
+          "exclusiveMaximum": 4503599627370496,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "replicate": {
+          "minimum": 0,
+          "title": "Replicate",
+          "type": "integer"
+        },
+        "prior": {
+          "enum": [
+            0.2,
+            0.5,
+            0.8
+          ],
+          "title": "Prior",
+          "type": "number"
+        },
+        "strength": {
+          "enum": [
+            "weak",
+            "strong"
+          ],
+          "title": "Strength",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            -1,
+            1
+          ],
+          "title": "Direction",
+          "type": "integer"
+        },
+        "provenance": {
+          "enum": [
+            "independent",
+            "copied"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "matched_group",
+        "split",
+        "family",
+        "seed",
+        "replicate",
+        "prior",
+        "strength",
+        "direction",
+        "provenance"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "CollectedEpisode": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment": {
+          "$ref": "#/$defs/Assignment"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "minItems": 1,
+          "title": "Observations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "assignment",
+        "started_at",
+        "completed_at",
+        "observations"
+      ],
+      "title": "CollectedEpisode",
+      "type": "object"
+    },
+    "CollectionAttempt": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "assignment_id": {
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended At"
+        },
+        "restored_answers": {
+          "minimum": 0,
+          "title": "Restored Answers",
+          "type": "integer"
+        },
+        "transport_status": {
+          "enum": [
+            "open",
+            "closed",
+            "error"
+          ],
+          "title": "Transport Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "assignment_id",
+        "started_at",
+        "restored_answers",
+        "transport_status"
+      ],
+      "title": "CollectionAttempt",
+      "type": "object"
+    },
+    "CollectionManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "participant": {
+          "discriminator": {
+            "mapping": {
+              "agent": "#/$defs/AgentParticipant",
+              "human": "#/$defs/HumanParticipant"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AgentParticipant"
+            },
+            {
+              "$ref": "#/$defs/HumanParticipant"
+            }
+          ],
+          "title": "Participant"
+        },
+        "response_origin": {
+          "enum": [
+            "agent",
+            "human",
+            "synthetic"
+          ],
+          "title": "Response Origin",
+          "type": "string"
+        },
+        "purpose": {
+          "enum": [
+            "full_pilot",
+            "transport_smoke"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "assignment_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assignment Ids",
+          "type": "array"
+        },
+        "context_policy": {
+          "const": "fresh_per_assignment_continuous_within",
+          "default": "fresh_per_assignment_continuous_within",
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "configuration_scope": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Configuration Scope",
+          "type": "string"
+        },
+        "execution_notes": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Execution Notes",
+          "type": "string"
+        },
+        "allowed_tools": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Tools",
+          "type": "array"
+        },
+        "assistance": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assistance",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "epistemics.predictive-collection.v1",
+          "default": "epistemics.predictive-collection.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "collector_version": {
+          "const": "provenance-collector/0.1.0",
+          "default": "provenance-collector/0.1.0",
+          "title": "Collector Version",
+          "type": "string"
+        },
+        "design_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Design Sha256",
+          "type": "string"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instructions Sha256",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "metadata_verification": {
+          "const": "operator_asserted",
+          "default": "operator_asserted",
+          "title": "Metadata Verification",
+          "type": "string"
+        },
+        "execution_verification": {
+          "const": "not_independently_verified",
+          "default": "not_independently_verified",
+          "title": "Execution Verification",
+          "type": "string"
+        },
+        "sharing": {
+          "const": "private",
+          "default": "private",
+          "title": "Sharing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participant",
+        "response_origin",
+        "purpose",
+        "assignment_ids",
+        "configuration_scope",
+        "execution_notes",
+        "allowed_tools",
+        "assistance",
+        "design_sha256",
+        "instructions_sha256",
+        "created_at"
+      ],
+      "title": "CollectionManifest",
+      "type": "object"
+    },
+    "DecisionPayoffs": {
+      "additionalProperties": false,
+      "properties": {
+        "act_if_target_met": {
+          "const": 1.0,
+          "default": 1.0,
+          "title": "Act If Target Met",
+          "type": "number"
+        },
+        "act_if_target_missed": {
+          "const": -1.0,
+          "default": -1.0,
+          "title": "Act If Target Missed",
+          "type": "number"
+        },
+        "defer": {
+          "const": 0.0,
+          "default": 0.0,
+          "title": "Defer",
+          "type": "number"
+        },
+        "unit": {
+          "const": "hypothetical_task_points",
+          "default": "hypothetical_task_points",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "title": "DecisionPayoffs",
+      "type": "object"
+    },
+    "EvidenceCard": {
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "publisher": {
+          "title": "Publisher",
+          "type": "string"
+        },
+        "assessment": {
+          "enum": [
+            "meets_target",
+            "misses_target"
+          ],
+          "title": "Assessment",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "based_on": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Based On"
+        },
+        "provenance_note": {
+          "title": "Provenance Note",
+          "type": "string"
+        },
+        "original_assessment_history": {
+          "$ref": "#/$defs/TrackRecord"
+        }
+      },
+      "required": [
+        "document_id",
+        "publisher",
+        "assessment",
+        "text",
+        "based_on",
+        "provenance_note",
+        "original_assessment_history"
+      ],
+      "title": "EvidenceCard",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint": {
+          "$ref": "#/$defs/PublicCheckpoint"
+        },
+        "answer": {
+          "$ref": "#/$defs/Response"
+        },
+        "accepted_at": {
+          "format": "date-time",
+          "title": "Accepted At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "checkpoint",
+        "answer",
+        "accepted_at"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "PublicCheckpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.predictive-checkpoint.v1",
+          "default": "epistemics.predictive-checkpoint.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "provenance-pilot/0.1.0",
+          "default": "provenance-pilot/0.1.0",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "checkpoint_id": {
+          "pattern": "^[0-9a-f]{20}:[0-5]$",
+          "title": "Checkpoint Id",
+          "type": "string"
+        },
+        "index": {
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "prior_probability": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Prior Probability",
+          "type": "number"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceCard"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "payoffs": {
+          "$ref": "#/$defs/DecisionPayoffs"
+        }
+      },
+      "required": [
+        "checkpoint_id",
+        "index",
+        "company",
+        "question",
+        "prior_probability",
+        "instructions",
+        "evidence"
+      ],
+      "title": "PublicCheckpoint",
+      "type": "object"
+    },
+    "Response": {
+      "additionalProperties": false,
+      "properties": {
+        "probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "decision": {
+          "enum": [
+            "act",
+            "defer"
+          ],
+          "title": "Decision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "probability",
+        "decision"
+      ],
+      "title": "Response",
+      "type": "object"
+    },
+    "TrackRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "correct": {
+          "maximum": 18,
+          "minimum": 0,
+          "title": "Correct",
+          "type": "integer"
+        },
+        "total": {
+          "const": 18,
+          "default": 18,
+          "title": "Total",
+          "type": "integer"
+        },
+        "description": {
+          "default": "Resolved original assessments of comparable company targets.",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "correct"
+      ],
+      "title": "TrackRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.predictive-responses.v1",
+      "default": "epistemics.predictive-responses.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "collection_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Collection Sha256",
+      "type": "string"
+    },
+    "collection": {
+      "$ref": "#/$defs/CollectionManifest"
+    },
+    "scope": {
+      "const": "complete_planned_collection",
+      "default": "complete_planned_collection",
+      "title": "Scope",
+      "type": "string"
+    },
+    "episodes": {
+      "items": {
+        "$ref": "#/$defs/CollectedEpisode"
+      },
+      "title": "Episodes",
+      "type": "array"
+    },
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/CollectionAttempt"
+      },
+      "title": "Attempts",
+      "type": "array"
+    },
+    "interpretation": {
+      "const": "reported_responses_not_internal_beliefs",
+      "default": "reported_responses_not_internal_beliefs",
+      "title": "Interpretation",
+      "type": "string"
+    }
+  },
+  "required": [
+    "collection_sha256",
+    "collection",
+    "episodes",
+    "attempts"
+  ],
+  "title": "CollectionExport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

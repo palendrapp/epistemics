@@ -10,7 +10,7 @@ The [product brief](docs/epistemic-passport.md) defines the experience and dimen
 
 The broader purpose includes [cognitive security and targeted support](docs/cognitive-security.md): use an explicit model to propose interventions, test whether they improve decisions, and record what helps under which conditions. The shared evaluator accepts humans and agents; the intervention layer is proposed.
 
-Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) puts a [predictive-usefulness pilot](docs/predictive-usefulness-pilot.md) alongside identity integration: predict behavior on unseen evidence sequences, then test whether profile-guided assistance improves decisions relative to cost. The [provenance pilot's first slice](docs/provenance-pilot-v1.md) now supplies a matched-case generator and synthetic validation; real collection and intervention results remain pending. Actual human/fresh-agent core acceptance also remains pending. Later proposed stages add active information acquisition, continuous observation, historical replay, team coordination and paid verified contributions.
+Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) puts a [predictive-usefulness pilot](docs/predictive-usefulness-pilot.md) alongside identity integration: predict behavior on unseen evidence sequences, then test whether profile-guided assistance improves decisions relative to cost. The [provenance pilot](docs/provenance-pilot-v1.md) supplies a matched-case generator and synthetic validation, with a [sequential MCP collector](docs/provenance-collection.md) for real respondents. Complete empirical prediction and intervention results remain pending. Actual human/fresh-agent core acceptance also remains pending. Later proposed stages add active information acquisition, continuous observation, historical replay, team coordination and paid verified contributions.
 
 ## Implemented components
 
@@ -106,7 +106,7 @@ These commands require saved artifacts from a completed agent core session. They
 
 ## Evaluate an agent through MCP
 
-To design and validate the new provenance pilot offline, see [the versioned protocol and commands](docs/provenance-pilot-v1.md). Its operator preview is not a subject-facing MCP session; real-agent collection for that protocol is the next implementation step.
+To design and validate the new provenance pilot offline, see [the versioned protocol and commands](docs/provenance-pilot-v1.md). Its operator preview is separate from the [sequential MCP collection interface](docs/provenance-collection.md), which binds participant metadata, preserves immutable answers and supports restarts.
 
 For the new shared core, use [the dedicated core adapter](docs/live-core.md#connect-an-agent). The following commands describe the unchanged legacy batteries.
 

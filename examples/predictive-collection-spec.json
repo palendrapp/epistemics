@@ -1,0 +1,19 @@
+{
+  "participant": {
+    "kind": "agent",
+    "subject_id": "replace-with-subject-id",
+    "configuration": {
+      "model": "replace-with-model",
+      "model_version": "replace-with-version-or-explicitly-unknown",
+      "configuration_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "response_origin": "agent",
+  "purpose": "transport_smoke",
+  "assignment_ids": ["REPLACE_WITH_OPERATOR_ASSIGNED_ID"],
+  "context_policy": "fresh_per_assignment_continuous_within",
+  "configuration_scope": "Replace with the exact scope of your configuration hash and supply that hash above.",
+  "execution_notes": "Replace with the execution setup and any unverified settings or isolation limits.",
+  "allowed_tools": ["assigned MCP server"],
+  "assistance": []
+}
