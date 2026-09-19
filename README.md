@@ -108,6 +108,8 @@ These commands require saved artifacts from a completed agent core session. They
 
 To design and validate the new provenance pilot offline, see [the versioned protocol and commands](docs/provenance-pilot-v1.md). Its operator preview is separate from the [sequential MCP collection interface](docs/provenance-collection.md), which binds participant metadata, preserves immutable answers and supports restarts.
 
+A [fresh-context smoke test](docs/provenance-smoke-2026-09-20.md) completed 12 checkpoints across two matched episodes. The respondent shown explicit copies stopped updating on those copies; the independent-evidence respondent continued updating. This is a small descriptive result, not a validated cognitive profile.
+
 For the new shared core, use [the dedicated core adapter](docs/live-core.md#connect-an-agent). The following commands describe the unchanged legacy batteries.
 
 Start with `uv run epistemics-mcp`. A generic MCP host configuration is in [examples/mcp.json](examples/mcp.json); replace its repository path. This uses the official MCP Python SDK's pinned, supported v1 maintenance line for its FastMCP/stdio API. Dependency upgrades are deliberate.

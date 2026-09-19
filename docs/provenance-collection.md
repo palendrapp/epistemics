@@ -68,4 +68,6 @@ This addition versions collection separately. Public task stimuli, payoffs, resp
 
 Offline checks cover immutable answers, concurrent submissions, resume, withheld future information, premature completion/export, origin and configuration binding, source/design drift, retained attempts, exact export bytes and real MCP stdio round trips. Synthetic parameter recovery and structural holdout checks are rerun; a real transport smoke test is reported separately from them.
 
+The [20 September fresh-context smoke test](provenance-smoke-2026-09-20.md) completed one predeclared matched pair: two respondents, 12 accepted checkpoints and two successful MCP closures. It supplies a descriptive probability contrast, not a full profile or predictive-validity claim.
+
 Before empirical predictive validation, cost and freeze a complete multi-configuration run, including prediction baselines, uncertainty, failure handling and success criteria. Keep final evaluation cases unused during development. Then execute profile/policy/final comparisons and the separately planned assistance experiment. Transport success alone supports no claim about general cognitive traits, individualized prediction or intervention benefit.
