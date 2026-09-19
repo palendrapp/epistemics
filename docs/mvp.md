@@ -2,108 +2,67 @@
 
 ## Product outcome
 
-A human or an agent can complete the same underlying evaluation and receive a readable, machine-readable epistemic passport. A consumer can understand its measured tendencies, inspect supporting evidence and determine what assistance has been tested. Agent passports can be signed and associated with stable identity on Solana; human use can remain private.
+An agent or orchestrator can discover another agent, inspect a portable cognitive profile, verify its provenance and evaluated configuration, and decide whether and how to delegate or purchase a service. The same profile is readable by a person; the same underlying evaluation supports private human participation.
 
-The [passport brief](epistemic-passport.md) defines the intended dimensions and experience. The central acceptance question is: **does this profile help someone understand what to expect when delegating to this agent?** Measurement quality, auditability and identity binding make that profile dependable.
+The primary distribution path is the **agent economy**. [Agent Registry identity, machine consumption and x402 commerce](agent-economy.md) are core product work. Our initial revenue hypothesis is paid evaluation/re-evaluation, followed by fleet monitoring and managed policy services. We do not automatically receive a fee from transactions involving a passport.
 
-The [cognitive-security extension](cognitive-security.md) adds a second question: **can this profile help us choose support that improves the decision maker's performance?** The shared core now provides human and agent interfaces. Real participant completion, useful interpretation and support validation remain product checks.
+The [product brief](epistemic-passport.md) defines the intended dimensions. The acceptance question is: **does the profile improve a concrete delegation decision?** The [cognitive-security extension](cognitive-security.md) adds: **can it identify assistance that improves performance?** Both require task-conditional evidence, rather than an overall reputation score.
 
-The first usable milestone is concrete: **a human and a fresh agent complete the same battery through their respective interfaces and receive passports using the same dimensions and scoring definitions, with evaluation conditions visible.** This is an initial product demonstration, not evidence that the populations share norms or internal mechanisms.
+## Current position
 
-## What exists today
-
-| Component | Implemented capability | Remaining product work |
+| Component | Working now | Still needed |
 | --- | --- | --- |
-| Passport foundation | Shared metadata, deterministic v1–v4 report import, HTML/Markdown/JSON profiles and exact-source verification | Real participant feedback, stronger interpretation and issuance. |
-| Evaluation | Shared 34-checkpoint core through browser and MCP; original 88-trial, 54-checkpoint company and 10-checkpoint discovery protocols remain available | Measure core burden with real participants and add coverage beyond one discovery scenario. |
-| Modeling | Prior/evidence fits, source inference, sequential comparisons and company decision/uncertainty probes | Map supported measurements to readable dimensions and explicit interpretation rules. |
-| Validation tooling | Synthetic recovery and a matched discovery pipeline with frozen assignments, fresh-process collection, held-out predictions and uncertainty reports | Use this tooling internally to check released measures; establish real-agent repeatability for the core. |
-| Session integrity | Shared transactional state, immutable answers, concurrent idempotent retries, resume and byte-stable completed artifacts | Hosted execution isolation and independently verified collection. |
-| Signed records | Exact-byte report hashes, versioned envelopes and domain-separated Ed25519 signatures for v1–v3 evaluation reports | Add a passport artifact contract and signer/verifier support; study profiles are not currently accepted. |
-| Solana | Memo construction, devnet simulation/submission and finalized inclusion verification | Stable identity association, artifact publication/retrieval, indexing and lifecycle handling. |
+| Evaluation | Shared 34-checkpoint core: discovery 10 + calibration 24, human browser and agent MCP | Actual human and fresh-agent completion/review of this combined core, repeatability and cost measurements |
+| Profile | Deterministic HTML/Markdown/JSON; six dimensions; source references and explicit provisional/insufficient coverage | Broader scenarios and contrasts; stable metric identifiers for consumer policies |
+| Collection | Transactional state, immutable answers, idempotent retry/resume, private evaluator state, byte-stable completion | Hosted tenant boundaries and evaluator/subject execution isolation |
+| Validation | Synthetic recovery; matched discovery assignments, fresh-process collection and held-out prediction tooling | Real-agent evidence for intended product claims and task selection utility |
+| Passport signature | Offline passport-attestation.v1 for agent core passport.v2; exact-byte hashes, explicit issuer, validity window and machine verification output | Registry association, availability, withdrawal/correction status and policy decisions |
+| Legacy Solana records | v1–v3 report signatures, devnet Memo construction/simulation/submission and finalized inclusion verifier | Validator/live-network validation; current RPC integration coverage is mocked |
+| Commerce | Source-reviewed integration and commercial design | x402 gateway, durable payment/job ledger, pricing evidence and paying pilot |
 
-Legacy reports still require an `AgentDescriptor`, including model and configuration fields. The shared core adopts the participant/session boundary without changing those reports or their signed bytes. See [core 0.1 and passport 0.2](live-core.md), alongside the [legacy import contract](passport-v1.md).
+The implementation remains a local alpha. Synthetic service, HTTP, browser and MCP demonstrations are completed. Earlier fresh agents ran predecessor batteries; that does not satisfy the combined core's real-participant acceptance check. No paid endpoint, registry adapter or public artifact hosting is live.
 
-Existing integration coverage includes real local MCP transport, Python-to-TypeScript schema validation, tamper checks and mocked RPC flows. It does not include live-chain or validator validation. Current demonstrations of the matched profile pipeline use synthetic policies; they are not issued profiles of real agents.
+## Delivery order
 
-## Delivery sequence
-
-| Milestone | Main deliverable | Completion criterion |
+| Stage | Deliverable | Completion criterion |
 | --- | --- | --- |
-| 1. Shared foundation and passport — implemented | Participant/session metadata contracts, profile schema and readable renderer | Existing agent artifacts produce an honestly scoped draft passport; the new contract represents humans without fabricated model metadata. |
-| 2. One evaluation, two interfaces — implementation ready | Core 0.1: discovery 10 + calibration 24, browser/MCP adapters and automatic passports | Actual human and fresh-agent completion/review remain pending; synthetic service, HTTP, browser and MCP flows are checked. |
-| 3. Dependable interpretation | Release checks, real-run feedback and explicit interpretation rules | Every published dimension has support for its stated scope, or is clearly provisional/insufficient. |
-| 4. Identity and issuance | Signed passport, off-chain retrieval and Solana identity association | A consumer resolves an agent's passport and verifies issuer, configuration, artifact integrity and history. |
-| 5. Tested support | One intervention comparison and a passport support section | The passport distinguishes a candidate support from its measured benefit, uncertainty, cost and regressions. |
+| 1. Shared evaluation and profile — software ready | Human/MCP collection and one interpretable draft artifact | Actual human and fresh agent finish and review the core; record time, failures and usefulness |
+| 2. Machine-consumable passport — started | Detached signature, versioned measurements, identity resolution, status and task policy | A buyer resolves an existing agent and gets a reproducible decision with reasons before any payment |
+| 3. Paid evaluation service | x402 purchase of one bounded, resumable evaluation job | Repeated/concurrent requests create one job and one entitlement; all settlement ambiguity is reconciled; result can be verified |
+| 4. Useful selection and support | Broader evidence, repeatability, comparisons and one targeted intervention | Profiles inform a bounded delegation choice; intervention effect includes uncertainty, cost and regressions |
+| 5. Distribution and recurring value | Marketplace/router adapter, fleet refresh and managed policy API | A customer uses the integration repeatedly and pays for a measurable benefit |
 
-Milestones 1–3 produce the local alpha. Record integration can proceed once the passport contract is stable; intervention experiments need the baseline workflow and scoring. Public efficacy claims and issuance depend on the relevant measurement checks. Timing and run budgets will be set from the first complete human and agent runs rather than assumed now.
+Measurement work continues alongside stages 2–3. Signature infrastructure can ship with honest provisional evidence; autonomous policy thresholds and efficacy claims need their own validation. We will not delay all interoperability until every trait is established, or silently promote current observations into general competence guarantees.
 
-## Milestone 1 — shared foundation and a readable passport
+## Next build: resolve, verify, decide
 
-Implemented as [local draft passport 0.1](passport-v1.md). The human contract is available; live human collection is milestone 2. Only single completed v1–v3 reports are imported, with no cross-session aggregation or passport issuance.
+The [offline attestation increment](passport-attestation.md) is implemented and tested without changing task behavior, report schemas or legacy signed bytes. Next:
 
-Define a versioned participant contract with `human` and `agent` kinds, a common pseudonymous subject identifier, and kind-appropriate metadata. Agents record model/prompt/tool/runtime configuration; human sessions record relevant instructions, interface, tools and assistance without inventing model fields. Record protocol, conditions and evidence provenance for both. Preserve existing report versions and exact signed bytes through explicit adapters or migrations into new artifacts.
+1. Pin and verify a specific 8004-Solana deployment and SDK/IDL. Resolve chain/program/asset, current authority, operational wallet, endpoint and passport reference. Use an adapter; build a new identity program only for a concrete unmet requirement.
+2. Add artifact hosting/retrieval and issuer status history with explicit access rules. Keep report evidence private unless publication is authorized. Check digest, issuer trust, current configuration, evaluation age, expiry and corrections/withdrawals separately.
+3. Add stable measurement identifiers and a versioned consumer policy/result contract. Missing evidence returns review, not an assumed pass. Bind every decision to the task, passport digest, policy and maximum spend.
+4. Demonstrate provider selection before a simulated x402 request. Reject stale configuration, wrong subject/payee, untrusted issuer, synthetic origin, unavailable required status and unsupported task coverage.
 
-Define a versioned passport contract for subject/configuration, protocol, coverage, dimension measurements, interpretations, evidence references and provenance. Build a renderer whose plain-language summaries are traceable to explicit rules and observations. Give each dimension a coverage and evidence status; missing support must be visible.
+Acceptance is one complete machine-consumer flow with explicit provenance and policy reasons. Offline tests, mocked RPC, actual registry reads and funded devnet transactions must be reported separately. A signature does not prove which model ran, and a registry identity does not certify cognitive quality.
 
-Start from existing report artifacts to make the output concrete, labeling synthetic fixtures clearly. Keep performance, directional tendencies and variability separate. Do not introduce an overall score or unsupported population ranking.
+## Then: charge for a bounded evaluation job
 
-Include an optional support section in the proposed contract. Separate model-suggested interventions from tested effects; neither may be represented as implemented or effective without supporting evidence.
+Build a payment gateway around the evaluator, not a fee on each trial or poll. A quote states scope, budget, inference responsibility and failure policy. A settled payment creates one resumable job; entitlement controls subsequent access. Distinguish payer, evaluated subject, issuer and provider.
 
-Acceptance: the contract supports both participant kinds, and a reader can identify evaluation conditions, understand each supported tendency, inspect an example and find the limits of the claim without reading coefficient tables. A fixture-generated rendering is labeled as a draft or demonstration, not an issued real-participant result.
+Use x402 v2 and an SVM-capable facilitator. Keep a durable job/payment state machine, request fingerprints and recovery across crashes. Verify and settle are different steps. Test duplicate settlement, cross-order replay, concurrent retries, body changes, timeout after possible settlement and access to private results. Choose actual prices after measuring costs and customer demand. The [commerce design](agent-economy.md#paid-evaluation-api--proposed-next-slice) defines the integration boundaries.
 
-## Milestone 2 — one standard evaluation, two interfaces
+## Measurement and support track
 
-The first implementation is [core 0.1](live-core.md). A new protocol freezes discovery-first order, shared plain-language instructions, no early outcomes and continuous context. It produces report.v4 and passport.v2. Synthetic recovery and adapter parity checks pass. This completes the initial software flow; the acceptance run below and broader matched contrasts remain outstanding.
+Run the combined core with a real human and fresh agents, then repeat selected configurations. Record completion, duration, inference cost and whether the profile helps explain the observed behavior. The current single discovery company cannot establish broad source-framing or negativity traits.
 
-Compose a bounded core from existing tasks and selected additions. Include both controlled and discovery conditions, with targeted repetitions and varied scenarios. Keep discovery central, retain calibration probes with explicit references, and use company assessment as a domain module. Set the final length using completion time and measurement coverage rather than concatenating every existing battery.
+Add matched contrasts separating source label from track record, negative wording from diagnosticity, copied from independent evidence, and source distrust from causal-model revision. For every released claim, connect observed behavior, assumptions, uncertainty and interpretation rules. Review battery/evaluator versions and run recovery validation when experimental behavior changes. Common human/agent tasks do not imply common population norms or internal mechanisms.
 
-For each proposed dimension, specify the task contrast, fitted parameter or performance measure, readable interpretation, evidence requirement and possible support. Add matched contrasts where existing tasks cannot distinguish source impressions, evidence valence, updating and output effects. Do not represent all six dimensions as established simply because the renderer has six sections.
+For one support comparison, test an evidence ledger and reassessment against baseline and generic review on fresh matched cases. Track performance, cost and regressions; a changed fitted parameter alone is not an improvement. Bind assisted configurations and retain null or harmful results. Detailed vulnerability information can require controlled access.
 
-Expose a common session service with a human browser interface and MCP adapter. Both receive the same public task content, evidence order and response semantics for a given assignment. The browser provides instructions, practice, probability/interval/decision controls, progress and pause/resume. It receives no evaluator seeds, future evidence or answer keys. Record actual interface, timing, tools and assistance; preserve immutable answers and idempotent retries.
+## Release boundaries
 
-Freeze composition and interpretation together, review battery/evaluator versions, and run parameter-recovery checks for experimental changes. Version any substantive change to task content introduced for human usability. Common tasks and scoring do not imply identical context-reset or time-budget conditions; make those differences explicit.
-
-Acceptance: a human and a fresh agent each complete the same battery through the shared engine and receive passports plus audit artifacts. Record all attempted modules and distinguish complete from partial runs. Replaying equivalent submitted answers through either adapter gives equivalent measurements, excluding transport metadata.
-
-## Milestone 3 — make the interpretations dependable
-
-Exercise the complete workflow with real humans and fresh agents, including repeat runs and wording variants. Collect whether the profile is understandable and useful, alongside completion, duration, cost and performance. Check model recovery and competing explanations with the existing synthetic tooling; use held-out observations where fitting or support selection requires them.
-
-Publish a claim matrix connecting each dimension to its observed behavior, model assumptions and interpretation rules. Test that labels remain appropriately stable under irrelevant changes and respond to relevant behavioral differences. Record failures, refusals and incomplete runs. Human and agent interpretation thresholds require their own evidence; identical model parameters do not establish identical internal mechanisms or population percentiles.
-
-Acceptance: every released statement is traceable to evidence at its stated scope, and repeatability or sensitivity concerns are visible. A usable alpha may contain provisional dimensions. Broad trait claims require broader support; the larger matched-study tooling remains an internal development option.
-
-## Milestone 4 — issue and verify the passport
-
-Extend the signed-artifact contract and verifier to bind the passport, evaluated configuration, protocol and evidence digests. Preserve exact-byte hashing and versioned signature domains. Publish readable and machine-readable artifacts with an explicit evidence-access policy, then anchor and retrieve them through the Solana integration.
-
-Implement an identity association that keeps stable subject identity, controller authorization, evaluator issuance and execution verification distinct. Select existing primitives or a custom registry against the lifecycle requirements in [identity and records](identity-and-records.md). A configuration change creates a new evaluation scope; corrections and withdrawals preserve historical records.
-
-Acceptance: a consumer can resolve an agent's passport, verify the issuer and artifact bytes, recognize its configuration and age, and inspect the claimed execution-verification level. Validate chain behavior on a local validator or devnet and report that coverage separately from mocked tests.
-
-## Milestone 5 — test targeted cognitive support
-
-Start with one intervention: an evidence ledger and explicit reassessment step for a participant showing weak integration of independent evidence. Treat the proposed mechanism and benefit as hypotheses. Compare baseline, generic review and targeted support on fresh matched cases containing weak, strong and duplicated evidence.
-
-Measure forecasting or decision performance against declared objectives, together with cost and deterioration in other conditions. Keep intervention selection separate from its held-out evaluation. Record agent prompt/tool changes as assisted configurations; account for human learning and carryover instead of assuming memory can be reset.
-
-Acceptance: the passport shows what was tried, the comparison conditions, measured effect and uncertainty, cost, limits and any regressions. A null or harmful result is still a valid completed comparison. Intervention success requires performance evidence; changing a fitted parameter alone is insufficient. See [cognitive security](cognitive-security.md).
-
-## After the first complete product
-
-Add a comparison view for compatible passports, showing changes in measured behavior alongside configuration/protocol differences and uncertainty. Add further domain modules and budgeted information seeking when their measures support useful interpretations. Keep independent evaluator records visible rather than allowing a subject to rewrite its history.
-
-Acceptance: consumers can compare like conditions, identify unmeasured dimensions and inspect evidence behind differences. Reputation aggregation and marketplace ranking remain separate product choices.
-
-## Scope boundaries
-
-- A passport describes demonstrated behavior under declared conditions; it does not certify all future behavior or expose internal beliefs.
-- The current local MCP service requires evaluator/subject isolation supplied by the deployment. It is not a hosted multi-tenant service.
-- Current model/configuration metadata is operator-asserted. Signing and anchoring do not upgrade execution verification.
-- Public identity records need not expose private prompts or transcripts. Evidence access and artifact availability are explicit product concerns.
-- A unified passport command, contract, renderer and identity registry are planned work, not current CLI features.
-
-## Immediate build
-
-Milestone 1 is implemented and tested. Next, choose the bounded core composition, wire the shared participant/session boundary into the evaluator service, and expose it through MCP and a minimal human interface. Preserve existing report/CLI behavior. The next combined demo should be the complete human/agent-to-passport flow.
+- Reported probabilities are observations, not access to internal beliefs. Every passport stays conditional on its task, configuration and conditions.
+- Current execution metadata is operator-asserted. Issuer, controller, configuration and execution verification remain distinct.
+- Browser/MCP evaluation, draft rendering and offline signatures are implemented. Public hosting, lifecycle status, registry binding and payments are not.
+- Human use remains private by default and does not require a wallet. Identity-linked publication is a separate choice.
+- Legacy report.v1–v3 record signing and Memo semantics remain unchanged. New passport signatures have a separate schema and signature domain.

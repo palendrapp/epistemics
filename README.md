@@ -4,13 +4,13 @@ Public repository: [palendrapp/epistemics](https://github.com/palendrapp/epistem
 
 Building an **epistemic passport for agents**: a standard evaluation that produces an interpretable behavioral profile, attached to an agent's identity and evaluated configuration through verifiable records on Solana.
 
-The passport should help people understand what to expect when an agent encounters evidence, uncertain sources, disagreement and decisions. Its readable profile sits alongside measurements, supporting observations and evaluator provenance. Computational modeling and validation support that product. The profile describes observed behavior under declared conditions; reported probabilities are not direct access to an agent's internal beliefs.
+The primary consumer is an agent or orchestrator deciding whom to hire and how to delegate. A machine-readable passport supplies behavioral evidence before a bounded service purchase; people can inspect the same profile. The [agent-economy design](docs/agent-economy.md) connects Solana Agent Registry identity, task policy and x402 payments, with paid evaluations as the initial revenue hypothesis. The profile describes observed behavior under declared conditions; reported probabilities are not direct access to internal beliefs.
 
-The [product brief](docs/epistemic-passport.md) defines the intended experience and profile dimensions. The repository provides a [shared core evaluation for humans and agents](docs/live-core.md), readable draft passports, and signed-report components. Passport issuance and the identity registry remain roadmap work.
+The [product brief](docs/epistemic-passport.md) defines the experience and dimensions. The repository provides a [shared core evaluation for humans and agents](docs/live-core.md), readable/JSON profiles, [offline passport attestations](docs/passport-attestation.md) and legacy signed-report components. Registry resolution, public artifact hosting, lifecycle status, task policies and paid endpoints remain roadmap work.
 
 The broader purpose includes [cognitive security and targeted support](docs/cognitive-security.md): use an explicit model to propose interventions, test whether they improve decisions, and record what helps under which conditions. The shared evaluator accepts humans and agents; the intervention layer is proposed.
 
-Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) next calls for an actual human and a fresh agent to complete it and review the usefulness of their profiles. Synthetic end-to-end checks are implemented; real participant usability and repeatability remain to be measured. Interpretation checks, identity-linked issuance and tested interventions follow.
+Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) prioritizes machine verification and identity integration alongside actual human/fresh-agent completion and profile review. Synthetic end-to-end checks are implemented; real participant usability and repeatability remain to be measured. A paid evaluation gateway and tested interventions follow.
 
 ## Implemented components
 
@@ -23,10 +23,11 @@ Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser inte
 | Analysis | Original/company fits; discovery source learning and joint inference, conditional observer comparisons, matched input/output recovery |
 | Matched studies | Frozen assignments, fresh-process MCP collection, joint parameter fitting, held-out predictions and uncertainty reports |
 | Records | Versioned JSON Schema, complete transcript and replay seed, report byte hash, detached Ed25519 evaluator signature |
+| Passport attestations | Offline signing of agent core passports; exact-byte artifact/configuration binding, explicit issuer trust and validity checks; JSON CLI output |
 | Solana client | Kit-based Memo transaction construction, devnet simulation/submission, finalized inclusion verification |
 | Validation | Synthetic parameter recovery, full MCP protocol run, cross-language report validation, tamper checks, mocked RPC flow |
 
-The [MVP milestones](docs/mvp.md) prioritize a readable passport, a standard evaluation and identity-linked issuance. The [measurement background](docs/research.md) explains the models beneath the profile. The initial source-reliability task is motivated by Gershman's account of auxiliary hypotheses in [*How to never be wrong*](https://gershmanlab.com/pubs/HowToNeverBeWrong.pdf); it is an original simplified task, not a replication of a published instrument.
+The [MVP milestones](docs/mvp.md) prioritize a standard evaluation, a portable profile and identity-linked machine consumption. The [measurement background](docs/research.md) explains the models beneath the profile. The initial source-reliability task is motivated by Gershman's account of auxiliary hypotheses in [*How to never be wrong*](https://gershmanlab.com/pubs/HowToNeverBeWrong.pdf); it is an original simplified task, not a replication of a published instrument.
 
 ```mermaid
 flowchart LR
@@ -92,7 +93,15 @@ uv run epistemics passport verify output/passport-demo/passport.json --report ou
 
 Open `output/passport-demo/passport.html`. The directory also contains Markdown and JSON. For a legacy actual agent report, use `--response-origin agent`; omitted legacy origin stays visibly unspecified. Core reports preserve the response origin recorded at collection and cannot be relabeled. All current passports are unsigned drafts with limited measurement coverage. The command preserves the original report and refuses to overwrite an existing output directory. See [the legacy contract](docs/passport-v1.md) and [core release](docs/live-core.md).
 
-The core browser collects human responses without model fields. Legacy evaluation APIs remain agent-only. Core v4 reports and all draft passports are not yet accepted by the Solana signer.
+The core browser collects human responses without model fields. Legacy evaluation APIs remain agent-only. The existing report signer accepts v1–v3 only. Agent core passport.v2 artifacts use a separate offline envelope:
+
+```sh
+pnpm passport-record demo --passport output/core-passport.json --report output/core-report.json --output output/core-attestation.json
+# Use the demo's printed key here only for demonstration; real trust comes from an independent source.
+pnpm passport-record verify --passport output/core-passport.json --attestation output/core-attestation.json --issuer TRUSTED_ISSUER_PUBLIC_KEY
+```
+
+These commands require saved artifacts from a completed agent core session. They preserve draft/synthetic labels and send no transactions. See [issuance semantics and verification limits](docs/passport-attestation.md). Human passports remain private and are not accepted by this signer.
 
 ## Evaluate an agent through MCP
 
@@ -178,4 +187,4 @@ examples/           MCP host configuration and agent protocol
 
 Run `mise run format` to format code and `mise run check` before changes are shared. After changing report models, run `uv run epistemics schema`; a test prevents schema drift. CI uses the same locked dependencies and checks. Python and TypeScript lockfiles belong in version control.
 
-This is a local prototype of the passport's evaluation and record infrastructure. No model-provider credentials, funded wallet, deployed custom program, GitHub remote, or live-network transaction is included. Licensing and public release are separate project decisions.
+This public repository is a local prototype of the passport's evaluation and record infrastructure. No model-provider credentials, funded wallet, deployed custom program or live-network transaction is included. No open-source license has been selected; see [contributing](CONTRIBUTING.md).

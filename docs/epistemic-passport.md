@@ -4,13 +4,13 @@
 
 An epistemic passport is a portable, interpretable behavioral profile attached to an agent identity and a specific configuration. It helps a person or another agent answer: **what should I expect when this agent encounters evidence, uncertainty, disagreement and decisions?**
 
-The product is a standard evaluation, a readable profile, and a verifiable record. Computational models and measurement checks support the interpretation behind that profile. Running a research study is not the customer's workflow.
+The primary integration is the **agent economy**: another agent or orchestrator discovers a provider, checks its passport against a task policy, and decides whether to delegate, request support or buy its service. The product is a standard evaluation, a machine-readable profile, a readable rendering, and a verifiable record. Computational models and measurement checks support the interpretation behind that profile. Running a research study is not the customer's workflow. The [agent-economy design](agent-economy.md) specifies identity, x402 payments and revenue.
 
-A second purpose is cognitive security: use the explicit model to identify where a decision maker may benefit from support, choose a targeted intervention and test whether it helps. The intended profile includes both observed tendencies and response to assistance. This direction includes humans as well as agents; the current implementation is agent-focused.
+A second purpose is cognitive security: use the explicit model to identify where a decision maker may benefit from support, choose a targeted intervention and test whether it helps. The intended profile includes both observed tendencies and response to assistance. The shared core already supports human and agent participation; intervention validation remains future work.
 
 “Phenotype” means observed tendencies across the declared evaluation conditions. The ambition is broad coverage of epistemic behavior. Every issued passport must make its actual coverage clear: a finite evaluation cannot fully characterize an agent in every setting, and elicited probabilities are observations rather than direct access to internal beliefs.
 
-This document defines the product direction. The repository implements a [shared core battery and human/MCP interfaces](live-core.md), draft passports, and legacy signed-report components. Broader phenotype coverage and the identity-linked issuance flow remain proposed.
+This document defines the product direction. The repository implements a [shared core battery and human/MCP interfaces](live-core.md), draft passports, [detached passport attestations](passport-attestation.md), and legacy signed-report components. Broader phenotype coverage and the identity-linked commerce flow remain proposed.
 
 ## The experience
 
@@ -18,10 +18,10 @@ This document defines the product direction. The repository implements a [shared
 2. Run a versioned passport evaluation through MCP. The evaluator manages task selection, order, fresh contexts, checkpoints and retries within a declared budget.
 3. Receive a concise profile with dimension summaries, representative observations, practical implications and links to supporting measurements.
 4. Issue an evaluator-signed passport binding that profile to the evaluated configuration, protocol and evidence artifacts. Publish an identity association and commitment on Solana, with off-chain artifact storage.
-5. Let consumers verify provenance, inspect scope and compare compatible passports. Re-evaluate changed configurations and retain evaluation history.
+5. Let machine consumers resolve the agent through an existing registry, verify provenance/configuration/freshness, apply task-specific policy and authorize a bounded purchase through x402. People can inspect the same evidence. Re-evaluate changed configurations and retain evaluation history.
 6. Where authorized, use the profile to select support, compare assisted and baseline performance on fresh cases, and record the conditions under which that support helps.
 
-The intended public surface is one evaluation command or API operation and one resulting passport. `epistemics serve` and the dedicated core MCP adapter now run a combined 34-checkpoint evaluation and produce a draft. `epistemics passport create` also derives drafts from existing reports. Signing and publication remain separate work.
+The intended public surface is one evaluation job and one resulting passport, with resumable collection and machine-readable output. `epistemics serve` and the dedicated core MCP adapter now run a combined 34-checkpoint evaluation and produce a draft. `epistemics passport create` also derives drafts from existing reports. `pnpm passport-record` signs and verifies agent core passports offline; publication, registry resolution, task policy and paid jobs remain to be built.
 
 ## Same evaluation for humans and agents
 
@@ -29,7 +29,7 @@ Human participation is a requirement of the shared evaluator design. Core 0.1 no
 
 The human interface adds task instructions, practice, response controls, progress and pause/resume. It must not silently supply extra hints, evidence or feedback. Record interface, tools, assistance, time and context policies so comparisons have a clear scope. The same behavioral model can describe responses from both kinds of participant while its interpretation and population references require separate support.
 
-The first usable delivery target is a human and a fresh agent completing the same core battery and receiving readable passports. Human results can remain private; identity-linked issuance is a separate choice. The [roadmap](mvp.md) makes this flow an early milestone.
+A shared-evaluation acceptance check is a human and a fresh agent completing the same core battery and receiving readable passports. It runs alongside the machine-consumer integration. Human results can remain private; identity-linked issuance is a separate choice. The [roadmap](mvp.md) keeps both requirements visible.
 
 ## Profile dimensions
 
@@ -101,7 +101,7 @@ A stable agent identity can accumulate passports for multiple configurations. A 
 
 Solana supplies the record's identity association, authenticated provenance and discoverable history in the intended product. Detailed measurements and transcripts live off-chain. Issuer identity, subject/controller identity, configuration identity and execution verification remain distinct. A valid signature or on-chain commitment authenticates an attestation; it does not establish which model actually ran or that every interpretation is correct.
 
-The current client signs individual v1–v3 evaluation reports and supports devnet Memo commitments. It has no stable-identity registry, artifact hosting/indexing, passport aggregation or passport signing contract. The matched-study profiles are not yet accepted by that signer. See [identity and records](identity-and-records.md) for existing guarantees and proposed lifecycle rules.
+The current client signs individual v1–v3 evaluation reports and supports devnet Memo commitments. A separate offline contract signs agent core passport.v2 artifacts, preserving provisional scope and operator-asserted execution. Stable identity resolution, artifact hosting/indexing, withdrawal status and passport aggregation remain pending. Matched-study profiles are not accepted by either signer. See [identity and records](identity-and-records.md) for guarantees and lifecycle rules.
 
 ## Next implementation boundary
 
@@ -109,4 +109,4 @@ The draft profile contract, renderer and shared 34-checkpoint core workflow are 
 
 The draft contract includes untested support candidates, with an initial evidence-ledger suggestion rule. After the baseline workflow, implement one bounded comparison of a targeted support against no assistance and generic assistance, using the same report and configuration discipline.
 
-Extend signing and verification to the passport artifact, then implement the identity association and publication/retrieval path. Keep the larger matched-study machinery available for developing and checking difficult measures; it is an internal tool rather than the default passport experience. Detailed milestones are in [MVP scope](mvp.md).
+Next connect the offline passport attestation to registry resolution, lifecycle status and a task policy, then build a paid evaluation job using x402. Keep the larger matched-study machinery available for developing and checking difficult measures; it is an internal tool rather than the default passport experience. Detailed milestones are in [MVP scope](mvp.md).

@@ -6,9 +6,11 @@ The [epistemic passport](epistemic-passport.md) is the primary product built on 
 
 The intended identity surface lets consumers discover a passport, verify its issuer and artifact integrity, inspect evaluation age and coverage, and follow configuration changes, corrections or withdrawals. Detailed profiles and evidence live off-chain. Private prompt contents need not appear in public identity records; fingerprints and evidence-access policies must be explicit.
 
-This lifecycle is proposed. The current implementation signs individual evaluation reports and supports devnet Memo commitments. Passport aggregation/signing, a stable-identity registry, publication and indexing remain to be built. An on-chain record authenticates provenance; it does not by itself verify the runtime or establish the accuracy of the behavioral interpretation.
+This lifecycle is proposed. The implementation signs individual legacy evaluation reports and supports devnet Memo commitments. A separate [offline passport attestation](passport-attestation.md) now signs agent core passport.v2 artifacts. Aggregation, registry association, publication, withdrawal status and indexing remain to be built. An on-chain record authenticates provenance; it does not by itself verify the runtime or establish the accuracy of the behavioral interpretation.
 
-The proposed [cognitive-security layer](cognitive-security.md) also binds tested interventions to their baseline and assisted configurations. It keeps detailed vulnerability and intervention records under controlled access. Future human participation and identity-linked publication require consent; independent agent-issuer semantics below do not automatically extend to human profiles. Private human use must be possible without an on-chain identity link.
+The primary consumer is an agent or orchestrator deciding whether to delegate or purchase a service. The [agent-economy design](agent-economy.md) selects the Solana Agent Registry / 8004-Solana as the first identity adapter target and x402 as the payment integration. These are planned adapters, not current network dependencies.
+
+The proposed [cognitive-security layer](cognitive-security.md) also binds tested interventions to their baseline and assisted configurations. It keeps detailed vulnerability and intervention records under controlled access. Human participation is already supported privately; identity-linked human publication requires separate consent. Independent agent-issuer semantics below do not automatically extend to human profiles.
 
 ## Keep four roles distinct
 
@@ -39,7 +41,7 @@ These proposed kinds need separate versioned schemas and authorization rules. Th
 
 ## v1 record format (implemented)
 
-The accepted evaluation report follows `schemas/report.v1.json`, `schemas/report.v2.json` or `schemas/report.v3.json`. All three use the v1 signed-record envelope. Study profiles and the proposed passport artifact are not currently accepted. The report's exact UTF-8 file bytes, including whitespace and trailing newline, are hashed with SHA-256. Reformatting the file changes its digest.
+The accepted evaluation report follows `schemas/report.v1.json`, `schemas/report.v2.json` or `schemas/report.v3.json`. All three use the v1 signed-record envelope. Study profiles and passports are not accepted by that envelope; agent core passports use the separate passport-attestation.v1 contract. The report's exact UTF-8 file bytes, including whitespace and trailing newline, are hashed with SHA-256. Reformatting the file changes its digest.
 
 The signed record follows `schemas/record.v1.json` and consists of:
 
@@ -71,10 +73,11 @@ Authenticity of a record does not imply valid science, truthful metadata, comple
 
 ## Existing Solana primitives to evaluate
 
-Survey checked 2026-09-19. These are integration candidates, not dependencies of this MVP.
+Survey updated 2026-09-19. These are integration candidates, not dependencies of this MVP. The first target is an adapter to the existing Agent Registry. Check the [source review and deployment discrepancies](agent-economy.md#current-primitives-and-integration-choice) before choosing program IDs or installing an SDK.
 
 | Candidate | Why inspect it | Decision gate |
 | --- | --- | --- |
+| [Solana Agent Registry](https://solana.com/agent-registry) / [8004-Solana](https://github.com/QuantuLabs/8004-solana-ts) | Existing asset identity, service metadata, operational wallet and feedback integration; first adapter target. | Pin deployment/SDK/IDL and verify ownership, endpoint binding, transfer/rotation semantics and current program. The program README archives validation for a future upgrade; do not assume deployed validation from the high-level overview. |
 | [Solana Attestation Service](https://github.com/solana-foundation/solana-attestation-service) | Existing attestation program and generated clients; the [SATI proposal](https://github.com/solana-foundation/SRFCs/discussions/7) uses SAS schemas for agent-related claims. | Confirm schema authorization, issuer semantics, revocation, indexability, upgrade authority and deployed version against our threat model. |
 | [Solana Record Service](https://github.com/solana-foundation/solana-record-service) | Existing record-storage program and SDK that could hold identity metadata or pointers. | Inspect update authority, ownership transfer, record size/cost and historical availability before adopting it. |
 | [Solana Agent Trust Infrastructure proposal](https://github.com/solana-foundation/SRFCs/discussions/7) | Describes identity, delegated signing, evidence/feedback schemas and distinct reputation providers. | The cited sRFC is labeled draft; evaluate implementation and schema compatibility independently. Do not treat the proposal's claims as guarantees. |
@@ -82,7 +85,7 @@ Survey checked 2026-09-19. These are integration candidates, not dependencies of
 
 Token or NFT ownership can be a controller primitive when interoperability requires it. It should not make reputation automatically transferable with ownership: historical evaluator records need to remain attached to the evaluated configuration and authority epoch.
 
-## Proposed registry, if needed (not implemented)
+## Fallback custom registry, only if existing adapters fail (not implemented)
 
 Use a stable random 32-byte agent identifier for an `Agent` PDA, with a controller key, authority epoch, descriptor hash and revocation state. The PDA identity remains stable across controller rotation. Require controller authorization for registration/updates; validate all seeds, owners and accounts.
 
