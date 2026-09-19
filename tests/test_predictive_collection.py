@@ -1,5 +1,7 @@
 import asyncio
 import json
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -220,6 +222,86 @@ def test_design_bytes_are_bound_independently_of_sidecar(collection):
     (path.parent / "manifest.sha256").write_text(digest(raw))
     with pytest.raises(ValueError, match="design binding changed"):
         service.get_trial()
+
+
+def test_cli_bridge_and_private_export_round_trip(collection, tmp_path):
+    directory, assignments, spec = collection
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text(spec.model_dump_json())
+    target = tmp_path / "cli-collection"
+
+    def cli(*args, input=None):
+        return subprocess.run(
+            [sys.executable, "-m", "epistemics.cli", "predictive", *map(str, args)],
+            input=input,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+    result = cli("bind", "--design", directory / "design", "--spec", spec_path, "--output", target)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["response_origin"] == "synthetic"
+    for assignment in assignments:
+        requests = ["not-json", json.dumps({"tool": "get_trial"})]
+        for checkpoint in episode(assignment):
+            requests.append(
+                json.dumps(
+                    {
+                        "tool": "submit_answer",
+                        "arguments": {"checkpoint_id": checkpoint.checkpoint_id, "answer": ANSWER},
+                    }
+                )
+            )
+            requests.append(json.dumps({"tool": "get_trial"}))
+        requests.extend([json.dumps({"tool": "finish_evaluation"}), json.dumps({"close": True})])
+        result = cli(
+            "client",
+            "--collection",
+            target,
+            "--assignment",
+            assignment.assignment_id,
+            input="\n".join(requests) + "\n",
+        )
+        assert result.returncode == 0, result.stderr
+        messages = [json.loads(line) for line in result.stdout.splitlines()]
+        assert "protocol" in messages[0]
+        assert "error" in messages[1]
+        assert messages[-1]["result"]["complete"]
+    status = cli("status", "--collection", target)
+    assert status.returncode == 0, status.stderr
+    assert all(a["finished"] for a in json.loads(status.stdout)["assignments"])
+    output = tmp_path / "responses.json"
+    result = cli("export", "--collection", target, "--output", output)
+    assert result.returncode == 0, result.stderr
+    assert CollectionExport.model_validate_json(output.read_bytes()).collection == (
+        CollectionManifest.model_validate_json((target / "collection.json").read_bytes())
+    )
+    assert cli("export", "--collection", target, "--output", output).returncode != 0
+    assert output.read_bytes() == export_collection(target)
+
+
+def test_complete_full_pilot_export_preserves_every_partition(collection, tmp_path):
+    directory, _, spec = collection
+    from epistemics.predictive.design import load_manifest
+
+    manifest = load_manifest(directory / "design")
+    spec = spec.model_copy(
+        update={
+            "purpose": "full_pilot",
+            "assignment_ids": [a.assignment_id for a in manifest.assignments],
+        }
+    )
+    target = tmp_path / "full-pilot"
+    create_collection(directory / "design", target, spec)
+    for assignment in manifest.assignments:
+        finish(CollectionService(target, assignment.assignment_id))
+    result = CollectionExport.model_validate_json(export_collection(target))
+    assert len(result.episodes) == 72
+    assert sum(len(e.observations) for e in result.episodes) == 360
+    assert {e.assignment.split for e in result.episodes} == {"profile", "policy", "heldout"}
+    assert result.collection.purpose == "full_pilot"
+    assert result.collection.response_origin == "synthetic"
 
 
 def test_real_mcp_sequential_boundary_and_restart(collection):
