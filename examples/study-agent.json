@@ -1,0 +1,8 @@
+{
+  "agent_id": "replace:actual-agent-configuration",
+  "model": "replace-with-actual-model",
+  "model_version": "replace-with-serving-revision-or-explicit-unknown",
+  "configuration_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "context_policy": "continuous",
+  "temperature": null
+}

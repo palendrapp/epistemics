@@ -91,21 +91,31 @@ def main() -> None:
     check.add_argument("path", type=Path)
     args = parser.parse_args()
     if args.command == "validate":
+        from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
+
         data = json.loads(args.path.read_bytes())
         contract = {
             "epistemics.report.v1": Report,
             "epistemics.report.v2": CompanyReport,
             "epistemics.report.v3": DiscoveryReport,
+            "epistemics.study.v1": StudyManifest,
+            "epistemics.study-episode.v1": EpisodeReport,
+            "epistemics.study-profile.v1": StudyProfile,
         }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
         print("Valid report structure")
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.command == "schema":
+        from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
+
         for contract, path in [
             (Report, args.output),
             (CompanyReport, args.output.with_name("report.v2.json")),
             (DiscoveryReport, args.output.with_name("report.v3.json")),
+            (StudyManifest, args.output.with_name("study.v1.json")),
+            (EpisodeReport, args.output.with_name("study-episode.v1.json")),
+            (StudyProfile, args.output.with_name("study-profile.v1.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"

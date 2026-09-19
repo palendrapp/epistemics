@@ -1,0 +1,248 @@
+{
+  "$defs": {
+    "AgentDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "context_policy": {
+          "default": "continuous",
+          "enum": [
+            "continuous",
+            "reset_per_trial",
+            "reset_per_task"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "agent_id",
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentDescriptor",
+      "type": "object"
+    },
+    "ParameterEstimate": {
+      "additionalProperties": false,
+      "properties": {
+        "estimate": {
+          "title": "Estimate",
+          "type": "number"
+        },
+        "interval_95": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Interval 95",
+          "type": "array"
+        },
+        "baseline": {
+          "title": "Baseline",
+          "type": "number"
+        },
+        "boundary_mass": {
+          "title": "Boundary Mass",
+          "type": "number"
+        },
+        "grid_resolution": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Grid Resolution"
+        },
+        "status": {
+          "enum": [
+            "resolved_under_model",
+            "unidentified"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "effect": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Effect",
+          "type": "object"
+        }
+      },
+      "required": [
+        "estimate",
+        "interval_95",
+        "baseline",
+        "boundary_mass",
+        "status",
+        "explanation",
+        "effect"
+      ],
+      "title": "ParameterEstimate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.study-profile.v1",
+      "default": "epistemics.study-profile.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "study_id": {
+      "title": "Study Id",
+      "type": "string"
+    },
+    "analysis_version": {
+      "default": "discovery-profile/0.4.0",
+      "title": "Analysis Version",
+      "type": "string"
+    },
+    "manifest_sha256": {
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "response_origin": {
+      "enum": [
+        "agent",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "agent": {
+      "$ref": "#/$defs/AgentDescriptor"
+    },
+    "report_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Report Hashes",
+      "type": "object"
+    },
+    "train_worlds": {
+      "title": "Train Worlds",
+      "type": "integer"
+    },
+    "heldout_worlds": {
+      "title": "Heldout Worlds",
+      "type": "integer"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ParameterEstimate"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "model_comparisons": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Model Comparisons",
+      "type": "object"
+    },
+    "diagnostics": {
+      "additionalProperties": true,
+      "title": "Diagnostics",
+      "type": "object"
+    },
+    "experimental_contrasts": {
+      "additionalProperties": true,
+      "title": "Experimental Contrasts",
+      "type": "object"
+    },
+    "predictions": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Predictions",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "study_id",
+    "manifest_sha256",
+    "implementation_sha256",
+    "response_origin",
+    "agent",
+    "report_hashes",
+    "train_worlds",
+    "heldout_worlds",
+    "parameters",
+    "model_comparisons",
+    "diagnostics",
+    "experimental_contrasts",
+    "predictions",
+    "limitations"
+  ],
+  "title": "StudyProfile",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -10,6 +10,8 @@ The company battery adds 54 disclosed-model checkpoints across six fictional bus
 
 The discovery battery adds ten checkpoints with source archives, inferred relationships and sequential documents.
 
+Matched discovery studies support frozen assignments, isolated collection and held-out inference checks.
+
 ## Development
 
 Use `uv sync --locked` and `pnpm install --frozen-lockfile`. Run `mise run check` for the offline checks.

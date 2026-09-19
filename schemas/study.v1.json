@@ -1,0 +1,307 @@
+{
+  "$defs": {
+    "AgentDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "context_policy": {
+          "default": "continuous",
+          "enum": [
+            "continuous",
+            "reset_per_trial",
+            "reset_per_task"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "agent_id",
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentDescriptor",
+      "type": "object"
+    },
+    "AnalysisPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "source_frame_grid": {
+          "default": [
+            -2,
+            -1,
+            0,
+            1,
+            2
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Source Frame Grid",
+          "type": "array"
+        },
+        "archive_weight_grid": {
+          "default": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Archive Weight Grid",
+          "type": "array"
+        },
+        "relationship_prior_grid": {
+          "default": [
+            -2,
+            -1,
+            0,
+            1,
+            2
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Relationship Prior Grid",
+          "type": "array"
+        },
+        "fundamentals_prior_grid": {
+          "default": [
+            -1,
+            0,
+            1
+          ],
+          "items": {
+            "type": "number"
+          },
+          "title": "Fundamentals Prior Grid",
+          "type": "array"
+        },
+        "probability_logit_sd": {
+          "default": 0.35,
+          "exclusiveMinimum": 0,
+          "title": "Probability Logit Sd",
+          "type": "number"
+        },
+        "quantile_sd": {
+          "default": 1.5,
+          "exclusiveMinimum": 0,
+          "title": "Quantile Sd",
+          "type": "number"
+        },
+        "within_episode_correlation": {
+          "default": 0.15,
+          "exclusiveMaximum": 0.4,
+          "minimum": 0,
+          "title": "Within Episode Correlation",
+          "type": "number"
+        },
+        "within_checkpoint_correlation": {
+          "default": 0.2,
+          "exclusiveMaximum": 0.4,
+          "minimum": 0,
+          "title": "Within Checkpoint Correlation",
+          "type": "number"
+        },
+        "output_prior_sd": {
+          "default": 0.75,
+          "exclusiveMinimum": 0,
+          "title": "Output Prior Sd",
+          "type": "number"
+        },
+        "probability_clip": {
+          "default": 1e-06,
+          "exclusiveMaximum": 0.05,
+          "exclusiveMinimum": 0,
+          "title": "Probability Clip",
+          "type": "number"
+        },
+        "adequacy_max_standardized_rmse": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Adequacy Max Standardized Rmse",
+          "type": "number"
+        },
+        "max_mean_extraction_error_pp": {
+          "default": 0.1,
+          "minimum": 0,
+          "title": "Max Mean Extraction Error Pp",
+          "type": "number"
+        },
+        "min_train_worlds_for_profile": {
+          "default": 8,
+          "minimum": 2,
+          "title": "Min Train Worlds For Profile",
+          "type": "integer"
+        }
+      },
+      "title": "AnalysisPlan",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "world_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "World Id",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "split": {
+          "enum": [
+            "train",
+            "heldout"
+          ],
+          "title": "Split",
+          "type": "string"
+        },
+        "replicate": {
+          "minimum": 0,
+          "title": "Replicate",
+          "type": "integer"
+        },
+        "variant": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Variant",
+          "type": "object"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "world_id",
+        "seed",
+        "split",
+        "replicate",
+        "variant"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.study.v1",
+      "default": "epistemics.study.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "study_version": {
+      "default": "company-discovery-study/0.4.0",
+      "title": "Study Version",
+      "type": "string"
+    },
+    "analysis_version": {
+      "default": "discovery-profile/0.4.0",
+      "title": "Analysis Version",
+      "type": "string"
+    },
+    "study_id": {
+      "title": "Study Id",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "agent": {
+      "$ref": "#/$defs/AgentDescriptor"
+    },
+    "response_origin": {
+      "default": "agent",
+      "enum": [
+        "agent",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "analysis_plan": {
+      "$ref": "#/$defs/AnalysisPlan"
+    },
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/Assignment"
+      },
+      "title": "Assignments",
+      "type": "array"
+    },
+    "context_policy": {
+      "const": "fresh_per_assignment_continuous_within",
+      "default": "fresh_per_assignment_continuous_within",
+      "title": "Context Policy",
+      "type": "string"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    }
+  },
+  "required": [
+    "study_id",
+    "created_at",
+    "implementation_sha256",
+    "agent",
+    "assignments"
+  ],
+  "title": "StudyManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

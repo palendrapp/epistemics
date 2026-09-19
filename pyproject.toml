@@ -1,6 +1,6 @@
 [project]
 name = "epistemics"
-version = "0.3.0"
+version = "0.4.0"
 description = "Behavioral belief elicitation for agents, with verifiable epistemic records"
 requires-python = ">=3.12,<3.15"
 dependencies = ["mcp>=1.26,<2", "numpy>=2.2,<3", "pydantic>=2.11,<3"]
@@ -8,6 +8,8 @@ dependencies = ["mcp>=1.26,<2", "numpy>=2.2,<3", "pydantic>=2.11,<3"]
 [project.scripts]
 epistemics = "epistemics.cli:main"
 epistemics-mcp = "epistemics.mcp_server:main"
+epistemics-study = "epistemics.study.cli:main"
+epistemics-study-mcp = "epistemics.study.mcp_server:main"
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]
