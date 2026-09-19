@@ -2,7 +2,7 @@
 
 Public repository: [palendrapp/epistemics](https://github.com/palendrapp/epistemics). The initial commits reconstruct the project's development stages; [history and dating](docs/development-history.md) explains their provenance.
 
-Building an **epistemic passport for agents**: a standard evaluation that produces an interpretable behavioral profile, attached to an agent's identity and evaluated configuration through verifiable records on Solana.
+Building infrastructure for **measuring and coordinating epistemic reliability**, starting with an epistemic passport for agents: a standard evaluation that produces an interpretable behavioral profile, attached to an agent's identity and evaluated configuration through verifiable records on Solana. The same underlying evaluation supports private human participation.
 
 The primary consumer is an agent or orchestrator deciding whom to hire and how to delegate. A machine-readable passport supplies behavioral evidence before a bounded service purchase; people can inspect the same profile. The [agent-economy design](docs/agent-economy.md) connects Solana Agent Registry identity, task policy and x402 payments, with paid evaluations as the initial revenue hypothesis. The profile describes observed behavior under declared conditions; reported probabilities are not direct access to internal beliefs.
 
@@ -10,7 +10,7 @@ The [product brief](docs/epistemic-passport.md) defines the experience and dimen
 
 The broader purpose includes [cognitive security and targeted support](docs/cognitive-security.md): use an explicit model to propose interventions, test whether they improve decisions, and record what helps under which conditions. The shared evaluator accepts humans and agents; the intervention layer is proposed.
 
-Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) prioritizes machine verification and identity integration alongside actual human/fresh-agent completion and profile review. Synthetic end-to-end checks are implemented; real participant usability and repeatability remain to be measured. A paid evaluation gateway and tested interventions follow.
+Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser interface. The [delivery roadmap](docs/mvp.md) puts a [predictive-usefulness pilot](docs/predictive-usefulness-pilot.md) alongside identity integration: predict behavior on unseen evidence sequences, then test whether profile-guided assistance improves decisions relative to cost. Actual human/fresh-agent core acceptance remains pending. Later stages add active information acquisition, continuous observation, historical replay, team coordination and paid verified contributions. These are proposed capabilities, not current results.
 
 ## Implemented components
 

@@ -2,9 +2,9 @@
 
 ## Product purpose
 
-An epistemic passport is a portable, interpretable behavioral profile attached to an agent identity and a specific configuration. It helps a person or another agent answer: **what should I expect when this agent encounters evidence, uncertainty, disagreement and decisions?**
+An epistemic passport is a portable, interpretable behavioral profile attached to an agent identity and a specific configuration. It helps a person or another agent answer: **what should I expect when this agent encounters evidence, uncertainty, disagreement and decisions?** It is the first product of a broader measurement and coordination layer intended to guide work, verification, assistance and scoped authority using demonstrated epistemic behavior.
 
-The primary integration is the **agent economy**: another agent or orchestrator discovers a provider, checks its passport against a task policy, and decides whether to delegate, request support or buy its service. The product is a standard evaluation, a machine-readable profile, a readable rendering, and a verifiable record. Computational models and measurement checks support the interpretation behind that profile. Running a research study is not the customer's workflow. The [agent-economy design](agent-economy.md) specifies identity, x402 payments and revenue.
+The primary integration is the **agent economy**: another agent or orchestrator discovers a provider, checks its passport against a task policy, and decides whether to delegate, request support or buy its service. The product is a standard evaluation, a machine-readable profile, a readable rendering, and a verifiable record. The core asset is measurement that predicts specified future behavior and informs useful decisions. Held-out prediction and decision benefit are internal release criteria for those claims; the customer receives a bounded evaluation and result. The [agent-economy design](agent-economy.md) specifies identity, x402 payments and revenue.
 
 A second purpose is cognitive security: use the explicit model to identify where a decision maker may benefit from support, choose a targeted intervention and test whether it helps. The intended profile includes both observed tendencies and response to assistance. The shared core already supports human and agent participation; intervention validation remains future work.
 
@@ -46,13 +46,15 @@ These are proposed product dimensions, not a claim that all are already measured
 
 Stability across repetitions, wording and contexts accompanies every dimension. It is a property of the evidence supporting the profile, not a separate claim that an agent has one immutable trait.
 
-Information seeking under a cost or time budget is a useful later dimension. The current battery does not measure it. Domain modules, starting with portfolio-manager company assessment, add context-specific detail to the core passport.
+Active information acquisition is an explicit expansion milestone: participants choose sources, queries, hypothesis-discriminating evidence and when to stop under costs. The current battery does not measure this policy. Observable hypothesis-generation and metacognitive discrimination tasks also require dedicated design before adding those claims. Domain modules, starting with portfolio-manager company assessment, add context-specific detail to the core passport.
 
 ## Model behind the profile
 
 Explicit inference modeling remains central. Organize the behavioral model around source impressions, interpretation of evidence and dependencies, updating of hypotheses and explanations, and expression through probabilities, intervals and decisions. These components connect the user's proposed input and output terms: an apparent reluctance to update could arise from source distrust, a different causal explanation, or how a judgment is reported.
 
 The evaluation needs contrasts that distinguish those explanations where feasible. When competing models fit similarly, describe the observed behavior and retain that ambiguity instead of assigning a confident cognitive label. The profile is a readable view of the evidence and model, not a personality narrative generated independently of them.
+
+Test persistence through out-of-sample prediction: fit on declared cases, freeze the model, and predict updates, confidence and decisions on unseen cases against simple alternatives. Evaluate separately whether using the profile improves selection or assistance. The [predictive-usefulness pilot](predictive-usefulness-pilot.md) makes both comparisons the next measurement milestone. Successful prediction supports its tested behavioral scope without uniquely identifying an internal mechanism.
 
 Intervention hypotheses extend this model. A fitted explanation suggests what to try; a separate comparison establishes whether the support improves outcomes. The proposed [cognitive-security layer](cognitive-security.md) specifies candidate supports, an intervention check, human adaptation and disclosure rules. Baseline traits, predicted benefits and measured intervention effects must remain distinct.
 
@@ -105,8 +107,8 @@ The current client signs individual v1–v3 evaluation reports and supports devn
 
 ## Next implementation boundary
 
-The draft profile contract, renderer and shared 34-checkpoint core workflow are implemented. Coverage gaps and synthetic demonstrations are explicit. Next, run actual humans and fresh agents through their respective interfaces to check whether the questions and profiles are understandable, useful and reasonably repeatable. Use that feedback to revise the bounded composition and add discriminating contrasts.
+The draft profile contract, renderer and shared 34-checkpoint core workflow are implemented. Coverage gaps and synthetic demonstrations are explicit. Complete actual human/fresh-agent acceptance runs, then build matched independent/copied-evidence cases across several configurations. Freeze profiles and assistance selection before held-out evaluation. Compare prediction against simple baselines and compare profile-guided support against no assistance, generic review and untailored support, with uncertainty and cost visible.
 
-The draft contract includes untested support candidates, with an initial evidence-ledger suggestion rule. After the baseline workflow, implement one bounded comparison of a targeted support against no assistance and generic assistance, using the same report and configuration discipline.
+The draft contract includes untested support candidates, with an initial evidence-ledger suggestion rule. The pilot is intended to test a support policy; the existing candidate must retain its untested status until the relevant comparison is complete. A null result or general benefit without personalization must be represented accurately.
 
-Next connect the offline passport attestation to registry resolution, lifecycle status and a task policy, then build a paid evaluation job using x402. Keep the larger matched-study machinery available for developing and checking difficult measures; it is an internal tool rather than the default passport experience. Detailed milestones are in [MVP scope](mvp.md).
+In parallel, connect the offline passport attestation to registry resolution, lifecycle status and a task policy, then build a paid evaluation job using x402. Later milestones add active information acquisition, prospective observation, contamination-aware historical replay, reviewer/team allocation and paid verified contributions. Team selection requires evidence about joint errors, and historical document cutoffs do not remove prior knowledge of outcomes. Keep the larger matched-study machinery as internal development tooling. Detailed dependencies and acceptance criteria are in the [roadmap](mvp.md).

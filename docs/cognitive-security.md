@@ -6,7 +6,9 @@ The epistemic passport should support a second use: choosing and evaluating inte
 
 The product loop is **evaluate → model → select support → test → record what helps**. An interpretable profile is useful both for deciding how to work with someone and for choosing how to support them.
 
-The [local draft passport](passport-v1.md) now includes an untested evidence-ledger candidate under one explicit interpretation rule. The intervention runner, learned selection policy, human evaluation interface and intervention-effect estimator remain proposed.
+The [local draft passport](passport-v1.md) now includes an untested evidence-ledger candidate under one explicit interpretation rule. The intervention runner, learned selection policy, human intervention workflow and intervention-effect estimator remain proposed; the baseline human evaluation interface is implemented.
+
+The next measurement milestone is the [predictive-usefulness pilot](predictive-usefulness-pilot.md): predict behavior on new independent/copied-evidence cases, then test a frozen profile-guided support policy against no assistance, generic review and untailored support. Prediction accuracy and decision benefit are separate release criteria. If support helps all participants equally, report that benefit without claiming individualized selection worked.
 
 ## From behavior to an intervention hypothesis
 
@@ -45,6 +47,8 @@ Forecast tasks can use proper scoring rules. Decision tasks need explicit payoff
 5. Report performance effects, uncertainty, cost, failures and regressions. Keep held-out cases separate from intervention selection. An improvement under one condition is evidence for that condition, not universal efficacy or proof of a unique mechanism.
 
 A practical first slice is an evidence-ledger intervention for an agent exhibiting weak integration of independent evidence. Compare it with baseline and generic review on fresh scenarios, including weak, strong and duplicated evidence. First establish whether the support helps that configuration. Stronger personalization claims need comparisons with untailored or other supports and further profiles.
+
+A separately costed extension can purchase review from another human or agent. Measure additional decision value, shared-information dependence and correlated failures; two distinct identities or profiles do not guarantee independent judgments. Profile-guided reviewer selection and team composition remain later coordination milestones, with cost, latency and oversight included in the comparison.
 
 ## What the passport records
 

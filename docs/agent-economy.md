@@ -2,6 +2,8 @@
 
 Decision: make agent-to-agent selection and delegation the primary product integration. The passport is a portable, machine-readable account of demonstrated epistemic behavior, attached to a particular agent configuration. Humans can inspect the same profile and use the same evaluation privately. This does not change the measurement claims of core 0.1.
 
+The broader product is a measurement and coordination layer. Registry/payment integration proceeds alongside the [predictive-usefulness pilot](predictive-usefulness-pilot.md): first establish whether profiles predict specified unseen behavior and improve a support decision relative to cost. Identity and settlement provide interoperability; the case for profile-guided routing depends on those measured benefits.
+
 ## The transaction we want to enable
 
 A buyer agent discovers a research provider, resolves its passport, checks provenance and scope, and decides whether to hire it, require additional review, or choose another provider. Only then does it authorize payment for a bounded service. The evaluation should help answer practical questions such as whether a provider handles copied evidence, conflicting sources and uncertainty adequately for that task.
@@ -55,6 +57,8 @@ The next consumer contract must support explicit policy requirements:
 
 Default missing evidence to review, never to an invented good score. Thresholds are customer policy choices until supported by outcome validation. A machine decision should bind the passport digest, policy version, proposed provider endpoint, request and maximum payment, so that a later payload cannot silently inherit an earlier approval.
 
+The proposed coordination layer will extend these checks to purchasing independent review, composing teams and recommending scoped permissions. Distinct profiles do not establish independent failures: compare joint outcomes, shared sources and incremental review value on relevant tasks. Begin with inspectable recommendations and shadow evaluation. Any authority grant remains the operator's bounded policy decision with explicit oversight and fallback conditions.
+
 A registry metadata link is a discovery hint, not sufficient authentication. The adapter must check the current owner/authorized operational wallet and endpoint association. Agent ownership transfers, wallet rotation and configuration changes must trigger rechecking; historical performance cannot automatically apply to a new operator or model. Payment payee, evaluator issuer, subject controller and service provider can legitimately be different parties, but each relationship needs an explicit binding. The payer buying an evaluation need not be the evaluated agent.
 
 Public discovery should expose a minimal summary and signed digest with a declared access policy. Detailed source reports can contain private prompts and security-relevant weaknesses. Human profiles remain private by default. No collection guide promising private local storage should be silently converted into consent to publish.
@@ -75,6 +79,23 @@ Start with the first offering, metered per job via x402 or purchased through a h
 x402 itself has no built-in protocol fee. Our revenue comes from our resource price. Another seller's payment does not automatically pay us because its customer consulted our passport. A routing fee or revenue share would require an explicit integration and agreement. [x402 overview](https://docs.x402.org/introduction)
 
 Set prices after measuring completion cost. For a job price `P`, contribution is `P - model/provider cost - compute/storage - facilitator/network cost - support/failure allowance`. Distinguish customer-supplied inference from inference we provide. Measure cost and completion time across representative configurations before offering unlimited runs. The price buys an attempt and a defined deliverable; it does not buy a favorable assessment. Preserve attempted-run and withdrawal history within the applicable access policy to reduce selective reporting.
+
+## Paid contributions — later expansion
+
+A second side of the service could pay humans and agents to produce useful evaluation evidence. This is a proposed expansion after the evaluation product and contribution-verification workflow; there is no participant payment or bounty system today.
+
+| Contribution | Potential payment basis | Verification needed |
+| --- | --- | --- |
+| Controlled task participation | Disclosed completion/effort terms, including defined partial-run treatment | Eligible participation and protocol adherence; compensation must not depend on producing a favorable profile |
+| Expert evidence adjudication | A scoped, reviewable judgment | Relevant expertise, cited evidence, conflict handling and independent resolution of disagreements |
+| Provenance research | A documented common origin or dependency between claims | Retrievable sources, timestamps, lineage evidence and duplicate detection |
+| Red-team finding | A novel, reproducible condition producing a specified failure | Reproduction on the declared configuration, materiality and overlap with known findings |
+
+Start with curated assignments and an explicit budget. Specify the payer, eligibility, acceptance/appeal process, access rights, disclosure rules and payment timing before work begins. Prompt payment follows the applicable completion or verification rule; it is not proof that a contribution is correct. Record rejected and disputed submissions under the access policy. Keep human consent and private behavioral data separate from public agent credentials.
+
+Customer fees or committed research budgets can fund contributions. Measure contribution usefulness, deduplication, adjudication and dispute costs before treating this as a repeatable business. Add contributor compensation and verification costs to job economics; payment volume alone is not evidence of value. A platform fee requires a stated service and commercial arrangement.
+
+The intended flow is **unresolved question or failure → scoped task → qualified contributor → checked contribution → payment → evaluation evidence**. Experiments, private traces and detailed failure reports stay off-chain; publish authorized summaries and signed commitments where useful. Prevent duplicate payouts and conflicting payment outcomes with the same durable settlement discipline as paid evaluation jobs.
 
 ## Paid evaluation API — proposed next slice
 

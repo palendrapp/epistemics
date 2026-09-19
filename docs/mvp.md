@@ -2,11 +2,13 @@
 
 ## Product outcome
 
-An agent or orchestrator can discover another agent, inspect a portable cognitive profile, verify its provenance and evaluated configuration, and decide whether and how to delegate or purchase a service. The same profile is readable by a person; the same underlying evaluation supports private human participation.
+Build infrastructure for measuring and coordinating epistemic reliability: how humans and agents acquire information, judge evidence, revise conclusions, express uncertainty and act. The passport is the first portable product of that measurement layer. Its value is whether the measured profile helps predict behavior and improve a concrete decision about delegation, verification or assistance.
 
-The primary distribution path is the **agent economy**. [Agent Registry identity, machine consumption and x402 commerce](agent-economy.md) are core product work. Our initial revenue hypothesis is paid evaluation/re-evaluation, followed by fleet monitoring and managed policy services. We do not automatically receive a fee from transactions involving a passport.
+An agent or orchestrator can discover another agent, inspect that profile, verify its provenance and evaluated configuration, and decide whether and how to delegate or purchase a service. The same profile is readable by a person; the same underlying evaluation supports private human participation.
 
-The [product brief](epistemic-passport.md) defines the intended dimensions. The acceptance question is: **does the profile improve a concrete delegation decision?** The [cognitive-security extension](cognitive-security.md) adds: **can it identify assistance that improves performance?** Both require task-conditional evidence, rather than an overall reputation score.
+The primary distribution path is the **agent economy**. [Agent Registry identity, machine consumption and x402 commerce](agent-economy.md) are core product work. Our initial revenue hypothesis is paid evaluation/re-evaluation, followed by fleet monitoring and managed policy services. A later contribution network could pay humans and agents for verified testing, expert judgment and reproducible failures. We do not automatically receive a fee from transactions involving a passport.
+
+The [product brief](epistemic-passport.md) defines the intended dimensions. The near-term acceptance questions are: **does the profile predict behavior on unseen cases, and does using it improve a delegation or assistance decision at an acceptable cost?** The [cognitive-security extension](cognitive-security.md) supplies the intervention comparison. Predictive validation is internal product release work; the customer receives a bounded evaluation and an interpretable result. The broader ambition includes continuous observation, team composition and economic allocation, with separate evidence requirements for each.
 
 ## Current position
 
@@ -16,6 +18,7 @@ The [product brief](epistemic-passport.md) defines the intended dimensions. The 
 | Profile | Deterministic HTML/Markdown/JSON; six dimensions; source references and explicit provisional/insufficient coverage | Broader scenarios and contrasts; stable metric identifiers for consumer policies |
 | Collection | Transactional state, immutable answers, idempotent retry/resume, private evaluator state, byte-stable completion | Hosted tenant boundaries and evaluator/subject execution isolation |
 | Validation | Synthetic recovery; matched discovery assignments, fresh-process collection and held-out prediction tooling | Real-agent evidence for intended product claims and task selection utility |
+| Predictive usefulness | Tools for developing and checking models | Demonstrate that individual profiles predict unseen behavior beyond simple baselines and improve a subsequent choice |
 | Passport signature | Offline passport-attestation.v1 for agent core passport.v2; exact-byte hashes, explicit issuer, validity window and machine verification output | Registry association, availability, withdrawal/correction status and policy decisions |
 | Legacy Solana records | v1–v3 report signatures, devnet Memo construction/simulation/submission and finalized inclusion verifier | Validator/live-network validation; current RPC integration coverage is mocked |
 | Commerce | Source-reviewed integration and commercial design | x402 gateway, durable payment/job ledger, pricing evidence and paying pilot |
@@ -26,15 +29,24 @@ The implementation remains a local alpha. Synthetic service, HTTP, browser and M
 
 | Stage | Deliverable | Completion criterion |
 | --- | --- | --- |
-| 1. Shared evaluation and profile — software ready | Human/MCP collection and one interpretable draft artifact | Actual human and fresh agent finish and review the core; record time, failures and usefulness |
-| 2. Machine-consumable passport — started | Detached signature, versioned measurements, identity resolution, status and task policy | A buyer resolves an existing agent and gets a reproducible decision with reasons before any payment |
-| 3. Paid evaluation service | x402 purchase of one bounded, resumable evaluation job | Repeated/concurrent requests create one job and one entitlement; all settlement ambiguity is reconciled; result can be verified |
-| 4. Useful selection and support | Broader evidence, repeatability, comparisons and one targeted intervention | Profiles inform a bounded delegation choice; intervention effect includes uncertainty, cost and regressions |
-| 5. Distribution and recurring value | Marketplace/router adapter, fleet refresh and managed policy API | A customer uses the integration repeatedly and pays for a measurable benefit |
+| 1. Predictive usefulness — next measurement milestone | Real core acceptance runs, matched cases, held-out behavior predictions and one profile-guided support decision | Predict duplicated-evidence behavior beyond simple baselines; evaluate whether using the profile improves fresh decisions after accounting for cost |
+| 2. Machine-consumable passport — parallel integration milestone | Detached signature, versioned measurements, identity resolution, status and task policy | A buyer resolves an existing agent and gets a reproducible decision with reasons before any payment; empirical recommendations cite their validation scope |
+| 3. Paid evaluation service and first customer | x402 purchase of one bounded, resumable evaluation job | One job/entitlement across retries, reconciled settlement, verifiable delivery, measured cost and evidence of customer value |
+| 4. Broader epistemic policies and observation | Active information acquisition, retraction/noise contrasts, repeated and prospective observation; historical replay pilot | Predict specified search/update/stopping behavior and characterize drift on new cases, with contamination and selection limits visible |
+| 5. Coordination and recurring value | Fleet refresh, managed policy API, reviewer/team selection and scoped permission recommendations | Profile-guided allocation improves outcomes versus simple alternatives; joint failure rates and costs are measured |
+| 6. Paid contribution network | Verified experiments, expert judgments, provenance work and red-team bounties | Contributions are independently checkable, compensation is reliable, and their value exceeds collection, verification and dispute costs |
 
-Measurement work continues alongside stages 2–3. Signature infrastructure can ship with honest provisional evidence; autonomous policy thresholds and efficacy claims need their own validation. We will not delay all interoperability until every trait is established, or silently promote current observations into general competence guarantees.
+Stages 1 and 2 proceed together. The shared core's actual human/fresh-agent usability check remains an immediate acceptance task. Stage 3 can sell accurately scoped evaluations with provisional findings; claims that a profile predicts failures or improves selection require the relevant stage 1 evidence. Later stages extend measured task coverage and coordination only after their own checks. A signed profile alone does not establish predictive usefulness or justify increased authority.
 
-## Next build: resolve, verify, decide
+## Next demonstration: predict a failure and use the prediction
+
+The [predictive-usefulness pilot](predictive-usefulness-pilot.md) is the next bounded measurement deliverable. Evaluate several agent configurations, estimate their response to genuinely independent versus copied evidence, and predict their updates on unseen company cases. Then use the frozen profiles to select an evidence ledger or independent review, and test whether that choice improves new decisions relative to its cost.
+
+Keep profile estimation, policy development and final evaluation cases separate. Compare individualized predictions with pooled behavior, persistence and simple calibration/performance summaries. Compare profile-guided assistance with no assistance, generic review and an untailored assistance policy under declared budgets. Test favorable and unfavorable evidence, including cases where little updating is appropriate. Report predictive performance separately from forecasting/decision quality.
+
+The pilot is complete when the planned comparisons, uncertainty, cost, failures and limits are reported. Product success requires the predeclared predictive and practical benefit criteria to be met; a null or harmful result must narrow the claim or trigger revision. No current passport should be relabeled as a validated general phenotype. This is proposed experimental work, not a change to core 0.1 in this documentation revision.
+
+## Parallel build: resolve, verify, decide
 
 The [offline attestation increment](passport-attestation.md) is implemented and tested without changing task behavior, report schemas or legacy signed bytes. Next:
 
@@ -51,13 +63,27 @@ Build a payment gateway around the evaluator, not a fee on each trial or poll. A
 
 Use x402 v2 and an SVM-capable facilitator. Keep a durable job/payment state machine, request fingerprints and recovery across crashes. Verify and settle are different steps. Test duplicate settlement, cross-order replay, concurrent retries, body changes, timeout after possible settlement and access to private results. Choose actual prices after measuring costs and customer demand. The [commerce design](agent-economy.md#paid-evaluation-api--proposed-next-slice) defines the integration boundaries.
 
-## Measurement and support track
+## Broader measurement and observation
 
 Run the combined core with a real human and fresh agents, then repeat selected configurations. Record completion, duration, inference cost and whether the profile helps explain the observed behavior. The current single discovery company cannot establish broad source-framing or negativity traits.
 
 Add matched contrasts separating source label from track record, negative wording from diagnosticity, copied from independent evidence, and source distrust from causal-model revision. For every released claim, connect observed behavior, assumptions, uncertainty and interpretation rules. Review battery/evaluator versions and run recovery validation when experimental behavior changes. Common human/agent tasks do not imply common population norms or internal mechanisms.
 
-For one support comparison, test an evidence ledger and reassessment against baseline and generic review on fresh matched cases. Track performance, cost and regressions; a changed fitted parameter alone is not an improvement. Bind assisted configurations and retain null or harmful results. Detailed vulnerability information can require controlled access.
+After the bounded pilot, add **active information acquisition**: participants choose documents, sources, hypothesis-discriminating queries and whether to stop under explicit costs. Measure what they acquire, forego and act on. Hypothesis-generation breadth needs a scored observable task; verbal explanations alone do not establish an internal search process. Version these additions separately from passive evidence presentation.
+
+Add **continuous observation** through authorized decision histories: record information available at decision time, forecasts, confidence, stated invalidation conditions, action and later resolution. Start with prospective collection and distinguish genuine drift from changes in task mix, selection and configuration. Production observation and repeated controlled tests supply different evidence.
+
+Pilot **historical point-in-time replay** only with availability timestamps, document versions, provenance and explicit leakage checks. Restricting supplied documents does not remove outcomes already known through model training or human memory. Flag familiar events, use concealed or prospective outcomes where possible, and report the remaining contamination uncertainty. Historical returns alone do not identify reasoning quality.
+
+These additions require dedicated task/data design; none is currently implemented as a released passport capability. Predictive success supports the stated behavioral scope without uniquely identifying an internal cognitive mechanism.
+
+## Coordination, permissions and paid contributions
+
+Extend individual support selection into reviewer and team allocation once their joint performance is measured. Different profile labels do not establish independent errors. Evaluate shared-source dependence, correlated failures, reviewer information access and marginal benefit against a simple routing policy under comparable budgets. A review purchase should be justified by expected decision benefit after cost, not information gain alone.
+
+Start permission policies as inspectable recommendations for a named task, value at risk and available oversight. Test them in shadow mode before enforcing scoped permissions. Record which evidence justified autonomy, required review or abstention; allow uncertainty to result in escalation. No broad permission grant follows automatically from a favorable passport.
+
+The later [contribution network](agent-economy.md#paid-contributions--later-expansion) adds a second side to the service: paid participants, expert adjudicators, provenance researchers and red-teamers. Begin with a curated workflow and explicit compensation/acceptance rules. Verify contributions, deduplicate findings, handle disputes and measure the cost of producing useful evidence before opening a marketplace. Paying contributors is an expense funded by customer demand or a defined budget, not a demonstrated growth loop.
 
 ## Release boundaries
 
@@ -66,3 +92,4 @@ For one support comparison, test an evidence ledger and reassessment against bas
 - Browser/MCP evaluation, draft rendering and offline signatures are implemented. Public hosting, lifecycle status, registry binding and payments are not.
 - Human use remains private by default and does not require a wallet. Identity-linked publication is a separate choice.
 - Legacy report.v1–v3 record signing and Memo semantics remain unchanged. New passport signatures have a separate schema and signature domain.
+- This roadmap revision changes priorities and acceptance criteria only. New tasks, prediction/support selection, production observation, team routing and contributor payments remain proposed; runtime behavior and schemas are unchanged.
