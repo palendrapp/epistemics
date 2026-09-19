@@ -6,4 +6,6 @@ Signed report envelopes and a devnet Solana Memo client are available; default R
 
 The company battery adds 54 disclosed-model checkpoints across six fictional businesses.
 
+The discovery battery adds ten checkpoints with source archives, inferred relationships and sequential documents.
+
 The next release adds broader profiling, shared participant interfaces and identity-linked issuance. Current results remain task-conditional, and synthetic validation does not establish real-agent traits.

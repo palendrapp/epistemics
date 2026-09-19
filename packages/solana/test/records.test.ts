@@ -70,6 +70,26 @@ test("signs and verifies the Python company v2 report without changing the envel
   );
 });
 
+test("signs and verifies the real discovery v3 report", async () => {
+  const bytes = execFileSync(
+    python,
+    [
+      "-c",
+      "from epistemics.discovery.simulation import demo; print(demo().model_dump_json())",
+    ],
+    { cwd: root },
+  );
+  assert.equal(readReport(bytes).agent.agent_id, "demo:discovery-observer");
+  const signed = await createRecord(bytes, signer, uri);
+  assert.deepEqual(await verifyRecord(signed, bytes), signed);
+  const invalid = JSON.parse(bytes.toString());
+  invalid.observations.pop();
+  assert.throws(
+    () => readReport(Buffer.from(JSON.stringify(invalid))),
+    /Invalid report/,
+  );
+});
+
 test("accepts the actual Python report and signs/verifies exact bytes", async () => {
   assert.equal(readReport(report).agent.agent_id, "demo:reference");
   assert.deepEqual(await verifyRecord(record, report), record);

@@ -1,0 +1,702 @@
+{
+  "$defs": {
+    "AgentDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "context_policy": {
+          "default": "continuous",
+          "enum": [
+            "continuous",
+            "reset_per_trial",
+            "reset_per_task"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "agent_id",
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentDescriptor",
+      "type": "object"
+    },
+    "Analogue": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "underlying_growth_pct": {
+          "title": "Underlying Growth Pct",
+          "type": "number"
+        },
+        "rollout_disruption": {
+          "title": "Rollout Disruption",
+          "type": "boolean"
+        },
+        "backlog_score": {
+          "title": "Backlog Score",
+          "type": "number"
+        },
+        "renewal_growth_pct": {
+          "title": "Renewal Growth Pct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "case_id",
+        "underlying_growth_pct",
+        "rollout_disruption",
+        "backlog_score",
+        "renewal_growth_pct"
+      ],
+      "title": "Analogue",
+      "type": "object"
+    },
+    "ArchiveRow": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "reported_pct": {
+          "title": "Reported Pct",
+          "type": "number"
+        },
+        "audited_pct": {
+          "title": "Audited Pct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "case_id",
+        "reported_pct",
+        "audited_pct"
+      ],
+      "title": "ArchiveRow",
+      "type": "object"
+    },
+    "DiscoveryAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "target_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Target Probability",
+          "type": "number"
+        },
+        "growth_quantiles_pct": {
+          "$ref": "#/$defs/GrowthQuantiles"
+        },
+        "decision": {
+          "enum": [
+            "invest",
+            "hold"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 9,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "source_accuracy": {
+          "additionalProperties": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Source Accuracy",
+          "type": "object"
+        },
+        "conditional_growth_probability": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conditional Growth Probability"
+        },
+        "extracted_values": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Extracted Values",
+          "type": "object"
+        },
+        "alternative_explanation": {
+          "anyOf": [
+            {
+              "maxLength": 1200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alternative Explanation"
+        }
+      },
+      "required": [
+        "target_probability",
+        "growth_quantiles_pct",
+        "decision",
+        "evidence_ids"
+      ],
+      "title": "DiscoveryAnswer",
+      "type": "object"
+    },
+    "DiscoveryObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "trial": {
+          "$ref": "#/$defs/DiscoveryTrial"
+        },
+        "answer": {
+          "$ref": "#/$defs/DiscoveryAnswer"
+        },
+        "answered_at": {
+          "title": "Answered At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at"
+      ],
+      "title": "DiscoveryObservation",
+      "type": "object"
+    },
+    "DiscoveryTrial": {
+      "additionalProperties": false,
+      "properties": {
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        },
+        "task": {
+          "const": "discovery",
+          "default": "discovery",
+          "title": "Task",
+          "type": "string"
+        },
+        "index": {
+          "maximum": 9,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "background": {
+          "title": "Background",
+          "type": "string"
+        },
+        "target_event": {
+          "enum": [
+            "growth_above_12",
+            "growth_at_or_below_12"
+          ],
+          "title": "Target Event",
+          "type": "string"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Sources",
+          "type": "array"
+        },
+        "analogues": {
+          "items": {
+            "$ref": "#/$defs/Analogue"
+          },
+          "title": "Analogues",
+          "type": "array"
+        },
+        "documents": {
+          "items": {
+            "$ref": "#/$defs/Document"
+          },
+          "maxItems": 9,
+          "title": "Documents",
+          "type": "array"
+        },
+        "source_probe_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Probe Ids",
+          "type": "array"
+        },
+        "conditional_probe": {
+          "title": "Conditional Probe",
+          "type": "boolean"
+        },
+        "extraction_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Extraction Keys",
+          "type": "array"
+        },
+        "gain": {
+          "default": 2,
+          "title": "Gain",
+          "type": "number"
+        },
+        "loss": {
+          "default": 1,
+          "title": "Loss",
+          "type": "number"
+        }
+      },
+      "required": [
+        "trial_id",
+        "index",
+        "company",
+        "background",
+        "target_event",
+        "instructions",
+        "sources",
+        "analogues",
+        "documents",
+        "source_probe_ids",
+        "conditional_probe",
+        "extraction_keys"
+      ],
+      "title": "DiscoveryTrial",
+      "type": "object"
+    },
+    "Document": {
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "published_at": {
+          "title": "Published At",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "source",
+        "title",
+        "published_at",
+        "text",
+        "content_sha256"
+      ],
+      "title": "Document",
+      "type": "object"
+    },
+    "GrowthQuantiles": {
+      "additionalProperties": false,
+      "properties": {
+        "p10": {
+          "title": "P10",
+          "type": "number"
+        },
+        "p50": {
+          "title": "P50",
+          "type": "number"
+        },
+        "p90": {
+          "title": "P90",
+          "type": "number"
+        }
+      },
+      "required": [
+        "p10",
+        "p50",
+        "p90"
+      ],
+      "title": "GrowthQuantiles",
+      "type": "object"
+    },
+    "ObserverComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "forecasts": {
+          "items": {
+            "$ref": "#/$defs/ObserverForecast"
+          },
+          "maxItems": 10,
+          "minItems": 10,
+          "title": "Forecasts",
+          "type": "array"
+        },
+        "growth_report_rmse": {
+          "title": "Growth Report Rmse",
+          "type": "number"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "forecasts",
+        "growth_report_rmse",
+        "description"
+      ],
+      "title": "ObserverComparison",
+      "type": "object"
+    },
+    "ObserverForecast": {
+      "additionalProperties": false,
+      "properties": {
+        "growth_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth Probability",
+          "type": "number"
+        },
+        "growth_quantiles_pct": {
+          "$ref": "#/$defs/GrowthQuantiles"
+        },
+        "source_accuracy": {
+          "additionalProperties": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Source Accuracy",
+          "type": "object"
+        },
+        "conditional_growth_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Conditional Growth Probability",
+          "type": "number"
+        },
+        "disruption_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Disruption Probability",
+          "type": "number"
+        },
+        "strong_disruption_link_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Strong Disruption Link Probability",
+          "type": "number"
+        },
+        "shared_origin_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Shared Origin Probability",
+          "type": "number"
+        }
+      },
+      "required": [
+        "growth_probability",
+        "growth_quantiles_pct",
+        "source_accuracy",
+        "conditional_growth_probability",
+        "disruption_probability",
+        "strong_disruption_link_probability",
+        "shared_origin_probability"
+      ],
+      "title": "ObserverForecast",
+      "type": "object"
+    },
+    "PrivateCase": {
+      "additionalProperties": false,
+      "properties": {
+        "underlying_growth_pct": {
+          "title": "Underlying Growth Pct",
+          "type": "number"
+        },
+        "disruption": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Disruption",
+          "type": "integer"
+        },
+        "relationship": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Relationship",
+          "type": "integer"
+        },
+        "source_parameters": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "title": "Source Parameters",
+          "type": "object"
+        },
+        "copied": {
+          "title": "Copied",
+          "type": "boolean"
+        },
+        "realized_growth_pct": {
+          "title": "Realized Growth Pct",
+          "type": "number"
+        },
+        "variant": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Variant",
+          "type": "object"
+        },
+        "claim_ledger": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Claim Ledger",
+          "type": "object"
+        }
+      },
+      "required": [
+        "underlying_growth_pct",
+        "disruption",
+        "relationship",
+        "source_parameters",
+        "copied",
+        "realized_growth_pct",
+        "variant",
+        "claim_ledger"
+      ],
+      "title": "PrivateCase",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "profile": {
+          "title": "Profile",
+          "type": "string"
+        },
+        "archive": {
+          "items": {
+            "$ref": "#/$defs/ArchiveRow"
+          },
+          "title": "Archive",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_id",
+        "name",
+        "profile",
+        "archive"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.report.v3",
+      "default": "epistemics.report.v3",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "evaluator_version": {
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "battery_version": {
+      "const": "company-discovery/0.3.0",
+      "default": "company-discovery/0.3.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "battery_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Battery Sha256",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "agent": {
+      "$ref": "#/$defs/AgentDescriptor"
+    },
+    "started_at": {
+      "title": "Started At",
+      "type": "string"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryObservation"
+      },
+      "maxItems": 10,
+      "minItems": 10,
+      "title": "Observations",
+      "type": "array"
+    },
+    "private_case": {
+      "$ref": "#/$defs/PrivateCase"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "observer_models": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ObserverComparison"
+      },
+      "title": "Observer Models",
+      "type": "object"
+    },
+    "observer_assumptions": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        ]
+      },
+      "title": "Observer Assumptions",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "evaluator_version",
+    "battery_sha256",
+    "session_id",
+    "agent",
+    "started_at",
+    "completed_at",
+    "seed",
+    "observations",
+    "private_case",
+    "metrics",
+    "observer_models",
+    "observer_assumptions",
+    "limitations"
+  ],
+  "title": "DiscoveryReport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from epistemics.baselines import answer_trial
 from epistemics.company.models import CompanyReport
+from epistemics.discovery.models import DiscoveryReport
 from epistemics.models import AgentDescriptor, Report, Trial
 from epistemics.service import EvaluationService
 
@@ -57,6 +58,33 @@ def main() -> None:
     )
     preview.add_argument("--seed", type=int, default=42)
     preview.add_argument("--output", type=Path, default=Path("output/company-preview.md"))
+    discovery = commands.add_parser(
+        "discovery-demo", help="Run a synthetic discovery observer offline"
+    )
+    discovery.add_argument("--seed", type=int, default=7)
+    discovery.add_argument(
+        "--model",
+        choices=["joint_learning", "fixed_sources", "fixed_weak_link", "fixed_strong_link"],
+        default="joint_learning",
+    )
+    discovery.add_argument("--source-frame", type=float, default=0)
+    discovery.add_argument("--output-frame", type=float, default=0)
+    discovery.add_argument("--output", type=Path, default=Path("output/discovery/report.json"))
+    discovery_preview = commands.add_parser(
+        "discovery-preview", help="Export the authored discovery materials"
+    )
+    discovery_preview.add_argument("--seed", type=int, default=7)
+    discovery_preview.add_argument(
+        "--output", type=Path, default=Path("output/discovery/episode.md")
+    )
+    discovery_recovery = commands.add_parser(
+        "discovery-recovery", help="Multi-run source/output recovery and model discrimination"
+    )
+    discovery_recovery.add_argument("--seeds", type=int, default=8)
+    discovery_recovery.add_argument("--blocks", type=int, default=3)
+    discovery_recovery.add_argument(
+        "--output", type=Path, default=Path("output/discovery/recovery.json")
+    )
     schema = commands.add_parser("schema", help="Export the Python report contract as JSON Schema")
     schema.add_argument("--output", type=Path, default=Path("schemas/report.v1.json"))
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
@@ -64,9 +92,11 @@ def main() -> None:
     args = parser.parse_args()
     if args.command == "validate":
         data = json.loads(args.path.read_bytes())
-        contract = {"epistemics.report.v1": Report, "epistemics.report.v2": CompanyReport}.get(
-            data.get("schema_version"), Report
-        )
+        contract = {
+            "epistemics.report.v1": Report,
+            "epistemics.report.v2": CompanyReport,
+            "epistemics.report.v3": DiscoveryReport,
+        }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
         print("Valid report structure")
         return
@@ -75,10 +105,49 @@ def main() -> None:
         for contract, path in [
             (Report, args.output),
             (CompanyReport, args.output.with_name("report.v2.json")),
+            (DiscoveryReport, args.output.with_name("report.v3.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"
             path.write_text(json.dumps(data, indent=2) + "\n")
+        return
+    if args.command == "discovery-preview":
+        from epistemics.discovery.simulation import preview as discovery_preview
+
+        args.output.write_text(discovery_preview(args.seed))
+        print(args.output)
+        return
+    if args.command == "discovery-recovery":
+        from epistemics.discovery.simulation import recovery_study as discovery_recovery
+
+        data = discovery_recovery(args.seeds, args.blocks)
+        args.output.write_text(json.dumps(data, indent=2, allow_nan=False) + "\n")
+        print(json.dumps({k: v for k, v in data.items() if k != "runs"}, indent=2))
+        if not data["passed"]:
+            raise SystemExit(1)
+        return
+    if args.command == "discovery-demo":
+        from epistemics.discovery.simulation import demo as discovery_demo
+
+        report = discovery_demo(
+            args.seed,
+            model=args.model,
+            source_frame=args.source_frame,
+            output_frame=args.output_frame,
+        )
+        args.output.write_text(report.model_dump_json(indent=2) + "\n")
+        print(
+            json.dumps(
+                {
+                    "report": str(args.output),
+                    "metrics": report.metrics,
+                    "observer_rmse": {
+                        k: v.growth_report_rmse for k, v in report.observer_models.items()
+                    },
+                },
+                indent=2,
+            )
+        )
         return
     if args.command == "company-preview":
         from epistemics.company.simulation import preview

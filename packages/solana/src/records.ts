@@ -19,6 +19,9 @@ import reportSchema from "../../../schemas/report.v1.json" with {
 import companyReportSchema from "../../../schemas/report.v2.json" with {
   type: "json",
 };
+import discoveryReportSchema from "../../../schemas/report.v3.json" with {
+  type: "json",
+};
 
 export interface RecordPayload {
   schema_version: "epistemics.record.v1";
@@ -47,6 +50,9 @@ interface ReportMetadata {
 const ajv = new Ajv2020({ strict: true, allErrors: true });
 const validateReport = ajv.compile<ReportMetadata>(reportSchema);
 const validateCompanyReport = ajv.compile<ReportMetadata>(companyReportSchema);
+const validateDiscoveryReport = ajv.compile<ReportMetadata>(
+  discoveryReportSchema,
+);
 const validateRecord = ajv.compile<SignedRecord>(recordSchema);
 const encoder = new TextEncoder();
 const SIGNATURE_DOMAIN = "epistemics/record-signature/v1\n";
@@ -64,7 +70,11 @@ export function readReport(bytes: Uint8Array): ReportMetadata {
       ? parsed.schema_version
       : undefined;
   const validate =
-    version === "epistemics.report.v2" ? validateCompanyReport : validateReport;
+    version === "epistemics.report.v3"
+      ? validateDiscoveryReport
+      : version === "epistemics.report.v2"
+        ? validateCompanyReport
+        : validateReport;
   if (!validate(parsed)) {
     throw new Error(`Invalid report: ${ajv.errorsText(validate.errors)}`);
   }
