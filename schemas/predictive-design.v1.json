@@ -1,0 +1,234 @@
+{
+  "$defs": {
+    "AnalysisPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "const": "linear_report_log_odds",
+          "default": "linear_report_log_odds",
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "default": [
+            "intercept",
+            "prior_weight",
+            "evidence_weight",
+            "copy_weight"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "title": "Parameters",
+          "type": "array"
+        },
+        "probability_clip": {
+          "default": 1e-06,
+          "exclusiveMaximum": 0.01,
+          "exclusiveMinimum": 0,
+          "title": "Probability Clip",
+          "type": "number"
+        },
+        "synthetic_logit_noise_sd": {
+          "default": 0.12,
+          "exclusiveMinimum": 0,
+          "title": "Synthetic Logit Noise Sd",
+          "type": "number"
+        },
+        "noiseless_max_error": {
+          "default": 1e-08,
+          "exclusiveMinimum": 0,
+          "title": "Noiseless Max Error",
+          "type": "number"
+        },
+        "noisy_max_parameter_error": {
+          "default": 0.12,
+          "exclusiveMinimum": 0,
+          "title": "Noisy Max Parameter Error",
+          "type": "number"
+        },
+        "heldout_probability_rmse_limit": {
+          "default": 0.06,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Heldout Probability Rmse Limit",
+          "type": "number"
+        },
+        "bootstrap_draws": {
+          "default": 100,
+          "maximum": 1000,
+          "minimum": 20,
+          "title": "Bootstrap Draws",
+          "type": "integer"
+        },
+        "thresholds_scope": {
+          "const": "synthetic_engineering_checks_only",
+          "default": "synthetic_engineering_checks_only",
+          "title": "Thresholds Scope",
+          "type": "string"
+        },
+        "real_run_budget_status": {
+          "const": "not_costed",
+          "default": "not_costed",
+          "title": "Real Run Budget Status",
+          "type": "string"
+        }
+      },
+      "title": "AnalysisPlan",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[0-9a-f]{20}$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "matched_group": {
+          "pattern": "^[0-9a-f]{20}$",
+          "title": "Matched Group",
+          "type": "string"
+        },
+        "split": {
+          "enum": [
+            "profile",
+            "policy",
+            "heldout"
+          ],
+          "title": "Split",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            "paired_reports",
+            "repeated_chain",
+            "interleaved_chains"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "seed": {
+          "exclusiveMaximum": 4503599627370496,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "replicate": {
+          "minimum": 0,
+          "title": "Replicate",
+          "type": "integer"
+        },
+        "prior": {
+          "enum": [
+            0.2,
+            0.5,
+            0.8
+          ],
+          "title": "Prior",
+          "type": "number"
+        },
+        "strength": {
+          "enum": [
+            "weak",
+            "strong"
+          ],
+          "title": "Strength",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            -1,
+            1
+          ],
+          "title": "Direction",
+          "type": "integer"
+        },
+        "provenance": {
+          "enum": [
+            "independent",
+            "copied"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "matched_group",
+        "split",
+        "family",
+        "seed",
+        "replicate",
+        "prior",
+        "strength",
+        "direction",
+        "provenance"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.predictive-design.v1",
+      "default": "epistemics.predictive-design.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "protocol_version": {
+      "const": "provenance-pilot/0.1.0",
+      "default": "provenance-pilot/0.1.0",
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "analysis_version": {
+      "const": "provenance-analysis/0.1.0",
+      "default": "provenance-analysis/0.1.0",
+      "title": "Analysis Version",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "use": {
+      "const": "operator_owned_design_and_synthetic_validation",
+      "default": "operator_owned_design_and_synthetic_validation",
+      "title": "Use",
+      "type": "string"
+    },
+    "replicates": {
+      "default": 1,
+      "maximum": 8,
+      "minimum": 1,
+      "title": "Replicates",
+      "type": "integer"
+    },
+    "context_policy": {
+      "const": "fresh_per_assignment_continuous_within",
+      "default": "fresh_per_assignment_continuous_within",
+      "title": "Context Policy",
+      "type": "string"
+    },
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/Assignment"
+      },
+      "title": "Assignments",
+      "type": "array"
+    },
+    "analysis_plan": {
+      "$ref": "#/$defs/AnalysisPlan"
+    }
+  },
+  "required": [
+    "implementation_sha256",
+    "assignments"
+  ],
+  "title": "DesignManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

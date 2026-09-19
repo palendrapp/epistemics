@@ -35,8 +35,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Epistemics local evaluator")
     commands = parser.add_subparsers(dest="command", required=True)
     from epistemics.passport.cli import add_commands as add_passport_commands
+    from epistemics.predictive.cli import add_commands as add_predictive_commands
 
     add_passport_commands(commands)
+    add_predictive_commands(commands)
     serve = commands.add_parser("serve", help="Run the shared core evaluation in a local browser")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--database", type=Path, default=Path(".epistemics/live.sqlite3"))
@@ -99,6 +101,14 @@ def main() -> None:
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
     check.add_argument("path", type=Path)
     args = parser.parse_args()
+    if args.command == "predictive":
+        from epistemics.predictive.cli import run as run_predictive
+
+        try:
+            run_predictive(args)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
+        return
     if args.command == "serve":
         from epistemics.live.web import serve as serve_core
 
@@ -118,6 +128,11 @@ def main() -> None:
         from epistemics.live.models import CoreReport
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
+        from epistemics.predictive.models import (
+            DesignManifest,
+            PublicCheckpoint,
+            SyntheticValidation,
+        )
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         data = json.loads(args.path.read_bytes())
@@ -132,6 +147,9 @@ def main() -> None:
             "epistemics.session-context.v1": SessionContext,
             "epistemics.passport.v1": Passport,
             "epistemics.passport.v2": CorePassport,
+            "epistemics.predictive-design.v1": DesignManifest,
+            "epistemics.predictive-checkpoint.v1": PublicCheckpoint,
+            "epistemics.predictive-validation.v1": SyntheticValidation,
         }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
         if isinstance(report, ParticipantDescriptor):
@@ -146,6 +164,11 @@ def main() -> None:
         from epistemics.live.models import CoreReport, CoreTrial
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
+        from epistemics.predictive.models import (
+            DesignManifest,
+            PublicCheckpoint,
+            SyntheticValidation,
+        )
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         for contract, path in [
@@ -161,6 +184,9 @@ def main() -> None:
             (SessionContext, args.output.with_name("session-context.v1.json")),
             (Passport, args.output.with_name("passport.v1.json")),
             (CorePassport, args.output.with_name("passport.v2.json")),
+            (DesignManifest, args.output.with_name("predictive-design.v1.json")),
+            (PublicCheckpoint, args.output.with_name("predictive-checkpoint.v1.json")),
+            (SyntheticValidation, args.output.with_name("predictive-validation.v1.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"

@@ -1,0 +1,98 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.predictive-validation.v1",
+      "default": "epistemics.predictive-validation.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "protocol_version": {
+      "const": "provenance-pilot/0.1.0",
+      "default": "provenance-pilot/0.1.0",
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "analysis_version": {
+      "const": "provenance-analysis/0.1.0",
+      "default": "provenance-analysis/0.1.0",
+      "title": "Analysis Version",
+      "type": "string"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "response_origin": {
+      "const": "synthetic",
+      "default": "synthetic",
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "validation_seed": {
+      "title": "Validation Seed",
+      "type": "integer"
+    },
+    "passed": {
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "checks": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "Checks",
+      "type": "object"
+    },
+    "budget": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Budget",
+      "type": "object"
+    },
+    "recovery": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Recovery",
+      "type": "array"
+    },
+    "prediction": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Prediction",
+      "type": "array"
+    },
+    "misspecification": {
+      "additionalProperties": true,
+      "title": "Misspecification",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest_sha256",
+    "validation_seed",
+    "passed",
+    "checks",
+    "budget",
+    "recovery",
+    "prediction",
+    "misspecification",
+    "limitations"
+  ],
+  "title": "SyntheticValidation",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

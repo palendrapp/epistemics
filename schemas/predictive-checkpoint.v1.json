@@ -1,0 +1,182 @@
+{
+  "$defs": {
+    "DecisionPayoffs": {
+      "additionalProperties": false,
+      "properties": {
+        "act_if_target_met": {
+          "const": 1.0,
+          "default": 1.0,
+          "title": "Act If Target Met",
+          "type": "number"
+        },
+        "act_if_target_missed": {
+          "const": -1.0,
+          "default": -1.0,
+          "title": "Act If Target Missed",
+          "type": "number"
+        },
+        "defer": {
+          "const": 0.0,
+          "default": 0.0,
+          "title": "Defer",
+          "type": "number"
+        },
+        "unit": {
+          "const": "hypothetical_task_points",
+          "default": "hypothetical_task_points",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "title": "DecisionPayoffs",
+      "type": "object"
+    },
+    "EvidenceCard": {
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "publisher": {
+          "title": "Publisher",
+          "type": "string"
+        },
+        "assessment": {
+          "enum": [
+            "meets_target",
+            "misses_target"
+          ],
+          "title": "Assessment",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "based_on": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Based On"
+        },
+        "provenance_note": {
+          "title": "Provenance Note",
+          "type": "string"
+        },
+        "original_assessment_history": {
+          "$ref": "#/$defs/TrackRecord"
+        }
+      },
+      "required": [
+        "document_id",
+        "publisher",
+        "assessment",
+        "text",
+        "based_on",
+        "provenance_note",
+        "original_assessment_history"
+      ],
+      "title": "EvidenceCard",
+      "type": "object"
+    },
+    "TrackRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "correct": {
+          "maximum": 18,
+          "minimum": 0,
+          "title": "Correct",
+          "type": "integer"
+        },
+        "total": {
+          "const": 18,
+          "default": 18,
+          "title": "Total",
+          "type": "integer"
+        },
+        "description": {
+          "default": "Resolved original assessments of comparable company targets.",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "correct"
+      ],
+      "title": "TrackRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.predictive-checkpoint.v1",
+      "default": "epistemics.predictive-checkpoint.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "protocol_version": {
+      "const": "provenance-pilot/0.1.0",
+      "default": "provenance-pilot/0.1.0",
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "pattern": "^[0-9a-f]{20}:[0-5]$",
+      "title": "Checkpoint Id",
+      "type": "string"
+    },
+    "index": {
+      "maximum": 5,
+      "minimum": 0,
+      "title": "Index",
+      "type": "integer"
+    },
+    "company": {
+      "title": "Company",
+      "type": "string"
+    },
+    "question": {
+      "title": "Question",
+      "type": "string"
+    },
+    "prior_probability": {
+      "exclusiveMaximum": 1,
+      "exclusiveMinimum": 0,
+      "title": "Prior Probability",
+      "type": "number"
+    },
+    "instructions": {
+      "title": "Instructions",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/EvidenceCard"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "payoffs": {
+      "$ref": "#/$defs/DecisionPayoffs"
+    }
+  },
+  "required": [
+    "checkpoint_id",
+    "index",
+    "company",
+    "question",
+    "prior_probability",
+    "instructions",
+    "evidence"
+  ],
+  "title": "PublicCheckpoint",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
