@@ -1,6 +1,6 @@
 # Costed prediction plan — 20 September 2026
 
-The [full prediction benchmark](prediction-benchmark.md) is implemented and a fresh private run manifest is frozen. **The full run has not started.** This note records measured development cost and the resource plan, not an empirical predictive-validity result.
+The [full prediction benchmark](prediction-benchmark.md) is implemented and a private run manifest is frozen. **Profile collection started, then stopped after 55 completed episodes and one failed attempt.** The [execution record](prediction-profile-stop-2026-09-20.md) preserves 223 accepted responses and the unresolved usage. This note records measured development cost and the resource plan, not an empirical predictive-validity result.
 
 ## Measured development run
 
@@ -29,4 +29,4 @@ The estimate extrapolates only two longest-graph episodes per configuration. Sho
 
 The fresh manifest's exact-byte SHA-256 is `24da73620aaedb048300b404f2a3919d90d181ce4ca35216e16843a8362acc76`. The cost-estimate artifact it cites has SHA-256 `6fa194f8ea5846365ed46ebb3f80894af2021d0958bf6422929be628c633f53d`. These identify local frozen artifacts, not signed/public execution attestations. The implementation is commit `f08977e`. All 18 synthetic validation checks pass for the fresh two-repetition design.
 
-The next execution step is the profile partition: 144 episodes across the three configurations. Only after all profile responses are collected can the tool lock fitted models and all static held-out predictions. Policy and held-out collection then proceed in order. The existing demonstration cases are not reused as this run's final assignments. The evidence-ledger assistance comparison remains a separate, unexecuted increment.
+The first execution stage is the profile partition: 144 episodes across the three configurations. Only after all profile responses are collected can the tool lock fitted models and all static held-out predictions. Collection is now stopped under the frozen failure rule; no lock or later-stage responses exist. A versioned interruption/recovery policy is the next prerequisite for further execution. The existing demonstration cases are not reused as this run's final assignments. The evidence-ledger assistance comparison remains a separate, unexecuted increment.
