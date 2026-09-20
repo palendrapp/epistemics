@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "epistemics-investigation2": {
+      "command": "/ABSOLUTE/PATH/epistemics/.venv/bin/python",
+      "args": ["-m", "epistemics.investigation2.mcp_server"],
+      "env": {
+        "EPISTEMICS_INVESTIGATION2": "/ABSOLUTE/PATH/PRIVATE/COLLECTION",
+        "EPISTEMICS_ASSIGNMENT": "OPERATOR_ASSIGNED_CASE_ID"
+      }
+    }
+  }
+}
