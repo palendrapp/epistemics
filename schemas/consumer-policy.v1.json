@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_id",
+    "version",
+    "task_id",
+    "trusted_issuers",
+    "protocol_sha256",
+    "protocol_version",
+    "interpretation_version",
+    "max_evaluation_age_seconds",
+    "max_status_age_seconds",
+    "max_binding_age_seconds",
+    "receipt_ttl_seconds",
+    "require_verified_execution",
+    "require_predictive_validation",
+    "allow_provisional",
+    "measurements",
+    "payment_network",
+    "payment_asset",
+    "max_amount"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.consumer-policy.v1"
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "trusted_issuers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issuer",
+          "status_base_uri"
+        ],
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "status_base_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "protocol_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "protocol_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "interpretation_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "max_evaluation_age_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31536000
+    },
+    "max_status_age_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31536000
+    },
+    "max_binding_age_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31536000
+    },
+    "receipt_ttl_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31536000
+    },
+    "require_verified_execution": {
+      "type": "boolean"
+    },
+    "require_predictive_validation": {
+      "type": "boolean"
+    },
+    "allow_provisional": {
+      "type": "boolean"
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric_id",
+          "minimum",
+          "maximum",
+          "uncertainty"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "uncertainty": {
+            "type": "string",
+            "enum": [
+              "point",
+              "entire_95_interval"
+            ]
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 30
+    },
+    "payment_network": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "payment_asset": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "max_amount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,39})$"
+    }
+  }
+}

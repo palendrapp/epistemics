@@ -37,7 +37,7 @@ Primary sources reviewed on 2026-09-19:
 | [Bazaar](https://docs.x402.org/extensions/bazaar) | Supporting facilitators can expose service discovery including HTTP/MCP resources and schemas. | Advertise our paid evaluation service; this supplements agent identity discovery. |
 | [Payment-Identifier](https://docs.x402.org/extensions/payment-identifier) and [SIWX](https://docs.x402.org/extensions/sign-in-with-x) | Optional idempotency and wallet-authentication extensions; SIWX supports Solana. | Evaluate support in the pinned SDK/facilitator; retain our own durable job/entitlement ledger. |
 
-Deployment verification remains a gate. The [registry landing page](https://8004.qnt.sh/) and program README currently list different devnet addresses. The README also mixes a mainnet binary reference with an unchecked deployment roadmap item. Before installing an adapter, pin the SDK/IDL/source revision, resolve the intended program and cluster, check executable ownership, upgrade authority and relevant account layouts, and test actual reads on that deployment. No registry program has been independently verified or used by this repository yet.
+The 19 September source review found inconsistent deployment descriptions across the landing page and README, so the adapter does not choose a deployment from a product-page label. The [20 September machine-consumer increment](machine-consumer.md) pins reviewed SDK/IDL revisions and observed devnet ProgramData hashes, verifies executable ownership and upgrade authority, and successfully reads a public registry/Core identity. This establishes the tested read path and deployment drift checks, not reproducible binary/source equivalence, mainnet validation or a registered-provider evaluation.
 
 Prefer an adapter over a new identity program. Keep SAS/SATI as alternative attestation/discovery integrations when their concrete contracts offer a needed capability. A custom PDA is a fallback for a demonstrated lifecycle gap, not the starting product.
 
@@ -45,14 +45,14 @@ Prefer an adapter over a new identity program. Keep SAS/SATI as alternative atte
 
 Existing passport.v2 already carries six dimension IDs, measurements, intervals, methods, evidence pointers, coverage limitations and untested support candidates. Those fields are the behavioral payload. Do not reduce it to an overall trust score.
 
-This increment adds [passport-attestation.v1](passport-attestation.md): an offline issuer signature over the exact passport digest, source-report digest, configuration, protocol, interpretation version, origin and validity window. The draft profile remains byte-for-byte unchanged. Consumer verification requires an independently chosen issuer key. Registry ownership, revocation and execution remain unchecked and are reported as such.
+The [passport-attestation.v1](passport-attestation.md) envelope is an offline issuer signature over the exact passport digest, source-report digest, configuration, protocol, interpretation version, origin and validity window. The draft profile remains byte-for-byte unchanged. Its offline verifier does not check registry ownership, status or execution. The separate [machine consumer](machine-consumer.md) now checks current authority, signed evaluated-controller association, issuer status and task policy; execution remains operator-asserted.
 
-The next consumer contract must support explicit policy requirements:
+The versioned consumer contract now supports explicit policy requirements:
 
 - Expected subject, exact configuration and acceptable protocol/interpretation versions.
 - Trusted evaluators, acceptable collection assurance and actual-agent response origin.
 - Maximum evaluation age, expiry, withdrawal/correction status and acceptable evidence coverage.
-- Task-relevant measurements with stable metric IDs, units and uncertainty handling. Current measurement labels are prose; consumers must not silently treat them as stable keys.
+- Task-relevant measurements with stable metric IDs, units and uncertainty handling. The versioned catalog maps exact evidence pointers under the declared interpretation version; display labels are not keys.
 - Actions such as `eligible`, `review_required` or `ineligible`, with versioned reason codes and references to supporting observations. Eligibility is for a named task and declared budget.
 
 Default missing evidence to review, never to an invented good score. Thresholds are customer policy choices until supported by outcome validation. A machine decision should bind the passport digest, policy version, proposed provider endpoint, request and maximum payment, so that a later payload cannot silently inherit an earlier approval.

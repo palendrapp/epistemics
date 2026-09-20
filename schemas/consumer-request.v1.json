@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "subject_agent_id",
+    "configuration_sha256",
+    "task_id",
+    "endpoint",
+    "method",
+    "body_sha256",
+    "payee",
+    "payment_network",
+    "payment_asset",
+    "max_amount",
+    "nonce"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.consumer-request.v1"
+    },
+    "subject_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "configuration_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "endpoint": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "method": {
+      "const": "POST"
+    },
+    "body_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "payee": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "payment_network": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "payment_asset": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "max_amount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,39})$"
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    }
+  }
+}
