@@ -84,7 +84,13 @@ Research coverage remains uneven. Across the first run's 48 worlds, the referenc
 
 These are synthetic checks, including conditional recovery and an exploratory matched-forecast contrast. They do not establish nominal interval coverage, real-agent repeatability, human usability, general transfer or intervention benefit. The two final runs followed development of the contrasts; they are not a preregistered empirical holdout. Full artifacts stay in ignored private output directories.
 
-Repository verification passed: Ruff checks, 212 Python tests including a real stdio MCP round trip, and TypeScript type/lint checks with 33 tests. Existing localhost HTTP tests required running with local-listener permission. Solana/consumer tests retain their mocked RPC boundary; this increment made no live-network call or payment. The six-episode end-to-end example is explicitly synthetic.
+Repository verification passed: Ruff checks, 212 Python tests including a real stdio MCP round trip, and TypeScript type/lint checks with 33 tests. Existing localhost HTTP tests required running with local-listener permission. Solana/consumer tests retain their mocked RPC boundary; this implementation increment made no live-network call or payment. The six-episode end-to-end example is explicitly synthetic; the subsequent actual agent run is recorded separately below.
+
+## First actual agent collection
+
+A [six-case fresh-agent development run](investigation-acceptance-2026-09-20.md) completed all 24 checkpoints in 244.73 seconds after two preserved zero-answer launcher failures. Every decision agreed with the reported probability and payoff. Source-probe reports stayed fixed within each case; one backlog result moved the growth forecast much more than the joint reference. All candidate aggregate RMSEs exceeded the eight-point synthetic diagnostic, so no cognitive label or stable parameter vector was issued.
+
+All six pre-sampled transcription offsets were zero, leaving actual evidence retraction untested. Research choice agreed with the conditional reference in 3/6 cases, but discovery respondents did not receive that reference's likelihoods. The results note records exact resource usage, uncertainty, wording feedback and a version-reviewed next design with guaranteed correction coverage and stronger source/company contrasts. Human acceptance and real-agent repeatability remain pending.
 
 ## Collection, artifacts and versions
 
@@ -116,4 +122,4 @@ uv run epistemics investigation export --directory output/investigation-agent
 
 Use one fresh respondent context per assignment. The [respondent protocol](../examples/investigation-respondent-protocol.md) documents the JSON-lines bridge; [the MCP configuration example](../examples/mcp-investigation.json) launches the bound stdio server directly. Calibration requires a separately created collection with `--mode calibration`. Do not expose private manifests, code, outcomes or earlier real responses to a discovery respondent. Local file permissions do not isolate an agent that shares the evaluator's OS account.
 
-The next collection should be a **small development/usability run**, checking comprehension, branch handling, correction interpretation, completion time and actual response cost. Follow it with repeated fresh cases, a human interface/acceptance pass and an independently frozen validation plan before making predictive passport claims. This module does not justify automatically repeating the earlier 432-episode benchmark.
+The first small agent development/usability run is complete. Next revise and validate diagnostic coverage and stage wording, then collect a bounded new-case usability/repeatability pass and add a human interface/acceptance pass. Freeze an independent validation plan before making predictive passport claims. The [results note](investigation-acceptance-2026-09-20.md#next-development-slice) specifies the design gaps; this module does not justify automatically repeating the earlier 432-episode benchmark.
