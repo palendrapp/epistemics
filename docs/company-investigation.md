@@ -2,6 +2,8 @@
 
 Implemented development module, 20 September 2026. Battery `company-investigation/0.1.0`, evaluator `investigation-evaluator/0.1.0`, analysis `investigation-analysis/0.1.0`. This is the first implementation following the [cognitive-modeling review](cognitive-modeling-review-2026-09-20.md).
 
+The separate [0.2 revision](company-investigation-v2.md) implements balanced correction coverage, matched research prices, prospective forecasts, a conditional two-parameter model and a human browser flow. This page preserves the original 0.1 protocol and results; its implementation and frozen runs remain unchanged.
+
 The question is whether an unchanged company forecast reflects a source explanation, a business explanation, a reporting tendency or failure to incorporate a correction. The participant also chooses which evidence to buy. This is a bounded investigation with competing conditional observers; it does not yet establish a general cognitive phenotype.
 
 Joint attribution is inspired by [Gershman (2019)](https://gershmanlab.com/pubs/HowToNeverBeWrong.pdf); simulation and model/parameter recovery follow the methodological guidance of [Wilson and Collins (2019)](https://elifesciences.org/articles/49547). This authored company task is an adaptation, not a replication of either paper.
@@ -122,4 +124,4 @@ uv run epistemics investigation export --directory output/investigation-agent
 
 Use one fresh respondent context per assignment. The [respondent protocol](../examples/investigation-respondent-protocol.md) documents the JSON-lines bridge; [the MCP configuration example](../examples/mcp-investigation.json) launches the bound stdio server directly. Calibration requires a separately created collection with `--mode calibration`. Do not expose private manifests, code, outcomes or earlier real responses to a discovery respondent. Local file permissions do not isolate an agent that shares the evaluator's OS account.
 
-The first small agent development/usability run is complete. Next revise and validate diagnostic coverage and stage wording, then collect a bounded new-case usability/repeatability pass and add a human interface/acceptance pass. Freeze an independent validation plan before making predictive passport claims. The [results note](investigation-acceptance-2026-09-20.md#next-development-slice) specifies the design gaps; this module does not justify automatically repeating the earlier 432-episode benchmark.
+The first small agent development/usability run is complete. The separate 0.2 revision and its synthetic checks now address coverage, model and interface work from the [results note](investigation-acceptance-2026-09-20.md#next-development-slice). Next collect a bounded 0.2 usability/repeatability pass and actual human acceptance. Freeze an independent validation plan before making predictive passport claims; this module does not justify automatically repeating the earlier 432-episode benchmark.
