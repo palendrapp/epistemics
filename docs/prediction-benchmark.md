@@ -2,7 +2,7 @@
 
 `provenance-benchmark/0.2.0` turns the [provenance collector](provenance-collection.md) into a costed, staged comparison and adds [bounded recovery](benchmark-recovery.md). Its immediate question is whether a configuration-specific profile predicts later reported probabilities better than simpler predictors. Assistance efficacy is a separate next increment; this benchmark does not issue a validated passport or establish intervention benefit.
 
-The [20 September development run and frozen budget](prediction-budget-2026-09-20.md) provide actual token/latency measurements and include failed setup attempts. Full-plan profile collection [stopped after 55 completed episodes and one failed attempt](prediction-profile-stop-2026-09-20.md); no prediction lock or final empirical result exists.
+The [20 September development run and frozen budget](prediction-budget-2026-09-20.md) provide actual token/latency measurements and include failed setup attempts. After the original collection stopped, a documented recovery amendment [completed all 144 profile episodes and locked predictions](prediction-profile-2026-09-20.md). Policy and held-out collection and final empirical prediction results remain pending.
 
 ## Planned comparison
 

@@ -2,6 +2,8 @@
 
 Benchmark **0.2.0** adds an optional frozen recovery policy. The [public policy](../examples/benchmark-recovery.json) permits one additional attempt per episode and nine across the entire benchmark. Reaching three attempts with unknown or incomplete usage stops further admission and prevents a final empirical report. A failed retry cannot trigger another retry.
 
+Live verification [recovered the original Terra episode and completed the profile partition](prediction-profile-2026-09-20.md), preserving all accepted history and retaining the earlier failed attempt with unknown usage.
+
 The task remains provenance pilot 0.1.0. Evidence, source histories, payoffs, reported-probability model, acceptance thresholds, partition assignments and respondent prompt are unchanged. Recovery changes the execution context, so the benchmark version is increased and interrupted contexts are disclosed. Offline validation checks both synthetic parameter recovery through resumed collection and real MCP resumption using a synthetic respondent; neither is an empirical model result.
 
 ## What can recover

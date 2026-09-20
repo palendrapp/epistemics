@@ -1,5 +1,7 @@
 # Profile collection stopped — 20 September 2026
 
+Subsequent work: a separately recorded [recovery amendment completed the profile stage and locked predictions](prediction-profile-2026-09-20.md). This note preserves the original no-retry run's stop and accounting; that predecessor was not rewritten or relabeled as complete.
+
 The [frozen prediction plan](prediction-budget-2026-09-20.md) started its 144-episode profile partition at 07:59:42 UTC and stopped at 08:38:54 UTC. **55 episodes completed; attempt 56 failed.** No fitted profiles, prediction lock or empirical prediction result were produced. Policy and held-out cases remain unopened.
 
 ## Preserved collection

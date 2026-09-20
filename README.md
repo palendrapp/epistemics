@@ -113,7 +113,7 @@ A [fresh-context smoke test](docs/provenance-smoke-2026-09-20.md) completed 12 c
 
 The [prediction benchmark](docs/prediction-benchmark.md) adds a costed multi-configuration plan, resource accounting and a gate that locks profile fits and comparator predictions before held-out collection. Its primary criteria require a useful improvement over every declared baseline; a null personalization result remains a null result. Complete empirical prediction and intervention results are still pending.
 
-The [costed run plan](docs/prediction-budget-2026-09-20.md) records six completed development episodes and freezes the 432-episode comparison, with an estimated 5.3-hour serial runtime and explicit resource ceilings. Its profile stage [stopped after 55 completed episodes and one failed attempt](docs/prediction-profile-stop-2026-09-20.md), preserving 223 responses. No prediction lock or final result exists; a versioned recovery protocol is needed before further execution.
+The [costed run plan](docs/prediction-budget-2026-09-20.md) records six completed development episodes and freezes the 432-episode comparison. Under a documented [bounded-recovery amendment](docs/benchmark-recovery.md), the [profile stage is complete](docs/prediction-profile-2026-09-20.md): 144 episodes / 576 responses, with fitted profiles and held-out predictions locked. One interrupted Terra episode was recovered without changing accepted answers; its earlier usage remains unknown. Policy and held-out collection, predictive scoring and assistance comparison remain pending.
 
 For the new shared core, use [the dedicated core adapter](docs/live-core.md#connect-an-agent). The following commands describe the unchanged legacy batteries.
 

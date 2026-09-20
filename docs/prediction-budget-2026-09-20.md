@@ -1,5 +1,7 @@
 # Costed prediction plan — 20 September 2026
 
+Current execution status: the original no-retry run below remains stopped. A documented [bounded-recovery amendment has completed the profile stage](prediction-profile-2026-09-20.md), preserving the predecessor and locking fits and predictions before any later-case exposure. The original budget record below is retained for comparison.
+
 The [full prediction benchmark](prediction-benchmark.md) is implemented and a private run manifest is frozen. **Profile collection started, then stopped after 55 completed episodes and one failed attempt.** The [execution record](prediction-profile-stop-2026-09-20.md) preserves 223 accepted responses and the unresolved usage. This note records measured development cost and the resource plan, not an empirical predictive-validity result.
 
 ## Measured development run
