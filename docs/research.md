@@ -1,5 +1,7 @@
 # Research basis and measurement choices
 
+The [20 September cognitive-modeling review](cognitive-modeling-review-2026-09-20.md) revisits Gershman, Ullman, Bayesian/RL models, active learning and individual measurement after the completed provenance benchmark. It proposes a discovery-task revision; the implemented tasks described below remain unchanged.
+
 The product is an [epistemic passport](epistemic-passport.md). These models explain and check the measurements beneath its readable behavioral profile. The tasks draw on cognitive science, but the customer's workflow is a standard evaluation and a useful identity artifact. This document retains the original battery's measurement details; newer company and discovery protocols have their own specifications.
 
 ## What we mean by a belief parameter
