@@ -322,21 +322,53 @@ asyncio.run(run())
     assert len(result["tool_calls"]) == 14
     assert accounting(root)["totals"]["processed_tokens"] == 120
     assert not result["violation"]
+    assert result["process_returncode"] == 0
+    assert result["terminal_diagnostics"] == []
+    assert result["diagnostic_events_dropped"] == 0
     assert os.stat(next((root / "private-run-logs").glob("*.stderr"))).st_mode & 0o777 == 0o600
 
 
-def test_failed_process_preserves_unknown_cost_and_blocks_next_call(tmp_path, monkeypatch):
+@pytest.mark.parametrize("error_events", [1, 25])
+def test_failed_process_preserves_unknown_cost_and_blocks_next_call(
+    tmp_path, monkeypatch, error_events
+):
     from epistemics.benchmark.runner import run_episode
 
     root, manifest, design = setup(tmp_path, purpose="development_costing")
     assignment = next(a for a in design.assignments if a.split == "heldout")
+    # Failure diagnostics can exist only in stdout's JSON event stream. The stream
+    # also carries private reasoning, which must not be retained as diagnostics.
+    fake = tmp_path / "failed-respondent.py"
+    fake.write_text(
+        "import json\n"
+        'print(json.dumps({"type":"item.completed","item":{"type":"reasoning",'
+        '"text":"private reasoning sentinel"}}),flush=True)\n'
+        f"for _ in range({error_events}):\n"
+        ' print(json.dumps({"type":"error","message":"x"*3000}),flush=True)\n'
+        'print(json.dumps({"type":"turn.failed","error":{"message":"provider failure"}}),'
+        "flush=True)\n"
+        "raise SystemExit(7)\n"
+    )
     monkeypatch.setattr(
         "epistemics.benchmark.runner.command",
-        lambda d, c, a: [sys.executable, "-c", "raise SystemExit(1)"],
+        lambda d, c, a: [sys.executable, str(fake)],
     )
     with pytest.raises(RuntimeError, match="process failed"):
         asyncio.run(run_episode(root, manifest.configurations[0], assignment.assignment_id, 30))
-    totals = accounting(root)["totals"]
+    recorded = accounting(root)
+    failure = recorded["runs"][0]
+    assert failure["status"] == "failed"
+    assert failure["process_returncode"] == 7
+    assert failure["terminal_diagnostics"][-1] == {
+        "type": "turn.failed",
+        "message": "provider failure",
+    }
+    assert len(failure["terminal_diagnostics"]) == min(error_events + 1, 20)
+    assert failure["terminal_diagnostics"][0]["message"] == "x" * 2000
+    assert failure["diagnostic_events_dropped"] == max(error_events + 1 - 20, 0)
+    assert "process failed" in failure["error_message"]
+    assert "private reasoning sentinel" not in json.dumps(recorded)
+    totals = recorded["totals"]
     assert totals["attempts"] == 1
     assert totals["unknown_usage_attempts"] == 1
     with pytest.raises(ValueError, match="unknown-cost"):

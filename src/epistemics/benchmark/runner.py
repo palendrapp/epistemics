@@ -144,6 +144,9 @@ async def run_episode(directory, configuration, assignment_id, timeout):
         "tool_calls": [],
         "violation": None,
         "completion_message": None,
+        "process_returncode": None,
+        "terminal_diagnostics": [],
+        "diagnostic_events_dropped": 0,
     }
     with database(directory) as (db, _, _):
         db.execute("INSERT INTO runs VALUES (?, ?)", (entry["attempt_id"], json.dumps(entry)))
@@ -170,6 +173,20 @@ async def run_episode(directory, configuration, assignment_id, timeout):
             async with asyncio.timeout(timeout):
                 while line := await process.stdout.readline():
                     event = json.loads(line)
+                    if event.get("type") in {"error", "turn.failed"}:
+                        # These events arrive on stdout, not necessarily stderr. Retain only
+                        # bounded error text, never the complete stream or reasoning items.
+                        detail = event.get("error", event)
+                        message = detail.get("message") if isinstance(detail, dict) else detail
+                        entry["terminal_diagnostics"].append(
+                            {
+                                "type": event["type"],
+                                "message": message[:2000] if isinstance(message, str) else None,
+                            }
+                        )
+                        if len(entry["terminal_diagnostics"]) > 20:
+                            entry["terminal_diagnostics"].pop(0)
+                            entry["diagnostic_events_dropped"] += 1
                     if event.get("type") == "turn.completed":
                         usage = read_usage(event.get("usage"))
                         previous = entry["usage"] or dict.fromkeys(usage, 0)
@@ -215,11 +232,14 @@ async def run_episode(directory, configuration, assignment_id, timeout):
     except BaseException as error:
         entry["status"] = "failed"
         entry["error_type"] = type(error).__name__
+        entry["error_message"] = str(error)[:2000]
         raise
     finally:
         if process is not None and process.returncode is None:
             os.killpg(process.pid, signal.SIGKILL)
             await process.wait()
+        if process is not None:
+            entry["process_returncode"] = process.returncode
         entry["elapsed_seconds"] = time.monotonic() - started
         entry["finished_at"] = now()
         with database(directory) as (db, _, _):
