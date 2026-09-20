@@ -1,0 +1,321 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "seed": {
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "mode": {
+          "default": "discovery",
+          "enum": [
+            "discovery",
+            "calibration"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            "review",
+            "research"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "offset": {
+          "enum": [
+            -6,
+            0,
+            6
+          ],
+          "title": "Offset",
+          "type": "integer"
+        },
+        "focused_query": {
+          "anyOf": [
+            {
+              "enum": [
+                "source_audit",
+                "operations_check",
+                "segment_check"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focused Query"
+        },
+        "price_condition": {
+          "default": "standard",
+          "enum": [
+            "standard",
+            "low",
+            "high"
+          ],
+          "title": "Price Condition",
+          "type": "string"
+        },
+        "pair_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pair Id"
+        },
+        "selection_attempts": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Selection Attempts",
+          "type": "integer"
+        },
+        "gain": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "title": "Gain",
+          "type": "number"
+        },
+        "loss": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "title": "Loss",
+          "type": "number"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "seed",
+        "family",
+        "offset"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.investigation.v2",
+      "default": "epistemics.investigation.v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "battery_version": {
+      "const": "company-investigation/0.2.0",
+      "default": "company-investigation/0.2.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "evaluator_version": {
+      "const": "investigation-evaluator/0.2.0",
+      "default": "investigation-evaluator/0.2.0",
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "analysis_version": {
+      "const": "investigation-analysis/0.2.0",
+      "default": "investigation-analysis/0.2.0",
+      "title": "Analysis Version",
+      "type": "string"
+    },
+    "study_id": {
+      "title": "Study Id",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "participant": {
+      "discriminator": {
+        "mapping": {
+          "agent": "#/$defs/AgentParticipant",
+          "human": "#/$defs/HumanParticipant"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AgentParticipant"
+        },
+        {
+          "$ref": "#/$defs/HumanParticipant"
+        }
+      ],
+      "title": "Participant"
+    },
+    "response_origin": {
+      "enum": [
+        "agent",
+        "human",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "purpose": {
+      "const": "development_only",
+      "default": "development_only",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "context_policy": {
+      "enum": [
+        "independent_episode_no_cross_case_history",
+        "human_continuous_separate_company_cases"
+      ],
+      "title": "Context Policy",
+      "type": "string"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/Assignment"
+      },
+      "maxItems": 12,
+      "minItems": 12,
+      "title": "Assignments",
+      "type": "array"
+    }
+  },
+  "required": [
+    "study_id",
+    "created_at",
+    "implementation_sha256",
+    "participant",
+    "response_origin",
+    "context_policy",
+    "assignments"
+  ],
+  "title": "Manifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

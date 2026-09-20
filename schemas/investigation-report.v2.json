@@ -1,0 +1,805 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Analogue": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "underlying_growth_pct": {
+          "title": "Underlying Growth Pct",
+          "type": "number"
+        },
+        "rollout_disruption": {
+          "title": "Rollout Disruption",
+          "type": "boolean"
+        },
+        "backlog_score": {
+          "title": "Backlog Score",
+          "type": "number"
+        },
+        "renewal_growth_pct": {
+          "title": "Renewal Growth Pct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "case_id",
+        "underlying_growth_pct",
+        "rollout_disruption",
+        "backlog_score",
+        "renewal_growth_pct"
+      ],
+      "title": "Analogue",
+      "type": "object"
+    },
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "growth_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth Probability",
+          "type": "number"
+        },
+        "audit_understatement_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Audit Understatement Probability",
+          "type": "number"
+        },
+        "backlog_high_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Backlog High Probability",
+          "type": "number"
+        },
+        "decision": {
+          "enum": [
+            "invest",
+            "hold"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "enum": [
+                "source_audit",
+                "operations_check",
+                "segment_check",
+                "calculation",
+                "stop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "expectations": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/Expectation"
+              },
+              "propertyNames": {
+                "enum": [
+                  "source_audit",
+                  "operations_check",
+                  "segment_check"
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expectations"
+        },
+        "explanation": {
+          "anyOf": [
+            {
+              "maxLength": 1200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Explanation"
+        }
+      },
+      "required": [
+        "growth_probability",
+        "audit_understatement_probability",
+        "backlog_high_probability",
+        "decision"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "ArchiveRow": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "reported_pct": {
+          "title": "Reported Pct",
+          "type": "number"
+        },
+        "audited_pct": {
+          "title": "Audited Pct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "case_id",
+        "reported_pct",
+        "audited_pct"
+      ],
+      "title": "ArchiveRow",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "seed": {
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "mode": {
+          "default": "discovery",
+          "enum": [
+            "discovery",
+            "calibration"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            "review",
+            "research"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "offset": {
+          "enum": [
+            -6,
+            0,
+            6
+          ],
+          "title": "Offset",
+          "type": "integer"
+        },
+        "focused_query": {
+          "anyOf": [
+            {
+              "enum": [
+                "source_audit",
+                "operations_check",
+                "segment_check"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focused Query"
+        },
+        "price_condition": {
+          "default": "standard",
+          "enum": [
+            "standard",
+            "low",
+            "high"
+          ],
+          "title": "Price Condition",
+          "type": "string"
+        },
+        "pair_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pair Id"
+        },
+        "selection_attempts": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Selection Attempts",
+          "type": "integer"
+        },
+        "gain": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "title": "Gain",
+          "type": "number"
+        },
+        "loss": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "title": "Loss",
+          "type": "number"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "seed",
+        "family",
+        "offset"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "Expectation": {
+      "additionalProperties": false,
+      "properties": {
+        "yes_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Yes Probability",
+          "type": "number"
+        },
+        "growth_if_yes": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth If Yes",
+          "type": "number"
+        },
+        "growth_if_no": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth If No",
+          "type": "number"
+        }
+      },
+      "required": [
+        "yes_probability",
+        "growth_if_yes",
+        "growth_if_no"
+      ],
+      "title": "Expectation",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.investigation.v2",
+          "default": "epistemics.investigation.v2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "battery_version": {
+          "const": "company-investigation/0.2.0",
+          "default": "company-investigation/0.2.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "evaluator_version": {
+          "const": "investigation-evaluator/0.2.0",
+          "default": "investigation-evaluator/0.2.0",
+          "title": "Evaluator Version",
+          "type": "string"
+        },
+        "analysis_version": {
+          "const": "investigation-analysis/0.2.0",
+          "default": "investigation-analysis/0.2.0",
+          "title": "Analysis Version",
+          "type": "string"
+        },
+        "study_id": {
+          "title": "Study Id",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "implementation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Implementation Sha256",
+          "type": "string"
+        },
+        "participant": {
+          "discriminator": {
+            "mapping": {
+              "agent": "#/$defs/AgentParticipant",
+              "human": "#/$defs/HumanParticipant"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AgentParticipant"
+            },
+            {
+              "$ref": "#/$defs/HumanParticipant"
+            }
+          ],
+          "title": "Participant"
+        },
+        "response_origin": {
+          "enum": [
+            "agent",
+            "human",
+            "synthetic"
+          ],
+          "title": "Response Origin",
+          "type": "string"
+        },
+        "purpose": {
+          "const": "development_only",
+          "default": "development_only",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "context_policy": {
+          "enum": [
+            "independent_episode_no_cross_case_history",
+            "human_continuous_separate_company_cases"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "execution_verification": {
+          "const": "operator_asserted",
+          "default": "operator_asserted",
+          "title": "Execution Verification",
+          "type": "string"
+        },
+        "assignments": {
+          "items": {
+            "$ref": "#/$defs/Assignment"
+          },
+          "maxItems": 12,
+          "minItems": 12,
+          "title": "Assignments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "study_id",
+        "created_at",
+        "implementation_sha256",
+        "participant",
+        "response_origin",
+        "context_policy",
+        "assignments"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "trial": {
+          "$ref": "#/$defs/Trial"
+        },
+        "answer": {
+          "$ref": "#/$defs/Answer"
+        },
+        "answered_at": {
+          "title": "Answered At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "QueryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "enum": [
+            "source_audit",
+            "operations_check",
+            "segment_check",
+            "calculation",
+            "stop"
+          ],
+          "title": "Query",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "cost": {
+          "minimum": 0,
+          "title": "Cost",
+          "type": "number"
+        }
+      },
+      "required": [
+        "query",
+        "description",
+        "cost"
+      ],
+      "title": "QueryOption",
+      "type": "object"
+    },
+    "Trial": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.investigation-trial.v2",
+          "default": "epistemics.investigation-trial.v2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "battery_version": {
+          "const": "company-investigation/0.2.0",
+          "default": "company-investigation/0.2.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        },
+        "index": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "discovery",
+            "calibration"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "company": {
+          "default": "Alder Systems",
+          "title": "Company",
+          "type": "string"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "source_archive": {
+          "items": {
+            "$ref": "#/$defs/ArchiveRow"
+          },
+          "title": "Source Archive",
+          "type": "array"
+        },
+        "analogues": {
+          "items": {
+            "$ref": "#/$defs/Analogue"
+          },
+          "title": "Analogues",
+          "type": "array"
+        },
+        "transcription_checked": {
+          "title": "Transcription Checked",
+          "type": "boolean"
+        },
+        "reported_growth_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Growth Pct"
+        },
+        "correction_offset_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correction Offset Pct"
+        },
+        "selected_query": {
+          "anyOf": [
+            {
+              "enum": [
+                "source_audit",
+                "operations_check",
+                "segment_check",
+                "calculation",
+                "stop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Query"
+        },
+        "query_result": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query Result"
+        },
+        "documents": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Documents",
+          "type": "array"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/QueryOption"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "expectation_queries": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Expectation Queries",
+          "type": "array"
+        },
+        "gain": {
+          "exclusiveMinimum": 0,
+          "title": "Gain",
+          "type": "number"
+        },
+        "loss": {
+          "exclusiveMinimum": 0,
+          "title": "Loss",
+          "type": "number"
+        },
+        "reference_assumptions": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Assumptions"
+        }
+      },
+      "required": [
+        "trial_id",
+        "index",
+        "stage",
+        "mode",
+        "instructions",
+        "source_archive",
+        "analogues",
+        "transcription_checked",
+        "documents",
+        "options",
+        "expectation_queries",
+        "gain",
+        "loss"
+      ],
+      "title": "Trial",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.investigation-report.v2",
+      "default": "epistemics.investigation-report.v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "assignment": {
+      "$ref": "#/$defs/Assignment"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/Observation"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "title": "Observations",
+      "type": "array"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "private_world": {
+      "additionalProperties": true,
+      "title": "Private World",
+      "type": "object"
+    },
+    "analysis": {
+      "additionalProperties": true,
+      "title": "Analysis",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest",
+    "manifest_sha256",
+    "assignment",
+    "observations",
+    "completed_at",
+    "private_world",
+    "analysis",
+    "limitations"
+  ],
+  "title": "Report",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
