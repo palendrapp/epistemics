@@ -14,16 +14,16 @@ The [product brief](epistemic-passport.md) defines the intended dimensions. The 
 
 | Component | Working now | Still needed |
 | --- | --- | --- |
-| Evaluation | Shared 34-checkpoint core: discovery 10 + calibration 24, human browser and agent MCP | Actual human and fresh-agent completion/review of this combined core, repeatability and cost measurements |
-| Profile | Deterministic HTML/Markdown/JSON; six dimensions; source references and explicit provisional/insufficient coverage | Broader scenarios and contrasts; stable metric identifiers for consumer policies |
+| Evaluation | Shared 34-checkpoint core: discovery 10 + calibration 24, human browser and agent MCP; one fresh-agent acceptance with cost/timing and usability feedback | Actual human completion/review, agent repeatability and version-reviewed usability fixes |
+| Profile | Deterministic HTML/Markdown/JSON; six dimensions; source references, provisional/insufficient coverage and a versioned eight-metric consumer catalog | Broader scenarios/contrasts and validated task-policy thresholds |
 | Collection | Transactional state, immutable answers, idempotent retry/resume, private evaluator state, byte-stable completion | Hosted tenant boundaries and evaluator/subject execution isolation |
 | Validation | Synthetic recovery; matched discovery assignments, fresh-process collection and held-out prediction tooling | Real-agent evidence for intended product claims and task selection utility |
 | Predictive usefulness | Provenance pilot plus multi-configuration benchmark: resource accounting, frozen fits/predictions, stage gates, baseline comparisons, uncertainty and source-inference sensitivity | Complete empirical prediction beyond simple baselines and a demonstrated support-selection benefit |
-| Passport signature | Offline passport-attestation.v1 for agent core passport.v2; exact-byte hashes, explicit issuer, validity window and machine verification output | Registry association, availability, withdrawal/correction status and policy decisions |
+| Passport signature and consumer | Offline attestations plus pinned devnet identity reads, provider/controller bindings, signed withdrawal/correction history, private retrieval and task decisions | Controlled registered-provider demonstration, public availability, tenant isolation and outcome-validated policies |
 | Legacy Solana records | v1–v3 report signatures, devnet Memo construction/simulation/submission and finalized inclusion verifier | Validator/live-network validation; current RPC integration coverage is mocked |
 | Commerce | Source-reviewed integration and commercial design | x402 gateway, durable payment/job ledger, pricing evidence and paying pilot |
 
-The implementation remains a local alpha. Synthetic service, HTTP, browser and MCP demonstrations are completed. Earlier fresh agents ran predecessor batteries; that does not satisfy the combined core's real-participant acceptance check. No paid endpoint, registry adapter or public artifact hosting is live.
+The implementation remains a local alpha. Synthetic service, HTTP, browser, MCP and consumer demonstrations are completed. A [fresh Astra agent completed all 34 combined-core checkpoints](core-acceptance-2026-09-20.md); an actual human completion is still needed. The [consumer adapter](machine-consumer.md) also resolved a public devnet identity using live reads. No paid endpoint or public artifact hosting is live, and no registry write or payment has been made.
 
 ## Delivery order
 
@@ -36,7 +36,7 @@ The implementation remains a local alpha. Synthetic service, HTTP, browser and M
 | 5. Coordination and recurring value | Fleet refresh, managed policy API, reviewer/team selection and scoped permission recommendations | Profile-guided allocation improves outcomes versus simple alternatives; joint failure rates and costs are measured |
 | 6. Paid contribution network | Verified experiments, expert judgments, provenance work and red-team bounties | Contributions are independently checkable, compensation is reliable, and their value exceeds collection, verification and dispute costs |
 
-Stages 1 and 2 proceed together. The shared core's actual human/fresh-agent usability check remains an immediate acceptance task. Stage 3 can sell accurately scoped evaluations with provisional findings; claims that a profile predicts failures or improves selection require the relevant stage 1 evidence. Later stages extend measured task coverage and coordination only after their own checks. A signed profile alone does not establish predictive usefulness or justify increased authority.
+Stages 1 and 2 proceed together. The shared core's human usability check remains an immediate acceptance task; the first fresh-agent run is complete. Stage 3 can sell accurately scoped evaluations with provisional findings; claims that a profile predicts failures or improves selection require the relevant stage 1 evidence. Later stages extend measured task coverage and coordination only after their own checks. A signed profile alone does not establish predictive usefulness or justify increased authority.
 
 ## Next demonstration: predict a failure and use the prediction
 
@@ -48,12 +48,9 @@ The pilot is complete when the planned comparisons, uncertainty, cost, failures 
 
 ## Parallel build: resolve, verify, decide
 
-The [offline attestation increment](passport-attestation.md) is implemented and tested without changing task behavior, report schemas or legacy signed bytes. Next:
+The [local machine-consumer increment](machine-consumer.md) is implemented without changing task behavior, report schemas or legacy signed bytes. It pins the reviewed SDK/IDL and observed devnet deployment, resolves current authority, checks signed provider/configuration/payee bindings and issuer status, retrieves private artifacts and evaluates a versioned task policy over stable metric IDs. A live registry read passed; the complete consumer flow uses synthetic identities and mocked RPC with real private HTTP.
 
-1. Pin and verify a specific 8004-Solana deployment and SDK/IDL. Resolve chain/program/asset, current authority, operational wallet, endpoint and passport reference. Use an adapter; build a new identity program only for a concrete unmet requirement.
-2. Add artifact hosting/retrieval and issuer status history with explicit access rules. Keep report evidence private unless publication is authorized. Check digest, issuer trust, current configuration, evaluation age, expiry and corrections/withdrawals separately.
-3. Add stable measurement identifiers and a versioned consumer policy/result contract. Missing evidence returns review, not an assumed pass. Bind every decision to the task, passport digest, policy and maximum spend.
-4. Demonstrate provider selection before a simulated x402 request. Reject stale configuration, wrong subject/payee, untrusted issuer, synthetic origin, unavailable required status and unsupported task coverage.
+Next complete a controlled registered-provider demonstration: collect under its canonical chain/program/asset subject ID, establish the issuer's evaluated-controller binding, publish only authorized artifacts, resolve them through the registry and prepare a simulated bounded service purchase. Then add hosted availability/tenant boundaries and the payment adapter. Current recommendations remain unsigned local results; rechecking immediately before purchase and authorizing/settling payment are separate operations.
 
 Acceptance is one complete machine-consumer flow with explicit provenance and policy reasons. Offline tests, mocked RPC, actual registry reads and funded devnet transactions must be reported separately. A signature does not prove which model ran, and a registry identity does not certify cognitive quality.
 
@@ -89,7 +86,7 @@ The later [contribution network](agent-economy.md#paid-contributions--later-expa
 
 - Reported probabilities are observations, not access to internal beliefs. Every passport stays conditional on its task, configuration and conditions.
 - Current execution metadata is operator-asserted. Issuer, controller, configuration and execution verification remain distinct.
-- Browser/MCP evaluation, draft rendering and offline signatures are implemented. Public hosting, lifecycle status, registry binding and payments are not.
+- Browser/MCP evaluation, draft rendering, offline signatures and the local machine consumer are implemented. Identity has live devnet read coverage; consumer decisions use mocked identity fixtures. Public hosting, registered-provider end-to-end validation and payments remain pending.
 - Human use remains private by default and does not require a wallet. Identity-linked publication is a separate choice.
 - Legacy report.v1–v3 record signing and Memo semantics remain unchanged. New passport signatures have a separate schema and signature domain.
 - The separate provenance pilot implements new task generation and synthetic fitting under its own version. Shared-core collection is unchanged. Sequential MCP collection is implemented. Complete empirical pilot comparisons, support selection, production observation, team routing and contributor payments remain pending.

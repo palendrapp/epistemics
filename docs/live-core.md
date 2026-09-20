@@ -2,7 +2,7 @@
 
 The browser and a dedicated stdio MCP adapter now use one session engine. Core 0.1 contains **34 checkpoints: 10 company-discovery checkpoints followed by 24 independent probability-calibration questions**. Completion produces a participant-neutral `epistemics.report.v4` and a readable `epistemics.passport.v2` draft. Both human and agent records use the same measurement and interpretation rules.
 
-This is the first shared workflow. It is not a complete phenotype: one company case cannot identify general source-framing, negativity or causal-inference traits. The initial release makes that limited coverage visible. Real human usability, fresh-agent completion time and repeatability still need to be measured before broadening or shortening the battery.
+This is the first shared workflow. It is not a complete phenotype: one company case cannot identify general source-framing, negativity or causal-inference traits. The initial release makes that limited coverage visible. A [fresh-agent acceptance run](core-acceptance-2026-09-20.md) completed all checkpoints with timing/cost and usability feedback. Actual human usability and repeatability remain pending.
 
 ## Try the human interface
 
@@ -72,7 +72,7 @@ uv run epistemics passport verify PATH/passport.json --report PATH/report.json
 uv run epistemics passport create --report PATH/report.json --output output/core-passport
 ```
 
-The core report binds response origin at collection; passport import cannot relabel it. Imports check structure and deterministic derivation, not honest execution. Agent core passports can now receive a separate [offline issuer attestation](passport-attestation.md), preserving their exact bytes and provisional scope. The legacy report/Memo client still accepts v1–v3 only. Registry association, publication, withdrawal status and paid services remain roadmap work; human profiles remain private.
+The core report binds response origin at collection; passport import cannot relabel it. Imports check structure and deterministic derivation, not honest execution. Agent core passports can receive a separate [offline issuer attestation](passport-attestation.md), preserving their exact bytes and provisional scope. The legacy report/Memo client still accepts v1–v3 only. The [local machine consumer](machine-consumer.md) adds registry reads, signed status and task decisions. Public deployment and paid services remain roadmap work; human profiles remain private.
 
 ## Validation and local boundary
 
@@ -80,4 +80,4 @@ Offline tests cover known prior/evidence/intercept recovery on three seeds and t
 
 The HTTP service serves only allowlisted assets/routes, uses an HttpOnly same-site cookie, guards Host/Origin and JSON mutations, and does not log answers or session IDs. It is a local single-machine tool, not a hosted multi-tenant deployment. Anyone with evaluator filesystem access can inspect hidden state; isolate that access for serious agent evaluations. Subject identity, configuration claims and execution remain separate operator assertions. No RPC, validator or chain submission is involved in this workflow.
 
-The next product check is one actual human and one fresh agent completing core 0.1, reviewing their passports and reporting unclear questions, burden and whether the profile is useful. That check should guide the next composition and interpretation revision.
+The first fresh-agent product check is complete; an actual human should next complete core 0.1, review the passport and report unclear questions, burden and usefulness. Together with repeated agent runs, these checks should guide the next composition and interpretation revision.
