@@ -23,6 +23,7 @@ Core 0.1 connects a common 34-checkpoint battery to MCP and a human browser inte
 | Analysis | Original/company fits; discovery source learning and joint inference, conditional observer comparisons, matched input/output recovery |
 | Matched studies | Frozen assignments, fresh-process MCP collection, joint parameter fitting, held-out predictions and uncertainty reports |
 | Provenance pilot | Separate matched independent/copied-evidence design; profile/policy/held-out partitions; synthetic recovery, structural prediction and a nonlinear negative control |
+| Prediction benchmark | Frozen multi-configuration plans, bounded Codex-account collection, stage-gated prediction locks, simple comparators, matched-case uncertainty and source-inference sensitivity |
 | Records | Versioned JSON Schema, complete transcript and replay seed, report byte hash, detached Ed25519 evaluator signature |
 | Passport attestations | Offline signing of agent core passports; exact-byte artifact/configuration binding, explicit issuer trust and validity checks; JSON CLI output |
 | Solana client | Kit-based Memo transaction construction, devnet simulation/submission, finalized inclusion verification |
@@ -109,6 +110,10 @@ These commands require saved artifacts from a completed agent core session. They
 To design and validate the new provenance pilot offline, see [the versioned protocol and commands](docs/provenance-pilot-v1.md). Its operator preview is separate from the [sequential MCP collection interface](docs/provenance-collection.md), which binds participant metadata, preserves immutable answers and supports restarts.
 
 A [fresh-context smoke test](docs/provenance-smoke-2026-09-20.md) completed 12 checkpoints across two matched episodes. The respondent shown explicit copies stopped updating on those copies; the independent-evidence respondent continued updating. This is a small descriptive result, not a validated cognitive profile.
+
+The [prediction benchmark](docs/prediction-benchmark.md) adds a costed multi-configuration plan, resource accounting and a gate that locks profile fits and comparator predictions before held-out collection. Its primary criteria require a useful improvement over every declared baseline; a null personalization result remains a null result. Complete empirical prediction and intervention results are still pending.
+
+The [costed run plan](docs/prediction-budget-2026-09-20.md) records six completed development episodes and freezes the unstarted 432-episode comparison, with an estimated 5.3-hour serial runtime and explicit resource ceilings.
 
 For the new shared core, use [the dedicated core adapter](docs/live-core.md#connect-an-agent). The following commands describe the unchanged legacy batteries.
 

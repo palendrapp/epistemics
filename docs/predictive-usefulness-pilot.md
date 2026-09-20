@@ -1,6 +1,6 @@
 # Predictive usefulness pilot
 
-Status: [provenance pilot 0.1](provenance-pilot-v1.md) implements a matched-case generator, frozen three-way design, public checkpoint views, behavioral fitting and synthetic validation. The [sequential MCP collector](provenance-collection.md) now supports real respondents with frozen metadata, immutable answers and restart history. Complete empirical prediction and intervention comparisons remain pending. This document defines the full product demonstration; the implementation specifications make their narrower current scope explicit.
+Status: [provenance pilot 0.1](provenance-pilot-v1.md) implements a matched-case generator, frozen three-way design, public checkpoint views, behavioral fitting and synthetic validation. The [sequential MCP collector](provenance-collection.md) supports real respondents with frozen metadata, immutable answers and restart history. The [prediction benchmark](prediction-benchmark.md) adds explicit configurations, resource budgets, locked predictions, baseline comparisons and uncertainty. Complete empirical prediction and intervention comparisons remain pending. This document defines the full product demonstration; the implementation specifications make their narrower current scope explicit.
 
 ## Product question
 
@@ -28,7 +28,7 @@ Use repeated runs to estimate variability, and declare which kinds of transfer t
 
 Before final-test collection, freeze an evaluation manifest with case partitions, configurations, primary endpoints, comparator policies, sample/run budget, stopping rule, exclusions and minimum useful effect. Set numerical thresholds from a costed design and development-run variance estimates; do not choose them after seeing final-test results. Those quantities are open design decisions, not implied by this roadmap.
 
-The current operator manifest fixes 72 episodes / 360 checkpoints per configuration at one replicate and supplies engineering tolerances for synthetic validation. It does not yet fix real-agent configurations, inference cost, an empirical minimum useful effect or an assistance policy. The policy-development partition is generated but reserved from the current fitter and prediction comparisons.
+The task-design manifest fixes 72 episodes / 360 checkpoints per configuration at one repetition and supplies engineering tolerances for synthetic validation. A separate benchmark manifest now fixes configurations, source/runner bindings, resource budgets and empirical prediction criteria. The initial full plan uses three configurations and two repetitions, totaling 432 episodes / 2,160 checkpoints. Minimum useful effect targets are explicitly provisional and not power validated; they are frozen before final collection. Policy cases remain outside prediction fitting/scoring. An assistance policy and its benefit criteria still require a separate increment.
 
 ## Two separate tests
 

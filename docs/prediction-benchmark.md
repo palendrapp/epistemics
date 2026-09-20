@@ -2,6 +2,8 @@
 
 `provenance-benchmark/0.1.0` turns the [provenance collector](provenance-collection.md) into a costed, staged comparison. Its immediate question is whether a configuration-specific profile predicts later reported probabilities better than simpler predictors. Assistance efficacy is a separate next increment; this benchmark does not issue a validated passport or establish intervention benefit.
 
+The [20 September development run and frozen budget](prediction-budget-2026-09-20.md) provide actual token/latency measurements, include failed setup attempts and identify the unstarted full plan.
+
 ## Planned comparison
 
 The initial configuration set is GPT-5.6 Luna, GPT-5.6 Terra and GPT-6 Astra, each at medium reasoning effort. All use the same respondent prompt, public MCP tools and context policy. These are requested provider aliases, not independently verified immutable model revisions. The frozen configuration includes the CLI version, prompt, requested settings and disabled tools. Unknown sampling/provider settings remain unknown.
