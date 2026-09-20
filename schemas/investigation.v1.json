@@ -1,0 +1,272 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "seed": {
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "mode": {
+          "default": "discovery",
+          "enum": [
+            "discovery",
+            "calibration"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "cost_scale": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "title": "Cost Scale",
+          "type": "number"
+        },
+        "price_menu": {
+          "default": "balanced",
+          "enum": [
+            "balanced",
+            "audit_discount",
+            "operations_discount",
+            "segment_discount",
+            "expensive"
+          ],
+          "title": "Price Menu",
+          "type": "string"
+        },
+        "gain": {
+          "default": 2,
+          "exclusiveMinimum": 0,
+          "title": "Gain",
+          "type": "number"
+        },
+        "loss": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "title": "Loss",
+          "type": "number"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "seed"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.investigation.v1",
+      "default": "epistemics.investigation.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "battery_version": {
+      "const": "company-investigation/0.1.0",
+      "default": "company-investigation/0.1.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "evaluator_version": {
+      "const": "investigation-evaluator/0.1.0",
+      "default": "investigation-evaluator/0.1.0",
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "analysis_version": {
+      "const": "investigation-analysis/0.1.0",
+      "default": "investigation-analysis/0.1.0",
+      "title": "Analysis Version",
+      "type": "string"
+    },
+    "study_id": {
+      "title": "Study Id",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "participant": {
+      "discriminator": {
+        "mapping": {
+          "agent": "#/$defs/AgentParticipant",
+          "human": "#/$defs/HumanParticipant"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AgentParticipant"
+        },
+        {
+          "$ref": "#/$defs/HumanParticipant"
+        }
+      ],
+      "title": "Participant"
+    },
+    "response_origin": {
+      "enum": [
+        "agent",
+        "human",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "purpose": {
+      "const": "development_only",
+      "default": "development_only",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "context_policy": {
+      "const": "fresh_per_episode_continuous_within",
+      "default": "fresh_per_episode_continuous_within",
+      "title": "Context Policy",
+      "type": "string"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/Assignment"
+      },
+      "maxItems": 128,
+      "minItems": 1,
+      "title": "Assignments",
+      "type": "array"
+    }
+  },
+  "required": [
+    "study_id",
+    "created_at",
+    "implementation_sha256",
+    "participant",
+    "response_origin",
+    "assignments"
+  ],
+  "title": "InvestigationManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

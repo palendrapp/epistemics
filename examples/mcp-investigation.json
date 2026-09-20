@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "epistemics-investigation": {
+      "command": "uv",
+      "args": ["run", "--directory", "/absolute/path/to/epistemics", "python", "-m", "epistemics.investigation.mcp_server"],
+      "env": {
+        "EPISTEMICS_INVESTIGATION": "/absolute/path/to/private/investigation",
+        "EPISTEMICS_ASSIGNMENT": "OPERATOR_ASSIGNED_EPISODE_ID"
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": "epistemics.participant.v1",
+  "kind": "agent",
+  "subject_id": "REPLACE_WITH_ACTUAL_SUBJECT_ID",
+  "configuration": {
+    "model": "REPLACE_WITH_ACTUAL_MODEL",
+    "model_version": "REPLACE_WITH_ACTUAL_REVISION",
+    "configuration_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "temperature": null
+  }
+}

@@ -35,12 +35,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Epistemics local evaluator")
     commands = parser.add_subparsers(dest="command", required=True)
     from epistemics.benchmark.cli import add_commands as add_benchmark_commands
+    from epistemics.investigation.cli import add_commands as add_investigation_commands
     from epistemics.passport.cli import add_commands as add_passport_commands
     from epistemics.predictive.cli import add_commands as add_predictive_commands
 
     add_passport_commands(commands)
     add_predictive_commands(commands)
     add_benchmark_commands(commands)
+    add_investigation_commands(commands)
     serve = commands.add_parser("serve", help="Run the shared core evaluation in a local browser")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--database", type=Path, default=Path(".epistemics/live.sqlite3"))
@@ -103,6 +105,14 @@ def main() -> None:
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
     check.add_argument("path", type=Path)
     args = parser.parse_args()
+    if args.command == "investigation":
+        from epistemics.investigation.cli import run as run_investigation
+
+        try:
+            run_investigation(args)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
+        return
     if args.command == "benchmark":
         from epistemics.benchmark.cli import run as run_benchmark
 
@@ -136,6 +146,11 @@ def main() -> None:
         return
     if args.command == "validate":
         from epistemics.benchmark.models import BenchmarkManifest, BenchmarkReport
+        from epistemics.investigation.models import (
+            InvestigationManifest,
+            InvestigationReport,
+            InvestigationTrial,
+        )
         from epistemics.live.models import CoreReport
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
@@ -149,6 +164,9 @@ def main() -> None:
 
         data = json.loads(args.path.read_bytes())
         contract = {
+            "epistemics.investigation.v1": InvestigationManifest,
+            "epistemics.investigation-report.v1": InvestigationReport,
+            "epistemics.investigation-trial.v1": InvestigationTrial,
             "epistemics.report.v2": CompanyReport,
             "epistemics.report.v3": DiscoveryReport,
             "epistemics.report.v4": CoreReport,
@@ -178,6 +196,11 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.command == "schema":
         from epistemics.benchmark.models import BenchmarkManifest, BenchmarkReport, BenchmarkSpec
+        from epistemics.investigation.models import (
+            InvestigationManifest,
+            InvestigationReport,
+            InvestigationTrial,
+        )
         from epistemics.live.models import CoreReport, CoreTrial
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
@@ -194,6 +217,9 @@ def main() -> None:
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         for contract, path in [
+            (InvestigationManifest, args.output.with_name("investigation.v1.json")),
+            (InvestigationReport, args.output.with_name("investigation-report.v1.json")),
+            (InvestigationTrial, args.output.with_name("investigation-trial.v1.json")),
             (Report, args.output),
             (CompanyReport, args.output.with_name("report.v2.json")),
             (DiscoveryReport, args.output.with_name("report.v3.json")),
