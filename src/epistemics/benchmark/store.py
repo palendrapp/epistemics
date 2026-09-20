@@ -42,6 +42,8 @@ def create(design_directory, directory, spec, *, codex_version, response_origin=
     expected_attempts = len(spec.configurations) * (
         len(design.assignments) if spec.purpose == "prediction_pilot" else 2
     )
+    if spec.recovery:
+        expected_attempts += spec.recovery.max_retries_total
     if spec.budget.max_attempts < expected_attempts:
         raise ValueError("Attempt budget cannot cover every planned episode")
     root = Path(directory)
@@ -106,13 +108,21 @@ def create(design_directory, directory, spec, *, codex_version, response_origin=
 
 
 def load(directory):
+    return _load(directory, check_implementation=True)
+
+
+def _load(directory, *, check_implementation):
     root = Path(directory)
     raw = (root / "benchmark.json").read_bytes()
     if digest(raw) != (root / "benchmark.sha256").read_text().strip():
         raise ValueError("Benchmark manifest bytes changed")
     manifest = BenchmarkManifest.model_validate_json(raw)
-    if manifest.implementation_sha256 != fingerprint():
+    if check_implementation and manifest.implementation_sha256 != fingerprint():
         raise ValueError("Benchmark source fingerprint changed; use the original implementation")
+    if manifest.amendment:
+        from epistemics.benchmark.recovery import verify_predecessor
+
+        verify_predecessor(root, manifest.amendment)
     design = load_manifest(root / "design")
     if digest((root / "design" / "manifest.json").read_bytes()) != manifest.design_sha256:
         raise ValueError("Benchmark design binding changed")
@@ -179,6 +189,8 @@ def guard(directory, configuration_id, assignment_id):
 
 
 def accounting(directory):
+    from epistemics.benchmark.recovery import summary
+
     with database(directory) as (db, manifest, design):
         runs = [json.loads(p) for (p,) in db.execute("SELECT payload FROM runs ORDER BY rowid")]
         totals = {
@@ -188,9 +200,28 @@ def accounting(directory):
         totals["processed_tokens"] = totals["input_tokens"] + totals["output_tokens"]
         totals["elapsed_seconds"] = sum(r.get("elapsed_seconds", 0) for r in runs)
         totals["attempts"] = len(runs)
-        totals["unresolved_attempts"] = sum(r["status"] != "completed" for r in runs)
-        totals["unknown_usage_attempts"] = sum(r.get("usage") is None for r in runs)
+        recovery = summary(manifest, runs)
+        totals["unresolved_attempts"] = recovery["unresolved_attempts"]
+        totals["unknown_usage_attempts"] = sum(
+            r.get("usage") is None or not r.get("usage_complete", r["status"] == "completed")
+            for r in runs
+        )
+        totals["accounting_complete"] = totals["unknown_usage_attempts"] == 0
+        totals["unknown_usage_planning_reserve"] = (
+            totals["unknown_usage_attempts"] * manifest.recovery.unknown_usage_reserve_tokens
+            if manifest.recovery
+            else 0
+        )
+        totals["admission_token_charge"] = (
+            totals["processed_tokens"] + totals["unknown_usage_planning_reserve"]
+        )
+        totals["usage_scope"] = "complete" if totals["accounting_complete"] else "known_lower_bound"
         totals["billing"] = manifest.budget.billing
         totals["marginal_usd"] = None
         planned = budget(design)
-        return {"totals": totals, "runs": runs, "full_design_per_configuration": planned}
+        return {
+            "totals": totals,
+            "runs": runs,
+            "recovery": recovery,
+            "full_design_per_configuration": planned,
+        }

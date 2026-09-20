@@ -127,12 +127,26 @@ def read_usage(value):
 
 
 async def run_episode(directory, configuration, assignment_id, timeout):
-    from epistemics.benchmark.store import database, guard
+    from epistemics.benchmark.store import accounting, database, guard, json_bytes, load
+    from epistemics.predictive.design import digest
 
     guard(directory, configuration.configuration_id, assignment_id)
+    manifest, _, _ = load(directory)
+    resources = accounting(directory)
+    parent = admit(
+        manifest,
+        resources["totals"],
+        resources=resources,
+        configuration_id=configuration.configuration_id,
+        assignment_id=assignment_id,
+    )
     service = CollectionService(
         Path(directory) / "collections" / configuration.configuration_id, assignment_id
     )
+    with service.state() as state:
+        accepted = list(state["answers"])
+    if accepted and parent is None:
+        raise ValueError("Accepted history requires a recorded, eligible recovery parent")
     entry = {
         "attempt_id": uuid.uuid4().hex,
         "configuration_id": configuration.configuration_id,
@@ -147,6 +161,12 @@ async def run_episode(directory, configuration, assignment_id, timeout):
         "process_returncode": None,
         "terminal_diagnostics": [],
         "diagnostic_events_dropped": 0,
+        "retry_of": parent,
+        "accepted_answers_at_start": len(accepted),
+        "accepted_history_sha256": digest(json_bytes(accepted)),
+        "context_mode": "resumed_public_history" if accepted else "fresh",
+        "failure_category": None,
+        "usage_complete": False,
     }
     with database(directory) as (db, _, _):
         db.execute("INSERT INTO runs VALUES (?, ?)", (entry["attempt_id"], json.dumps(entry)))
@@ -216,23 +236,34 @@ async def run_episode(directory, configuration, assignment_id, timeout):
                             entry["violation"] = f"Unexpected respondent action: {kind}"
                 await process.wait()
             if process.returncode != 0:
+                entry["failure_category"] = "process_exit"
                 raise RuntimeError(
                     "Codex process failed; inspect private stderr and retained attempt"
                 )
-            if entry["usage"] is None:
-                raise RuntimeError(
-                    "No provider usage received; stopping instead of assuming zero cost"
-                )
             if entry["violation"]:
+                entry["failure_category"] = "task_violation"
                 raise RuntimeError(entry["violation"])
             with service.state() as state:
                 if state["completion"] is None:
+                    entry["failure_category"] = "incomplete_episode"
                     raise RuntimeError("Respondent exited without finishing the episode")
+            if entry["usage"] is None:
+                entry["failure_category"] = "missing_usage"
+                raise RuntimeError(
+                    "No provider usage received; stopping instead of assuming zero cost"
+                )
             entry["status"] = "completed"
+            entry["usage_complete"] = True
     except BaseException as error:
         entry["status"] = "failed"
         entry["error_type"] = type(error).__name__
         entry["error_message"] = str(error)[:2000]
+        if isinstance(error, TimeoutError):
+            entry["failure_category"] = "timeout"
+        if entry["violation"]:
+            entry["failure_category"] = "task_violation"
+        if entry["failure_category"] is None:
+            entry["failure_category"] = "unclassified"
         raise
     finally:
         if process is not None and process.returncode is None:
@@ -249,17 +280,28 @@ async def run_episode(directory, configuration, assignment_id, timeout):
     return entry
 
 
-def admit(manifest, totals):
-    if totals["unresolved_attempts"] or totals["unknown_usage_attempts"]:
+def admit(manifest, totals, *, resources=None, configuration_id=None, assignment_id=None):
+    parent = None
+    if manifest.recovery:
+        from epistemics.benchmark.recovery import admit_recovery
+
+        if resources is None or configuration_id is None or assignment_id is None:
+            raise ValueError("Recovery admission requires the exact episode and attempt history")
+        parent = admit_recovery(manifest, resources, configuration_id, assignment_id)
+    elif totals["unresolved_attempts"] or totals["unknown_usage_attempts"]:
         raise ValueError(
             "Unresolved/unknown-cost attempts remain; inspect before creating a replacement run"
         )
     if totals["attempts"] >= manifest.budget.max_attempts:
         raise ValueError("Attempt budget exhausted")
-    if totals["processed_tokens"] >= manifest.budget.max_processed_tokens:
+    if (
+        totals.get("admission_token_charge", totals["processed_tokens"])
+        >= manifest.budget.max_processed_tokens
+    ):
         raise ValueError("Processed-token admission budget exhausted")
     if totals["elapsed_seconds"] >= manifest.budget.max_wall_seconds:
         raise ValueError("Time admission budget exhausted")
+    return parent
 
 
 async def collect(directory, *, split, max_episodes=1):
@@ -291,15 +333,52 @@ async def collect(directory, *, split, max_episodes=1):
                 state = episode_states(root, configuration.configuration_id).get(
                     assignment.assignment_id, {}
                 )
-                if state.get("completion") is not None:
+                resources = accounting(root)
+                history = [
+                    r
+                    for r in resources["runs"]
+                    if r.get("configuration_id") == configuration.configuration_id
+                    and r.get("assignment_id") == assignment.assignment_id
+                ]
+                if (
+                    state.get("completion") is not None
+                    and history
+                    and history[-1]["status"] == "completed"
+                ):
                     continue
-                admit(manifest, accounting(root)["totals"])
-                result = await run_episode(
-                    root,
-                    configuration,
-                    assignment.assignment_id,
-                    manifest.budget.episode_timeout_seconds,
-                )
+                while True:
+                    resources = accounting(root)
+                    parent = admit(
+                        manifest,
+                        resources["totals"],
+                        resources=resources,
+                        configuration_id=configuration.configuration_id,
+                        assignment_id=assignment.assignment_id,
+                    )
+                    if parent:
+                        print(
+                            json.dumps(
+                                {
+                                    "recovering_attempt": parent,
+                                    "configuration": configuration.configuration_id,
+                                }
+                            ),
+                            flush=True,
+                        )
+                        await asyncio.sleep(manifest.recovery.retry_delay_seconds)
+                    try:
+                        result = await run_episode(
+                            root,
+                            configuration,
+                            assignment.assignment_id,
+                            manifest.budget.episode_timeout_seconds,
+                        )
+                        break
+                    except (RuntimeError, TimeoutError):
+                        if manifest.recovery is None:
+                            raise
+                        # Re-enter admission: it checks category, per-case/global limits,
+                        # unresolved cases, unknown usage and all original resource ceilings.
                 done.append(result)
                 print(
                     json.dumps(

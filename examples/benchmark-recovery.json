@@ -1,0 +1,10 @@
+{
+  "protocol": "bounded-recovery/0.1.0",
+  "max_retries_per_episode": 1,
+  "max_retries_total": 9,
+  "stop_at_unknown_usage_attempts": 3,
+  "unknown_usage_reserve_tokens": 1000000,
+  "retry_delay_seconds": 2,
+  "accounting_rule": "known_usage_plus_planning_reserve_not_actual_upper_bound",
+  "context_rule": "fresh_process_restores_immutable_public_history"
+}

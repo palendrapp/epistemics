@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 
 from epistemics.benchmark.analysis import analyze, lock_predictions
-from epistemics.benchmark.models import BenchmarkSpec
+from epistemics.benchmark.models import BenchmarkSpec, RecoveryPolicy
+from epistemics.benchmark.recovery import amend
 from epistemics.benchmark.runner import codex_version, collect
 from epistemics.benchmark.store import accounting, create, json_bytes, load
 from epistemics.predictive.design import budget, create_manifest
@@ -54,6 +55,12 @@ def add_commands(commands):
     setup.add_argument("--design", type=Path, required=True)
     setup.add_argument("--spec", type=Path, required=True)
     setup.add_argument("--output", type=Path, required=True)
+    recovery = sub.add_parser("amend-recovery")
+    recovery.add_argument("--benchmark", type=Path, required=True)
+    recovery.add_argument("--policy", type=Path, required=True)
+    recovery.add_argument("--output", type=Path, required=True)
+    recovery.add_argument("--reason", required=True)
+    recovery.add_argument("--review-process-exit", action="append", default=[])
     for name in ("run", "status", "lock", "analyze", "cost"):
         command = sub.add_parser(name)
         command.add_argument("--benchmark", type=Path, required=True)
@@ -68,7 +75,25 @@ def add_commands(commands):
 
 def run(args):
     name = args.benchmark_command
-    if name == "create":
+    if name == "amend-recovery":
+        policy = RecoveryPolicy.model_validate_json(args.policy.read_bytes())
+        value = amend(
+            args.benchmark,
+            args.output,
+            policy,
+            reviewed_process_exits=args.review_process_exit,
+            reason=args.reason,
+        )
+        print(
+            json.dumps(
+                {
+                    "benchmark": str(args.output),
+                    "version": value.benchmark_version,
+                    "protocol_status": "amended",
+                }
+            )
+        )
+    elif name == "create":
         spec = BenchmarkSpec.model_validate_json(args.spec.read_bytes())
         value = create(args.design, args.output, spec, codex_version=codex_version())
         print(

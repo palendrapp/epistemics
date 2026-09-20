@@ -58,6 +58,47 @@
       "title": "Acceptance",
       "type": "object"
     },
+    "Amendment": {
+      "additionalProperties": false,
+      "properties": {
+        "predecessor_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Predecessor Sha256",
+          "type": "string"
+        },
+        "predecessor_snapshot_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Predecessor Snapshot Sha256",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "reviewed_process_exits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reviewed Process Exits",
+          "type": "array"
+        },
+        "status": {
+          "const": "pre_lock_protocol_amendment",
+          "default": "pre_lock_protocol_amendment",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "predecessor_sha256",
+        "predecessor_snapshot_sha256",
+        "reason"
+      ],
+      "title": "Amendment",
+      "type": "object"
+    },
     "Configuration": {
       "additionalProperties": false,
       "properties": {
@@ -92,6 +133,65 @@
         "reasoning_effort"
       ],
       "title": "Configuration",
+      "type": "object"
+    },
+    "RecoveryPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol": {
+          "const": "bounded-recovery/0.1.0",
+          "default": "bounded-recovery/0.1.0",
+          "title": "Protocol",
+          "type": "string"
+        },
+        "max_retries_per_episode": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Max Retries Per Episode",
+          "type": "integer"
+        },
+        "max_retries_total": {
+          "default": 9,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Retries Total",
+          "type": "integer"
+        },
+        "stop_at_unknown_usage_attempts": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Stop At Unknown Usage Attempts",
+          "type": "integer"
+        },
+        "unknown_usage_reserve_tokens": {
+          "default": 1000000,
+          "exclusiveMinimum": 0,
+          "title": "Unknown Usage Reserve Tokens",
+          "type": "integer"
+        },
+        "retry_delay_seconds": {
+          "default": 2,
+          "maximum": 60,
+          "minimum": 0,
+          "title": "Retry Delay Seconds",
+          "type": "integer"
+        },
+        "accounting_rule": {
+          "const": "known_usage_plus_planning_reserve_not_actual_upper_bound",
+          "default": "known_usage_plus_planning_reserve_not_actual_upper_bound",
+          "title": "Accounting Rule",
+          "type": "string"
+        },
+        "context_rule": {
+          "const": "fresh_process_restores_immutable_public_history",
+          "default": "fresh_process_restores_immutable_public_history",
+          "title": "Context Rule",
+          "type": "string"
+        }
+      },
+      "title": "RecoveryPolicy",
       "type": "object"
     },
     "ResourceBudget": {
@@ -177,6 +277,17 @@
       "title": "Cost Basis",
       "type": "string"
     },
+    "recovery": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RecoveryPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "schema_version": {
       "const": "epistemics.prediction-benchmark.v1",
       "default": "epistemics.prediction-benchmark.v1",
@@ -184,10 +295,24 @@
       "type": "string"
     },
     "benchmark_version": {
-      "const": "provenance-benchmark/0.1.0",
-      "default": "provenance-benchmark/0.1.0",
+      "default": "provenance-benchmark/0.2.0",
+      "enum": [
+        "provenance-benchmark/0.1.0",
+        "provenance-benchmark/0.2.0"
+      ],
       "title": "Benchmark Version",
       "type": "string"
+    },
+    "amendment": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Amendment"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "design_sha256": {
       "pattern": "^[0-9a-f]{64}$",

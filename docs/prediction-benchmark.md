@@ -1,6 +1,6 @@
 # Frozen multi-configuration prediction benchmark
 
-`provenance-benchmark/0.1.0` turns the [provenance collector](provenance-collection.md) into a costed, staged comparison. Its immediate question is whether a configuration-specific profile predicts later reported probabilities better than simpler predictors. Assistance efficacy is a separate next increment; this benchmark does not issue a validated passport or establish intervention benefit.
+`provenance-benchmark/0.2.0` turns the [provenance collector](provenance-collection.md) into a costed, staged comparison and adds [bounded recovery](benchmark-recovery.md). Its immediate question is whether a configuration-specific profile predicts later reported probabilities better than simpler predictors. Assistance efficacy is a separate next increment; this benchmark does not issue a validated passport or establish intervention benefit.
 
 The [20 September development run and frozen budget](prediction-budget-2026-09-20.md) provide actual token/latency measurements and include failed setup attempts. Full-plan profile collection [stopped after 55 completed episodes and one failed attempt](prediction-profile-stop-2026-09-20.md); no prediction lock or final empirical result exists.
 
@@ -28,7 +28,7 @@ The Codex runner uses the signed-in ChatGPT account, with no API key or purchase
 
 The cost command projects the full run using observed mean episode usage and duration. Suggested resource ceilings use twice the observed maximum per episode. With two observations per configuration these are planning allowances, not confidence bounds, billing quotes or guaranteed upper bounds. Longest-graph costing deliberately does not assume shorter episodes will cost the same, though the projection applies its observed rate across the plan.
 
-The manifest freezes attempt, processed-token and cumulative episode-time budgets, and each invocation also limits its number of episodes. Admission is checked **between** episodes; one episode may overshoot a token/time ceiling. A per-episode timeout limits wall-clock exposure but cannot promise a token maximum or prove the provider stopped billing immediately. Unknown usage is retained as unknown and blocks further admission. Failures stop collection and remain visible; there are no automatic inference retries or hidden exclusions. A failed benchmark must be inspected and retired or handled by a future explicit recovery policy; current analysis requires every planned episode and complete execution/usage records.
+The manifest freezes attempt, processed-token and cumulative episode-time budgets, and each invocation also limits its number of episodes. Admission is checked **between** episodes; one episode may overshoot a token/time ceiling. A per-episode timeout limits wall-clock exposure but cannot promise a token maximum or prove the provider stopped billing immediately. Without a recovery policy, unknown usage or a failed attempt stops admission. Version 0.2 optionally freezes [bounded recovery](benchmark-recovery.md): eligible failures remain visible, unknown usage receives a separately labeled planning reserve, and reports distinguish complete case collection from incomplete accounting. Every planned episode must still finish; there are no hidden exclusions. The original version 0.1 plan retains its no-retry rule unless explicitly cloned into a documented amendment before locking or later-case exposure.
 
 ## Freeze predictions before final cases
 
@@ -56,7 +56,7 @@ The provisional product criterion requires:
 1. At least **0.01 absolute RMSE improvement** over each of pooled behavior, reference calibration, all-reports one-gain and persistence, on the cohort average.
 2. A positive lower bound of the paired 95% bootstrap interval for each improvement.
 3. Individualized held-out RMSE no greater than **0.05 in every configuration**.
-4. Every planned case completed, no imputation/exclusions, and complete execution and usage accounting.
+4. Every planned case completed, no imputation/exclusions, and resolved execution records. Under a frozen version 0.2 recovery policy, unknown usage is disclosed separately and must remain below its stop threshold. The version 0.1 no-retry plan requires complete usage accounting.
 
 These are pragmatic pilot targets: a one-percentage-point reduction in probability error and a five-point absolute adequacy ceiling. They are fixed before final data, not derived from the earlier smoke-test results, and are **not power validated**. Passing remains conditional on this task and model set. Identical profiles that provide no gain over pooling should yield `criteria_not_met`, even if all predictions are accurate. Null results are retained rather than relabeled as product validation.
 
@@ -92,7 +92,7 @@ uv run epistemics benchmark analyze --benchmark PRIVATE_BENCHMARK --output outpu
 uv run epistemics validate output/prediction-results.json
 ```
 
-Use smaller `--max-episodes` values to collect in bounded batches. Reinvoking skips completed episodes and retains accepted answers. A failed attempt blocks further admission; this version deliberately does not silently retry it. Status reports all planned assignments and retained execution attempts.
+Use smaller `--max-episodes` values to collect in bounded batches. Reinvoking skips completed episodes and retains accepted answers. A failed attempt blocks admission unless the manifest explicitly enables recovery and that attempt passes the category, resource and retry limits. Status reports all planned assignments and retained execution attempts.
 
 The runner starts a fresh ephemeral Codex process in a temporary directory, ignores user configuration, requests read-only sandboxing, disables shell, browser, plugins, memory and subagent tools, and supplies only the assigned MCP server. It explicitly authorizes the four local evaluation tools through per-tool approval settings; unrelated tool approval requests remain disabled. It records unexpected tool actions as failures. This narrows the execution surface but is not independent attestation of the provider's model, hidden instructions or OS isolation. Agent final messages and failure diagnostics are private; private reasoning events are not retained by the runner. Raw artifacts stay outside Git.
 

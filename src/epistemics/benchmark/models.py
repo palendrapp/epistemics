@@ -49,6 +49,29 @@ class Acceptance(Model):
     )
 
 
+class RecoveryPolicy(Model):
+    protocol: Literal["bounded-recovery/0.1.0"] = "bounded-recovery/0.1.0"
+    max_retries_per_episode: int = Field(default=1, ge=1, le=1, strict=True)
+    max_retries_total: int = Field(default=9, ge=1, le=20, strict=True)
+    stop_at_unknown_usage_attempts: int = Field(default=3, ge=1, le=10, strict=True)
+    unknown_usage_reserve_tokens: int = Field(default=1_000_000, gt=0, strict=True)
+    retry_delay_seconds: int = Field(default=2, ge=0, le=60, strict=True)
+    accounting_rule: Literal["known_usage_plus_planning_reserve_not_actual_upper_bound"] = (
+        "known_usage_plus_planning_reserve_not_actual_upper_bound"
+    )
+    context_rule: Literal["fresh_process_restores_immutable_public_history"] = (
+        "fresh_process_restores_immutable_public_history"
+    )
+
+
+class Amendment(Model):
+    predecessor_sha256: Digest
+    predecessor_snapshot_sha256: Digest
+    reason: str = Field(min_length=1, max_length=4000)
+    reviewed_process_exits: list[str] = Field(default_factory=list)
+    status: Literal["pre_lock_protocol_amendment"] = "pre_lock_protocol_amendment"
+
+
 class BenchmarkSpec(Model):
     purpose: Literal["development_costing", "prediction_pilot"]
     configurations: list[Configuration] = Field(min_length=2, max_length=6)
@@ -56,6 +79,7 @@ class BenchmarkSpec(Model):
     budget: ResourceBudget
     acceptance: Acceptance = Field(default_factory=Acceptance)
     cost_basis: str = Field(min_length=1)
+    recovery: RecoveryPolicy | None = None
 
     @model_validator(mode="after")
     def unique_configurations(self):
@@ -70,7 +94,10 @@ class BenchmarkManifest(BenchmarkSpec):
     schema_version: Literal["epistemics.prediction-benchmark.v1"] = (
         "epistemics.prediction-benchmark.v1"
     )
-    benchmark_version: Literal["provenance-benchmark/0.1.0"] = "provenance-benchmark/0.1.0"
+    benchmark_version: Literal["provenance-benchmark/0.1.0", "provenance-benchmark/0.2.0"] = (
+        "provenance-benchmark/0.2.0"
+    )
+    amendment: Amendment | None = None
     design_sha256: Digest
     implementation_sha256: Digest
     runner_sha256: Digest
@@ -79,12 +106,24 @@ class BenchmarkManifest(BenchmarkSpec):
     response_origin: Literal["agent", "synthetic"]
     created_at: AwareDatetime
 
+    @model_validator(mode="after")
+    def recovery_version(self):
+        if self.benchmark_version == "provenance-benchmark/0.1.0" and (
+            self.recovery or self.amendment
+        ):
+            raise ValueError("Recovery requires benchmark 0.2.0")
+        if self.amendment and self.recovery is None:
+            raise ValueError("An amendment must bind a recovery policy")
+        return self
+
 
 class BenchmarkReport(Model):
     schema_version: Literal["epistemics.prediction-benchmark-report.v1"] = (
         "epistemics.prediction-benchmark-report.v1"
     )
-    benchmark_version: Literal["provenance-benchmark/0.1.0"] = "provenance-benchmark/0.1.0"
+    benchmark_version: Literal["provenance-benchmark/0.1.0", "provenance-benchmark/0.2.0"] = (
+        "provenance-benchmark/0.2.0"
+    )
     benchmark_sha256: Digest
     lock_sha256: Digest
     source_hashes: dict[str, Digest]
@@ -94,4 +133,20 @@ class BenchmarkReport(Model):
     cohort: dict
     configurations: dict[str, dict]
     accounting: dict
+    protocol_status: Literal["original", "amended"] = "original"
+    execution_scope: Literal["uninterrupted", "includes_retried_episodes"] = "uninterrupted"
+    accounting_complete: bool = True
     limitations: list[str]
+
+    @model_validator(mode="after")
+    def recovery_disclosures(self):
+        if self.benchmark_version == "provenance-benchmark/0.2.0":
+            totals = self.accounting.get("totals", {})
+            recovery = self.accounting.get("recovery", {})
+            if (
+                totals.get("accounting_complete") is not self.accounting_complete
+                or recovery.get("protocol_status") != self.protocol_status
+                or recovery.get("execution_scope") != self.execution_scope
+            ):
+                raise ValueError("Report recovery disclosures must match the execution accounting")
+        return self

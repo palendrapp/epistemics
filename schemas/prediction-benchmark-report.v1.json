@@ -8,8 +8,11 @@
       "type": "string"
     },
     "benchmark_version": {
-      "const": "provenance-benchmark/0.1.0",
-      "default": "provenance-benchmark/0.1.0",
+      "default": "provenance-benchmark/0.2.0",
+      "enum": [
+        "provenance-benchmark/0.1.0",
+        "provenance-benchmark/0.2.0"
+      ],
       "title": "Benchmark Version",
       "type": "string"
     },
@@ -70,6 +73,29 @@
       "additionalProperties": true,
       "title": "Accounting",
       "type": "object"
+    },
+    "protocol_status": {
+      "default": "original",
+      "enum": [
+        "original",
+        "amended"
+      ],
+      "title": "Protocol Status",
+      "type": "string"
+    },
+    "execution_scope": {
+      "default": "uninterrupted",
+      "enum": [
+        "uninterrupted",
+        "includes_retried_episodes"
+      ],
+      "title": "Execution Scope",
+      "type": "string"
+    },
+    "accounting_complete": {
+      "default": true,
+      "title": "Accounting Complete",
+      "type": "boolean"
     },
     "limitations": {
       "items": {

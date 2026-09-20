@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from epistemics.benchmark.models import BenchmarkReport
+from epistemics.benchmark.recovery import require_execution
 from epistemics.benchmark.runner import operator_lock
 from epistemics.benchmark.store import (
     accounting,
@@ -94,7 +95,12 @@ def baseline_fit(train, plan):
 
 def lock_predictions(directory):
     root = Path(directory)
-    with operator_lock(root), database(root) as (db, manifest, design):
+    with operator_lock(root):
+        return _lock_predictions(root, accounting(root))
+
+
+def _lock_predictions(root, resources):
+    with database(root) as (db, manifest, design):
         if manifest.purpose != "prediction_pilot":
             raise ValueError("Development costing cannot be promoted to a prediction pilot")
         old = db.execute("SELECT payload FROM metadata WHERE id='prediction_lock'").fetchone()
@@ -106,6 +112,7 @@ def lock_predictions(directory):
         for configuration in manifest.configurations:
             if set(episode_states(root, configuration.configuration_id)) & nonprofile:
                 raise ValueError("Later cases have already been opened; retire this design")
+        require_execution(root, manifest, design, "profile", resources=resources)
         plan = design.analysis_plan.model_copy(
             update={"bootstrap_draws": min(1000, manifest.acceptance.bootstrap_draws)}
         )
@@ -166,6 +173,10 @@ def lock_predictions(directory):
             "primary_checkpoints": "index > 0",
             "comparators": list(COMPARATORS),
             "acceptance": manifest.acceptance.model_dump(mode="json"),
+            "protocol_status": resources["recovery"]["protocol_status"],
+            "execution_scope": resources["recovery"]["execution_scope"],
+            "recovery_at_lock": resources["recovery"],
+            "accounting_complete_at_lock": resources["totals"]["accounting_complete"],
         }
         raw = json_bytes(value)
         db.execute("INSERT INTO metadata VALUES ('prediction_lock', ?)", (raw,))
@@ -252,6 +263,10 @@ def analyze(directory):
             if locked is None:
                 raise ValueError("No frozen predictions")
         lock = json.loads(locked[0])
+        resources = accounting(root)
+        # Check execution before freezing collection exports: an unresolved final
+        # process may still need a finish-only recovery with its existing receipt.
+        require_execution(root, manifest, design, resources=resources)
         sources, datasets, predictions, configurations = {}, {}, {}, {}
         for configuration in manifest.configurations:
             cid = configuration.configuration_id
@@ -287,31 +302,9 @@ def analyze(directory):
                 },
                 "conditional_task_quality": conditional_task_metrics(heldout),
             }
-        resources = accounting(root)
-        if manifest.response_origin == "agent" and (
-            resources["totals"]["unresolved_attempts"]
-            or resources["totals"]["unknown_usage_attempts"]
-        ):
-            raise ValueError(
-                "Unresolved execution or cost records prevent a complete empirical report"
-            )
-        if manifest.response_origin == "agent":
-            covered = {
-                (r["configuration_id"], r["assignment_id"])
-                for r in resources["runs"]
-                if r["status"] == "completed"
-            }
-            expected = {
-                (c.configuration_id, a.assignment_id)
-                for c in manifest.configurations
-                for a in design.assignments
-            }
-            if covered != expected:
-                raise ValueError(
-                    "Every empirical episode needs a completed execution and usage record"
-                )
         cohort = paired_comparison(datasets, predictions, manifest.acceptance)
         report = BenchmarkReport(
+            benchmark_version=manifest.benchmark_version,
             benchmark_sha256=manifest_hash,
             lock_sha256=digest(locked[0]),
             source_hashes=sources,
@@ -320,6 +313,9 @@ def analyze(directory):
             cohort=cohort,
             configurations=configurations,
             accounting=resources,
+            protocol_status=resources["recovery"]["protocol_status"],
+            execution_scope=resources["recovery"]["execution_scope"],
+            accounting_complete=resources["totals"]["accounting_complete"],
             limitations=[
                 "Effective reporting weights are conditional on source inference, not internal beliefs or unique cognitive mechanisms.",
                 "Explicit provenance, two source strengths and one binary-source task family; no general cognitive-security certification.",
@@ -328,6 +324,9 @@ def analyze(directory):
                 "Raw-frequency source inference is a predeclared sensitivity analysis, not a selected replacement for the primary model.",
                 "Decision scores are expectations under the evaluator model, not realized financial or forecasting outcomes.",
                 "No intervention, personalization benefit, payment, passport issuance or independently verified execution is established.",
+                "Recovery, when present, uses a fresh context with accepted public history; results include those cases and do not describe uninterrupted execution alone.",
+                "Unknown usage remains unknown. Admission reserves are planning charges, not measured tokens, dollar costs or upper bounds on actual usage.",
+                "An amended protocol is labeled explicitly and cannot establish completion of its original no-retry predecessor.",
             ],
         )
         raw = encoded(report)
