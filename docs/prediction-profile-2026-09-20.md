@@ -1,5 +1,7 @@
 # Completed profile stage — 20 September 2026
 
+**Subsequent result:** the [full prediction comparison is now complete](prediction-results-2026-09-20.md), with `criteria_not_met`. Individual profiles did not outperform pooling. The account below preserves the profile-stage findings and what was known at the prediction lock.
+
 All **144 profile episodes / 576 responses** are complete under the [bounded-recovery amendment](benchmark-recovery.md). GPT-5.6 Luna, GPT-5.6 Terra and GPT-6 Astra, each at medium reasoning effort, contributed 48 episodes / 192 responses. Profile fits, comparator fits and static predictions for 288 held-out checkpoints per configuration were locked at **10:26:28 UTC**. Policy and held-out responses remain uncollected; predictive usefulness and assistance benefit are not yet established.
 
 The clearest fitted difference is Luna's lower effective prior weight. Terra and Astra assign little additional weight to explicitly copied reports. Luna's positive copy-weight estimate is uncertain. These are effective reporting parameters in this task, not direct measurements of internal beliefs or general cognitive traits.
