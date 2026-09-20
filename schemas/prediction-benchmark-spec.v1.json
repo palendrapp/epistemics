@@ -1,0 +1,190 @@
+{
+  "$defs": {
+    "Acceptance": {
+      "additionalProperties": false,
+      "properties": {
+        "primary_endpoint": {
+          "const": "macro_configuration_post_evidence_probability_rmse",
+          "default": "macro_configuration_post_evidence_probability_rmse",
+          "title": "Primary Endpoint",
+          "type": "string"
+        },
+        "min_absolute_rmse_gain": {
+          "default": 0.01,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Min Absolute Rmse Gain",
+          "type": "number"
+        },
+        "max_individual_rmse": {
+          "default": 0.05,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Max Individual Rmse",
+          "type": "number"
+        },
+        "bootstrap_draws": {
+          "default": 2000,
+          "maximum": 10000,
+          "minimum": 100,
+          "title": "Bootstrap Draws",
+          "type": "integer"
+        },
+        "bootstrap_seed": {
+          "default": 920,
+          "minimum": 0,
+          "title": "Bootstrap Seed",
+          "type": "integer"
+        },
+        "uncertainty_rule": {
+          "const": "paired_group_bootstrap_lower_95_bound_above_zero_each_comparator",
+          "default": "paired_group_bootstrap_lower_95_bound_above_zero_each_comparator",
+          "title": "Uncertainty Rule",
+          "type": "string"
+        },
+        "threshold_basis": {
+          "const": "pragmatic_pilot_targets_not_power_validated",
+          "default": "pragmatic_pilot_targets_not_power_validated",
+          "title": "Threshold Basis",
+          "type": "string"
+        },
+        "completeness_rule": {
+          "const": "all_planned_cases_no_exclusions_no_imputation",
+          "default": "all_planned_cases_no_exclusions_no_imputation",
+          "title": "Completeness Rule",
+          "type": "string"
+        }
+      },
+      "title": "Acceptance",
+      "type": "object"
+    },
+    "Configuration": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Configuration Id",
+          "type": "string"
+        },
+        "model": {
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "reasoning_effort": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Reasoning Effort",
+          "type": "string"
+        },
+        "model_revision": {
+          "default": "provider alias; immutable revision not independently verified",
+          "title": "Model Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "configuration_id",
+        "model",
+        "reasoning_effort"
+      ],
+      "title": "Configuration",
+      "type": "object"
+    },
+    "ResourceBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_attempts": {
+          "exclusiveMinimum": 0,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "max_processed_tokens": {
+          "exclusiveMinimum": 0,
+          "title": "Max Processed Tokens",
+          "type": "integer"
+        },
+        "max_wall_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Max Wall Seconds",
+          "type": "integer"
+        },
+        "episode_timeout_seconds": {
+          "default": 180,
+          "maximum": 600,
+          "minimum": 30,
+          "title": "Episode Timeout Seconds",
+          "type": "integer"
+        },
+        "accounting": {
+          "const": "input_including_cached_plus_output",
+          "default": "input_including_cached_plus_output",
+          "title": "Accounting",
+          "type": "string"
+        },
+        "enforcement": {
+          "const": "admission_between_episodes_one_episode_may_overshoot",
+          "default": "admission_between_episodes_one_episode_may_overshoot",
+          "title": "Enforcement",
+          "type": "string"
+        },
+        "billing": {
+          "const": "existing_codex_account_unknown_marginal_usd",
+          "default": "existing_codex_account_unknown_marginal_usd",
+          "title": "Billing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_attempts",
+        "max_processed_tokens",
+        "max_wall_seconds"
+      ],
+      "title": "ResourceBudget",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "enum": [
+        "development_costing",
+        "prediction_pilot"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "configurations": {
+      "items": {
+        "$ref": "#/$defs/Configuration"
+      },
+      "maxItems": 6,
+      "minItems": 2,
+      "title": "Configurations",
+      "type": "array"
+    },
+    "budget": {
+      "$ref": "#/$defs/ResourceBudget"
+    },
+    "acceptance": {
+      "$ref": "#/$defs/Acceptance"
+    },
+    "cost_basis": {
+      "minLength": 1,
+      "title": "Cost Basis",
+      "type": "string"
+    }
+  },
+  "required": [
+    "purpose",
+    "configurations",
+    "budget",
+    "cost_basis"
+  ],
+  "title": "BenchmarkSpec",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

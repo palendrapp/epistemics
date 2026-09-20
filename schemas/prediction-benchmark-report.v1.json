@@ -1,0 +1,96 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "epistemics.prediction-benchmark-report.v1",
+      "default": "epistemics.prediction-benchmark-report.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "benchmark_version": {
+      "const": "provenance-benchmark/0.1.0",
+      "default": "provenance-benchmark/0.1.0",
+      "title": "Benchmark Version",
+      "type": "string"
+    },
+    "benchmark_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Benchmark Sha256",
+      "type": "string"
+    },
+    "lock_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Lock Sha256",
+      "type": "string"
+    },
+    "source_hashes": {
+      "additionalProperties": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Source Hashes",
+      "type": "object"
+    },
+    "response_origin": {
+      "enum": [
+        "agent",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "complete": {
+      "const": true,
+      "default": true,
+      "title": "Complete",
+      "type": "boolean"
+    },
+    "result": {
+      "enum": [
+        "criteria_met",
+        "criteria_not_met"
+      ],
+      "title": "Result",
+      "type": "string"
+    },
+    "cohort": {
+      "additionalProperties": true,
+      "title": "Cohort",
+      "type": "object"
+    },
+    "configurations": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Configurations",
+      "type": "object"
+    },
+    "accounting": {
+      "additionalProperties": true,
+      "title": "Accounting",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "benchmark_sha256",
+    "lock_sha256",
+    "source_hashes",
+    "response_origin",
+    "result",
+    "cohort",
+    "configurations",
+    "accounting",
+    "limitations"
+  ],
+  "title": "BenchmarkReport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

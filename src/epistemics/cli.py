@@ -34,11 +34,13 @@ def demo(seed: int = 42, prior_weight: float = 1, evidence_weight: float = 1) ->
 def main() -> None:
     parser = argparse.ArgumentParser(description="Epistemics local evaluator")
     commands = parser.add_subparsers(dest="command", required=True)
+    from epistemics.benchmark.cli import add_commands as add_benchmark_commands
     from epistemics.passport.cli import add_commands as add_passport_commands
     from epistemics.predictive.cli import add_commands as add_predictive_commands
 
     add_passport_commands(commands)
     add_predictive_commands(commands)
+    add_benchmark_commands(commands)
     serve = commands.add_parser("serve", help="Run the shared core evaluation in a local browser")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--database", type=Path, default=Path(".epistemics/live.sqlite3"))
@@ -101,6 +103,14 @@ def main() -> None:
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
     check.add_argument("path", type=Path)
     args = parser.parse_args()
+    if args.command == "benchmark":
+        from epistemics.benchmark.cli import run as run_benchmark
+
+        try:
+            run_benchmark(args)
+        except (OSError, ValueError, RuntimeError) as error:
+            parser.error(str(error))
+        return
     if args.command == "predictive":
         from epistemics.predictive.cli import run as run_predictive
 
@@ -125,6 +135,7 @@ def main() -> None:
             parser.error(str(error))
         return
     if args.command == "validate":
+        from epistemics.benchmark.models import BenchmarkManifest, BenchmarkReport
         from epistemics.live.models import CoreReport
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
@@ -153,6 +164,8 @@ def main() -> None:
             "epistemics.predictive-validation.v1": SyntheticValidation,
             "epistemics.predictive-collection.v1": CollectionManifest,
             "epistemics.predictive-responses.v1": CollectionExport,
+            "epistemics.prediction-benchmark.v1": BenchmarkManifest,
+            "epistemics.prediction-benchmark-report.v1": BenchmarkReport,
         }.get(data.get("schema_version"), Report)
         report = contract.model_validate(data)
         if isinstance(report, ParticipantDescriptor):
@@ -164,6 +177,7 @@ def main() -> None:
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.command == "schema":
+        from epistemics.benchmark.models import BenchmarkManifest, BenchmarkReport, BenchmarkSpec
         from epistemics.live.models import CoreReport, CoreTrial
         from epistemics.participants import ParticipantDescriptor, SessionContext
         from epistemics.passport.models import CorePassport, Passport
@@ -198,6 +212,9 @@ def main() -> None:
             (CollectionSpec, args.output.with_name("predictive-collection-spec.v1.json")),
             (CollectionManifest, args.output.with_name("predictive-collection.v1.json")),
             (CollectionExport, args.output.with_name("predictive-responses.v1.json")),
+            (BenchmarkSpec, args.output.with_name("prediction-benchmark-spec.v1.json")),
+            (BenchmarkManifest, args.output.with_name("prediction-benchmark.v1.json")),
+            (BenchmarkReport, args.output.with_name("prediction-benchmark-report.v1.json")),
         ]:
             data = contract.model_json_schema()
             data["$schema"] = "https://json-schema.org/draft/2020-12/schema"
