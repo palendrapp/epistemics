@@ -45,6 +45,9 @@ def main() -> None:
     add_benchmark_commands(commands)
     add_investigation_commands(commands)
     add_investigation2_commands(commands)
+    from epistemics.investigation3.cli import add_commands as add_investigation3_commands
+
+    add_investigation3_commands(commands)
     serve = commands.add_parser("serve", help="Run the shared core evaluation in a local browser")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--database", type=Path, default=Path(".epistemics/live.sqlite3"))
@@ -107,6 +110,14 @@ def main() -> None:
     check = commands.add_parser("validate", help="Validate a report's structure (not provenance)")
     check.add_argument("path", type=Path)
     args = parser.parse_args()
+    if args.command == "investigation3":
+        from epistemics.investigation3.cli import run as run_investigation3
+
+        try:
+            run_investigation3(args)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
+        return
     if args.command == "investigation2":
         from epistemics.investigation2.cli import run as run_investigation2
 
@@ -164,9 +175,13 @@ def main() -> None:
         from epistemics.investigation2.models import Manifest as Investigation2Manifest
         from epistemics.investigation2.models import Report as Investigation2Report
         from epistemics.investigation2.models import Trial as Investigation2Trial
+        from epistemics.investigation3.models import Manifest as Investigation3Manifest
+        from epistemics.investigation3.models import Report as Investigation3Report
+        from epistemics.investigation3.models import Trial as Investigation3Trial
         from epistemics.live.models import CoreReport
         from epistemics.participants import ParticipantDescriptor, SessionContext
-        from epistemics.passport.models import CorePassport, Passport
+        from epistemics.passport.investigation import InvestigationCollection
+        from epistemics.passport.models import CorePassport, InvestigationPassport, Passport
         from epistemics.predictive.collection_models import CollectionExport, CollectionManifest
         from epistemics.predictive.models import (
             DesignManifest,
@@ -177,6 +192,9 @@ def main() -> None:
 
         data = json.loads(args.path.read_bytes())
         contract = {
+            "epistemics.investigation.v3": Investigation3Manifest,
+            "epistemics.investigation-report.v3": Investigation3Report,
+            "epistemics.investigation-trial.v3": Investigation3Trial,
             "epistemics.investigation.v2": Investigation2Manifest,
             "epistemics.investigation-report.v2": Investigation2Report,
             "epistemics.investigation-trial.v2": Investigation2Trial,
@@ -193,6 +211,8 @@ def main() -> None:
             "epistemics.session-context.v1": SessionContext,
             "epistemics.passport.v1": Passport,
             "epistemics.passport.v2": CorePassport,
+            "epistemics.passport.v3": InvestigationPassport,
+            "epistemics.investigation-collection.v1": InvestigationCollection,
             "epistemics.predictive-design.v1": DesignManifest,
             "epistemics.predictive-checkpoint.v1": PublicCheckpoint,
             "epistemics.predictive-validation.v1": SyntheticValidation,
@@ -220,9 +240,13 @@ def main() -> None:
         from epistemics.investigation2.models import Manifest as Investigation2Manifest
         from epistemics.investigation2.models import Report as Investigation2Report
         from epistemics.investigation2.models import Trial as Investigation2Trial
+        from epistemics.investigation3.models import Manifest as Investigation3Manifest
+        from epistemics.investigation3.models import Report as Investigation3Report
+        from epistemics.investigation3.models import Trial as Investigation3Trial
         from epistemics.live.models import CoreReport, CoreTrial
         from epistemics.participants import ParticipantDescriptor, SessionContext
-        from epistemics.passport.models import CorePassport, Passport
+        from epistemics.passport.investigation import InvestigationCollection
+        from epistemics.passport.models import CorePassport, InvestigationPassport, Passport
         from epistemics.predictive.collection_models import (
             CollectionExport,
             CollectionManifest,
@@ -236,6 +260,9 @@ def main() -> None:
         from epistemics.study.models import EpisodeReport, StudyManifest, StudyProfile
 
         for contract, path in [
+            (Investigation3Manifest, args.output.with_name("investigation.v3.json")),
+            (Investigation3Report, args.output.with_name("investigation-report.v3.json")),
+            (Investigation3Trial, args.output.with_name("investigation-trial.v3.json")),
             (Investigation2Manifest, args.output.with_name("investigation.v2.json")),
             (Investigation2Report, args.output.with_name("investigation-report.v2.json")),
             (Investigation2Trial, args.output.with_name("investigation-trial.v2.json")),
@@ -254,6 +281,8 @@ def main() -> None:
             (SessionContext, args.output.with_name("session-context.v1.json")),
             (Passport, args.output.with_name("passport.v1.json")),
             (CorePassport, args.output.with_name("passport.v2.json")),
+            (InvestigationPassport, args.output.with_name("passport.v3.json")),
+            (InvestigationCollection, args.output.with_name("investigation-collection.v1.json")),
             (DesignManifest, args.output.with_name("predictive-design.v1.json")),
             (PublicCheckpoint, args.output.with_name("predictive-checkpoint.v1.json")),
             (SyntheticValidation, args.output.with_name("predictive-validation.v1.json")),

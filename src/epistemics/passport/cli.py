@@ -10,7 +10,9 @@ from epistemics.passport.render import render_html, render_markdown
 def add_commands(commands):
     parser = commands.add_parser("passport", help="Create and inspect a local draft passport")
     actions = parser.add_subparsers(dest="passport_command", required=True)
-    create = actions.add_parser("create", help="Derive a draft from a completed v1–v4 report")
+    create = actions.add_parser(
+        "create", help="Derive a draft from a completed report or investigation collection"
+    )
     create.add_argument("--report", type=Path, required=True)
     create.add_argument("--output", type=Path, default=Path("output/passport"))
     create.add_argument(
@@ -19,6 +21,12 @@ def add_commands(commands):
         default="unspecified",
         help="Operator assertion; legacy reports do not record whether responses were synthetic",
     )
+    collect = actions.add_parser(
+        "bundle-investigation",
+        help="Bind all 12 exact report files into one private source artifact",
+    )
+    collect.add_argument("--directory", type=Path, required=True)
+    collect.add_argument("--output", type=Path, required=True)
     render = actions.add_parser(
         "render", help="Render an existing passport JSON; no provenance check"
     )
@@ -33,6 +41,12 @@ def add_commands(commands):
 
 
 def run(args):
+    if args.passport_command == "bundle-investigation":
+        from epistemics.passport.investigation import export_bundle
+
+        export_bundle(args.directory, args.output)
+        print(f"Created private investigation source: {args.output}")
+        return
     if args.passport_command == "create":
         passport = build_passport(args.report.read_bytes(), response_origin=args.response_origin)
         # Build every artifact before creating the destination; refuse to overwrite prior results.

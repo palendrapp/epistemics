@@ -37,6 +37,8 @@ def md(value):
 
 
 def scope_description(passport):
+    if passport.scope == "investigation_battery_provisional_profile":
+        return f"All 12 investigation cases and 48 checkpoints are complete ({passport.evaluation_mode}). Behavioral observations are provisional; cognitive fits and initialization assumptions remain development diagnostics."
     if passport.scope == "core_battery_provisional_profile":
         return "All 34 core checkpoints are complete. Interpretations remain provisional and task-conditional."
     return "A completed source evaluation is not a complete standard passport battery."
@@ -50,6 +52,8 @@ def render_markdown(passport: Passport) -> str:
         "",
         "**Draft · unsigned · provisional core profile**"
         if passport.scope == "core_battery_provisional_profile"
+        else "**Draft · unsigned · provisional investigation profile**"
+        if passport.scope == "investigation_battery_provisional_profile"
         else "**Draft · unsigned · partial profile**",
         "",
         f"**{ORIGINS[context.response_origin]}**",
@@ -87,6 +91,24 @@ def render_markdown(passport: Passport) -> str:
             ]
             text += [f"  {md(note)}" for note in measurement.limitations]
         text += ["", *[f"- Limit: {md(note)}" for note in dimension.limitations], ""]
+    if hasattr(passport, "model_diagnostics"):
+        text += [
+            "## Model explanations · development only",
+            "",
+            "These fits are alternative explanations of this run. They are not validated traits or evidence of intervention benefit.",
+            "",
+            "| Initialization | Source feedback | Report response | RMSE (points) | Adequacy |",
+            "| --- | ---: | ---: | ---: | --- |",
+        ]
+        for name, fit in passport.model_diagnostics.fits.items():
+            text.append(
+                f"| {md(name)} | {fit['coupling_grid_estimate']:.2f} | {fit['response_rate_grid_estimate']:.2f} | {fit['report_rmse_pp']:.2f} | {md(fit['status'])} |"
+            )
+        text += [
+            "",
+            "Conditional grid intervals are not calibrated trait uncertainty. The eight-point fit diagnostic is a development convention.",
+            "",
+        ]
     text += ["## Support to test", ""]
     if not passport.support_candidates:
         text += [
@@ -228,6 +250,17 @@ def render_html(passport: Passport) -> str:
         + escape(context.model_dump_json(indent=2))
         + "</pre></details>"
     )
+    diagnostic_html = ""
+    if hasattr(passport, "model_diagnostics"):
+        rows = "".join(
+            f"<tr><td>{escape(name)}</td><td>{fit['coupling_grid_estimate']:.2f}</td><td>{fit['response_rate_grid_estimate']:.2f}</td><td>{fit['report_rmse_pp']:.2f}</td><td>{escape(fit['status'])}</td></tr>"
+            for name, fit in passport.model_diagnostics.fits.items()
+        )
+        diagnostic_html = (
+            '<section class="card wide"><h2>Model explanations · development only</h2><p>These fits are alternative explanations of this run. They are not validated traits or evidence of intervention benefit.</p><div style="overflow-x:auto"><table><thead><tr><th>Initialization</th><th>Source feedback</th><th>Report response</th><th>RMSE (points)</th><th>Adequacy</th></tr></thead><tbody>'
+            + rows
+            + '</tbody></table></div><p class="limits">Conditional intervals are not calibrated trait uncertainty. The eight-point fit diagnostic is a development convention.</p></section>'
+        )
     model = subject.configuration.model if subject.kind == "agent" else "Human participant"
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
@@ -250,7 +283,9 @@ def render_html(passport: Passport) -> str:
         + escape(scope_description(passport))
         + ' Dimensions below remain provisional or insufficiently measured.</p></header><div class="grid">'
         + "".join(cards)
-        + '</div><section class="card wide"><h2>Support to test</h2>'
+        + "</div>"
+        + diagnostic_html
+        + '<section class="card wide"><h2>Support to test</h2>'
         + supports
         + '</section><section class="card wide"><h2>Conditions and provenance</h2>'
         + provenance

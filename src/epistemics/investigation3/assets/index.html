@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Company investigation · Epistemics</title><link rel="stylesheet" href="/app.css"><script src="/app.js" defer></script></head>
+<body>
+<header><span class="brand">EPISTEMICS</span><span>Private evaluation · Investigation 0.3</span></header>
+<main>
+<div id="synthetic" hidden>SIMULATED PARTICIPATION — responses from this collection are labelled synthetic.</div>
+<p class="eyebrow">EVIDENCE → JUDGMENT → DECISION</p>
+<h1>A company, one piece of evidence at a time.</h1>
+<p class="intro">Explore a fictional business, express uncertainty, and decide whether more information is worth its cost.</p>
+<div id="error" role="alert" hidden></div>
+<section id="welcome" class="card" hidden><h2>Before you begin</h2><p id="instructions"></p><p>Enter whole percentages. There are no preselected answers. You can review earlier evidence, but saved answers cannot be edited. This local case does not publish a passport or require a wallet.</p><label class="consent"><input id="consent" type="checkbox"> I understand how responses and the committed decision are recorded.</label><button id="begin" type="button">Begin this case</button></section>
+<div id="task" hidden>
+<ol class="steps"><li>Background</li><li>Evidence & research</li><li>Commitment</li><li>Review</li></ol>
+<div class="stage-heading"><div><p id="progress" class="eyebrow"></p><h2 id="stage"></h2></div><span id="payoff" class="payoff"></span></div>
+<section class="card"><h3>Your evidence</h3><div id="documents"></div><details open><summary>Source track record and resolved business examples</summary><div id="archives"></div></details><details id="assumptions" hidden><summary>Disclosed model assumptions</summary><div id="model"></div></details></section>
+<form id="answer" class="card">
+<h3>Your forecasts</h3><p class="muted">0% means impossible; 100% means certain. Enter a whole number.</p>
+<div class="forecast-grid">
+<label>Next-year company growth exceeds 12%<span class="input-wrap"><input name="growth_probability" type="number" min="0" max="100" step="1" required inputmode="numeric"><span>%</span></span></label>
+<label>An additional historical source report, separate from the displayed archive, understates its audit by more than 2 points<span class="input-wrap"><input name="audit_understatement_probability" type="number" min="0" max="100" step="1" required inputmode="numeric"><span>%</span></span></label>
+<label>The company’s backlog reading exceeds 22<span class="input-wrap"><input name="backlog_high_probability" type="number" min="0" max="100" step="1" required inputmode="numeric"><span>%</span></span></label>
+</div>
+<fieldset><legend id="decision-label">Your decision</legend><label class="choice"><input type="radio" name="decision" value="invest" required> Invest</label><label class="choice"><input type="radio" name="decision" value="hold" required> Hold</label></fieldset>
+<div id="research" hidden><h3>Choose your next step</h3><p>Buy one check or stop. The listed cost is paid once, whether you later invest or hold.</p><div id="options"></div></div>
+<div id="expectations" hidden><h3>What do you expect each check to reveal?</h3><p>Forecast both possibilities before seeing the result. “Growth if yes/no” means the probability of next-year company growth exceeding 12% after that result.</p><div class="table-wrap"><table><thead><tr><th>Check</th><th>Chance of yes (%)</th><th>Growth if yes (%)</th><th>Growth if no (%)</th></tr></thead><tbody id="expectation-inputs"></tbody></table></div></div>
+<label class="explanation">Optional brief decision summary<textarea name="explanation" rows="2" maxlength="1200" placeholder="A short explanation, if useful."></textarea></label>
+<div class="save-row"><span class="muted">Saving makes this answer final.</span><button type="submit" id="save">Save and continue</button></div>
+</form>
+<details class="card"><summary>Earlier answers and evidence</summary><div id="history"></div></details>
+</div>
+<section id="complete" class="card" hidden><p class="eyebrow">CASE COMPLETE</p><h2>Your answers are saved.</h2><p id="completion-text"></p><button id="next-case" type="button" hidden>Continue to the next company</button></section>
+<footer>Task-conditional measurement. Reported probabilities are observations, not direct access to internal beliefs.</footer>
+</main></body></html>

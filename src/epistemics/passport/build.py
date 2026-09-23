@@ -497,10 +497,19 @@ def build_passport(raw: bytes, *, response_origin="unspecified", created_at=None
         from epistemics.live.passport import build_core_passport
 
         return build_core_passport(raw, response_origin=response_origin, created_at=created_at)
+    if (
+        isinstance(data, dict)
+        and data.get("schema_version") == "epistemics.investigation-collection.v1"
+    ):
+        from epistemics.passport.investigation import build_investigation_passport
+
+        return build_investigation_passport(
+            raw, response_origin=response_origin, created_at=created_at
+        )
     contract = CONTRACTS.get(data.get("schema_version")) if isinstance(data, dict) else None
     if contract is None:
         raise ValueError(
-            "Passport import supports completed report.v1, v2, v3 and v4 artifacts only"
+            "Passport import supports completed report.v1–v4 or investigation collection artifacts only"
         )
     if response_origin not in {"agent", "synthetic", "unspecified"}:
         raise ValueError("Legacy agent reports cannot be relabeled as human responses")

@@ -124,9 +124,47 @@ class CorePassport(Passport):
     source: CoreSourceArtifact
 
 
-def read_passport(raw: bytes) -> Passport | CorePassport:
+class InvestigationSourceArtifact(SourceArtifact):
+    schema_version: Literal["epistemics.investigation-collection.v1"] = (
+        "epistemics.investigation-collection.v1"
+    )
+
+
+class InvestigationDiagnostics(Model):
+    analysis_version: str
+    parameters_are_validated_traits: Literal[False] = False
+    empirical_predictive_validation: Literal[False] = False
+    intervention_benefit_tested: Literal[False] = False
+    fits: dict[str, dict]
+
+
+class InvestigationPassport(Passport):
+    schema_version: Literal["epistemics.passport.v3"] = "epistemics.passport.v3"
+    passport_version: Literal["passport/0.3.0"] = "passport/0.3.0"
+    interpretation_version: Literal["passport-interpretation/0.3.0"] = (
+        "passport-interpretation/0.3.0"
+    )
+    scope: Literal["investigation_battery_provisional_profile"] = (
+        "investigation_battery_provisional_profile"
+    )
+    source: InvestigationSourceArtifact
+    evaluation_mode: Literal["discovery", "calibration"]
+    coverage: dict[str, int]
+    model_diagnostics: InvestigationDiagnostics
+
+    @model_validator(mode="after")
+    def investigation_scope(self):
+        if self.context.accepted_answers != 48 or self.context.planned_answers != 48:
+            raise ValueError("An investigation passport requires all 48 checkpoints")
+        return self
+
+
+def read_passport(raw: bytes) -> Passport | CorePassport | InvestigationPassport:
     import json
 
     data = json.loads(raw)
-    contract = CorePassport if data.get("schema_version") == "epistemics.passport.v2" else Passport
+    contract = {
+        "epistemics.passport.v2": CorePassport,
+        "epistemics.passport.v3": InvestigationPassport,
+    }.get(data.get("schema_version"), Passport)
     return contract.model_validate(data)
