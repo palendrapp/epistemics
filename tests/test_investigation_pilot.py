@@ -109,3 +109,51 @@ def test_committed_file_bytes_are_not_silently_rewritten(tmp_path):
     p.write_text(json.dumps({"value": 2}))
     with pytest.raises(ValueError, match="changed"):
         bound_json(p)
+
+
+def test_three_phase_synthetic_pipeline_audits_forecasts_and_matching(tmp_path):
+    from epistemics.investigation3.service import export
+    from epistemics.investigation_pilot.analysis import analyze
+    from epistemics.investigation_pilot.prediction import freeze_models
+
+    root = tmp_path
+    manifests = {
+        phase: create(
+            root / phase,
+            {"kind": "human", "subject_id": "private:synthetic"},
+            seed=seed,
+            synthetic=True,
+        )
+        for phase, seed in (("development", 51), ("repeat", 51), ("new", 73))
+    }
+    commit(
+        root / "run-manifest.json",
+        {
+            "pilot_sha256": pilot_fingerprint(),
+            "implementation_sha256": fingerprint(),
+            "manifests": {
+                phase: digest((root / phase / "manifest.json").read_bytes()) for phase in manifests
+            },
+        },
+    )
+    for phase, manifest in manifests.items():
+        if phase == "repeat":
+            freeze_models(root)
+        for assignment in manifest.assignments:
+            service = InvestigationService(root / phase, assignment.assignment_id)
+            while not (current := service.get_trial())["complete"]:
+                trial = Trial.model_validate(current["trial"])
+                ensure_prediction(root, phase, service)
+                service.submit(trial.trial_id, response(trial))
+                ensure_prediction(root, phase, service)
+            service.finish()
+        export(root / phase)
+    result = analyze(root)
+    assert len(list((root / "predictions").glob("*.json"))) == 24
+    assert result["repeatability"]["same_research_choice_cases"] == 12
+    assert result["repeatability"]["early_report_rmse_pp"] == 0
+    assert result["empirical_predictive_validation"] is False
+    assert all(len(phase["cases"]) == 12 for phase in result["phases"].values())
+    for phase in result["phases"].values():
+        assert phase["summary"]["fixed_joint"]["reports"] == 162
+        assert phase["summary"]["fixed_joint"]["rmse_pp"] < 1
