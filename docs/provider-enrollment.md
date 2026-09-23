@@ -61,4 +61,6 @@ The CLI refuses existing enrollment/issuance directories. If a write is interrup
 - Verify Python derivation and issue the artifacts; exercise the consumer with live registry reads and authorized private retrieval.
 - Establish public artifact availability only under an explicit sharing policy, then test the bounded purchase separately.
 
-No owned identity was supplied for this increment. Mocked registry tests and the earlier live read remain distinct evidence. The public paid service, x402 settlement and funded transactions remain unimplemented.
+The pinned live read was rechecked on 23 September 2026 at 21:09:06.945 UTC, resolving the existing public example at finalized slot 503134164 with matching controller information and no operational wallet. Deployment pins passed. No metadata was fetched and no registry write or transaction was submitted. This verifies the read integration; that example belongs to another party and supplies no enrollment authority.
+
+No owned identity has been supplied for the real-provider acceptance. The remaining input is an operator-controlled devnet asset and a local authorized signer, plus the chosen evaluator issuer. Mocked registry tests, the synthetic enrollment preview and live reads remain distinct evidence. The public paid service, x402 settlement and funded transactions remain unimplemented.

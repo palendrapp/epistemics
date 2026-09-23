@@ -40,6 +40,8 @@ The adapter checks devnet genesis, both executable program accounts and upgradea
 
 On 2026-09-20 the live read resolved public devnet asset `J9Na6oihoANLxxQAG7oQGKTzQKj7yq7WyVV96FsyiwZh` at finalized slot **501355160**, with a matching cached/current controller and no operational wallet. This is a registry example owned by another party, not an evaluated or endorsed provider. No metadata URI was fetched by that smoke test. The observed hashes pin deployment drift; they do **not** establish a reproducible source-to-binary match or independence from the selected RPC operator.
 
+The same asset was rechecked on **2026-09-23 at 21:09:06.945 UTC**, finalized slot **503134164**. Existing deployment pins passed; cached/current controller still matched and no operational wallet was present. This remained a read-only registry check with no metadata fetch, enrollment signature, issuance or payment. The [owned-identity provider acceptance](provider-enrollment.md#remaining-acceptance) is still pending.
+
 Current Core ownership takes precedence over the registry's cached owner. After an external transfer, a stale operational wallet is disabled until ownership is synchronized. A binding from the former controller/wallet fails. A new controller can sign a new provider binding, but the issuer's evaluated-controller assertion must also match: the new owner cannot inherit the old evaluation simply by signing service metadata. The adapter supports this pinned devnet layout only. Mainnet, compressed assets and other deployment layouts remain unsupported.
 
 ```sh
