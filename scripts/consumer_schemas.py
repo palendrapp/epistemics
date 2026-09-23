@@ -44,6 +44,38 @@ def write(name, fields, signed=False):
 
 
 write(
+    "provider-enrollment",
+    {
+        "enrollment_id": S,
+        "mode": enum("rpc_observed", "simulation"),
+        **dict.fromkeys(
+            [
+                "genesis_hash",
+                "registry_program",
+                "agent_asset",
+                "subject_agent_id",
+                "controller",
+                "signer",
+                "issuer",
+                "protocol_version",
+            ],
+            S,
+        ),
+        **dict.fromkeys(
+            [
+                "participant_sha256",
+                "registry_snapshot_sha256",
+                "configuration_sha256",
+                "protocol_sha256",
+            ],
+            D,
+        ),
+        "issued_at": DATE,
+        "expires_at": DATE,
+    },
+    signed=True,
+)
+write(
     "provider-binding",
     {
         **dict.fromkeys(

@@ -2,7 +2,7 @@
 
 The TypeScript consumer now resolves a pinned devnet agent identity, retrieves a controller-authorized passport reference, verifies the issuer and current signed status, and applies a versioned buyer policy. Its result is `eligible`, `review_required` or `ineligible`, with reasons and exact request/policy/artifact digests. It never sends the proposed service request or authorizes payment.
 
-This is a local integration increment. The complete decision path is covered by synthetic fixtures with mocked registry RPC and actual private loopback HTTP. A separate live devnet read verified the registry deployment and decoded a public agent identity. There has been no registry write, funded transaction, facilitator call, mainnet validation, public hosting deployment or purchase. Provisional profile thresholds remain buyer choices; this implementation adds no evidence of predictive or intervention benefit.
+This is a local integration increment. The complete decision path is covered by synthetic fixtures with mocked registry RPC and actual private loopback HTTP. The [provider enrollment workflow](provider-enrollment.md) additionally binds identity before collection, checks it again before issuance and supplies a fresh synthetic collection preview. A separate live devnet read verified the registry deployment and decoded a public agent identity. There has been no registry write, funded transaction, facilitator call, mainnet validation, public hosting deployment or purchase. Provisional profile thresholds remain buyer choices; this implementation adds no evidence of predictive or intervention benefit.
 
 ## Contracts and trust boundaries
 
