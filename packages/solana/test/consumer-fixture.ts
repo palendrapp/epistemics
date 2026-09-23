@@ -78,7 +78,10 @@ function account(owner: string, executable: boolean, data: Buffer): Account {
   return { owner, executable, data: [data.toString("base64"), "base64"] };
 }
 
-export async function fixture(origin: "synthetic" | "agent" = "agent") {
+export async function fixture(
+  origin: "synthetic" | "agent" = "agent",
+  input = rawFixture,
+) {
   // Agent-origin variants exercise the acceptance branch with invented test data.
   // They remain simulation mode and are not exported as real evaluations.
   const issuer = await generateKeyPairSigner();
@@ -90,11 +93,24 @@ export async function fixture(origin: "synthetic" | "agent" = "agent") {
   const at = new Date();
   const now = new Date(at.valueOf() + 1000);
   const expires = new Date(at.valueOf() + 3600000).toISOString();
-  const report = structuredClone(rawFixture.report);
-  const passport = structuredClone(rawFixture.passport);
+  const report = structuredClone(input.report);
+  const passport = structuredClone(input.passport);
   for (const value of [report, passport]) {
     value.context.participant.subject_id = subject;
     value.context.response_origin = origin;
+  }
+  if (report.cases) {
+    // Invented contract fixtures only: keep nested assertions consistent with
+    // the simulated identity. This is never exported as an empirical run.
+    report.manifest_sha256 = "f".repeat(64);
+    for (const item of report.cases) {
+      const child = JSON.parse(item.report_json);
+      child.manifest.participant.subject_id = subject;
+      child.manifest.response_origin = origin;
+      child.manifest_sha256 = report.manifest_sha256;
+      item.report_json = JSON.stringify(child);
+      item.report_sha256 = sha256(item.report_json);
+    }
   }
   const reportBytes = jsonBytes(report);
   passport.source.sha256 = sha256(reportBytes);

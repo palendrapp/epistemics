@@ -612,7 +612,16 @@ test("operator CLI signs bindings, appends status, exposes catalog and refuses o
     ];
     assert.equal(cli(...bindArgs).status, "signed_provider_binding");
     assert.throws(() => cli(...bindArgs));
-    assert.equal(cli("metrics").length, 8);
+    const catalog = cli("metrics");
+    assert.equal(
+      catalog.filter((m: { id: string }) => m.id.startsWith("core.")).length,
+      8,
+    );
+    assert.equal(
+      catalog.filter((m: { id: string }) => m.id.startsWith("investigation."))
+        .length,
+      14,
+    );
     const statusArgs = [
       "status",
       "--keypair",

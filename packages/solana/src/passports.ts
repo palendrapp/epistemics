@@ -8,7 +8,19 @@ import {
   verifySignature,
 } from "@solana/kit";
 import { Ajv2020 } from "ajv/dist/2020.js";
+import investigationCollectionSchema from "../../../schemas/investigation-collection.v1.json" with {
+  type: "json",
+};
+import investigationReport2Schema from "../../../schemas/investigation-report.v2.json" with {
+  type: "json",
+};
+import investigationReport3Schema from "../../../schemas/investigation-report.v3.json" with {
+  type: "json",
+};
 import passportSchema from "../../../schemas/passport.v2.json" with {
+  type: "json",
+};
+import investigationPassportSchema from "../../../schemas/passport.v3.json" with {
   type: "json",
 };
 import attestationSchema from "../../../schemas/passport-attestation.v1.json" with {
@@ -20,6 +32,7 @@ import reportSchema from "../../../schemas/report.v4.json" with {
 import { sha256 } from "./records.js";
 
 interface Context {
+  session_id: string;
   participant: {
     kind: string;
     subject_id: string;
@@ -38,6 +51,8 @@ interface Context {
 }
 
 interface CorePassport {
+  schema_version: string;
+  evaluation_mode?: string;
   context: Context;
   source: { sha256: string };
   interpretation_version: string;
@@ -79,6 +94,38 @@ const ajv = new Ajv2020({
 // every union branch, and readPassport requires the explicit agent tag.
 ajv.addKeyword({ keyword: "discriminator", schemaType: "object", valid: true });
 const validatePassport = ajv.compile<CorePassport>(passportSchema);
+const validateInvestigationPassport = ajv.compile<CorePassport>(
+  investigationPassportSchema,
+);
+const validateInvestigationReport = ajv.compile<{
+  context: Context;
+  cases: { report_sha256: string; report_json: string }[];
+  manifest_sha256: string;
+  evaluation_mode: string;
+}>(investigationCollectionSchema);
+interface InvestigationReportView {
+  schema_version: string;
+  manifest: {
+    study_id: string;
+    created_at: string;
+    participant: Context["participant"];
+    response_origin: Context["response_origin"];
+    battery_version: string;
+    evaluator_version: string;
+    implementation_sha256: string;
+    assignments: { mode: string }[];
+  };
+  manifest_sha256: string;
+  assignment: { mode: string };
+  observations: { trial: { index: number }; answered_at: string }[];
+  completed_at: string;
+}
+const validateInvestigationCase2 = ajv.compile<InvestigationReportView>(
+  investigationReport2Schema,
+);
+const validateInvestigationCase3 = ajv.compile<InvestigationReportView>(
+  investigationReport3Schema,
+);
 const validateReport = ajv.compile<{ context: Context }>(reportSchema);
 const validateAttestation = ajv.compile<PassportAttestation>(attestationSchema);
 const DOMAIN = "epistemics/passport-attestation-signature/v1\n";
@@ -120,19 +167,25 @@ function timestamp(value: string): number {
 
 function readPassport(bytes: Uint8Array): CorePassport {
   const value = parseJson(bytes);
-  if (!validatePassport(value))
+  const isInvestigation =
+    (value as { schema_version?: string })?.schema_version ===
+    "epistemics.passport.v3";
+  const validator = isInvestigation
+    ? validateInvestigationPassport
+    : validatePassport;
+  if (!validator(value))
     throw new Error(
-      `Invalid core passport: ${ajv.errorsText(validatePassport.errors)}`,
+      `Invalid supported passport: ${ajv.errorsText(validator.errors)}`,
     );
   const c = value.context;
   if (c.participant.kind !== "agent" || !c.participant.configuration)
     throw new Error(
-      "Agent core passport required; human publication is not supported",
+      "Agent passport required; human publication is not supported",
     );
   if (
     c.completion !== "complete" ||
-    c.accepted_answers !== 34 ||
-    c.planned_answers !== 34 ||
+    c.accepted_answers !== (isInvestigation ? 48 : 34) ||
+    c.planned_answers !== (isInvestigation ? 48 : 34) ||
     c.response_origin === undefined ||
     c.metadata_verification !== "operator_asserted"
   )
@@ -181,6 +234,62 @@ function checkReport(passport: CorePassport, reportBytes: Uint8Array) {
   if (sha256(reportBytes) !== passport.source.sha256)
     throw new Error("Report hash mismatch");
   const report = parseJson(reportBytes);
+  if (passport.schema_version === "epistemics.passport.v3") {
+    if (!validateInvestigationReport(report))
+      throw new Error(
+        `Invalid investigation source: ${ajv.errorsText(validateInvestigationReport.errors)}`,
+      );
+    if (
+      !isDeepStrictEqual(report.context, passport.context) ||
+      report.evaluation_mode !== passport.evaluation_mode
+    )
+      throw new Error("Report context does not match passport");
+    let manifest: InvestigationReportView["manifest"] | undefined;
+    let latest = -Infinity;
+    for (const [index, item] of report.cases.entries()) {
+      if (sha256(item.report_json) !== item.report_sha256)
+        throw new Error("Embedded report hash mismatch");
+      const child: unknown = JSON.parse(item.report_json);
+      const validator =
+        (child as { schema_version?: string })?.schema_version ===
+        "epistemics.investigation-report.v2"
+          ? validateInvestigationCase2
+          : validateInvestigationCase3;
+      if (!validator(child))
+        throw new Error("Invalid embedded investigation case");
+      manifest ??= child.manifest;
+      const c = report.context;
+      if (
+        !isDeepStrictEqual(child.manifest, manifest) ||
+        !isDeepStrictEqual(child.assignment, manifest.assignments[index]) ||
+        child.assignment.mode !== report.evaluation_mode ||
+        !isDeepStrictEqual(manifest.participant, c.participant) ||
+        manifest.study_id !== c.session_id ||
+        timestamp(manifest.created_at) !== timestamp(c.started_at) ||
+        manifest.response_origin !== c.response_origin ||
+        manifest.battery_version !== c.protocol_version ||
+        manifest.evaluator_version !== c.evaluator_version ||
+        manifest.implementation_sha256 !== c.protocol_sha256 ||
+        child.manifest_sha256 !== report.manifest_sha256
+      )
+        throw new Error("Investigation case binding mismatch");
+      let previous = timestamp(c.started_at);
+      for (const [stage, o] of child.observations.entries()) {
+        const at = timestamp(o.answered_at);
+        if (
+          o.trial.index !== stage ||
+          at < previous ||
+          at > timestamp(child.completed_at)
+        )
+          throw new Error("Invalid investigation chronology");
+        previous = at;
+      }
+      latest = Math.max(latest, timestamp(child.completed_at));
+    }
+    if (latest !== timestamp(report.context.completed_at))
+      throw new Error("Investigation completion mismatch");
+    return;
+  }
   if (!validateReport(report))
     throw new Error(
       `Invalid core report: ${ajv.errorsText(validateReport.errors)}`,

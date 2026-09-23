@@ -324,7 +324,7 @@ export async function evaluate(
     reason(
       "PREDICTIVE_SCOPE_UNSUPPORTED",
       "review_required",
-      "Core passport.v2 does not establish predictive validity for this task.",
+      "This provisional passport does not establish predictive validity for this task.",
     );
   if (!policy.allow_provisional)
     reason(
