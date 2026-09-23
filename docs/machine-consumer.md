@@ -49,7 +49,7 @@ pnpm consumer metrics
 
 ## Measurements and decisions
 
-The `core.*.v1` metric catalog maps exact source-report JSON pointers, dimension IDs and units under `passport-interpretation/0.2.0`. It never uses display labels as keys. It exposes eight current measurements: numeric prior/evidence weights, numeric reference RMSE/Brier, discovery Brier, derived/provenance update sizes and decision/report agreement. Existing passport bytes are not rewritten. Missing, ambiguous or unsupported mappings return review.
+The `core.*.v1` metric catalog maps exact source-report JSON pointers, dimension IDs and units under `passport-interpretation/0.2.0`. It never uses display labels as keys. It exposes eight current measurements: numeric prior/evidence weights, numeric reference RMSE/Brier, discovery Brier, derived/provenance update sizes and decision/report agreement. The [investigation adapter](investigation-passport.md) adds 14 `investigation.*.v1` observations and coverage counts under `passport-interpretation/0.3.0`, supporting discovery mode only for current policies. Model coefficients are excluded. Existing passport bytes are not rewritten. Missing, ambiguous or unsupported mappings return review.
 
 A policy chooses a point estimate or requires the entire 95% interval to lie within its bounds. Missing required intervals return review; failed bounds return ineligible. These are task-specific buyer rules, not an overall cognitive score. Requiring verified execution or predictive validation returns review because the current core attestation supports neither. Synthetic or unspecified origin is ineligible. Provisional evidence must be explicitly accepted.
 

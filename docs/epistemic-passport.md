@@ -10,7 +10,7 @@ A second purpose is cognitive security: use the explicit model to identify where
 
 “Phenotype” means observed tendencies across the declared evaluation conditions. The ambition is broad coverage of epistemic behavior. Every issued passport must make its actual coverage clear: a finite evaluation cannot fully characterize an agent in every setting, and elicited probabilities are observations rather than direct access to internal beliefs.
 
-This document defines the product direction. The repository implements a [shared core battery and human/MCP interfaces](live-core.md), draft passports, [detached passport attestations](passport-attestation.md), and legacy signed-report components. Broader phenotype coverage and the identity-linked commerce flow remain proposed.
+This document defines the product direction. The repository implements a [shared core battery and human/MCP interfaces](live-core.md), draft passports, [detached passport attestations](passport-attestation.md), and legacy signed-report components. The [investigation passport](investigation-passport.md) adds active research and correction observations, coverage counts and separate model diagnostics. Broader phenotype coverage and the paid identity-linked commerce flow remain proposed.
 
 ## The experience
 
@@ -21,7 +21,7 @@ This document defines the product direction. The repository implements a [shared
 5. Let machine consumers resolve the agent through an existing registry, verify provenance/configuration/freshness, apply task-specific policy and authorize a bounded purchase through x402. People can inspect the same evidence. Re-evaluate changed configurations and retain evaluation history.
 6. Where authorized, use the profile to select support, compare assisted and baseline performance on fresh cases, and record the conditions under which that support helps.
 
-The intended public surface is one evaluation job and one resulting passport, with resumable collection and machine-readable output. `epistemics serve` and the dedicated core MCP adapter now run a combined 34-checkpoint evaluation and produce a draft. `epistemics passport create` also derives drafts from existing reports. `pnpm passport-record` signs and verifies agent core passports offline; publication, registry resolution, task policy and paid jobs remain to be built.
+The intended public surface is one evaluation job and one resulting passport, with resumable collection and machine-readable output. `epistemics serve` and the dedicated core MCP adapter now run a combined 34-checkpoint evaluation and produce a draft. `epistemics passport create` also derives drafts from existing reports. `pnpm passport-record` signs and verifies core and investigation agent passports offline. The [machine consumer](machine-consumer.md) implements pinned devnet identity resolution, private retrieval, lifecycle status and task policy. Public hosting, a registered-provider demonstration and paid jobs remain pending.
 
 ## Same evaluation for humans and agents
 
@@ -46,7 +46,7 @@ These are proposed product dimensions, not a claim that all are already measured
 
 Stability across repetitions, wording and contexts accompanies every dimension. It is a property of the evidence supporting the profile, not a separate claim that an agent has one immutable trait.
 
-Active information acquisition is an explicit expansion milestone: participants choose sources, queries, hypothesis-discriminating evidence and when to stop under costs. The current battery does not measure this policy. Observable hypothesis-generation and metacognitive discrimination tasks also require dedicated design before adding those claims. Domain modules, starting with portfolio-manager company assessment, add context-specific detail to the core passport.
+Active information acquisition is an explicit expansion milestone: participants choose sources, queries, hypothesis-discriminating evidence and when to stop under costs. The [investigation module](company-investigation-v3.md) measures one query-or-stop choice with matched costs and prospective forecasts. Broader sequential research policies remain unmeasured. Observable hypothesis-generation and metacognitive discrimination tasks also require dedicated design before adding those claims. Domain modules, starting with portfolio-manager company assessment, add context-specific detail to the core passport.
 
 ## Model behind the profile
 
