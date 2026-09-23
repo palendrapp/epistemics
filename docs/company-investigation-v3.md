@@ -2,7 +2,7 @@
 
 Implemented 23 September 2026. This revision addresses wording and initial-response assumptions identified in the [0.2 acceptance run](investigation2-acceptance-2026-09-21.md). It retains the 12 cases, 48 checkpoints, 198 probability reports and matched price/correction design. The [passport adapter](investigation-passport.md) exposes the resulting observations to people and machine consumers.
 
-The implementation lives in `epistemics.investigation3`. Battery, evaluator and analysis versions advance to `company-investigation/0.3.0`, `investigation-evaluator/0.3.0` and `investigation-analysis/0.3.0`; manifest, trial and report schemas have `.v3` identifiers. The 0.1 and 0.2 implementations and completed reports remain unchanged. No new real-agent or human run has been collected for 0.3.
+The implementation lives in `epistemics.investigation3`. Battery, evaluator and analysis versions advance to `company-investigation/0.3.0`, `investigation-evaluator/0.3.0` and `investigation-analysis/0.3.0`; manifest, trial and report schemas have `.v3` identifiers. The 0.1 and 0.2 implementations and completed reports remain unchanged. The [36-episode real-agent pilot](investigation3-results-2026-09-23.md) is now complete; actual human completion remains pending.
 
 ## Participant-facing changes
 
