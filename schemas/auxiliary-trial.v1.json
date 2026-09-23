@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "archive": {
+      "items": {
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "type": "object"
+      },
+      "title": "Archive",
+      "type": "array"
+    },
+    "auxiliary_event": {
+      "title": "Auxiliary Event",
+      "type": "string"
+    },
+    "auxiliary_resolved": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Auxiliary Resolved"
+    },
+    "battery_version": {
+      "const": "auxiliary-diagnostic/0.1.0",
+      "default": "auxiliary-diagnostic/0.1.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "company": {
+      "title": "Company",
+      "type": "string"
+    },
+    "documents": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Documents",
+      "type": "array"
+    },
+    "growth_resolved": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Growth Resolved"
+    },
+    "index": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Index",
+      "type": "integer"
+    },
+    "instructions": {
+      "title": "Instructions",
+      "type": "string"
+    },
+    "request_conditionals": {
+      "title": "Request Conditionals",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "epistemics.auxiliary-trial.v1",
+      "default": "epistemics.auxiliary-trial.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage": {
+      "title": "Stage",
+      "type": "string"
+    },
+    "trial_id": {
+      "title": "Trial Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trial_id",
+    "index",
+    "stage",
+    "company",
+    "instructions",
+    "auxiliary_event",
+    "archive",
+    "documents",
+    "request_conditionals"
+  ],
+  "title": "Trial",
+  "type": "object"
+}

@@ -1,0 +1,263 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "auxiliary_outcome": {
+          "title": "Auxiliary Outcome",
+          "type": "boolean"
+        },
+        "growth_outcome": {
+          "title": "Growth Outcome",
+          "type": "boolean"
+        },
+        "pair_id": {
+          "title": "Pair Id",
+          "type": "string"
+        },
+        "relationship": {
+          "enum": [
+            "associated",
+            "independent"
+          ],
+          "title": "Relationship",
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "backlog",
+            "source"
+          ],
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "pair_id",
+        "target",
+        "relationship",
+        "growth_outcome",
+        "auxiliary_outcome"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/Assignment"
+      },
+      "maxItems": 8,
+      "minItems": 8,
+      "title": "Assignments",
+      "type": "array"
+    },
+    "battery_version": {
+      "const": "auxiliary-diagnostic/0.1.0",
+      "default": "auxiliary-diagnostic/0.1.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "context_policy": {
+      "enum": [
+        "independent_episode_no_cross_case_history",
+        "human_continuous_separate_company_cases"
+      ],
+      "title": "Context Policy",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "design_seed": {
+      "minimum": 0,
+      "title": "Design Seed",
+      "type": "integer"
+    },
+    "evaluator_version": {
+      "const": "auxiliary-diagnostic-evaluator/0.1.0",
+      "default": "auxiliary-diagnostic-evaluator/0.1.0",
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "execution_verification": {
+      "const": "operator_asserted",
+      "default": "operator_asserted",
+      "title": "Execution Verification",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "participant": {
+      "discriminator": {
+        "mapping": {
+          "agent": "#/$defs/AgentParticipant",
+          "human": "#/$defs/HumanParticipant"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AgentParticipant"
+        },
+        {
+          "$ref": "#/$defs/HumanParticipant"
+        }
+      ],
+      "title": "Participant"
+    },
+    "purpose": {
+      "const": "development_only",
+      "default": "development_only",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "response_origin": {
+      "enum": [
+        "human",
+        "agent",
+        "synthetic"
+      ],
+      "title": "Response Origin",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "epistemics.auxiliary-collection.v1",
+      "default": "epistemics.auxiliary-collection.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "study_id": {
+      "title": "Study Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "study_id",
+    "created_at",
+    "design_seed",
+    "implementation_sha256",
+    "participant",
+    "response_origin",
+    "context_policy",
+    "assignments"
+  ],
+  "title": "Manifest",
+  "type": "object"
+}
