@@ -2,6 +2,8 @@
 
 Implemented 23 September 2026 as a separate development module, `auxiliary-diagnostic/0.1.0`, with evaluator and analysis versions `auxiliary-diagnostic-evaluator/0.1.0` and `auxiliary-diagnostic-analysis/0.1.0`. Existing investigation 0.1–0.3 implementations, fingerprints and reports remain unchanged. This module is not yet a released passport dimension.
 
+The separate [0.2 diagnostic](auxiliary-diagnostic-v2.md) adds matched archive presentations and uncertain evidence. Its implementation leaves this version and existing human collections unchanged.
+
 The [completed investigation pilot](investigation3-results-2026-09-23.md) showed larger changes in company forecasts than in source or backlog judgments. That pattern has several explanations. A respondent might expect little relationship between those events, expect a relationship but propagate little evidence through it, or adjust its reported numbers gradually. This diagnostic elicits observations that can separate those explanations under a small declared model family. It does not identify a unique internal cognitive mechanism.
 
 ## Eight cases, four checkpoints
