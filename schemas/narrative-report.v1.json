@@ -1,0 +1,587 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "joint": {
+          "$ref": "#/$defs/Joint"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "enum": [
+                "demand_audit",
+                "pipeline_audit",
+                "stop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "signal_if_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StateValues"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "joint"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_outcome": {
+          "title": "Artifact Outcome",
+          "type": "boolean"
+        },
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "demand_outcome": {
+          "title": "Demand Outcome",
+          "type": "boolean"
+        },
+        "direction": {
+          "enum": [
+            "rise",
+            "fall"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "domain": {
+          "enum": [
+            "subscriptions",
+            "distributor"
+          ],
+          "title": "Domain",
+          "type": "string"
+        },
+        "pair_id": {
+          "title": "Pair Id",
+          "type": "string"
+        },
+        "presentation": {
+          "enum": [
+            "narrative",
+            "facts"
+          ],
+          "title": "Presentation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "pair_id",
+        "domain",
+        "direction",
+        "presentation",
+        "demand_outcome",
+        "artifact_outcome"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    },
+    "Joint": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_only": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Artifact Only",
+          "type": "number"
+        },
+        "both": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Both",
+          "type": "number"
+        },
+        "demand_only": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Demand Only",
+          "type": "number"
+        },
+        "neither": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Neither",
+          "type": "number"
+        }
+      },
+      "required": [
+        "demand_only",
+        "artifact_only",
+        "both",
+        "neither"
+      ],
+      "title": "Joint",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "assignments": {
+          "items": {
+            "$ref": "#/$defs/Assignment"
+          },
+          "maxItems": 8,
+          "minItems": 8,
+          "title": "Assignments",
+          "type": "array"
+        },
+        "battery_version": {
+          "const": "narrative-inference/0.1.0",
+          "default": "narrative-inference/0.1.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "context_policy": {
+          "enum": [
+            "independent_episode_no_cross_case_history",
+            "human_continuous_separate_company_cases"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "design_seed": {
+          "minimum": 0,
+          "title": "Design Seed",
+          "type": "integer"
+        },
+        "evaluator_version": {
+          "const": "narrative-evaluator/0.1.0",
+          "default": "narrative-evaluator/0.1.0",
+          "title": "Evaluator Version",
+          "type": "string"
+        },
+        "execution_verification": {
+          "const": "operator_asserted",
+          "default": "operator_asserted",
+          "title": "Execution Verification",
+          "type": "string"
+        },
+        "implementation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Implementation Sha256",
+          "type": "string"
+        },
+        "participant": {
+          "discriminator": {
+            "mapping": {
+              "agent": "#/$defs/AgentParticipant",
+              "human": "#/$defs/HumanParticipant"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AgentParticipant"
+            },
+            {
+              "$ref": "#/$defs/HumanParticipant"
+            }
+          ],
+          "title": "Participant"
+        },
+        "purpose": {
+          "const": "development_only",
+          "default": "development_only",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "response_origin": {
+          "enum": [
+            "human",
+            "agent",
+            "synthetic"
+          ],
+          "title": "Response Origin",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.narrative-collection.v1",
+          "default": "epistemics.narrative-collection.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "study_id": {
+          "title": "Study Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "study_id",
+        "created_at",
+        "design_seed",
+        "implementation_sha256",
+        "participant",
+        "response_origin",
+        "context_policy",
+        "assignments"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "$ref": "#/$defs/Answer"
+        },
+        "answered_at": {
+          "title": "Answered At",
+          "type": "string"
+        },
+        "trial": {
+          "$ref": "#/$defs/Trial"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "StateValues": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_only": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Artifact Only",
+          "type": "number"
+        },
+        "both": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Both",
+          "type": "number"
+        },
+        "demand_only": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Demand Only",
+          "type": "number"
+        },
+        "neither": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Neither",
+          "type": "number"
+        }
+      },
+      "required": [
+        "demand_only",
+        "artifact_only",
+        "both",
+        "neither"
+      ],
+      "title": "StateValues",
+      "type": "object"
+    },
+    "Trial": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_event": {
+          "title": "Artifact Event",
+          "type": "string"
+        },
+        "artifact_resolved": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Resolved"
+        },
+        "battery_version": {
+          "const": "narrative-inference/0.1.0",
+          "default": "narrative-inference/0.1.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "demand_event": {
+          "title": "Demand Event",
+          "type": "string"
+        },
+        "demand_resolved": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Demand Resolved"
+        },
+        "index": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "new_documents": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "New Documents",
+          "type": "array"
+        },
+        "request_query": {
+          "title": "Request Query",
+          "type": "boolean"
+        },
+        "request_signal_forecasts": {
+          "title": "Request Signal Forecasts",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "epistemics.narrative-trial.v1",
+          "default": "epistemics.narrative-trial.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selected_query": {
+          "anyOf": [
+            {
+              "enum": [
+                "demand_audit",
+                "pipeline_audit",
+                "stop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Query"
+        },
+        "signal_event": {
+          "title": "Signal Event",
+          "type": "string"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trial_id",
+        "index",
+        "stage",
+        "company",
+        "instructions",
+        "demand_event",
+        "artifact_event",
+        "signal_event",
+        "new_documents",
+        "request_signal_forecasts",
+        "request_query"
+      ],
+      "title": "Trial",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis": {
+      "additionalProperties": true,
+      "title": "Analysis",
+      "type": "object"
+    },
+    "cases": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Observation"
+        },
+        "type": "array"
+      },
+      "title": "Cases",
+      "type": "object"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "epistemics.narrative-report.v1",
+      "default": "epistemics.narrative-report.v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest",
+    "manifest_sha256",
+    "completed_at",
+    "cases",
+    "analysis",
+    "limitations"
+  ],
+  "title": "Report",
+  "type": "object"
+}

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifact_event": {
+      "title": "Artifact Event",
+      "type": "string"
+    },
+    "artifact_resolved": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Artifact Resolved"
+    },
+    "battery_version": {
+      "const": "narrative-inference/0.1.0",
+      "default": "narrative-inference/0.1.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "company": {
+      "title": "Company",
+      "type": "string"
+    },
+    "demand_event": {
+      "title": "Demand Event",
+      "type": "string"
+    },
+    "demand_resolved": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Demand Resolved"
+    },
+    "index": {
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Index",
+      "type": "integer"
+    },
+    "instructions": {
+      "title": "Instructions",
+      "type": "string"
+    },
+    "new_documents": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "New Documents",
+      "type": "array"
+    },
+    "request_query": {
+      "title": "Request Query",
+      "type": "boolean"
+    },
+    "request_signal_forecasts": {
+      "title": "Request Signal Forecasts",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "epistemics.narrative-trial.v1",
+      "default": "epistemics.narrative-trial.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_query": {
+      "anyOf": [
+        {
+          "enum": [
+            "demand_audit",
+            "pipeline_audit",
+            "stop"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Query"
+    },
+    "signal_event": {
+      "title": "Signal Event",
+      "type": "string"
+    },
+    "stage": {
+      "title": "Stage",
+      "type": "string"
+    },
+    "trial_id": {
+      "title": "Trial Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trial_id",
+    "index",
+    "stage",
+    "company",
+    "instructions",
+    "demand_event",
+    "artifact_event",
+    "signal_event",
+    "new_documents",
+    "request_signal_forecasts",
+    "request_query"
+  ],
+  "title": "Trial",
+  "type": "object"
+}
