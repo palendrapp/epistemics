@@ -1,0 +1,663 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "auxiliary_if_growth": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Auxiliary If Growth"
+        },
+        "auxiliary_if_no_growth": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Auxiliary If No Growth"
+        },
+        "auxiliary_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Auxiliary Probability",
+          "type": "number"
+        },
+        "growth_probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Growth Probability",
+          "type": "number"
+        }
+      },
+      "required": [
+        "growth_probability",
+        "auxiliary_probability"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "ArchiveCount": {
+      "additionalProperties": false,
+      "properties": {
+        "auxiliary_event": {
+          "title": "Auxiliary Event",
+          "type": "boolean"
+        },
+        "companies": {
+          "minimum": 0,
+          "title": "Companies",
+          "type": "integer"
+        },
+        "growth_above_10_percent": {
+          "title": "Growth Above 10 Percent",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "growth_above_10_percent",
+        "auxiliary_event",
+        "companies"
+      ],
+      "title": "ArchiveCount",
+      "type": "object"
+    },
+    "Assignment": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_seed": {
+          "minimum": 0,
+          "title": "Archive Seed",
+          "type": "integer"
+        },
+        "assignment_id": {
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "auxiliary_outcome": {
+          "title": "Auxiliary Outcome",
+          "type": "boolean"
+        },
+        "evidence": {
+          "enum": [
+            "audit",
+            "signal"
+          ],
+          "title": "Evidence",
+          "type": "string"
+        },
+        "growth_outcome": {
+          "title": "Growth Outcome",
+          "type": "boolean"
+        },
+        "presentation": {
+          "enum": [
+            "summary",
+            "records"
+          ],
+          "title": "Presentation",
+          "type": "string"
+        },
+        "quartet_id": {
+          "title": "Quartet Id",
+          "type": "string"
+        },
+        "relationship": {
+          "enum": [
+            "associated",
+            "independent"
+          ],
+          "title": "Relationship",
+          "type": "string"
+        },
+        "signal_positive": {
+          "title": "Signal Positive",
+          "type": "boolean"
+        },
+        "target": {
+          "enum": [
+            "backlog",
+            "source"
+          ],
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignment_id",
+        "quartet_id",
+        "target",
+        "relationship",
+        "presentation",
+        "evidence",
+        "signal_positive",
+        "growth_outcome",
+        "auxiliary_outcome",
+        "archive_seed"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "CompanyRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "audited_revenue": {
+          "exclusiveMinimum": 0,
+          "title": "Audited Revenue",
+          "type": "integer"
+        },
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "initial_bulletin_revenue": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Initial Bulletin Revenue"
+        },
+        "opening_backlog": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opening Backlog"
+        },
+        "prior_revenue": {
+          "exclusiveMinimum": 0,
+          "title": "Prior Revenue",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "company",
+        "prior_revenue",
+        "audited_revenue"
+      ],
+      "title": "CompanyRecord",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "assignments": {
+          "items": {
+            "$ref": "#/$defs/Assignment"
+          },
+          "maxItems": 16,
+          "minItems": 16,
+          "title": "Assignments",
+          "type": "array"
+        },
+        "battery_version": {
+          "const": "auxiliary-diagnostic/0.2.0",
+          "default": "auxiliary-diagnostic/0.2.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "context_policy": {
+          "enum": [
+            "independent_episode_no_cross_case_history",
+            "human_continuous_separate_company_cases"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "design_seed": {
+          "minimum": 0,
+          "title": "Design Seed",
+          "type": "integer"
+        },
+        "evaluator_version": {
+          "const": "auxiliary-diagnostic-evaluator/0.2.0",
+          "default": "auxiliary-diagnostic-evaluator/0.2.0",
+          "title": "Evaluator Version",
+          "type": "string"
+        },
+        "execution_verification": {
+          "const": "operator_asserted",
+          "default": "operator_asserted",
+          "title": "Execution Verification",
+          "type": "string"
+        },
+        "implementation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Implementation Sha256",
+          "type": "string"
+        },
+        "participant": {
+          "discriminator": {
+            "mapping": {
+              "agent": "#/$defs/AgentParticipant",
+              "human": "#/$defs/HumanParticipant"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AgentParticipant"
+            },
+            {
+              "$ref": "#/$defs/HumanParticipant"
+            }
+          ],
+          "title": "Participant"
+        },
+        "purpose": {
+          "const": "development_only",
+          "default": "development_only",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "response_origin": {
+          "enum": [
+            "human",
+            "agent",
+            "synthetic"
+          ],
+          "title": "Response Origin",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.auxiliary-collection.v2",
+          "default": "epistemics.auxiliary-collection.v2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "study_id": {
+          "title": "Study Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "study_id",
+        "created_at",
+        "design_seed",
+        "implementation_sha256",
+        "participant",
+        "response_origin",
+        "context_policy",
+        "assignments"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "$ref": "#/$defs/Answer"
+        },
+        "answered_at": {
+          "title": "Answered At",
+          "type": "string"
+        },
+        "trial": {
+          "$ref": "#/$defs/Trial"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "SignalCount": {
+      "additionalProperties": false,
+      "properties": {
+        "companies": {
+          "minimum": 0,
+          "title": "Companies",
+          "type": "integer"
+        },
+        "growth_above_10_percent": {
+          "title": "Growth Above 10 Percent",
+          "type": "boolean"
+        },
+        "high_reading": {
+          "title": "High Reading",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "growth_above_10_percent",
+        "high_reading",
+        "companies"
+      ],
+      "title": "SignalCount",
+      "type": "object"
+    },
+    "Trial": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_counts": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ArchiveCount"
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archive Counts"
+        },
+        "archive_records": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CompanyRecord"
+              },
+              "maxItems": 20,
+              "minItems": 20,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archive Records"
+        },
+        "auxiliary_event": {
+          "title": "Auxiliary Event",
+          "type": "string"
+        },
+        "auxiliary_resolved": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Auxiliary Resolved"
+        },
+        "battery_version": {
+          "const": "auxiliary-diagnostic/0.2.0",
+          "default": "auxiliary-diagnostic/0.2.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "documents": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Documents",
+          "type": "array"
+        },
+        "growth_resolved": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Growth Resolved"
+        },
+        "index": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "string"
+        },
+        "request_conditionals": {
+          "title": "Request Conditionals",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "epistemics.auxiliary-trial.v2",
+          "default": "epistemics.auxiliary-trial.v2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "signal_history": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/SignalCount"
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signal History"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trial_id",
+        "index",
+        "stage",
+        "company",
+        "instructions",
+        "auxiliary_event",
+        "documents",
+        "request_conditionals"
+      ],
+      "title": "Trial",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis": {
+      "additionalProperties": true,
+      "title": "Analysis",
+      "type": "object"
+    },
+    "cases": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Observation"
+        },
+        "type": "array"
+      },
+      "title": "Cases",
+      "type": "object"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "epistemics.auxiliary-report.v2",
+      "default": "epistemics.auxiliary-report.v2",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest",
+    "manifest_sha256",
+    "completed_at",
+    "cases",
+    "analysis",
+    "limitations"
+  ],
+  "title": "Report",
+  "type": "object"
+}
