@@ -84,7 +84,9 @@ Implementation fingerprint: `231248e45c2433a5c22077043746cfe5b2f892f1880d5e2ad39
 
 Implementation checks pass: 266 Python tests and 37 TypeScript tests, including equivalent information across archive formats, hidden future resolutions, immutable concurrent retries, resume, schemas, actual MCP transport and a complete synthetic browser collection through private HTTP. A separate synthetic records/signal case was inspected in the browser. The original evaluator fingerprint is unchanged.
 
-Actual human completion is still needed, particularly to assess the burden of extracting categories from records. Human and agent observations must remain separately labeled. A bounded fresh-agent acceptance should record every case, runtime, token usage, tool failures and wording feedback before any expansion. Keep scientific derivation separate from issuer signatures and execution assertions.
+The [fresh-agent acceptance](auxiliary2-acceptance-2026-09-24.md) is complete: all 16 cases and 160 reports in 11 minutes 46 seconds, without retries or failed submissions. Archive extraction, signal interpretation and conditional propagation matched the reference exactly; all model families tie at parameter values of 1.0. The added controls revealed no difficulty for this configuration. Repeated archives and irrelevant bulletin wording generated usability feedback. No task change was made during collection.
+
+Actual human completion is still needed, particularly to assess the burden of extracting categories from records. Human and agent observations must remain separately labeled. Keep scientific derivation separate from issuer signatures and execution assertions. The next measurement priority is richer narrative/causal interpretation, rather than expanding arithmetic controls simply to seek variation.
 
 ## Local commands
 
