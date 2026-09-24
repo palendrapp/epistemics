@@ -2,6 +2,8 @@
 
 The [20 September cognitive-modeling review](cognitive-modeling-review-2026-09-20.md) revisits Gershman, Ullman, Bayesian/RL models, active learning and individual measurement after the completed provenance benchmark. It proposes a discovery-task revision; the implemented tasks described below remain unchanged.
 
+The [24 September source-inference proposal](source-inference-design-2026-09-24.md) develops the next design in detail after the narrative results: persistent source learning, competence versus selection, explicit competing models, diagnostic contrasts, less prompted discovery and tested support. It is a proposal; no current task or active session is changed.
+
 The first resulting implementation is the separately versioned [company investigation](company-investigation.md): joint attribution, active research and correction, with conditional synthetic recovery and a matched-forecast diagnostic. Its protocol and remaining measurement limits are documented separately from the legacy tasks below.
 
 The product is an [epistemic passport](epistemic-passport.md). These models explain and check the measurements beneath its readable behavioral profile. The tasks draw on cognitive science, but the customer's workflow is a standard evaluation and a useful identity artifact. This document retains the original battery's measurement details; newer company and discovery protocols have their own specifications.
