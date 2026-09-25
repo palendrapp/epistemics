@@ -1,6 +1,6 @@
 # Modeling how an agent interprets sources
 
-Detailed design proposal, 24 September 2026. **Proposed; not implemented or validated.** This extends the [earlier review](cognitive-modeling-review-2026-09-20.md) in response to the narrative results. Existing batteries, active human sessions and issued evidence remain unchanged.
+Detailed design proposal, 24 September 2026. **First simulator/discrimination milestone implemented on 25 September; participant collection and empirical validation remain proposed.** The [laboratory specification](source-inference-lab.md) and [synthetic results](source-inference-results-2026-09-25.md) distinguish the implemented subset from the broader design below. This extends the [earlier review](cognitive-modeling-review-2026-09-20.md) in response to the narrative results. Existing batteries, active human sessions and issued evidence remain unchanged.
 
 ## Recommendation
 
