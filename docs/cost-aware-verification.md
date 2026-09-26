@@ -67,3 +67,5 @@ uv run python -m epistemics.source_selective serve --directory output/selective-
 ```
 
 For real collection use the operator-only `epistemics.source_selective.runner`: `prepare(...)` saves the plan/code snapshot and creates bound empty collections; `run(...)` executes that exact plan. Save the public plan commitment before launching comparison respondents. The MCP exposes only describe, history, current checkpoint, answer and finish. The human browser uses the same rule, costs, immutable answers and private loopback authentication.
+
+The [frozen main plan and acceptance review](cost-aware-plan-2026-09-26.md) bind the actual context order and exact private plan before main collection.

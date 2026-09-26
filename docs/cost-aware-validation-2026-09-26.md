@@ -31,3 +31,5 @@ Bounds: one attempt per context, 900 seconds each, two concurrent, 1,800 seconds
 | Acceptance plan | `171b499d0bea1a36b2f9a9fd2ad2ed8593007379d0220fe51beec4d473b64708` |
 
 Private roots: `output/selective-validation-20260927-{a,b}.json` and `output/selective-acceptance-20260926/`. These hashes bind operator-held exact bytes and do not constitute independent timestamps or provider attestations. The main plan will be committed separately after acceptance review, before any main responses.
+
+Acceptance subsequently passed. The [frozen main plan](cost-aware-plan-2026-09-26.md) records its full accounting, comprehension review and commitments before confirmation responses.
