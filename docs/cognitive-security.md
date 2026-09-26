@@ -8,7 +8,7 @@ The product loop is **evaluate → model → select support → test → record 
 
 The [local draft passport](passport-v1.md) now includes an untested evidence-ledger candidate under one explicit interpretation rule. The intervention runner, learned selection policy, human intervention workflow and intervention-effect estimator remain proposed; the baseline human evaluation interface is implemented.
 
-The next measurement milestone is the [predictive-usefulness pilot](predictive-usefulness-pilot.md): predict behavior on new independent/copied-evidence cases, then test a frozen profile-guided support policy against no assistance, generic review and untailored support. Prediction accuracy and decision benefit are separate release criteria. If support helps all participants equally, report that benefit without claiming individualized selection worked.
+The [current decision-value pilot](decision-value-pilot.md) brings one support/verification comparison forward once a repeatable difficulty is identified. A unique cognitive explanation is not a prerequisite for testing assistance. First distinguish general support benefit from incremental benefit of using a profile to select support. The earlier [predictive-usefulness pilot](predictive-usefulness-pilot.md) remains a reference design; its provenance prediction comparison is complete without individualized advantage, and its support comparison remains unrun. Prediction accuracy and decision benefit are separate claims. If generic support helps as much as personalized selection, report and offer the generic benefit without claiming individualized selection worked.
 
 ## From behavior to an intervention hypothesis
 

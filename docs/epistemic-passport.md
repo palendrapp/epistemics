@@ -10,6 +10,8 @@ A second purpose is cognitive security: use the explicit model to identify where
 
 “Phenotype” means observed tendencies across the declared evaluation conditions. The ambition is broad coverage of epistemic behavior. Every issued passport must make its actual coverage clear: a finite evaluation cannot fully characterize an agent in every setting, and elicited probabilities are observations rather than direct access to internal beliefs.
 
+The [current delivery strategy](decision-value-pilot.md) starts with one portable claim that improves a named decision: whether to require independent verification of a research conclusion. The measured unit is a configured system under a stated context/memory policy. Shared profiles are appropriate when individual deviations add no supported predictive value. A repeatable behavioral fact can be useful without a uniquely identified cognitive mechanism; a proposed support remains untested until its benefit is measured. Configuration changes, evaluation age and the relationship to the deployed service must be visible independently of registry identity.
+
 This document defines the product direction. The repository implements a [shared core battery and human/MCP interfaces](live-core.md), draft passports, [detached passport attestations](passport-attestation.md), and legacy signed-report components. The [investigation passport](investigation-passport.md) adds active research and correction observations, coverage counts and separate model diagnostics. Broader phenotype coverage and the paid identity-linked commerce flow remain proposed.
 
 ## The experience

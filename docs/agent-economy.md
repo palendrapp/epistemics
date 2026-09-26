@@ -21,7 +21,7 @@ flowchart LR
 
 Identity, behavioral evidence, commercial reputation and payment serve different purposes. A valid payment proves neither competence nor faithful execution. A valid issuer signature proves attribution and integrity, not the truth of every assertion. A favorable profile does not authorize unrestricted wallet access.
 
-The first buyer should be an orchestrator purchasing a small research or analysis task. This is a product hypothesis matching our existing company-evidence tasks, not evidence that the current pilot predicts live investment performance. Trading execution and universal agent rankings are outside this first integration.
+The first buyer should be an orchestrator purchasing a small research or analysis task. The [decision-value pilot](decision-value-pilot.md) makes its first decision explicit: whether to require independent verification before accepting a research conclusion. Prepare one design-partner assessment alongside measurement, compare the passport policy with inexpensive alternatives, and test demand before expanding payment infrastructure. This is a product hypothesis matching our existing company-evidence tasks, not evidence that the current pilot predicts live investment performance. Trading execution and universal agent rankings are outside this first integration.
 
 ## Current primitives and integration choice
 
@@ -74,7 +74,7 @@ These are commercial hypotheses to test with customers, not observed demand or a
 | Managed consumer API | Router, buyer agent or marketplace | Fresh identity/status resolution, policy evaluation, comparisons and an auditable decision receipt. |
 | Targeted support evaluation | Operator or enterprise | Testing an intervention and reporting measured benefit, cost and regressions. |
 
-Start with the first offering, metered per job via x402 or purchased through a human checkout. Add a fleet plan when repeated demand exists. Basic signature verification and possession of a published passport should remain available offline; customers pay for collection, freshness and useful services. Paid access to detailed evidence can be controlled separately by its owner.
+Start with the first offering as a bounded assessment, with operator-assisted delivery if sufficient for the pilot. An automated offering can be metered per job via x402 or purchased through a human checkout; it is not a prerequisite for testing demand. Charge for assessment rather than a favorable result, with scope, technical-failure terms and attempt accounting explicit before sale. Add a fleet plan when repeated demand exists. Basic signature verification and possession of a published passport should remain available offline; customers pay for collection, freshness and useful services. Paid access to detailed evidence can be controlled separately by its owner.
 
 x402 itself has no built-in protocol fee. Our revenue comes from our resource price. Another seller's payment does not automatically pay us because its customer consulted our passport. A routing fee or revenue share would require an explicit integration and agreement. [x402 overview](https://docs.x402.org/introduction)
 
@@ -97,7 +97,7 @@ Customer fees or committed research budgets can fund contributions. Measure cont
 
 The intended flow is **unresolved question or failure → scoped task → qualified contributor → checked contribution → payment → evaluation evidence**. Experiments, private traces and detailed failure reports stay off-chain; publish authorized summaries and signed commitments where useful. Prevent duplicate payouts and conflicting payment outcomes with the same durable settlement discipline as paid evaluation jobs.
 
-## Paid evaluation API — proposed next slice
+## Paid evaluation API — proposed after pilot demand
 
 The current local browser/MCP service is not a hosted commerce backend. Keep its transactional evaluator behind an authenticated job gateway with evaluator/subject isolation. Use TypeScript for the registry/payment adapter and Python for task state and analysis.
 
