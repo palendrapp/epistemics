@@ -76,7 +76,7 @@ Before real collection, use two distinct synthetic recovery seeds. Each recovery
 
 The comparison adds tests for factual rendering, all purchased research branches, private-data boundaries, history presentation, prospective locks, concurrency/idempotent retries, unchanged earlier fingerprints, calibration-only fitting, complete synthetic panel analysis and actual stdio MCP collection. No Pydantic main-report schema changes, so `schemas/report.v1.json` is unchanged.
 
-The [26 September implementation validation](source-panel-validation-2026-09-26.md) passes both declared recovery seeds and the complete synthetic transport/panel checks. It is separate from real-agent evidence.
+The [26 September implementation validation](source-panel-validation-2026-09-26.md) passes both declared recovery seeds and the complete synthetic transport/panel checks. The subsequent [sixteen-session real-agent comparison](source-panel-results-2026-09-26.md) is complete: every planned checkpoint was retained. Its scoped repeatability and presentation results remain separate from synthetic recovery, mechanism claims and untested decision benefit.
 
 After passing and saving two fingerprint-bound recovery results, an operator may start a new private panel:
 

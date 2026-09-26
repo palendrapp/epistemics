@@ -1,6 +1,6 @@
 # From a cognitive profile to a useful decision
 
-Strategy revision, 26 September 2026. This is the agreed delivery direction and a bounded design for the next comparison, not a claim that transfer or decision benefit has been established. The [roadmap](mvp.md) records implementation status. The [source-learning collection](source-learning.md) remains at battery/evaluator 0.1.0; this document changes no active task, fitting rule, report contract or issued evidence.
+Strategy revision, 26 September 2026, updated after the [bounded source-panel results](source-panel-results-2026-09-26.md). This is the agreed delivery direction. The completed panel establishes only its narrow task/presentation observations; decision benefit remains untested. The [roadmap](mvp.md) records implementation status. The [source-learning collection](source-learning.md) remains at battery/evaluator 0.1.0; this document changes no active task, fitting rule, report contract or issued evidence.
 
 ## First product claim and buyer decision
 
@@ -40,7 +40,7 @@ This is development evidence. Do not count it as a held-out confirmation after c
 
 ### 2. Repeatability, elicitation and a narrow transfer bridge
 
-Prepare a compact comparison after reviewing acceptance and measured cost. The proposed first repeatability panel is **two meaningfully different deployment configurations × two new source worlds × two independent continuing contexts = eight collections**. This characterizes those configurations, not the population of agents. Use the same worlds across configurations/repeats, separate fresh respondents, and never expose evaluator truth. The unit of replication is a complete context/world; the 36 checkpoints are not 36 independent agents.
+Prepare a compact comparison after reviewing acceptance and measured cost. The implemented first repeatability panel is **two meaningfully different deployment configurations × two new source worlds × two independent continuing contexts = eight collections**. This characterizes those configurations, not the population of agents. Use the same worlds across configurations/repeats, separate fresh respondents, and never expose evaluator truth. The unit of replication is a complete context/world; the 36 checkpoints are not 36 independent agents.
 
 Choose configurations for the named buyer workflow before viewing results. Record exact requested settings and actual execution limits. Report within-configuration variation alongside between-configuration differences; do not force individual rankings when those differences are unresolved. Compare frozen profile predictions with the fixed observer, shared fits and simple prior-performance/calibration summaries. Estimate a shared baseline without using the answers being predicted. The single-run fixed observer is not itself an empirically pooled population profile.
 
@@ -52,7 +52,9 @@ The bridge needs a separate version, audited equivalence of the factual content,
 
 The [source-panel implementation](source-panel.md) now supplies that bounded comparison: eight sparse repeats, four dense collections and four structured/packet transfer collections, using two configurations and three distinct worlds. Prose preserves the original public ledger; comprehension questions follow completion. The [synthetic validation](source-panel-validation-2026-09-26.md) verifies recovery and the full collection path before real responses.
 
-Before launching this panel, save the exact configurations, worlds, dense/bridge allocation, primary contrasts, comparator fitting partitions, uncertainty procedure and cost/time ceiling. Use acceptance usage to cost the whole panel. Set a stopping rule that preserves partial runs; do not automatically launch an enlarged benchmark. The eight-collection proposal is a feasibility design, not a powered certification study or a currently frozen run plan.
+**Panel completed on 26 September:** the exact sixteen-session allocation, configurations, private worlds, comparator fits, analysis and resource limits were frozen before responses. All 576 checkpoints completed without failed submissions or answer retries, in 33 minutes 13 seconds and 20.11 million known processed tokens. The [results](source-panel-results-2026-09-26.md) show lower repeat variation for Astra than Sol in both baseline worlds; dense questions produced no clear common forecast shift. Astra's joint-process predictions remained close across the two presentations in one new world, while Sol's individual fit lost to pooling and all candidates failed its adequacy screen. Keep fixed/shared alternatives and scope the passport observation; do not issue the fitted family/gain as a trait. This remains a feasibility comparison, not a powered certification study.
+
+The next implementation should clarify what research reveals before purchase, define the accuracy quantity, and improve outcome/stop feedback under a version review. Preserve private source processes so the task still requires inference. Package the observed coverage, repeatability and prediction/adequacy facts through a scoped source-learning adapter. The original artifacts remain unchanged, and any edited protocol requires fresh acceptance. A small, explicit verification comparison follows; no expanded benchmark is automatically authorized by the completed panel.
 
 ### 3. Verification and support value
 
