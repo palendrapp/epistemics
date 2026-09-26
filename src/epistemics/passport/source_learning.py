@@ -294,6 +294,10 @@ def bundle(directories):
     sessions = []
     for directory in directories:
         directory = Path(directory)
+        if (directory / "verification-binding.json").exists():
+            raise ValueError(
+                "Assigned verification is not voluntary research; use its intervention evidence"
+            )
         raw = (directory / "report.json").read_bytes()
         if (directory / "report.sha256").read_text().strip() != digest(raw):
             raise ValueError("Report byte hash mismatch")
