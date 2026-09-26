@@ -27,6 +27,11 @@ def add_commands(commands):
     )
     collect.add_argument("--directory", type=Path, required=True)
     collect.add_argument("--output", type=Path, required=True)
+    source = actions.add_parser(
+        "bundle-source", help="Bind exact source-learning sessions and transport evidence"
+    )
+    source.add_argument("--directory", type=Path, action="append", required=True)
+    source.add_argument("--output", type=Path, required=True)
     render = actions.add_parser(
         "render", help="Render an existing passport JSON; no provenance check"
     )
@@ -41,6 +46,12 @@ def add_commands(commands):
 
 
 def run(args):
+    if args.passport_command == "bundle-source":
+        from epistemics.passport.source_learning import export_bundle
+
+        export_bundle(args.directory, args.output)
+        print(f"Created private source evidence: {args.output}")
+        return
     if args.passport_command == "bundle-investigation":
         from epistemics.passport.investigation import export_bundle
 

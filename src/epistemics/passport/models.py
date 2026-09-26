@@ -159,12 +159,63 @@ class InvestigationPassport(Passport):
         return self
 
 
-def read_passport(raw: bytes) -> Passport | CorePassport | InvestigationPassport:
+def read_passport(raw: bytes) -> Passport:
     import json
 
     data = json.loads(raw)
     contract = {
         "epistemics.passport.v2": CorePassport,
         "epistemics.passport.v3": InvestigationPassport,
+        "epistemics.passport.v4": SourcePassport,
     }.get(data.get("schema_version"), Passport)
     return contract.model_validate(data)
+
+
+class SourceLearningArtifact(SourceArtifact):
+    schema_version: Literal["epistemics.source-evidence.v1"] = "epistemics.source-evidence.v1"
+
+
+class SourceDiagnostics(Model):
+    analysis_version: Literal["source-passport-diagnostics/0.1.0"] = (
+        "source-passport-diagnostics/0.1.0"
+    )
+    parameters_are_validated_traits: Literal[False] = False
+    personalized_prediction_validated: Literal[False] = False
+    intervention_benefit_tested: Literal[False] = False
+    fits: dict[str, dict]
+
+
+class SourcePassport(Passport):
+    schema_version: Literal["epistemics.passport.v4"] = "epistemics.passport.v4"
+    passport_version: Literal["passport/0.4.0"] = "passport/0.4.0"
+    interpretation_version: Literal["passport-interpretation/0.4.0"] = (
+        "passport-interpretation/0.4.0"
+    )
+    scope: Literal["source_learning_provisional_profile"] = "source_learning_provisional_profile"
+    source: SourceLearningArtifact
+    subject_binding: Literal["single_subject", "configuration_cohort"]
+    source_subject_ids: list[str] = Field(min_length=1, max_length=64)
+    presentation: Literal["structured", "packet", "unverified"]
+    condition: Literal["sparse", "dense"]
+    coverage: dict[str, int]
+    repeatability: list[dict]
+    model_diagnostics: SourceDiagnostics
+
+    @model_validator(mode="after")
+    def source_scope(self):
+        n = self.coverage.get("sessions", 0)
+        if (
+            not 1 <= n <= 64
+            or self.context.accepted_answers != 36 * n
+            or self.context.planned_answers != 36 * n
+        ):
+            raise ValueError("Source passport requires complete sessions")
+        if self.subject_binding == "single_subject" and self.source_subject_ids != [
+            self.context.participant.subject_id
+        ]:
+            raise ValueError("Single subject binding differs")
+        if self.subject_binding == "configuration_cohort" and (
+            len(set(self.source_subject_ids)) < 2 or self.context.participant.kind != "agent"
+        ):
+            raise ValueError("A configuration cohort requires multiple agent session identities")
+        return self

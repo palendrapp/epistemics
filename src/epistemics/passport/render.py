@@ -91,7 +91,7 @@ def render_markdown(passport: Passport) -> str:
             ]
             text += [f"  {md(note)}" for note in measurement.limitations]
         text += ["", *[f"- Limit: {md(note)}" for note in dimension.limitations], ""]
-    if hasattr(passport, "model_diagnostics"):
+    if passport.schema_version == "epistemics.passport.v3":
         text += [
             "## Model explanations · development only",
             "",
@@ -109,6 +109,35 @@ def render_markdown(passport: Passport) -> str:
             "Conditional grid intervals are not calibrated trait uncertainty. The eight-point fit diagnostic is a development convention.",
             "",
         ]
+    if passport.schema_version == "epistemics.passport.v4":
+        text += [
+            "## Source-learning scope",
+            "",
+            f"Binding: {md(passport.subject_binding)}. Presentation: {md(passport.presentation)}. Elicitation: {md(passport.condition)}.",
+            "",
+            "Original subject IDs: " + md(", ".join(passport.source_subject_ids)),
+            "",
+            "## Model explanations · development only",
+            "",
+            "These are within-session prediction diagnostics, separate from repeatability, external transfer and outcome quality. No fitted parameter is a validated trait.",
+            "",
+            "| Session | Fitted later-report RMSE | Fixed joint RMSE | All candidates inadequate |",
+            "| --- | ---: | ---: | --- |",
+        ]
+        for name, fit in passport.model_diagnostics.fits.items():
+            errors = fit["heldout_behavior_rmse_pp"]
+            text.append(
+                f"| {md(name)} | {errors['frozen_mixture']:.2f} | {errors['fixed_joint_observer']:.2f} | {fit['all_candidates_inadequate']} |"
+            )
+        text += ["", "### Matched repeats", ""]
+        if not passport.repeatability:
+            text += ["No matched repeated sessions; repeatability is unmeasured.", ""]
+        for world in passport.repeatability:
+            for pair in world["pairs"]:
+                text.append(
+                    f"- World {world['world_number']}, sessions {[i + 1 for i in pair['sessions']]}: {pair['rmse_pp']:.2f} probability points RMS across twelve unaudited forecasts."
+                )
+        text.append("")
     text += ["## Support to test", ""]
     if not passport.support_candidates:
         text += [
@@ -251,7 +280,7 @@ def render_html(passport: Passport) -> str:
         + "</pre></details>"
     )
     diagnostic_html = ""
-    if hasattr(passport, "model_diagnostics"):
+    if passport.schema_version == "epistemics.passport.v3":
         rows = "".join(
             f"<tr><td>{escape(name)}</td><td>{fit['coupling_grid_estimate']:.2f}</td><td>{fit['response_rate_grid_estimate']:.2f}</td><td>{fit['report_rmse_pp']:.2f}</td><td>{escape(fit['status'])}</td></tr>"
             for name, fit in passport.model_diagnostics.fits.items()
@@ -261,7 +290,39 @@ def render_html(passport: Passport) -> str:
             + rows
             + '</tbody></table></div><p class="limits">Conditional intervals are not calibrated trait uncertainty. The eight-point fit diagnostic is a development convention.</p></section>'
         )
+    if passport.schema_version == "epistemics.passport.v4":
+        rows = "".join(
+            f"<tr><td>{escape(name)}</td><td>{fit['heldout_behavior_rmse_pp']['frozen_mixture']:.2f}</td><td>{fit['heldout_behavior_rmse_pp']['fixed_joint_observer']:.2f}</td><td>{fit['all_candidates_inadequate']}</td></tr>"
+            for name, fit in passport.model_diagnostics.fits.items()
+        )
+        repeats = "".join(
+            f"<li>World {world['world_number']}, sessions {escape(str([i + 1 for i in pair['sessions']]))}: {pair['rmse_pp']:.2f} points RMS over twelve matched forecasts.</li>"
+            for world in passport.repeatability
+            for pair in world["pairs"]
+        )
+        diagnostic_html = (
+            '<section class="card wide"><h2>Source-learning scope</h2><p>'
+            + escape(
+                f"Binding: {passport.subject_binding}; presentation: {passport.presentation}; elicitation: {passport.condition}."
+            )
+            + "</p><p>Original subjects: "
+            + escape(", ".join(passport.source_subject_ids))
+            + "</p><h3>Matched repeats</h3>"
+            + (
+                "<ul>" + repeats + "</ul>"
+                if repeats
+                else "<p>No matched repeated sessions; repeatability is unmeasured.</p>"
+            )
+            + '<h3>Model explanations · development only</h3><p>Within-session prediction errors in probability points. These are separate from external transfer, outcome quality and stable traits.</p><div style="overflow-x:auto"><table><thead><tr><th>Session</th><th>Fitted error</th><th>Fixed joint error</th><th>All candidates inadequate</th></tr></thead><tbody>'
+            + rows
+            + "</tbody></table></div></section>"
+        )
     model = subject.configuration.model if subject.kind == "agent" else "Human participant"
+    heading_subject = (
+        "configuration"
+        if getattr(passport, "subject_binding", None) == "configuration_cohort"
+        else "decision maker"
+    )
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -271,7 +332,7 @@ def render_html(passport: Passport) -> str:
         + "</title><style>"
         + CSS
         + f'</style></head><body><main><header><div class="eyebrow">Epistemics / {escape(passport.passport_version)}</div>'
-        '<h1>How this decision maker<br>uses evidence.</h1><p class="lede">'
+        f'<h1>How this {heading_subject}<br>uses evidence.</h1><p class="lede">'
         "Observed behavior, its supporting measurements, and the limits of this evaluation.</p>"
         '<p class="muted">Draft · unsigned · private local artifact</p>'
         '<div class="origin">' + ORIGINS[context.response_origin] + '</div><dl class="meta">'

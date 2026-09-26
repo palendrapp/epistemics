@@ -140,10 +140,71 @@ const INVESTIGATION_METRICS = [
   },
 ] as const;
 
-export const METRIC_CATALOG = [...CORE_METRICS, ...INVESTIGATION_METRICS];
+const SOURCE_METRICS = [
+  {
+    id: "source.decision_agreement.v1",
+    dimension: "decision_consistency",
+    pointer: "/facts/decision_agreement_percent",
+    unit: "%",
+  },
+  {
+    id: "source.final_brier.v1",
+    dimension: "uncertainty_and_calibration",
+    pointer: "/facts/final_brier",
+    unit: "Brier",
+  },
+  {
+    id: "source.repeat_rmse.v1",
+    dimension: "uncertainty_and_calibration",
+    pointer: "/facts/repeat_rmse_pp",
+    unit: "pp",
+  },
+  {
+    id: "source.mean_payoff.v1",
+    dimension: "decision_consistency",
+    pointer: "/facts/mean_payoff_per_company",
+    unit: "points",
+  },
+  ...["customer_panel", "selection_audit", "measurement_audit", "stop"].map(
+    (q) => ({
+      id: `source.research.${q}.v1`,
+      dimension: "source_judgment",
+      pointer: `/facts/research_${q}_percent`,
+      unit: "%",
+    }),
+  ),
+  ...["sessions", "unique_worlds", "companies", "checkpoints"].map((k) => ({
+    id: `source.coverage.${k}.v1`,
+    dimension: "decision_consistency",
+    pointer: `/coverage/${k}`,
+    unit: "count",
+  })),
+  ...["repeat_pairs", "repeat_worlds", "matched_forecasts_per_pair"].map(
+    (k) => ({
+      id: `source.coverage.${k}.v1`,
+      dimension: "uncertainty_and_calibration",
+      pointer: `/coverage/${k}`,
+      unit: "count",
+    }),
+  ),
+  ...["research_choices", "source_judgments"].map((k) => ({
+    id: `source.coverage.${k}.v1`,
+    dimension: "source_judgment",
+    pointer: `/coverage/${k}`,
+    unit: "count",
+  })),
+] as const;
+export const METRIC_CATALOG = [
+  ...CORE_METRICS,
+  ...INVESTIGATION_METRICS,
+  ...SOURCE_METRICS,
+];
 
 export interface PassportView {
   interpretation_version: string;
+  presentation?: string;
+  condition?: string;
+  subject_binding?: string;
   evaluation_mode?: "discovery" | "calibration";
   context: { completed_at: string };
   dimensions: {
@@ -169,12 +230,23 @@ export function measurements(
     throw new Error(
       "Investigation metric policies currently support discovery mode only",
     );
+  if (
+    passport.interpretation_version === "passport-interpretation/0.4.0" &&
+    (passport.presentation !== "structured" ||
+      passport.condition !== "sparse" ||
+      passport.subject_binding !== "single_subject")
+  )
+    throw new Error(
+      "Source metric policies currently qualify single-subject sparse structured evidence only",
+    );
   const catalog =
     passport.interpretation_version === "passport-interpretation/0.2.0"
       ? CORE_METRICS
       : passport.interpretation_version === "passport-interpretation/0.3.0"
         ? INVESTIGATION_METRICS
-        : null;
+        : passport.interpretation_version === "passport-interpretation/0.4.0"
+          ? SOURCE_METRICS
+          : null;
   if (!catalog) throw new Error("Unsupported metric interpretation version");
   return catalog.flatMap((metric) => {
     const dimension = passport.dimensions.find(

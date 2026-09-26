@@ -112,6 +112,18 @@ export async function fixture(
       item.report_sha256 = sha256(item.report_json);
     }
   }
+  if (report.sessions) {
+    // Invented contract fixtures only; never export as empirical source evidence.
+    report.source_subject_ids = [subject];
+    passport.source_subject_ids = [subject];
+    for (const item of report.sessions) {
+      const child = JSON.parse(item.report_json);
+      child.manifest.participant.subject_id = subject;
+      child.manifest.response_origin = origin;
+      item.report_json = JSON.stringify(child);
+      item.report_sha256 = sha256(item.report_json);
+    }
+  }
   const reportBytes = jsonBytes(report);
   passport.source.sha256 = sha256(reportBytes);
   const passportBytes = jsonBytes(passport);

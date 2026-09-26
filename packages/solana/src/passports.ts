@@ -23,10 +23,19 @@ import passportSchema from "../../../schemas/passport.v2.json" with {
 import investigationPassportSchema from "../../../schemas/passport.v3.json" with {
   type: "json",
 };
+import sourcePassportSchema from "../../../schemas/passport.v4.json" with {
+  type: "json",
+};
 import attestationSchema from "../../../schemas/passport-attestation.v1.json" with {
   type: "json",
 };
 import reportSchema from "../../../schemas/report.v4.json" with {
+  type: "json",
+};
+import sourceEvidenceSchema from "../../../schemas/source-evidence.v1.json" with {
+  type: "json",
+};
+import sourceReportSchema from "../../../schemas/source-learning-report.v1.json" with {
   type: "json",
 };
 import { sha256 } from "./records.js";
@@ -53,6 +62,13 @@ interface Context {
 interface CorePassport {
   schema_version: string;
   evaluation_mode?: string;
+  subject_binding?: string;
+  source_subject_ids?: string[];
+  presentation?: string;
+  condition?: string;
+  coverage?: Record<string, number>;
+  repeatability?: unknown;
+  model_diagnostics?: { fits: unknown };
   context: Context;
   source: { sha256: string };
   interpretation_version: string;
@@ -126,6 +142,40 @@ const validateInvestigationCase2 = ajv.compile<InvestigationReportView>(
 const validateInvestigationCase3 = ajv.compile<InvestigationReportView>(
   investigationReport3Schema,
 );
+interface SourceEvidenceView {
+  context: Context;
+  subject_binding: string;
+  source_subject_ids: string[];
+  presentation: string;
+  condition: string;
+  coverage: Record<string, number>;
+  repeatability: unknown;
+  diagnostics: unknown;
+  sessions: {
+    report_json: string;
+    report_sha256: string;
+    transport_json: string | null;
+    transport_sha256: string | null;
+  }[];
+}
+interface SourceReportView {
+  manifest: {
+    study_id: string;
+    created_at: string;
+    participant: Context["participant"];
+    response_origin: string;
+    condition: string;
+    implementation_sha256: string;
+    evaluator_version: string;
+  };
+  manifest_sha256: string;
+  completed_at: string;
+  observations: { answered_at: string; trial: { trial_id: string } }[];
+}
+const validateSourcePassport = ajv.compile<CorePassport>(sourcePassportSchema);
+const validateSourceEvidence =
+  ajv.compile<SourceEvidenceView>(sourceEvidenceSchema);
+const validateSourceReport = ajv.compile<SourceReportView>(sourceReportSchema);
 const validateReport = ajv.compile<{ context: Context }>(reportSchema);
 const validateAttestation = ajv.compile<PassportAttestation>(attestationSchema);
 const DOMAIN = "epistemics/passport-attestation-signature/v1\n";
@@ -170,22 +220,36 @@ function readPassport(bytes: Uint8Array): CorePassport {
   const isInvestigation =
     (value as { schema_version?: string })?.schema_version ===
     "epistemics.passport.v3";
-  const validator = isInvestigation
-    ? validateInvestigationPassport
-    : validatePassport;
+  const isSource =
+    (value as { schema_version?: string })?.schema_version ===
+    "epistemics.passport.v4";
+  const validator = isSource
+    ? validateSourcePassport
+    : isInvestigation
+      ? validateInvestigationPassport
+      : validatePassport;
   if (!validator(value))
     throw new Error(
       `Invalid supported passport: ${ajv.errorsText(validator.errors)}`,
     );
   const c = value.context;
+  if (isSource && value.subject_binding !== "single_subject")
+    throw new Error(
+      "Configuration-cohort evidence cannot be issued as a single agent identity",
+    );
+  const expectedAnswers = isSource
+    ? 36 * (value.coverage?.sessions ?? 0)
+    : isInvestigation
+      ? 48
+      : 34;
   if (c.participant.kind !== "agent" || !c.participant.configuration)
     throw new Error(
       "Agent passport required; human publication is not supported",
     );
   if (
     c.completion !== "complete" ||
-    c.accepted_answers !== (isInvestigation ? 48 : 34) ||
-    c.planned_answers !== (isInvestigation ? 48 : 34) ||
+    c.accepted_answers !== expectedAnswers ||
+    c.planned_answers !== expectedAnswers ||
     c.response_origin === undefined ||
     c.metadata_verification !== "operator_asserted"
   )
@@ -234,6 +298,121 @@ function checkReport(passport: CorePassport, reportBytes: Uint8Array) {
   if (sha256(reportBytes) !== passport.source.sha256)
     throw new Error("Report hash mismatch");
   const report = parseJson(reportBytes);
+  if (passport.schema_version === "epistemics.passport.v4") {
+    if (!validateSourceEvidence(report))
+      throw new Error("Invalid source-learning evidence");
+    const c = report.context;
+    if (
+      !isDeepStrictEqual(c, passport.context) ||
+      report.subject_binding !== passport.subject_binding ||
+      !isDeepStrictEqual(
+        report.source_subject_ids,
+        passport.source_subject_ids,
+      ) ||
+      report.presentation !== passport.presentation ||
+      report.condition !== passport.condition ||
+      !isDeepStrictEqual(report.coverage, passport.coverage) ||
+      !isDeepStrictEqual(report.repeatability, passport.repeatability) ||
+      !isDeepStrictEqual(
+        report.diagnostics,
+        passport.model_diagnostics?.fits,
+      ) ||
+      report.sessions.length !== report.coverage.sessions ||
+      report.subject_binding !== "single_subject" ||
+      !isDeepStrictEqual(report.source_subject_ids, [c.participant.subject_id])
+    )
+      throw new Error("Source evidence context mismatch");
+    let first = Infinity,
+      last = -Infinity;
+    const seen = new Set<string>();
+    for (const item of report.sessions) {
+      if (sha256(item.report_json) !== item.report_sha256)
+        throw new Error("Embedded report hash mismatch");
+      const child: unknown = JSON.parse(item.report_json);
+      if (!validateSourceReport(child))
+        throw new Error("Invalid embedded source report");
+      const m = child.manifest;
+      if (
+        seen.has(m.study_id) ||
+        !isDeepStrictEqual(m.participant, c.participant) ||
+        m.response_origin !== c.response_origin ||
+        m.condition !== report.condition ||
+        m.evaluator_version !== c.evaluator_version
+      )
+        throw new Error("Source session binding mismatch");
+      seen.add(m.study_id);
+      first = Math.min(first, timestamp(m.created_at));
+      last = Math.max(last, timestamp(child.completed_at));
+      let previous = timestamp(m.created_at);
+      for (const o of child.observations) {
+        const time = timestamp(o.answered_at);
+        if (time < previous || time > timestamp(child.completed_at))
+          throw new Error("Invalid source chronology");
+        previous = time;
+      }
+      if (item.transport_json === null) {
+        if (
+          item.transport_sha256 !== null ||
+          report.presentation !== "unverified" ||
+          c.protocol_version !== "source-delivery-unverified/0.1.0" ||
+          c.protocol_sha256 !== m.implementation_sha256
+        )
+          throw new Error("Missing source presentation evidence");
+      } else {
+        if (sha256(item.transport_json) !== item.transport_sha256)
+          throw new Error("Embedded transport hash mismatch");
+        const e = JSON.parse(item.transport_json) as {
+          schema_version: string;
+          completed_at: string;
+          binding: {
+            schema_version: string;
+            version: string;
+            presentation: string;
+            presentation_version?: string;
+            base_manifest_sha256: string;
+            implementation_sha256: string;
+            created_at: string;
+          };
+          locks: { locked_at: string; public_trial: { trial_id: string } }[];
+        };
+        const b = e.binding;
+        const panel =
+          e.schema_version === "epistemics.source-panel-evidence.v1";
+        const delivery =
+          e.schema_version === "epistemics.source-delivery-evidence.v1";
+        if (
+          (!panel && !delivery) ||
+          (panel &&
+            (b.schema_version !== "epistemics.source-panel-binding.v1" ||
+              b.version !== "source-panel/0.1.0")) ||
+          (delivery &&
+            (b.schema_version !== "epistemics.source-delivery-binding.v1" ||
+              b.version !== "source-learning/0.2.0")) ||
+          b.presentation !== report.presentation ||
+          b.base_manifest_sha256 !== child.manifest_sha256 ||
+          b.implementation_sha256 !== c.protocol_sha256 ||
+          (panel ? b.presentation_version : b.version) !== c.protocol_version ||
+          e.locks.length !== 36 ||
+          timestamp(e.completed_at) !== timestamp(child.completed_at) ||
+          timestamp(b.created_at) < timestamp(m.created_at)
+        )
+          throw new Error("Source presentation binding mismatch");
+        for (const [i, lock] of e.locks.entries()) {
+          if (
+            lock.public_trial.trial_id !==
+              child.observations[i]!.trial.trial_id ||
+            timestamp(lock.locked_at) < timestamp(b.created_at) ||
+            timestamp(lock.locked_at) >
+              timestamp(child.observations[i]!.answered_at)
+          )
+            throw new Error("Source presentation chronology mismatch");
+        }
+      }
+    }
+    if (first !== timestamp(c.started_at) || last !== timestamp(c.completed_at))
+      throw new Error("Source collection chronology mismatch");
+    return;
+  }
   if (passport.schema_version === "epistemics.passport.v3") {
     if (!validateInvestigationReport(report))
       throw new Error(
