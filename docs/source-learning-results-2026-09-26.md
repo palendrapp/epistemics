@@ -1,6 +1,6 @@
 # Source-learning collection: implementation and synthetic acceptance
 
-Completed 26 September 2026; implementation and validation began on 25 September. **No real agent or human has completed this new battery.**
+Completed 26 September 2026; implementation and validation began on 25 September. **This document reports synthetic acceptance only.** A subsequent [fresh-agent run](source-learning-acceptance-2026-09-26.md) completed the new battery later on 26 September; actual human acceptance remains pending.
 
 The [source-learning collection](source-learning.md) now implements the second milestone of the [source-inference roadmap](source-inference-design-2026-09-24.md): consistent private source processes, persistent public learning, sparse/dense assignments, browser/MCP collection and prospective prediction. This document reports software and synthetic acceptance, not empirical cognitive profiles.
 
@@ -49,7 +49,7 @@ Earlier evaluators and active human sessions are unchanged. The original laborat
 
 ## Next acceptance
 
-Run one fresh agent in a continuing context with access only to the public interface. Record actual configuration, duration, cost, failures and comprehension issues. Evaluate the frozen forecasts and the possibility that all candidate models fail. Then compare matched sparse and dense assignments in separate fresh contexts, and complete actual human usability. A single successful run will not establish stable bias, treatment benefit or a general epistemic phenotype.
+The subsequent [fresh-agent acceptance](source-learning-acceptance-2026-09-26.md) records one continuing public-only context, configuration, duration, usage, comprehension feedback and frozen forecasts. The [current delivery plan](decision-value-pilot.md) now calls for a compact repeated-configuration comparison, matched elicitation subset and a controlled transfer bridge, with actual human usability separate. A single successful run does not establish stable bias, treatment benefit or a general epistemic phenotype.
 
 ## Exact-byte commitments
 

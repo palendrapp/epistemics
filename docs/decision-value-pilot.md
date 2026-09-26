@@ -34,6 +34,8 @@ Behavioral facts, prediction, cognitive explanation and measured support benefit
 
 Complete one fresh continuous-context source-learning run using only public MCP tools. Select the sparse condition to check forecasting, decisions and research without added source questions. Commit configuration, private world, analysis and resource ceiling before collection. Preserve every accepted answer and any failed attempt. Assess completion, comprehension, resource usage, frozen new-case predictions and every candidate's adequacy using the unchanged evaluator.
 
+**Acceptance completed later on 26 September:** the [fresh-agent results](source-learning-acceptance-2026-09-26.md) support proceeding to the compact comparison. The fitted joint account's 3.816-point later-report RMSE was below the alternative families, while the fixed joint observer was slightly better at 3.505. Keep the fixed observer as a strong comparator; this result does not establish personalization or a need for support.
+
 This is development evidence. Do not count it as a held-out confirmation after choosing a new claim or changing a model from its results. Complete one actual human usability session separately through the prepared private browser flow. Agent feedback and automated previews cannot satisfy human acceptance; a human session is not a human norming study. An absent human participant need not block agent-specific comparisons.
 
 ### 2. Repeatability, elicitation and a narrow transfer bridge
