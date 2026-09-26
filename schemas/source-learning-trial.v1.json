@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "PublicRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        },
+        "resolved_strong": {
+          "title": "Resolved Strong",
+          "type": "boolean"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "world": {
+          "$ref": "#/$defs/World"
+        }
+      },
+      "required": [
+        "source_id",
+        "world",
+        "count",
+        "resolved_strong"
+      ],
+      "title": "PublicRecord",
+      "type": "object"
+    },
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "enum": [
+            "random",
+            "maximum",
+            "minimum"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "panels": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Panels",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "panels",
+        "direction"
+      ],
+      "title": "Rule",
+      "type": "object"
+    },
+    "World": {
+      "additionalProperties": false,
+      "properties": {
+        "panel_size": {
+          "default": 5,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Panel Size",
+          "type": "integer"
+        },
+        "strong_rate": {
+          "default": 0.7,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Strong Rate",
+          "type": "number"
+        },
+        "weak_rate": {
+          "default": 0.3,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Weak Rate",
+          "type": "number"
+        }
+      },
+      "title": "World",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "archive": {
+      "items": {
+        "$ref": "#/$defs/PublicRecord"
+      },
+      "title": "Archive",
+      "type": "array"
+    },
+    "battery_version": {
+      "const": "source-learning/0.1.0",
+      "default": "source-learning/0.1.0",
+      "title": "Battery Version",
+      "type": "string"
+    },
+    "checkpoint": {
+      "maximum": 36,
+      "minimum": 1,
+      "title": "Checkpoint",
+      "type": "integer"
+    },
+    "company_id": {
+      "title": "Company Id",
+      "type": "string"
+    },
+    "decision_threshold": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Decision Threshold",
+      "type": "number"
+    },
+    "documents": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Documents",
+      "type": "array"
+    },
+    "known_measurement_accuracy": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Known Measurement Accuracy"
+    },
+    "known_selection": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Rule"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "prior_strong": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Prior Strong",
+      "type": "number"
+    },
+    "request_diagnostics": {
+      "title": "Request Diagnostics",
+      "type": "boolean"
+    },
+    "research_costs": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Research Costs",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "epistemics.source-learning-trial.v1",
+      "default": "epistemics.source-learning-trial.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_query": {
+      "anyOf": [
+        {
+          "enum": [
+            "customer_panel",
+            "selection_audit",
+            "measurement_audit",
+            "stop"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Query"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "stage": {
+      "enum": [
+        "forecast",
+        "research",
+        "revision"
+      ],
+      "title": "Stage",
+      "type": "string"
+    },
+    "trial_id": {
+      "title": "Trial Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trial_id",
+    "checkpoint",
+    "company_id",
+    "stage",
+    "source_id",
+    "prior_strong",
+    "decision_threshold",
+    "documents",
+    "archive",
+    "request_diagnostics",
+    "research_costs"
+  ],
+  "title": "Trial",
+  "type": "object"
+}

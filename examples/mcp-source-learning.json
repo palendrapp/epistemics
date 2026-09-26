@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "epistemics-source-learning": {
+      "command": "/ABSOLUTE/PATH/epistemics/.venv/bin/python",
+      "args": ["-m", "epistemics.source_learning.mcp_server"],
+      "env": {
+        "EPISTEMICS_SOURCE_LEARNING": "/ABSOLUTE/PATH/PRIVATE/COLLECTION"
+      }
+    }
+  }
+}

@@ -1,0 +1,760 @@
+{
+  "$defs": {
+    "AgentConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "model",
+        "model_version",
+        "configuration_sha256"
+      ],
+      "title": "AgentConfiguration",
+      "type": "object"
+    },
+    "AgentParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "$ref": "#/$defs/AgentConfiguration"
+        },
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id",
+        "configuration"
+      ],
+      "title": "AgentParticipant",
+      "type": "object"
+    },
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "invest",
+            "decline"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "measurement_accuracy": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measurement Accuracy"
+        },
+        "probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "enum": [
+                "customer_panel",
+                "selection_audit",
+                "measurement_audit",
+                "stop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "random_selection_probability": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Random Selection Probability"
+        }
+      },
+      "required": [
+        "probability",
+        "decision"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Company": {
+      "additionalProperties": false,
+      "properties": {
+        "company_id": {
+          "title": "Company Id",
+          "type": "string"
+        },
+        "cost_scale": {
+          "exclusiveMinimum": 0,
+          "title": "Cost Scale",
+          "type": "number"
+        },
+        "independent_panel": {
+          "$ref": "#/$defs/PublicRecord"
+        },
+        "phase": {
+          "enum": [
+            "calibration",
+            "heldout"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "prior_strong": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Prior Strong",
+          "type": "number"
+        },
+        "record": {
+          "$ref": "#/$defs/PrivateRecord"
+        },
+        "threshold": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "company_id",
+        "phase",
+        "prior_strong",
+        "threshold",
+        "cost_scale",
+        "record",
+        "independent_panel"
+      ],
+      "title": "Company",
+      "type": "object"
+    },
+    "HumanParticipant": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "human",
+          "default": "human",
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.participant.v1",
+          "default": "epistemics.participant.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_id"
+      ],
+      "title": "HumanParticipant",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "archive": {
+          "items": {
+            "$ref": "#/$defs/PrivateRecord"
+          },
+          "maxItems": 72,
+          "minItems": 72,
+          "title": "Archive",
+          "type": "array"
+        },
+        "battery_version": {
+          "const": "source-learning/0.1.0",
+          "default": "source-learning/0.1.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "companies": {
+          "items": {
+            "$ref": "#/$defs/Company"
+          },
+          "maxItems": 24,
+          "minItems": 24,
+          "title": "Companies",
+          "type": "array"
+        },
+        "condition": {
+          "enum": [
+            "sparse",
+            "dense"
+          ],
+          "title": "Condition",
+          "type": "string"
+        },
+        "condition_assignment": {
+          "enum": [
+            "operator_selected",
+            "randomized"
+          ],
+          "title": "Condition Assignment",
+          "type": "string"
+        },
+        "context_policy": {
+          "const": "continuous_with_available_public_history",
+          "default": "continuous_with_available_public_history",
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "design_seed": {
+          "minimum": 0,
+          "title": "Design Seed",
+          "type": "integer"
+        },
+        "evaluator_version": {
+          "const": "source-learning-evaluator/0.1.0",
+          "default": "source-learning-evaluator/0.1.0",
+          "title": "Evaluator Version",
+          "type": "string"
+        },
+        "execution_verification": {
+          "const": "operator_asserted",
+          "default": "operator_asserted",
+          "title": "Execution Verification",
+          "type": "string"
+        },
+        "implementation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Implementation Sha256",
+          "type": "string"
+        },
+        "participant": {
+          "discriminator": {
+            "mapping": {
+              "agent": "#/$defs/AgentParticipant",
+              "human": "#/$defs/HumanParticipant"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AgentParticipant"
+            },
+            {
+              "$ref": "#/$defs/HumanParticipant"
+            }
+          ],
+          "title": "Participant"
+        },
+        "response_origin": {
+          "enum": [
+            "human",
+            "agent",
+            "synthetic"
+          ],
+          "title": "Response Origin",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "epistemics.source-learning-collection.v1",
+          "default": "epistemics.source-learning-collection.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/Source"
+          },
+          "maxItems": 6,
+          "minItems": 6,
+          "title": "Sources",
+          "type": "array"
+        },
+        "study_id": {
+          "title": "Study Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "study_id",
+        "created_at",
+        "design_seed",
+        "implementation_sha256",
+        "participant",
+        "response_origin",
+        "condition",
+        "condition_assignment",
+        "sources",
+        "archive",
+        "companies"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "$ref": "#/$defs/Answer"
+        },
+        "answered_at": {
+          "format": "date-time",
+          "title": "Answered At",
+          "type": "string"
+        },
+        "prediction_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Prediction Sha256",
+          "type": "string"
+        },
+        "trial": {
+          "$ref": "#/$defs/Trial"
+        }
+      },
+      "required": [
+        "trial",
+        "answer",
+        "answered_at",
+        "prediction_sha256"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "PrivateRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "measured_panels": {
+          "items": {
+            "items": {
+              "type": "boolean"
+            },
+            "type": "array"
+          },
+          "title": "Measured Panels",
+          "type": "array"
+        },
+        "public": {
+          "$ref": "#/$defs/PublicRecord"
+        },
+        "selected_index": {
+          "minimum": 0,
+          "title": "Selected Index",
+          "type": "integer"
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "true_panels": {
+          "items": {
+            "items": {
+              "type": "boolean"
+            },
+            "type": "array"
+          },
+          "title": "True Panels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "public",
+        "true_panels",
+        "measured_panels",
+        "selected_index"
+      ],
+      "title": "PrivateRecord",
+      "type": "object"
+    },
+    "PublicRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        },
+        "resolved_strong": {
+          "title": "Resolved Strong",
+          "type": "boolean"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "world": {
+          "$ref": "#/$defs/World"
+        }
+      },
+      "required": [
+        "source_id",
+        "world",
+        "count",
+        "resolved_strong"
+      ],
+      "title": "PublicRecord",
+      "type": "object"
+    },
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "enum": [
+            "random",
+            "maximum",
+            "minimum"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "panels": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Panels",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "panels",
+        "direction"
+      ],
+      "title": "Rule",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "measurement_accuracy": {
+          "maximum": 1,
+          "minimum": 0.5,
+          "title": "Measurement Accuracy",
+          "type": "number"
+        },
+        "rule": {
+          "$ref": "#/$defs/Rule"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "measurement_accuracy",
+        "rule"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Trial": {
+      "additionalProperties": false,
+      "properties": {
+        "archive": {
+          "items": {
+            "$ref": "#/$defs/PublicRecord"
+          },
+          "title": "Archive",
+          "type": "array"
+        },
+        "battery_version": {
+          "const": "source-learning/0.1.0",
+          "default": "source-learning/0.1.0",
+          "title": "Battery Version",
+          "type": "string"
+        },
+        "checkpoint": {
+          "maximum": 36,
+          "minimum": 1,
+          "title": "Checkpoint",
+          "type": "integer"
+        },
+        "company_id": {
+          "title": "Company Id",
+          "type": "string"
+        },
+        "decision_threshold": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Decision Threshold",
+          "type": "number"
+        },
+        "documents": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Documents",
+          "type": "array"
+        },
+        "known_measurement_accuracy": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Known Measurement Accuracy"
+        },
+        "known_selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prior_strong": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Prior Strong",
+          "type": "number"
+        },
+        "request_diagnostics": {
+          "title": "Request Diagnostics",
+          "type": "boolean"
+        },
+        "research_costs": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Research Costs",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": "epistemics.source-learning-trial.v1",
+          "default": "epistemics.source-learning-trial.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selected_query": {
+          "anyOf": [
+            {
+              "enum": [
+                "customer_panel",
+                "selection_audit",
+                "measurement_audit",
+                "stop"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Query"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "forecast",
+            "research",
+            "revision"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trial_id",
+        "checkpoint",
+        "company_id",
+        "stage",
+        "source_id",
+        "prior_strong",
+        "decision_threshold",
+        "documents",
+        "archive",
+        "request_diagnostics",
+        "research_costs"
+      ],
+      "title": "Trial",
+      "type": "object"
+    },
+    "World": {
+      "additionalProperties": false,
+      "properties": {
+        "panel_size": {
+          "default": 5,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Panel Size",
+          "type": "integer"
+        },
+        "strong_rate": {
+          "default": 0.7,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Strong Rate",
+          "type": "number"
+        },
+        "weak_rate": {
+          "default": 0.3,
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Weak Rate",
+          "type": "number"
+        }
+      },
+      "title": "World",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis": {
+      "additionalProperties": true,
+      "title": "Analysis",
+      "type": "object"
+    },
+    "completed_at": {
+      "format": "date-time",
+      "title": "Completed At",
+      "type": "string"
+    },
+    "fit_lock": {
+      "additionalProperties": true,
+      "title": "Fit Lock",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/Observation"
+      },
+      "maxItems": 36,
+      "minItems": 36,
+      "title": "Observations",
+      "type": "array"
+    },
+    "prediction_locks": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "maxItems": 36,
+      "minItems": 36,
+      "title": "Prediction Locks",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "epistemics.source-learning-report.v1",
+      "default": "epistemics.source-learning-report.v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest",
+    "manifest_sha256",
+    "completed_at",
+    "observations",
+    "prediction_locks",
+    "fit_lock",
+    "analysis",
+    "limitations"
+  ],
+  "title": "Report",
+  "type": "object"
+}
