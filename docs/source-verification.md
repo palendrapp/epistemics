@@ -77,3 +77,5 @@ uv run python -m epistemics.source_verification.runner output/verification-stage
 ```
 
 Every root is new; the runner does not overwrite or automatically retry an attempt. Private plans, seeds, source bundles and execution logs stay outside Git. The comparison adds no registry write, paid endpoint, external reviewer or payment. A later passport-guided policy still needs its own frozen heuristic and new confirmation worlds.
+
+The separately versioned [0.2 cost-aware follow-up](cost-aware-results-2026-09-26.md) is also complete. This document and the 0.1 implementation retain their original contract.

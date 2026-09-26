@@ -33,3 +33,5 @@ Bounds: one attempt per context, 900 seconds each, two concurrent, 1,800 seconds
 Private roots: `output/selective-validation-20260927-{a,b}.json` and `output/selective-acceptance-20260926/`. These hashes bind operator-held exact bytes and do not constitute independent timestamps or provider attestations. The main plan will be committed separately after acceptance review, before any main responses.
 
 Acceptance subsequently passed. The [frozen main plan](cost-aware-plan-2026-09-26.md) records its full accounting, comprehension review and commitments before confirmation responses.
+
+The implementation also passed [remote CI](https://github.com/palendrapp/epistemics/actions/runs/36265444514). The [completed main results](cost-aware-results-2026-09-26.md) retain the failed benefit gate and document the independent arithmetic/assignment audit.
