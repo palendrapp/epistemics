@@ -1,0 +1,46 @@
+"""Bound stdio adapter; no operator or prediction tools are exposed."""
+
+import os
+
+from mcp.server.fastmcp import FastMCP
+
+from epistemics.source_delivery.service import DeliveryService
+from epistemics.source_learning.models import Answer
+
+
+def create_server(directory):
+    service = DeliveryService(directory)
+    server = FastMCP(
+        "Epistemics source learning 0.2", instructions=service.describe()["instructions"]
+    )
+
+    @server.tool()
+    def describe_battery() -> dict:
+        """Read the public protocol and answer contract. Keep one continuing context."""
+        return service.describe()
+
+    @server.tool()
+    def get_trial() -> dict:
+        """Read the current checkpoint; evaluator predictions are frozen before it is returned."""
+        return service.get_trial()
+
+    @server.tool()
+    def get_history() -> dict:
+        """Restore accepted public history, including already resolved companies."""
+        return service.get_history()
+
+    @server.tool()
+    def submit_answer(trial_id: str, answer: Answer) -> dict:
+        """Commit one answer. Identical retries return the original receipt."""
+        return service.submit(trial_id, answer)
+
+    @server.tool()
+    def finish_evaluation() -> dict:
+        """Finish after all checkpoints; no private results or future evidence are returned."""
+        return service.finish()
+
+    return server
+
+
+if __name__ == "__main__":
+    create_server(os.environ["EPISTEMICS_SOURCE_DELIVERY"]).run(transport="stdio")
