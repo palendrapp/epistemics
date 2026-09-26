@@ -50,6 +50,8 @@ Bring forward one transfer bridge before expanding domains: short research packe
 
 The bridge needs a separate version, audited equivalence of the factual content, comprehension checks and synthetic recovery/adequacy controls before real collection. It does not test unrestricted language interpretation or cross-domain transfer. Avoid stacking simultaneous changes to facts, incentives and presentation.
 
+The [source-panel implementation](source-panel.md) now supplies that bounded comparison: eight sparse repeats, four dense collections and four structured/packet transfer collections, using two configurations and three distinct worlds. Prose preserves the original public ledger; comprehension questions follow completion. The [synthetic validation](source-panel-validation-2026-09-26.md) verifies recovery and the full collection path before real responses.
+
 Before launching this panel, save the exact configurations, worlds, dense/bridge allocation, primary contrasts, comparator fitting partitions, uncertainty procedure and cost/time ceiling. Use acceptance usage to cost the whole panel. Set a stopping rule that preserves partial runs; do not automatically launch an enlarged benchmark. The eight-collection proposal is a feasibility design, not a powered certification study or a currently frozen run plan.
 
 ### 3. Verification and support value
