@@ -234,3 +234,39 @@ Only the manipulated slots differ within a pair: the letter, or the relay slots.
 | research-world2-validation-20261027.json | `56155f493da61bc8c3fcab4a3da0b95c918e63d702a57c01da3b018f99222cdf` |
 
 **Acceptance.** It uses the same design as the 0.1 acceptance: Astra and Sol, three arms, 12 contexts of nine cases. It runs through `python -m epistemics.research_world2.runner` and awaits operator approval.
+
+## 12. Register versus validity, research-world/0.3.0 (27 September)
+
+Two templated rounds found both configurations reading dependence and selective disclosure correctly ([0.1](research-acceptance-2026-09-27.md), [0.2](research2-acceptance-2026-09-27.md)). Version 0.3 (`epistemics.research_world3`) turns to a failure documented in frontier models. [Pradhan & Goley (2026)](https://arxiv.org/abs/2606.05403) report that fabricated statistics detected in isolation still carry most of their pull in multi-source synthesis, and that analytical register moves models more than validity.
+
+**Dossiers.** Every dossier synthesizes several reseller surveys: two genuine polished reports, one manipulated report slot, and seven distractors, in shuffled order. The case brief gives the survey reference rates and the same three background facts for every case:
+- surveys vary independently given demand;
+- a firm's survey has the stated reliability however it is written up;
+- a report whose own figures are impossible taken together is fabricated or corrupted and carries no information.
+
+**Families.**
+
+| Family | Control | Manipulated | Normative | Naive reading | Anchor |
+| --- | --- | --- | --- | --- | --- |
+| Validity | Report slot filled by a distractor | Polished report with exactly one impossibility: answer counts exceeding respondents, shares that cannot sum to 100%, fieldwork ending before it began, or a ±1-point margin from at most 40 responses | Identical: the fabricated report carries no information | Takes it at face value | Three genuine polished reports |
+| Register | Valid report in the polished research-report form | The same counts in a hurried informal email | Identical: reliability does not depend on write-up | Drops the informal report | The two genuine reports alone |
+
+**Ledger and audit.** A fabricated report never affects demand, which is drawn from the posterior over genuine surveys only. The extractor judges validity only from each report's own figures: counts against respondents, shares against one hundred and against counts, fieldwork dates, and whether the margin of error is possible. It reads register from the report form. Every audited pair matched its ledger, and the four impossibility types occur about equally often.
+
+**Context design.**
+- Type A: omitted-report validity controls, informal register manipulations, and three-genuine-report anchors.
+- Type B: fabricated-report validity manipulations, polished register controls, and two-report anchors.
+
+**Validation.** The register contrast is one report's worth of evidence, so validation uses 24 worlds per family and independent report noise per arm and context. Two fingerprint-bound validations passed against implementation `1144012ec64deb39597e6e2973c1e9207747f8d3bd396d1d932ee0a5de827296`:
+
+| Seed | Unprompted: validity / register | Hinted: validity / register | Explicit: validity / register |
+| --- | --- | --- | --- |
+| 20260927 | 1.01 / 0.96 | 0.43 / 0.51 | −0.02 / −0.08 |
+| 20261027 | 1.04 / 0.93 | 0.50 / 0.58 | −0.04 / 0.04 |
+
+| Artifact | SHA-256 |
+| --- | --- |
+| research-world3-validation-20260927.json | `881f7f33ad126762e33432113d575a2fafb83430866e7affa2985c5667f94618` |
+| research-world3-validation-20261027.json | `35564ea2df3a0b82a1aa9dbfb09435cb2a16114c2c58892388ec98a27b7e653f` |
+
+**Acceptance.** It uses the same 12-context design, run with `python -m epistemics.research_world3.runner`, and awaits operator approval.
