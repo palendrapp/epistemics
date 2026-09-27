@@ -206,7 +206,7 @@ It is measured by log score on reports and by regret on the buyer's verification
 
 ## 8. Development sequence
 
-1. **Specify and simulate.** Write the joint likelihood. For each module, show parameter and model recovery on synthetic respondents across the plausible range, including the ideal observer and boundary cases. No respondent collection.
+1. **Specify and simulate.** Done for T2, T3 and T5 ([recovery study](disposition-recovery-2026-09-27.md)). Write the joint likelihood. For each module, show parameter and model recovery on synthetic respondents across the plausible range, including the ideal observer and boundary cases. No respondent collection.
 2. **First modules: T2, T3, T5.** They map directly onto the dossier families already built (dependence, disclosure, verification) and give the fastest transfer test.
 3. **T4, the HGF module.** Next, with the change-point model as competitor. It needs longer sequences and is the most expensive to validate.
 4. **Agent acceptance and test–retest.** Astra and Sol at medium and low effort, Luna and Terra, with repeated fresh contexts for reliability.
@@ -221,9 +221,11 @@ It is measured by log score on reports and by regret on the buyer's verification
 - **Small dispositional differences among capable configurations.** Near-identical training may yield near-identical assumptions. That is a result, not a failure; it would still separate them from weaker configurations and from humans.
 - **Many parameters.** Nothing is fitted jointly from one module. Each module identifies its own subset, and the hierarchical joint model is tested for recovery before use.
 
-## 10. Decisions needed
+## 10. Decisions
 
-1. **HGF depth.** Is the binary three-level HGF with \(\kappa\) fixed and \(\omega_2\), \(\vartheta\) free acceptable, with a change-point observer as competitor, or do you want \(\kappa\) estimated?
-2. **Certainty function.** The proposal uses \(|2p-1|\), which is linear and interpretable. Negative entropy is smoother and has a stronger theoretical pedigree. Or should both be fitted and compared?
-3. **Elicited expectations.** Are behavioral commitments before evidence (for example "probability the next figure repeats an earlier one") acceptable as model inputs, or should parameters come only from forecasts and choices?
-4. **First modules.** T2, T3 and T5 first, as proposed, or T4 first given its centrality?
+Recorded 27 September 2026. The [first recovery study](disposition-recovery-2026-09-27.md) settled decisions 2 and 3.
+
+1. **HGF depth:** the binary three-level HGF with \(\kappa\) fixed and \(\omega_2\), \(\vartheta\) free, against a change-point observer.
+2. **Certainty function:** fit both \(|2p-1|\) and negative entropy per respondent. The T5 design distinguishes them (97–100% model recovery at material values), and \(\lambda_c\) is read within the selected function.
+3. **Elicited expectations:** include structure probes (probability that a report was relayed, or that a sender is selective). Without them T2 confounds \(\delta\) with \(\gamma\).
+4. **First modules:** T2, T3 and T5. Their synthetic recovery passed; T4 follows.
