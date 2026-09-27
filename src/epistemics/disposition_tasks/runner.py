@@ -1,8 +1,9 @@
 """Bounded fresh-context collection of the disposition modules; operator-only.
 
-The plan freezes configurations, modules, cover stories, repeats, case orders and limits before
-any response. Each context answers one module's 24 checkpoints. Repeating a cover in a fresh
-context measures retest agreement; changing the cover measures dependence on wording.
+The plan freezes groups of configurations, modules and contexts (variant, cover, repeat), case
+orders, reveal seeds and limits before any response. Each context answers one module's 24
+checkpoints. Repeating a context measures retest agreement; changing the cover or the variant
+measures dependence on wording and framing.
 """
 
 import argparse
@@ -20,7 +21,7 @@ from pathlib import Path
 
 from epistemics.benchmark.runner import DISABLED_FEATURES, codex_version, read_usage
 from epistemics.disposition_tasks.collection import CASES, create, export, fingerprint, load_report
-from epistemics.disposition_tasks.render import COVERS, MODULES
+from epistemics.disposition_tasks.render import COVERS, LEARNING_RATES, MODULES, VARIANTS
 from epistemics.investigation_pilot.runner import EXTRA_DISABLED
 from epistemics.research_world3.runner import CONFIGURATIONS
 from epistemics.service import now
@@ -41,8 +42,28 @@ PROMPT = (
     "questions and describe confusing instructions or interface friction. Do not guess "
     "cognitive labels or evaluation scores."
 )
-# (cover, repeat): two same-cover contexts give retest agreement; a second cover tests wording.
-CONTEXTS = (("markets", 1), ("markets", 2), ("ecology", 1))
+# (variant, cover, repeat): repeats give retest agreement; covers and variants test wording.
+CONTEXTS = (("paired", "markets", 1), ("paired", "markets", 2), ("paired", "ecology", 1))
+PRESETS = {
+    "acceptance": ({"configurations": ("astra", "sol"), "modules": MODULES, "contexts": CONTEXTS},),
+    # Weaker configurations on the paired tasks; the frontier pair on the new framings.
+    "round-2": (
+        {
+            "configurations": ("luna", "terra", "astra-low", "sol-low"),
+            "modules": MODULES,
+            "contexts": (("paired", "markets", 1),),
+        },
+        {
+            "configurations": ("astra", "sol"),
+            "modules": ("corroboration", "disclosure"),
+            "contexts": tuple(
+                (v, "markets", 1)
+                for v in ("open", "suggestive", "reassuring", "learning-high", "learning-low")
+            ),
+        },
+    ),
+}
+AUDITED_CASES = len(COVERS) * 24 * (2 * len(VARIANTS) + 1)
 
 
 def command(root, entry, config):
@@ -55,37 +76,51 @@ def command(root, entry, config):
     ] + [PROMPT]
 
 
+def check_groups(groups):
+    runs = set()
+    for group in groups:
+        configurations, modules = group["configurations"], group["modules"]
+        contexts = [tuple(c) for c in group["contexts"]]
+        if not configurations or set(configurations) - set(CONFIGURATIONS):
+            raise ValueError("Unknown configuration")
+        if not modules or set(modules) - set(MODULES):
+            raise ValueError("Unknown module")
+        if not contexts or any(
+            variant not in VARIANTS or cover not in COVERS or repeat < 1
+            for variant, cover, repeat in contexts
+        ):
+            raise ValueError("Contexts are (variant, cover, repeat) with known values")
+        for config in configurations:
+            for module in modules:
+                for variant, cover, repeat in contexts:
+                    if module == "checks" and variant != "paired":
+                        raise ValueError("The checks module has only the paired variant")
+                    key = (config, module, variant, cover, repeat)
+                    if key in runs:
+                        raise ValueError("Every run must be distinct")
+                    runs.add(key)
+    return sorted(runs)
+
+
 def prepare(
     root,
     validation_paths,
     *,
     phase="acceptance",
-    configurations=("astra", "sol"),
-    modules=MODULES,
-    contexts=CONTEXTS,
+    groups=PRESETS["acceptance"],
     max_tokens=10000000,
 ):
     root = Path(root).resolve()
-    if not configurations or set(configurations) - set(CONFIGURATIONS):
-        raise ValueError("Unknown configuration")
-    if not modules or set(modules) - set(MODULES):
-        raise ValueError("Unknown module")
-    contexts = [tuple(c) for c in contexts]
-    if (
-        not contexts
-        or len(set(contexts)) != len(contexts)
-        or any(cover not in COVERS or repeat < 1 for cover, repeat in contexts)
-    ):
-        raise ValueError("Contexts are distinct (cover, repeat) pairs with known covers")
+    planned = check_groups(groups)
     validations = []
     for path in validation_paths:
         raw = Path(path).read_bytes()
         result = json.loads(raw)
         if (
-            result.get("schema_version") != "epistemics.disposition-task-validation.v1"
+            result.get("schema_version") != "epistemics.disposition-task-validation.v2"
             or not result["passed"]
             or result["implementation_sha256"] != fingerprint()
-            or result["audit"]["cases"] != len(MODULES) * len(COVERS) * CASES
+            or result["audit"]["cases"] != AUDITED_CASES
         ):
             raise ValueError("Require passed full validation of this exact implementation")
         validations.append({"sha256": digest(raw), "seed": result["seed"]})
@@ -137,26 +172,26 @@ def prepare(
             "authentication": "existing_chatgpt_login",
             "implementation_sha256": fingerprint(),
         }
-        for label in configurations
+        for label in sorted({config for config, *_ in planned})
     }
     case_seed, order_seed = secrets.randbits(63), secrets.randbits(63)
     shuffle = random.Random(case_seed)
     runs = []
-    for config in configs:
-        for module in modules:
-            for cover, repeat in contexts:
-                order = list(range(CASES))
-                shuffle.shuffle(order)
-                runs.append(
-                    {
-                        "run_id": f"{config}-{module}-{cover}{repeat}",
-                        "configuration": config,
-                        "module": module,
-                        "cover": cover,
-                        "repeat": repeat,
-                        "order": order,
-                    }
-                )
+    for config, module, variant, cover, repeat in planned:
+        order = list(range(CASES))
+        shuffle.shuffle(order)
+        runs.append(
+            {
+                "run_id": f"{config}-{module}-{variant}-{cover}{repeat}",
+                "configuration": config,
+                "module": module,
+                "variant": variant,
+                "cover": cover,
+                "repeat": repeat,
+                "order": order,
+                "reveal_seed": secrets.randbits(63) if variant in LEARNING_RATES else None,
+            }
+        )
     random.Random(order_seed).shuffle(runs)
     plan = {
         "schema_version": "epistemics.disposition-plan.v1",
@@ -165,8 +200,10 @@ def prepare(
         "implementation_sha256": fingerprint(),
         "validations": validations,
         "configurations": configs,
-        "modules": list(modules),
-        "contexts": [list(c) for c in contexts],
+        "groups": [
+            {k: [list(c) for c in v] if k == "contexts" else list(v) for k, v in g.items()}
+            for g in groups
+        ],
         "case_order_seed": case_seed,
         "order_seed": order_seed,
         "runs": runs,
@@ -179,10 +216,10 @@ def prepare(
             "concurrency": 2,
         },
         "analysis": {
-            "primary": "Per-context estimates of the dependence prior, suspicion of silence and value of certainty, with 90% intervals",
+            "primary": "Per-context estimates of the dependence prior, suspicion of silence and value of certainty, with 90% intervals; in learning variants the starting value and whether it is updated from revealed cases",
             "secondary": [
-                "retest agreement between same-cover contexts",
-                "agreement across cover stories",
+                "retest agreement between repeated contexts",
+                "agreement across cover stories and framings",
                 "evidence sensitivity, forecast bias and report noise",
                 "model comparison against the heuristic rivals and between certainty functions",
                 "usage, latency and completion answers",
@@ -213,6 +250,8 @@ def prepare(
             module=e["module"],
             cover=e["cover"],
             order=e["order"],
+            variant=e["variant"],
+            reveal_seed=e["reveal_seed"],
         )
     return plan
 
@@ -308,31 +347,41 @@ async def collect(root, entry, config, timeout):
 
 
 def headline(analysis):
-    """The disposition estimate a context contributes to retest comparisons."""
+    """The disposition estimate a context contributes to comparisons."""
     if analysis["module"] == "checks":
         selected = analysis["certainty_function"]["preferred"]
-        row = analysis["fits"][selected]["parameters"]["certainty_value"]
+        fits = analysis["fits"]["linear" if selected == "undetermined" else selected]
+        row = fits["parameters"]["certainty_value"]
         return {"parameter": f"certainty_value_{selected}", **row}
-    return {"parameter": "disposition", **analysis["fit"]["parameters"]["disposition"]}
+    result = {"parameter": "disposition", **analysis["fit"]["parameters"]["disposition"]}
+    if "learning" in analysis:
+        learning = analysis["learning"]
+        result["learning"] = {
+            "start": learning["parameters"]["start"],
+            "log2_strength": learning["parameters"]["log2_strength"],
+            "learning_probability": learning["learning_probability"],
+            "revealed_rate": analysis["revealed_rate"],
+        }
+    return result
 
 
 def agreement(estimates):
-    """Differences between same-cover repeats and between cover stories, per module."""
+    """Estimates per context, with differences between repeats and between paired covers."""
     result = {}
     for (config, module), rows in estimates.items():
-        by_context = {(r["cover"], r["repeat"]): r["estimate"] for r in rows}
-        entry = {"estimates": {f"{c}{r}": v for (c, r), v in sorted(by_context.items())}}
-        same = [
-            (by_context[(c, 1)], by_context[(c, 2)])
-            for c in COVERS
-            if (c, 1) in by_context and (c, 2) in by_context
+        by_context = {(r["variant"], r["cover"], r["repeat"]): r["estimate"] for r in rows}
+        entry = {"estimates": {f"{v}/{c}{r}": e for (v, c, r), e in sorted(by_context.items())}}
+        repeats = [
+            (by_context[(v, c, 1)], by_context[(v, c, 2)])
+            for v, c, r in by_context
+            if r == 1 and (v, c, 2) in by_context
         ]
-        if same:
-            entry["same_cover_differences"] = [
+        if repeats:
+            entry["repeat_differences"] = [
                 abs(a["mean"] - b["mean"]) if a["parameter"] == b["parameter"] else None
-                for a, b in same
+                for a, b in repeats
             ]
-        firsts = [by_context[(c, 1)] for c in COVERS if (c, 1) in by_context]
+        firsts = [by_context[("paired", c, 1)] for c in COVERS if ("paired", c, 1) in by_context]
         if len(firsts) == 2:
             a, b = firsts
             entry["cross_cover_difference"] = (
@@ -360,7 +409,8 @@ def summarize(root):
         cfg = plan["configurations"][e["configuration"]]
         if (
             execution["status"] != "completed"
-            or (m.module, m.cover, m.order) != (e["module"], e["cover"], e["order"])
+            or (m.module, m.cover, m.variant, m.order)
+            != (e["module"], e["cover"], e["variant"], e["order"])
             or m.participant.configuration.configuration_sha256 != digest(encoded(cfg))
             or m.response_origin != "agent"
             or m.created_at.isoformat() < plan["created_at"]
@@ -368,7 +418,7 @@ def summarize(root):
             raise ValueError("Run does not match prospective plan")
         top = headline(report.analysis)
         estimates.setdefault((e["configuration"], e["module"]), []).append(
-            {"cover": e["cover"], "repeat": e["repeat"], "estimate": top}
+            {"variant": e["variant"], "cover": e["cover"], "repeat": e["repeat"], "estimate": top}
         )
         calls = [t["tool"] for t in execution["tools"]]
         runs[e["run_id"]] = {
@@ -465,26 +515,15 @@ def main():
     p.add_argument("directory", type=Path)
     p.add_argument("--validation", action="append", type=Path, required=True)
     p.add_argument("--phase", default="acceptance")
-    p.add_argument("--configuration", action="append", choices=sorted(CONFIGURATIONS))
-    p.add_argument("--module", action="append", choices=MODULES)
-    p.add_argument(
-        "--context",
-        action="append",
-        help="cover:repeat, e.g. markets:1 (default markets:1, markets:2, ecology:1)",
-    )
+    p.add_argument("--preset", choices=sorted(PRESETS), default="acceptance")
     p.add_argument("--max-tokens", type=int, default=10000000)
     a = p.parse_args()
-    contexts = CONTEXTS
-    if a.context:
-        contexts = tuple((c.split(":")[0], int(c.split(":")[1])) for c in a.context)
     root = a.directory.resolve()
     plan = prepare(
         root,
         a.validation,
         phase=a.phase,
-        configurations=tuple(a.configuration or ("astra", "sol")),
-        modules=tuple(a.module or MODULES),
-        contexts=contexts,
+        groups=PRESETS[a.preset],
         max_tokens=a.max_tokens,
     )
     asyncio.run(run(root, plan))

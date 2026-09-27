@@ -84,6 +84,8 @@ def test_check_values_separate_decision_value_and_certainty_functions():
     _, entropy = observers.check_values(items, "entropy")
     assert np.allclose(decision[:12], 0) and np.allclose(decision[18:], 0)
     assert np.all(decision[12:18] > 5)
+    # Whole decision values: flooring and rounding agree for a decision-value respondent.
+    assert np.allclose(decision, np.round(decision))
     one_sided = ((items["high"] <= 0.5) | (items["low"] >= 0.5)).astype(bool)
     assert one_sided.sum() == 9
     assert np.allclose(linear[one_sided], 0, atol=1e-12)
@@ -138,8 +140,12 @@ def test_small_validation_run_is_immutable(tmp_path):
     assert set(gates["checks"]) == {
         "corroboration_disposition_recovery",
         "corroboration_model_recovery",
+        "corroboration_learning_detection",
+        "corroboration_learning_start_recovery",
         "disclosure_disposition_recovery",
         "disclosure_model_recovery",
+        "disclosure_learning_detection",
+        "disclosure_learning_start_recovery",
         "certainty_value_recovery_linear",
         "certainty_value_recovery_entropy",
     }
@@ -152,3 +158,37 @@ def test_small_validation_run_is_immutable(tmp_path):
         run(output, seed=7, respondents=10, model_datasets=5, boundary_repetitions=1)
     with pytest.raises(ValueError, match="at least 10 respondents"):
         validate(7, respondents=3)
+
+
+def test_revealed_structures_update_a_learned_base_rate():
+    items = design.corroboration(probes=True)
+    posterior = observers.structure_posterior("corroboration", items, 0.8)
+    single = items["kind"] == "single"
+    conflict = (items["kind"] == "pair") & (items["report_a"] != items["report_b"])
+    assert np.all(np.isnan(posterior[single])) and np.allclose(posterior[conflict], 0)
+    order = [5, 8, 0, 9, 10] + [i for i in range(24) if i not in (5, 8, 0, 9, 10)]
+    revealed = [None] * 24
+    revealed[5], revealed[8], revealed[9] = False, True, True
+    successes, trials = observers.revealed_counts(order, revealed)
+    assert (successes[5], trials[5]) == (0, 0)
+    assert (successes[0], trials[0]) == (1, 2)  # The single item reveals nothing.
+    assert (successes[10], trials[10]) == (2, 3)
+    assert observers.learned(0.5, 2.0, 2, 3) == pytest.approx(0.6)
+    assert observers.learned(0.5, 1024.0, 2, 3) == pytest.approx(0.5, abs=1e-3)
+
+
+def test_learning_respondent_is_detected_and_start_recovered():
+    rng = np.random.default_rng(5)
+    items = design.disclosure(probes=True)
+    posterior = observers.structure_posterior("disclosure", items, 0.8)
+    revealed = [bool(rng.random() < p) for p in posterior]
+    order = rng.permutation(24)
+    successes, trials = observers.revealed_counts(order, revealed)
+    fits = {}
+    for strength in (2.0, 1024.0):
+        delta = observers.learned(0.5, strength, successes, trials)
+        reports = sample_reports(observers.disclosure(items, delta, 1.0), 0.05, rng)
+        fits[strength] = fit.fit_learning("disclosure", items, reports, successes, trials)
+    assert fits[2.0]["learning_probability"] > 0.9
+    assert fits[1024.0]["learning_probability"] < 0.1
+    assert fits[1024.0]["parameters"]["start"]["mean"] == pytest.approx(0.5, abs=0.05)

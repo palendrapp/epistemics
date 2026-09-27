@@ -17,7 +17,7 @@ from epistemics.disposition_tasks.collection import (
     load_report,
 )
 from epistemics.disposition_tasks.presentation import Answer
-from epistemics.disposition_tasks.render import render
+from epistemics.disposition_tasks.render import items_for, render
 from epistemics.disposition_tasks.simulation import simulate
 from epistemics.disposition_tasks.validation import PRIVATE, audit, validate
 from epistemics.source_learning.simulation import PARTICIPANT
@@ -35,10 +35,11 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 144
+    assert audit()["cases"] == 624
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
+    assert "uses different wording from" in conflict["case"]
     probe = render("corroboration", "ecology", 18)
     assert probe["question"].startswith("What is the probability that Station S59 forwarded")
     silence = render("disclosure", "markets", 3)
@@ -195,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 18
+    assert result["passed"] and len(result["contexts"]) == 28
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -203,24 +204,43 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
         paths.append(p)
     with pytest.raises(ValueError, match="two distinct"):
         runner.prepare(tmp_path / "one", paths[:1])
-    with pytest.raises(ValueError, match="Contexts"):
-        runner.prepare(tmp_path / "two", paths, contexts=(("weather", 1),))
+    bad = [
+        {"configurations": ["astra"], "modules": ["checks"], "contexts": [["open", "markets", 1]]}
+    ]
+    with pytest.raises(ValueError, match="only the paired"):
+        runner.prepare(tmp_path / "two", paths, groups=bad)
+    groups = [
+        {
+            "configurations": ["astra"],
+            "modules": ["checks", "disclosure"],
+            "contexts": runner.CONTEXTS,
+        },
+        {
+            "configurations": ["luna"],
+            "modules": ["corroboration"],
+            "contexts": [["learning-high", "markets", 1]],
+        },
+    ]
     root = tmp_path / "acceptance"
-    plan = runner.prepare(root, paths, configurations=("astra",), modules=("checks", "disclosure"))
-    assert len(plan["runs"]) == 6
-    assert {(r["module"], r["cover"], r["repeat"]) for r in plan["runs"]} == {
-        (m, c, r) for m in ("checks", "disclosure") for c, r in runner.CONTEXTS
-    }
+    plan = runner.prepare(root, paths, groups=groups)
+    assert len(plan["runs"]) == 7 and set(plan["configurations"]) == {"astra", "luna"}
+    assert {(r["module"], r["variant"], r["cover"], r["repeat"]) for r in plan["runs"]} == {
+        (m, v, c, r) for m in ("checks", "disclosure") for v, c, r in runner.CONTEXTS
+    } | {("corroboration", "learning-high", "markets", 1)}
+    assert all((r["reveal_seed"] is None) == (r["variant"] == "paired") for r in plan["runs"])
+    assert len(runner.check_groups(runner.PRESETS["round-2"])) == 32
     orders = [tuple(r["order"]) for r in plan["runs"]]
     assert len(set(orders)) == len(orders)
     for e in plan["runs"]:
         s = CollectionService(root / "collections" / e["run_id"])
-        assert (s.manifest.module, s.manifest.cover, s.manifest.order) == (
+        m = s.manifest
+        assert (m.module, m.cover, m.variant, m.order) == (
             e["module"],
             e["cover"],
+            e["variant"],
             e["order"],
         )
-        argv = runner.command(root, e, plan["configurations"]["astra"])
+        argv = runner.command(root, e, plan["configurations"][e["configuration"]])
         assert any("disposition_tasks.mcp_server" in a for a in argv)
         assert any("EPISTEMICS_DISPOSITION_TASKS" in a for a in argv)
         assert not any("source_panel" in a for a in argv[:-1]) and argv[-1] == runner.PROMPT
@@ -237,6 +257,7 @@ def test_agreement_compares_repeats_and_covers():
 
     def row(cover, repeat, mean):
         return {
+            "variant": "paired",
             "cover": cover,
             "repeat": repeat,
             "estimate": {"parameter": "disposition", "mean": mean},
@@ -251,6 +272,70 @@ def test_agreement_compares_repeats_and_covers():
             ]
         }
     )["astra/corroboration"]
-    assert result["same_cover_differences"] == [pytest.approx(0.1)]
+    assert result["repeat_differences"] == [pytest.approx(0.1)]
     assert result["cross_cover_difference"] == pytest.approx(0.4)
-    assert np.isclose(result["estimates"]["ecology1"]["mean"], 0.7)
+    assert np.isclose(result["estimates"]["paired/ecology1"]["mean"], 0.7)
+
+
+def test_variants_change_only_the_framing_sentences():
+    paired = render("disclosure", "markets", 1, "paired")["case"]
+    open_ = render("disclosure", "markets", 1, "open")["case"]
+    suggestive = render("disclosure", "markets", 1, "suggestive")["case"]
+    assert "could be either kind" in paired and "could be either kind" not in open_
+    assert paired.replace(" Brightwater Cable could be either kind.", "") == open_
+    assert "about to ask investors for new financing" in suggestive
+    assert (
+        suggestive.replace("\n\nBrightwater Cable is about to ask investors for new financing.", "")
+        == open_
+    )
+    reassuring = render("corroboration", "ecology", 10, "reassuring")["case"]
+    assert "may have sampled" not in reassuring and "different sampling method" in reassuring
+    with pytest.raises(ValueError, match="variant"):
+        render("checks", "markets", 0, "open")
+
+
+def test_learning_variant_reveals_each_answered_case(tmp_path):
+    with pytest.raises(ValueError, match="reveal seed"):
+        create(
+            tmp_path / "x",
+            PARTICIPANT,
+            module="corroboration",
+            cover="markets",
+            order=ORDER,
+            variant="learning-high",
+            synthetic=True,
+        )
+    truth = {"start": 0.5, "strength": 2.0, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+    report = simulate(
+        tmp_path / "run",
+        module="corroboration",
+        cover="markets",
+        order=ORDER,
+        truth=truth,
+        seed=6,
+        variant="learning-high",
+        reveal_seed=11,
+    )
+    manifest = report.manifest
+    kinds = items_for("corroboration")["kind"]
+    assert all(
+        (r is None) == (k == "single") for r, k in zip(manifest.revealed, kinds, strict=True)
+    )
+    assert "previous_case" not in report.observations[0].trial
+    shown = [o.trial["previous_case"] for o in report.observations[1:]]
+    assert all(s.startswith("Revealed after case") or "nothing to reveal" in s for s in shown)
+    instructions = CollectionService(tmp_path / "run").describe()["instructions"]
+    assert "same population" in instructions and "nothing carries over" not in instructions
+    learning = report.analysis["learning"]
+    assert learning["learning_probability"] > 0.9
+    assert learning["parameters"]["start"]["mean"] == pytest.approx(0.5, abs=0.15)
+
+
+def test_value_of_certainty_near_zero_selects_no_function(tmp_path):
+    truth = {"function": "linear", "certainty_value": 0.0, "decision_weight": 1.0, "wtp_sd": 0.2}
+    report = simulate(
+        tmp_path / "run", module="checks", cover="markets", order=ORDER, truth=truth, seed=8
+    )
+    assert report.analysis["certainty_function"]["preferred"] == "undetermined"
+    assert report.analysis["mean_points"]["zero_decision_value"] == 0
+    assert report.analysis["mean_points"]["positive_decision_value"] == pytest.approx(59 / 6)

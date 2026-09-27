@@ -24,10 +24,11 @@ _SINGLE = [
     ("single", 0.7, 0.7, -1, 0.5, 0, "none"),
 ]
 # A relay cannot contradict its source, so conflicting pairs are independent whatever the cue.
+# Their cues never claim identical wording, which would describe an impossible story.
 _CONFLICT = [
-    ("pair", 0.5, 0.8, 1, 0.65, -1, "strong_identical"),
+    ("pair", 0.5, 0.8, 1, 0.65, -1, "strong_different"),
     ("pair", 0.5, 0.65, -1, 0.8, 1, "moderate_different"),
-    ("pair", 0.4, 0.75, 1, 0.75, -1, "moderate_identical"),
+    ("pair", 0.4, 0.75, 1, 0.75, -1, "weak_different"),
     ("pair", 0.6, 0.7, -1, 0.7, 1, "none"),
 ]
 _MATCHING_CUES = [
@@ -98,7 +99,9 @@ _DISCLOSURE_PROBES = [
 # loss / (gain + loss). Four groups of six: zero decision value with outcomes on both sides of
 # 50%; zero decision value with outcomes on one side; positive decision value; and strong
 # checks with zero decision value. Every stated prior is the whole-percentage mixture of the two
-# stated posteriors, so the chance of a positive result is itself a whole percentage.
+# stated posteriors, so the chance of a positive result is itself a whole percentage. Decision
+# values are whole points, so the optimal whole-point price (the floor of the value) equals the
+# nearest whole point for a respondent who values checks only for their decision value.
 _CHECKS = [
     # Zero decision value, outcomes straddle 50%.
     (0.5, 0.65, 0.35, 30, 70),
@@ -118,9 +121,9 @@ _CHECKS = [
     (0.55, 0.8, 0.3, 50, 50),
     (0.4, 0.7, 0.2, 50, 50),
     (0.35, 0.6, 0.1, 70, 30),
-    (0.65, 0.85, 0.45, 30, 70),
+    (0.65, 0.86, 0.44, 30, 70),
     (0.5, 0.9, 0.1, 30, 70),
-    (0.5, 0.75, 0.25, 50, 50),
+    (0.5, 0.76, 0.24, 50, 50),
     # Strong checks, zero decision value.
     (0.65, 0.95, 0.35, 70, 30),
     (0.41, 0.65, 0.05, 30, 70),

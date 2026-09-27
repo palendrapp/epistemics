@@ -1,7 +1,8 @@
 """One fresh context over one module's 24 checkpoints; transactional and immutable.
 
-The manifest binds the implementation fingerprint, the evaluator-chosen case order and the
-exact bytes of every rendered case. Each public checkpoint is locked before its answer.
+The manifest binds the implementation fingerprint, the evaluator-chosen case order, the variant,
+any structures to be revealed (learning variants) and the exact bytes of every rendered case.
+Each public checkpoint is locked before its answer.
 """
 
 import json
@@ -12,12 +13,14 @@ from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
+import numpy as np
 from pydantic import AwareDatetime, Field, model_validator
 
 from epistemics.disposition_tasks import VERSION
 from epistemics.disposition_tasks.presentation import Answer, describe, present
-from epistemics.disposition_tasks.render import render
+from epistemics.disposition_tasks.render import LEARNING_RATES, items_for, render, reveal
 from epistemics.dispositions import DESIGN_VERSION, MODEL_VERSION
+from epistemics.dispositions.observers import structure_posterior
 from epistemics.models import Model
 from epistemics.participants import Digest, Participant, ParticipantDescriptor
 from epistemics.service import now
@@ -25,6 +28,7 @@ from epistemics.source_learning.storage import digest, encoded, save
 
 Module = Literal["corroboration", "disclosure", "checks"]
 Cover = Literal["markets", "ecology"]
+Variant = Literal["paired", "open", "suggestive", "reassuring", "learning-high", "learning-low"]
 CASES = 24
 
 
@@ -43,12 +47,12 @@ def fingerprint():
 
 
 class Manifest(Model):
-    schema_version: Literal["epistemics.disposition-collection.v1"] = (
-        "epistemics.disposition-collection.v1"
+    schema_version: Literal["epistemics.disposition-collection.v2"] = (
+        "epistemics.disposition-collection.v2"
     )
-    battery_version: Literal["disposition-tasks/0.1.0"] = VERSION
-    model_version: Literal["disposition-model/0.1.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.1.0"] = DESIGN_VERSION
+    battery_version: Literal["disposition-tasks/0.2.0"] = VERSION
+    model_version: Literal["disposition-model/0.2.0"] = MODEL_VERSION
+    design_version: Literal["disposition-design/0.2.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest
@@ -56,7 +60,11 @@ class Manifest(Model):
     response_origin: Literal["human", "agent", "synthetic"]
     module: Module
     cover: Cover
+    variant: Variant = "paired"
     order: list[int] = Field(min_length=CASES, max_length=CASES)
+    # Learning variants only: each item's structure (relay or selective sender), aligned with
+    # item index and shown after that case is answered; None where there is nothing to reveal.
+    revealed: list[bool | None] | None = None
     context_policy: Literal["continuous_within_collection_no_outcome_feedback"] = (
         "continuous_within_collection_no_outcome_feedback"
     )
@@ -71,16 +79,47 @@ class Manifest(Model):
             raise ValueError("Case order must be a permutation of the design items")
         if len(self.case_sha256) != CASES:
             raise ValueError("One case commitment per checkpoint")
+        if self.module == "checks" and self.variant != "paired":
+            raise ValueError("The checks module has only the paired variant")
+        learning = self.variant in LEARNING_RATES
+        if learning != (self.revealed is not None):
+            raise ValueError("Revealed structures exist exactly for learning variants")
+        if learning:
+            nothing = items_for(self.module)["kind"] == "single"
+            if len(self.revealed) != CASES or any(
+                (r is None) != bool(n) for r, n in zip(self.revealed, nothing, strict=True)
+            ):
+                raise ValueError("Reveal a structure for every item that has one")
         return self
 
 
 def rendered(manifest, case_index):
-    return render(manifest.module, manifest.cover, manifest.order[case_index])
+    return render(manifest.module, manifest.cover, manifest.order[case_index], manifest.variant)
 
 
-def create(directory, participant, *, module, cover, order, synthetic=False):
+def draw_revealed(module, variant, seed):
+    """Structures drawn from their posterior given each case's evidence at the world rate."""
+    rng = np.random.default_rng(seed)
+    posterior = structure_posterior(module, items_for(module), LEARNING_RATES[variant])
+    return [None if np.isnan(p) else bool(rng.random() < p) for p in posterior]
+
+
+def create(
+    directory,
+    participant,
+    *,
+    module,
+    cover,
+    order,
+    variant="paired",
+    reveal_seed=None,
+    synthetic=False,
+):
     participant = ParticipantDescriptor.model_validate(participant).root
     order = [int(i) for i in order]
+    if (variant in LEARNING_RATES) != (reveal_seed is not None):
+        raise ValueError("Learning variants, and only they, need an evaluator reveal seed")
+    revealed = draw_revealed(module, variant, reveal_seed) if reveal_seed is not None else None
     manifest = Manifest(
         study_id=str(uuid4()),
         created_at=now(),
@@ -89,8 +128,10 @@ def create(directory, participant, *, module, cover, order, synthetic=False):
         response_origin="synthetic" if synthetic else participant.kind,
         module=module,
         cover=cover,
+        variant=variant,
         order=order,
-        case_sha256=[digest(encoded(render(module, cover, i))) for i in order],
+        revealed=revealed,
+        case_sha256=[digest(encoded(render(module, cover, i, variant))) for i in order],
     )
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=False, mode=0o700)
@@ -115,7 +156,13 @@ def load(directory):
 
 
 def public_trial(manifest, case_index):
-    return present(case_index + 1, CASES, rendered(manifest, case_index))
+    previous = None
+    if manifest.revealed is not None and case_index > 0:
+        index = manifest.order[case_index - 1]
+        previous = reveal(
+            manifest.module, manifest.cover, index, case_index, manifest.revealed[index]
+        )
+    return present(case_index + 1, CASES, rendered(manifest, case_index), previous)
 
 
 class CollectionService:
@@ -240,7 +287,7 @@ class Observation(Model):
 
 
 class Report(Model):
-    schema_version: Literal["epistemics.disposition-report.v1"] = "epistemics.disposition-report.v1"
+    schema_version: Literal["epistemics.disposition-report.v2"] = "epistemics.disposition-report.v2"
     manifest: Manifest
     manifest_sha256: Digest
     completed_at: AwareDatetime
@@ -267,7 +314,7 @@ LIMITATIONS = [
     "Fictional formal cases with stated numeric likelihoods; parameters are conditional on this task, wording and cover story.",
     "Probability reports and stated maximum prices are observations, not internal beliefs or valuations.",
     "Parameters come from one context; stability needs repeated fresh contexts and paraphrase variation.",
-    "No outcomes, prices or check results are revealed; learning is not measured.",
+    "No outcomes, prices or check results are revealed. Learning variants reveal only how earlier cases were produced, drawn at a fixed world rate given each case's evidence.",
     "Execution metadata is operator-asserted; no model identity attestation.",
 ]
 

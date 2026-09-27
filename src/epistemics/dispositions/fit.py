@@ -19,7 +19,11 @@ BIAS = np.round(np.arange(-0.6, 0.601, 0.15), 2)
 REPORT_SD = np.array([0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.65, 0.8, 1.0])
 CERTAINTY_VALUE = np.arange(-40.0, 160.1, 4.0)
 DECISION_WEIGHT = np.round(np.arange(0.5, 1.501, 0.1), 2)
-WTP_SD = np.array([1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 14.0])
+WTP_SD = np.array([0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 14.0])
+
+# Prior strength (pseudo-observations) for learned base rates; 1024 is effectively no learning.
+STRENGTH = np.array([0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 1024.0])
+LEARNING_LIMIT = 32.0
 
 REPORT_MODELS = {
     "dependence": observers.corroboration,
@@ -81,3 +85,38 @@ def fit_checks(function, items, wtp):
         "wtp_sd": WTP_SD,
     }
     return summarize(log_likelihood, grids)
+
+
+def fit_learning(model, items, reports, successes, trials):
+    """A T2 or T3 respondent who learns the base rate from structures revealed after each case.
+
+    The disposition at each case is the posterior mean of a Beta prior with mean `start` and
+    strength `strength` after the revealed cases shown before it.
+    """
+    delta = observers.learned(
+        DISPOSITION[:, None, None, None],
+        STRENGTH[None, :, None, None],
+        successes,
+        trials,
+    )
+    latent = REPORT_MODELS[model](items, delta, GAMMA[None, None, :, None])
+    forecast = (items["kind"] != "probe").astype(float)
+    means = latent[:, :, :, None, :] + BIAS[None, None, None, :, None] * forecast
+    log_likelihood = np.stack(
+        [report_log_likelihood(means, reports, sd) for sd in REPORT_SD], axis=-1
+    )
+    grids = {
+        "start": DISPOSITION,
+        "log2_strength": np.log2(STRENGTH),
+        "gamma": GAMMA,
+        "bias": BIAS,
+        "report_sd": REPORT_SD,
+    }
+    result = summarize(log_likelihood, grids)
+    posterior = np.exp(log_likelihood - logsumexp(log_likelihood))
+    marginal = posterior.sum(axis=(0, 2, 3, 4))
+    # Equal prior weight on learning and on no learning, whatever the grid's composition.
+    learning = STRENGTH <= LEARNING_LIMIT
+    odds = marginal[learning].mean() / marginal[~learning].mean()
+    result["learning_probability"] = float(odds / (1 + odds))
+    return result

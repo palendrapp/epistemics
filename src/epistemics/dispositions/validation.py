@@ -22,6 +22,11 @@ GATES = {
     # Intervals span whole grid cells, so over-coverage is expected and not screened.
     "minimum_interval_coverage": 0.8,
     "minimum_model_recovery_accuracy": 0.85,
+    # Learned base rates: detect learning (prior strength <= 16) against none (strength 1024), and
+    # recover the starting disposition where learning is slow enough for it to matter (>= 8).
+    "minimum_learning_detection_accuracy": 0.85,
+    "minimum_start_correlation": 0.85,
+    "maximum_start_mae": 0.12,
 }
 REPORT_PRIOR = {
     "disposition": (0.0, 1.0),
@@ -47,6 +52,16 @@ MATERIAL_CERTAINTY_VALUE = {"linear": (30.0, 80.0), "entropy": (60.0, 160.0)}
 MODULES = {
     "corroboration": ("dependence", "fixed_discount", design.corroboration),
     "disclosure": ("disclosure", "linear_skepticism", design.disclosure),
+}
+LEARNING = {
+    "world_rates": (0.2, 0.8),
+    "no_learning_share": 0.25,
+    "no_learning_strength": 1024.0,
+    "log2_strength": (-1.0, 6.0),
+    "learning_if_strength_at_most": 16.0,
+    "start_scored_if_strength_at_least": 8.0,
+    # Learning is invisible when the starting disposition already matches the revealed rate.
+    "detection_if_start_differs_from_rate_by": 0.25,
 }
 REPORT_GRIDS = {
     "disposition": fit.DISPOSITION,
@@ -212,6 +227,95 @@ def boundaries(model, items, repetitions, rng):
     return cells
 
 
+def learning_recovery(module, model, items, respondents, rng):
+    """Respondents who learn the base rate from structures revealed after each case."""
+    forecast = items["kind"] != "probe"
+    rows = []
+    for k in range(respondents):
+        rate = LEARNING["world_rates"][k % len(LEARNING["world_rates"])]
+        order = rng.permutation(len(forecast))
+        posterior = observers.structure_posterior(module, items, rate)
+        revealed = [None if np.isnan(p) else bool(rng.random() < p) for p in posterior]
+        successes, trials = observers.revealed_counts(order, revealed)
+        truth = draw(rng, {k: v for k, v in REPORT_PRIOR.items() if k != "disposition"})
+        truth["start"] = float(rng.uniform(0, 1))
+        if rng.random() < LEARNING["no_learning_share"]:
+            truth["strength"] = LEARNING["no_learning_strength"]
+        else:
+            truth["strength"] = float(2 ** rng.uniform(*LEARNING["log2_strength"]))
+        delta = observers.learned(truth["start"], truth["strength"], successes, trials)
+        latent = fit.REPORT_MODELS[model](items, delta, truth["gamma"]) + truth["bias"] * forecast
+        reports = sample_reports(latent, truth["report_sd"], rng)
+        result = fit.fit_learning(model, items, reports, successes, trials)
+        rows.append({"rate": rate, "truth": truth, "result": result})
+    return rows
+
+
+def learning_metrics(rows, limit):
+    agent = [r for r in rows if r["truth"]["report_sd"] <= limit]
+    detection = {}
+    for label, keep in (
+        ("learning", lambda s: s <= LEARNING["learning_if_strength_at_most"]),
+        ("none", lambda s: s >= LEARNING["no_learning_strength"]),
+    ):
+        gap = LEARNING["detection_if_start_differs_from_rate_by"]
+        chosen = [
+            r["result"]["learning_probability"] > 0.5
+            for r in agent
+            if keep(r["truth"]["strength"]) and abs(r["truth"]["start"] - r["rate"]) >= gap
+        ]
+        correct = [c == (label == "learning") for c in chosen]
+        detection[label] = {"datasets": len(correct), "accuracy": float(np.mean(correct))}
+    scored = [
+        r for r in agent if r["truth"]["strength"] >= LEARNING["start_scored_if_strength_at_least"]
+    ]
+    truth = np.array([r["truth"]["start"] for r in scored])
+    mean = np.array([r["result"]["parameters"]["start"]["mean"] for r in scored])
+    lower, upper = cell_edges(fit.DISPOSITION)
+    lo = np.array(
+        [
+            lower[
+                np.searchsorted(
+                    fit.DISPOSITION, r["result"]["parameters"]["start"]["interval_90"][0]
+                )
+            ]
+            for r in scored
+        ]
+    )
+    hi = np.array(
+        [
+            upper[
+                np.searchsorted(
+                    fit.DISPOSITION, r["result"]["parameters"]["start"]["interval_90"][1]
+                )
+            ]
+            for r in scored
+        ]
+    )
+    finite = [r for r in agent if r["truth"]["strength"] < LEARNING["no_learning_strength"]]
+    log_truth = np.log2([r["truth"]["strength"] for r in finite])
+    log_mean = np.array([r["result"]["parameters"]["log2_strength"]["mean"] for r in finite])
+    return {
+        "respondents": len(agent),
+        "detection": detection,
+        "start": {
+            "respondents": len(scored),
+            "correlation": float(np.corrcoef(truth, mean)[0, 1]),
+            "mae": float(np.mean(np.abs(mean - truth))),
+            "coverage_90": float(np.mean((lo <= truth) & (truth <= hi))),
+        },
+        "log2_strength_correlation": float(np.corrcoef(log_truth, log_mean)[0, 1]),
+        "gamma_mae": float(
+            np.mean(
+                [
+                    abs(r["result"]["parameters"]["gamma"]["mean"] - r["truth"]["gamma"])
+                    for r in agent
+                ]
+            )
+        ),
+    }
+
+
 def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25):
     if respondents < 10 or model_datasets < 5 or boundary_repetitions < 1:
         raise ValueError("Use at least 10 respondents, 5 model datasets and 1 boundary repetition")
@@ -240,6 +344,16 @@ def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25)
                 rows, (model, rival), "report_sd", GATES["agent_noise_band"]["report_sd"]
             ),
             "boundaries": boundaries(model, designs["forecast"], boundary_repetitions, rng),
+            "learning": learning_metrics(
+                learning_recovery(
+                    module,
+                    model,
+                    designs["probe"],
+                    respondents,
+                    np.random.default_rng(seed + 200 + offset),
+                ),
+                GATES["agent_noise_band"]["report_sd"],
+            ),
         }
     rng = np.random.default_rng(seed + 100)
     items = design.checks()
@@ -285,6 +399,15 @@ def check_gates(results):
             and row["mae"] <= GATES["maximum_disposition_mae"]
             and row["coverage_90"] >= low
         )
+        learning = results[module]["learning"]
+        checks[f"{module}_learning_detection"] = all(
+            v["accuracy"] >= GATES["minimum_learning_detection_accuracy"]
+            for v in learning["detection"].values()
+        )
+        checks[f"{module}_learning_start_recovery"] = (
+            learning["start"]["correlation"] >= GATES["minimum_start_correlation"]
+            and learning["start"]["mae"] <= GATES["maximum_start_mae"]
+        )
         accuracy = results[module]["model_recovery"]["agent_noise"]
         checks[f"{module}_model_recovery"] = all(
             v["accuracy"] >= GATES["minimum_model_recovery_accuracy"] for v in accuracy.values()
@@ -306,7 +429,7 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
         return {k: v.tolist() for k, v in items.items()}
 
     return {
-        "schema_version": "epistemics.disposition-validation-plan.v1",
+        "schema_version": "epistemics.disposition-validation-plan.v2",
         "model_version": MODEL_VERSION,
         "design_version": DESIGN_VERSION,
         "implementation_sha256": fingerprint(),
@@ -316,6 +439,7 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
         "boundary_repetitions": boundary_repetitions,
         "generating_priors": {"reports": REPORT_PRIOR, "checks": CHECK_PRIOR},
         "model_recovery_regions": {**DISTINGUISHABLE, **MATERIAL_CERTAINTY_VALUE},
+        "learning": {**LEARNING, "fitted_strength": fit.STRENGTH.tolist()},
         "fitted_grids": {
             **{k: v.tolist() for k, v in REPORT_GRIDS.items()},
             **{k: v.tolist() for k, v in CHECK_GRIDS.items()},

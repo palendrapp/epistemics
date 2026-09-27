@@ -1,8 +1,9 @@
 """Per-context fits of the disposition model and its rivals.
 
 T2 and T3 estimate the disposition from all 24 checkpoints (forecasts and structure probes).
-Rival models make no probe predictions, so model comparison uses the 18 forecasts only. T5 fits
-both certainty functions to the stated maximum prices.
+Rival models make no probe predictions, so model comparison uses the 18 forecasts only. Learning
+variants add a fit in which the disposition is learned from structures revealed before each case.
+T5 fits both certainty functions to the stated maximum prices.
 """
 
 import numpy as np
@@ -34,6 +35,19 @@ def comparison(fits):
     }
 
 
+def certainty_comparison(fits):
+    """A function is selected only when the value of certainty is credibly positive.
+
+    The functions coincide at zero, and below zero every negative latent price is reported as
+    zero, so they then differ only through the few decision-relevant checks.
+    """
+    result = comparison(fits)
+    low, _ = fits[result["preferred"]]["parameters"]["certainty_value"]["interval_90"]
+    if low <= 0:
+        result["preferred"] = "undetermined"
+    return result
+
+
 def analyze(manifest, observations):
     items = items_for(manifest.module)
     field = "points" if manifest.module == "checks" else "probability"
@@ -47,13 +61,13 @@ def analyze(manifest, observations):
     model, rival = MODELS[manifest.module]
     if manifest.module == "checks":
         fits = {f: fit.fit_checks(f, items, responses) for f in (model, rival)}
-        selected = comparison(fits)
         decision, _ = observers.check_values(items, "linear")
-        zero = decision == 0
+        zero = np.abs(decision) < 1e-9
         return {
             "module": manifest.module,
+            "variant": manifest.variant,
             "fits": fits,
-            "certainty_function": selected,
+            "certainty_function": certainty_comparison(fits),
             "mean_points": {
                 "zero_decision_value": float(responses[zero].mean()),
                 "positive_decision_value": float(responses[~zero].mean()),
@@ -63,10 +77,16 @@ def analyze(manifest, observations):
     forecast = items["kind"] != "probe"
     only = subset(items, forecast)
     rivals = {m: fit.fit_reports(m, only, responses[forecast]) for m in (model, rival)}
-    return {
+    result = {
         "module": manifest.module,
+        "variant": manifest.variant,
         "fit": fit.fit_reports(model, items, responses),
         "forecast_only": rivals,
         "model_comparison": comparison(rivals),
         "rows": rows,
     }
+    if manifest.revealed is not None:
+        successes, trials = observers.revealed_counts(manifest.order, manifest.revealed)
+        result["learning"] = fit.fit_learning(model, items, responses, successes, trials)
+        result["revealed_rate"] = float(np.mean([r for r in manifest.revealed if r is not None]))
+    return result

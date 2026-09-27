@@ -7,14 +7,44 @@ from pydantic import Field, model_validator
 from epistemics.disposition_tasks import VERSION
 from epistemics.models import Model
 
-BASE = (
+INTRO = (
     "Answer questions about short fictional cases. Each case states the relevant probabilities, "
     "including how reliable each source is. Not every quantity you might want is stated; when "
-    "one is missing, use your own best judgment and still answer. Each case is separate: names "
-    "are fictional, nothing carries over between cases, and no outcomes are revealed during "
-    "this collection. Answers are committed and cannot be edited; identical retries are safe. "
-    "Do not inspect evaluator files. This is a private development evaluation, not a "
-    "certification of internal beliefs or advice."
+    "one is missing, use your own best judgment and still answer."
+)
+SEPARATE = (
+    "Each case is separate: names are fictional, nothing carries over between cases, and no "
+    "outcomes are revealed during this collection."
+)
+# Learning variants: cases share one population, and each case's structure is revealed later.
+SHARED = {
+    ("corroboration", "markets"): (
+        "Each case concerns a different fictional company, but all the outlets in this "
+        "collection come from the same population. After you answer a case, the next checkpoint "
+        "reveals whether that case's second outlet had relayed the first outlet's call. Demand "
+        "outcomes are not revealed."
+    ),
+    ("corroboration", "ecology"): (
+        "Each case concerns a different fictional lake, but all the stations in this collection "
+        "come from the same network. After you answer a case, the next checkpoint reveals "
+        "whether that case's second station had forwarded the first station's report. "
+        "Fish-stock outcomes are not revealed."
+    ),
+    ("disclosure", "markets"): (
+        "Each case concerns a different fictional company, but all the companies in this "
+        "collection come from the same market. After you answer a case, the next checkpoint "
+        "reveals how that company reports its indicators. Demand outcomes are not revealed."
+    ),
+    ("disclosure", "ecology"): (
+        "Each case concerns a different fictional lake, but all the contractors in this "
+        "collection come from the same industry. After you answer a case, the next checkpoint "
+        "reveals how that contractor reports its markers. Fish-stock outcomes are not revealed."
+    ),
+}
+RULES = (
+    "Answers are committed and cannot be edited; identical retries are safe. Do not inspect "
+    "evaluator files. This is a private development evaluation, not a certification of internal "
+    "beliefs or advice."
 )
 PROBABILITY = "Answer each question with a probability from 0 to 1 in increments of 0.01."
 POINTS = (
@@ -59,15 +89,16 @@ class Answer(Model):
             raise ValueError(f"This case asks for {trial['response']}")
 
 
-def instructions(module):
-    return " ".join([BASE, POINTS if module == "checks" else PROBABILITY])
+def instructions(module, variant="paired", cover="markets"):
+    context = SHARED[(module, cover)] if variant.startswith("learning") else SEPARATE
+    return " ".join([INTRO, context, RULES, POINTS if module == "checks" else PROBABILITY])
 
 
 def describe(manifest):
     return {
         "battery_version": VERSION,
         "cases": len(manifest.order),
-        "instructions": instructions(manifest.module),
+        "instructions": instructions(manifest.module, manifest.variant, manifest.cover),
         "workflow": WORKFLOW,
         "answer_schema": Answer.model_json_schema(),
         "context_policy": manifest.context_policy,
@@ -75,9 +106,9 @@ def describe(manifest):
     }
 
 
-def present(case, cases, rendered):
+def present(case, cases, rendered, previous=None):
     points = rendered["response"] == "points"
-    return {
+    trial = {
         "trial_id": f"case-{case:02d}",
         "case_number": case,
         "cases": cases,
@@ -86,3 +117,6 @@ def present(case, cases, rendered):
         "response": rendered["response"],
         "instruction": "Answer with whole points." if points else "Answer with a probability.",
     }
+    if previous is not None:
+        trial["previous_case"] = previous
+    return trial

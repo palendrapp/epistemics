@@ -12,6 +12,12 @@ from epistemics.dispositions import design
 
 MODULES = ("corroboration", "disclosure", "checks")
 COVERS = ("markets", "ecology")
+# paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
+# sentence is removed. suggestive / reassuring: open, plus a qualitative sentence making a relay
+# or a selective sender more / less plausible. learning-*: open, and each checkpoint reveals how
+# the previous case was produced, from a world with the given relay or selective rate.
+VARIANTS = ("paired", "open", "suggestive", "reassuring", "learning-high", "learning-low")
+LEARNING_RATES = {"learning-high": 0.8, "learning-low": 0.2}
 
 _PREFIXES = [
     "Alder",
@@ -126,6 +132,56 @@ CUE_WORDS = {
     "moderate": ("80% of the time", "20% of the time"),
     "weak": ("2 times in 3", "1 time in 3"),
 }
+DESCRIPTORS = {
+    ("corroboration", "markets"): {
+        "suggestive": [
+            "{name} is a two-person newsletter with no research staff.",
+            "{name} is an aggregator site that posts dozens of market calls a day.",
+            "{name} usually publishes within minutes of larger outlets.",
+        ],
+        "reassuring": [
+            "{name} runs its own monthly survey of retailers.",
+            "{name} has a research desk of twelve analysts who visit suppliers.",
+            "{name} is known for calls based on its own interviews with customers.",
+        ],
+    },
+    ("corroboration", "ecology"): {
+        "suggestive": [
+            "{name} has been short of staff all season.",
+            "{name} has been waiting weeks for replacement sampling equipment.",
+            "{name} usually files its log within minutes of a neighbouring station.",
+        ],
+        "reassuring": [
+            "{name} has a full-time crew that sampled from its own boat that week.",
+            "{name} uses a different sampling method from the other stations.",
+            "{name} sampled in a separate bay of the lake.",
+        ],
+    },
+    ("disclosure", "markets"): {
+        "suggestive": [
+            "{own} management is under pressure after missing its targets last quarter.",
+            "{name} is about to ask investors for new financing.",
+            "{own} executive bonuses depend on these indicators.",
+        ],
+        "reassuring": [
+            "{own} updates are prepared by an outside auditor using a fixed template.",
+            "{name} publishes the full indicator data in its annual report a month later.",
+            "{name} is a cooperative owned by its customers.",
+        ],
+    },
+    ("disclosure", "ecology"): {
+        "suggestive": [
+            "{name} is paid a bonus if the lake reopens to fishing.",
+            "{name} was hired by the fishing association that wants the lake reopened.",
+            "{name} will lose its contract if the lake stays closed.",
+        ],
+        "reassuring": [
+            "{name} was hired by the regional environment agency, which audits its reports.",
+            "{name} is a university laboratory that later publishes all its raw data.",
+            "{name} is paid the same whatever the survey finds.",
+        ],
+    },
+}
 TERMS = {
     "markets": {
         "state": "demand",
@@ -174,7 +230,14 @@ def plural(count, singular, plural_form=None):
     return f"{count} {singular if count == 1 else (plural_form or singular + 's')}"
 
 
-def _corroboration(items, i, cover):
+def descriptor(module, cover, variant, i, name):
+    if variant not in ("suggestive", "reassuring"):
+        return []
+    options = DESCRIPTORS[(module, cover)][variant]
+    return [options[i % len(options)].format(name=name, own=own(name))]
+
+
+def _corroboration(items, i, cover, variant):
     t = TERMS[cover]
     subject = COMPANIES[i] if cover == "markets" else LAKES[i]
     a = OUTLETS_A[i] if cover == "markets" else f"Station N{i + 11}"
@@ -202,12 +265,17 @@ def _corroboration(items, i, cover):
         cue = cue_name(items["cue"][i])
         accuracy = percent(items["accuracy_b"][i])
         if cover == "markets":
+            mechanics = (
+                "Some outlets relay another outlet's call instead of checking for themselves; a "
+                "relayed call simply repeats the original call."
+            )
+            if variant == "paired":
+                mechanics += f" {b} may have checked for itself or relayed {own(a)} call."
             lines += [
                 f"{b} also reports on {subject}: it says demand is {call(items['report_b'][i])}. "
                 f"When {b} checks for itself, its calls are correct {accuracy} of the time.",
-                "Some outlets relay another outlet's call instead of checking for themselves; a "
-                f"relayed call simply repeats the original call. {b} may have checked for itself "
-                f"or relayed {own(a)} call.",
+                mechanics,
+                *descriptor("corroboration", cover, variant, i, b),
             ]
             if cue == "none":
                 lines.append("The two stories' wording cannot be compared.")
@@ -223,13 +291,18 @@ def _corroboration(items, i, cover):
                     f"{own(b)} story uses {same} {own(a)}."
                 )
         else:
+            mechanics = (
+                "Some stations forward another station's report instead of sampling for "
+                "themselves; a forwarded report simply repeats the original report."
+            )
+            if variant == "paired":
+                mechanics += f" {b} may have sampled for itself or forwarded {own(a)} report."
             lines += [
                 f"{b}, another station, also reports on {subject}: it says the stock is "
                 f"{call(items['report_b'][i])}. When {b} samples for itself, its reports are "
                 f"correct {accuracy} of the time.",
-                "Some stations forward another station's report instead of sampling for "
-                f"themselves; a forwarded report simply repeats the original report. {b} may "
-                f"have sampled for itself or forwarded {own(a)} report.",
+                mechanics,
+                *descriptor("corroboration", cover, variant, i, b),
             ]
             if cue == "none":
                 lines.append("The two reports' log formats cannot be compared.")
@@ -257,7 +330,7 @@ def _corroboration(items, i, cover):
     return lines, question
 
 
-def _disclosure(items, i, cover):
+def _disclosure(items, i, cover, variant):
     m, j, k = (int(items[f][i]) for f in ("shared_good", "shared_bad", "withheld"))
     n = m + j + k
     good, bad = percent(items["good"][i]), percent(1 - items["good"][i])
@@ -272,8 +345,9 @@ def _disclosure(items, i, cover):
             f"probability {bad}.",
             "Some companies share every on-target indicator and withhold every off-target one. "
             "Others leave indicators out of their updates at random: each indicator is left out "
-            f"with probability {rate}, whether or not it was on target. {subject} could be "
-            "either kind.",
+            f"with probability {rate}, whether or not it was on target."
+            + (f" {subject} could be either kind." if variant == "paired" else ""),
+            *descriptor("disclosure", cover, variant, i, subject),
         ]
         if m + j == 0:
             lines.append(f"{own(subject)} update does not mention any of its {n} indicators.")
@@ -297,7 +371,9 @@ def _disclosure(items, i, cover):
             f"depleted, with probability {bad}.",
             "Some contractors report every passing marker and withhold every failing one. "
             "Others leave markers out of their reports at random: each marker is left out with "
-            f"probability {rate}, whether or not it passed. {contractor} could be either kind.",
+            f"probability {rate}, whether or not it passed."
+            + (f" {contractor} could be either kind." if variant == "paired" else ""),
+            *descriptor("disclosure", cover, variant, i, contractor),
         ]
         if m + j == 0:
             lines.append(f"{own(contractor)} report does not mention any of the {n} markers.")
@@ -314,7 +390,7 @@ def _disclosure(items, i, cover):
     return lines, question
 
 
-def _checks(items, i, cover):
+def _checks(items, i, cover, variant):
     prior, high, low = items["prior"][i], items["high"][i], items["low"][i]
     positive = percent((prior - low) / (high - low))
     gain, loss = int(items["gain"][i]), int(items["loss"][i])
@@ -350,13 +426,15 @@ def _checks(items, i, cover):
 RENDERERS = {"corroboration": _corroboration, "disclosure": _disclosure, "checks": _checks}
 
 
-def render(module, cover, index):
+def render(module, cover, index, variant="paired"):
     if cover not in COVERS:
         raise ValueError(f"Unknown cover: {cover}")
+    if variant not in VARIANTS or (module == "checks" and variant != "paired"):
+        raise ValueError(f"Unknown variant for {module}: {variant}")
     items = items_for(module)
     if not 0 <= index < len(items["prior"]):
         raise ValueError("Item index outside the design")
-    lines, question = RENDERERS[module](items, index, cover)
+    lines, question = RENDERERS[module](items, index, cover, variant)
     return {
         "case": "\n\n".join(lines),
         "question": question,
@@ -378,3 +456,30 @@ def stated_percentages(module, index):
         g = items["good"][index]
         values = [items["prior"][index], g, 1 - g, items["omission"][index]]
     return sorted({percent(v) for v in np.asarray(values, dtype=float)})
+
+
+def reveal(module, cover, index, case_number, structure):
+    """What a learning variant shows about an answered case: relay or not, selective or not."""
+    if structure is None:
+        return f"Case {case_number} had only one report, so there is nothing to reveal."
+    if module == "corroboration":
+        a = OUTLETS_A[index] if cover == "markets" else f"Station N{index + 11}"
+        b = OUTLETS_B[index] if cover == "markets" else f"Station S{index + 41}"
+        if cover == "markets":
+            done = f"had relayed {own(a)} call" if structure else "had checked for itself"
+        else:
+            done = f"had forwarded {own(a)} report" if structure else "had sampled for itself"
+        return f"Revealed after case {case_number}: {b} {done}."
+    if cover == "markets":
+        kind = (
+            "shares every on-target indicator and withholds every off-target one"
+            if structure
+            else "leaves indicators out at random"
+        )
+        return f"Revealed after case {case_number}: {COMPANIES[index]} is a company that {kind}."
+    kind = (
+        "reports every passing marker and withholds every failing one"
+        if structure
+        else "leaves markers out at random"
+    )
+    return f"Revealed after case {case_number}: {CONTRACTORS[index]} is a contractor that {kind}."

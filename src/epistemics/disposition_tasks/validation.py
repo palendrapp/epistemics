@@ -1,9 +1,11 @@
 """Pipeline validation bound to the implementation fingerprint.
 
-Passing requires every rendered case to display its design's probabilities, distinct names
-within each module and cover, no private labels in public checkpoints, and recovery of known
-parameters from complete synthetic collections through the real service in every module and
-cover. It validates measurement machinery, not any respondent.
+Passing requires every rendered case in every variant to display its design's probabilities,
+the two-way sentence exactly in the paired variant, no private labels in public checkpoints,
+and recovery of known parameters from complete synthetic collections through the real service:
+every module and cover in the paired variant, every other variant in the markets cover, and a
+learning respondent in both learning variants. It validates measurement machinery, not any
+respondent.
 """
 
 import json
@@ -15,13 +17,16 @@ import numpy as np
 from epistemics.disposition_tasks.collection import CASES, fingerprint, load_report, public_trial
 from epistemics.disposition_tasks.render import (
     COVERS,
+    LEARNING_RATES,
     MODULES,
+    VARIANTS,
+    items_for,
     render,
     stated_percentages,
 )
 from epistemics.disposition_tasks.simulation import simulate
 
-TOLERANCE = {"disposition": 0.15, "certainty_value": 15.0}
+TOLERANCE = {"disposition": 0.15, "certainty_value": 15.0, "start": 0.15}
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -32,6 +37,9 @@ CHECK_TRUTHS = [
     {"function": "linear", "certainty_value": 50.0, "decision_weight": 0.9, "wtp_sd": 3.0},
     {"function": "entropy", "certainty_value": 100.0, "decision_weight": 1.1, "wtp_sd": 3.0},
 ]
+# A learner starting at indifference. Strength 8 keeps the start identifiable (the recovery
+# study scores the start only from strength 8) while learning remains detectable.
+LEARNER = {"start": 0.5, "strength": 8.0, "gamma": 1.0, "bias": 0.0, "report_sd": 0.1}
 PRIVATE = (
     "disposition",
     "probe",
@@ -45,40 +53,66 @@ PRIVATE = (
     "selective",
     "prior that",
     "item",
+    "variant",
+    "suggestive",
+    "reassuring",
 )
+TWO_WAY = (" may have ", "could be either kind")
+
+
+def variants_of(module):
+    return ("paired",) if module == "checks" else VARIANTS
 
 
 def audit():
-    """Rendering audit over every module, cover and item."""
+    """Rendering audit over every module, cover, variant and item."""
+    count = 0
     for module in MODULES:
+        kinds = items_for(module).get("kind")
         for cover in COVERS:
-            cases = [render(module, cover, i) for i in range(CASES)]
-            texts = [c["case"] for c in cases]
-            if len(set(texts)) != CASES:
-                raise ValueError(f"Duplicate case text in {module}/{cover}")
-            subjects = [t.split(" ")[0:2] for t in texts]
-            if module != "checks" and len({tuple(s) for s in subjects}) != CASES:
-                raise ValueError(f"Case subjects repeat in {module}/{cover}")
-            for i, case in enumerate(cases):
-                for p in stated_percentages(module, i):
-                    if p not in case["case"]:
-                        raise ValueError(f"{module}/{cover}/{i} does not display {p}")
-                shown = json.dumps(case).lower()
-                if any(word in shown for word in PRIVATE):
-                    raise ValueError(f"{module}/{cover}/{i} shows a private label")
-    return {
-        "modules": len(MODULES),
-        "covers": len(COVERS),
-        "cases": len(MODULES) * len(COVERS) * CASES,
-    }
+            for variant in variants_of(module):
+                cases = [render(module, cover, i, variant) for i in range(CASES)]
+                if len({c["case"] for c in cases}) != CASES:
+                    raise ValueError(f"Duplicate case text in {module}/{cover}/{variant}")
+                for i, case in enumerate(cases):
+                    where = f"{module}/{cover}/{variant}/{i}"
+                    for p in stated_percentages(module, i):
+                        if p not in case["case"]:
+                            raise ValueError(f"{where} does not display {p}")
+                    if any(word in json.dumps(case).lower() for word in PRIVATE):
+                        raise ValueError(f"{where} shows a private label")
+                    if module != "checks" and kinds[i] != "single":
+                        two_way = any(phrase in case["case"] for phrase in TWO_WAY)
+                        if two_way != (variant == "paired"):
+                            raise ValueError(f"{where} has the wrong framing")
+                count += CASES
+    return {"modules": len(MODULES), "covers": len(COVERS), "cases": count}
+
+
+def contexts_to_validate():
+    for module in MODULES:
+        truths = CHECK_TRUTHS if module == "checks" else REPORT_TRUTHS
+        for cover in COVERS:
+            for truth in truths:
+                yield module, cover, "paired", truth
+        if module == "checks":
+            continue
+        for variant in ("open", "suggestive", "reassuring"):
+            yield module, "markets", variant, REPORT_TRUTHS[0]
+        for variant in LEARNING_RATES:
+            yield module, "markets", variant, LEARNER
 
 
 def estimate(module, analysis, truth):
     if module == "checks":
         row = analysis["fits"][truth["function"]]["parameters"]["certainty_value"]
-        return row["mean"], abs(row["mean"] - truth["certainty_value"]) <= TOLERANCE[
-            "certainty_value"
-        ]
+        error = abs(row["mean"] - truth["certainty_value"])
+        return row["mean"], error <= TOLERANCE["certainty_value"]
+    if "strength" in truth:
+        learning = analysis["learning"]
+        row = learning["parameters"]["start"]
+        detected = learning["learning_probability"] > 0.5
+        return row["mean"], detected and abs(row["mean"] - truth["start"]) <= TOLERANCE["start"]
     row = analysis["fit"]["parameters"]["disposition"]
     return row["mean"], abs(row["mean"] - truth["disposition"]) <= TOLERANCE["disposition"]
 
@@ -88,46 +122,45 @@ def validate(seed):
     rng = np.random.default_rng(seed)
     contexts = []
     with tempfile.TemporaryDirectory() as tmp:
-        for module in MODULES:
-            truths = CHECK_TRUTHS if module == "checks" else REPORT_TRUTHS
-            for cover in COVERS:
-                for t, truth in enumerate(truths):
-                    directory = Path(tmp) / f"{module}-{cover}-{t}"
-                    order = rng.permutation(CASES).tolist()
-                    report = simulate(
-                        directory,
-                        module=module,
-                        cover=cover,
-                        order=order,
-                        truth=truth,
-                        seed=int(rng.integers(2**31)),
-                    )
-                    reloaded = load_report(directory)
-                    shown = [public_trial(reloaded.manifest, i) for i in range(CASES)]
-                    value, recovered = estimate(module, report.analysis, truth)
-                    contexts.append(
-                        {
-                            "module": module,
-                            "cover": cover,
-                            "truth": truth,
-                            "estimate": value,
-                            "recovered": recovered,
-                            "reloaded": reloaded == report
-                            and [o.trial for o in report.observations] == shown,
-                            "preferred_model": (
-                                report.analysis["certainty_function"]["preferred"]
-                                if module == "checks"
-                                else report.analysis["model_comparison"]["preferred"]
-                            ),
-                        }
-                    )
+        for n, (module, cover, variant, truth) in enumerate(contexts_to_validate()):
+            directory = Path(tmp) / f"{n:02d}-{module}-{cover}-{variant}"
+            order = rng.permutation(CASES).tolist()
+            report = simulate(
+                directory,
+                module=module,
+                cover=cover,
+                order=order,
+                truth=truth,
+                seed=int(rng.integers(2**31)),
+                variant=variant,
+                reveal_seed=int(rng.integers(2**31)) if variant in LEARNING_RATES else None,
+            )
+            reloaded = load_report(directory)
+            shown = [public_trial(reloaded.manifest, i) for i in range(CASES)]
+            value, recovered = estimate(module, report.analysis, truth)
+            contexts.append(
+                {
+                    "module": module,
+                    "cover": cover,
+                    "variant": variant,
+                    "truth": truth,
+                    "estimate": value,
+                    "recovered": recovered,
+                    "reloaded": reloaded == report
+                    and [o.trial for o in report.observations] == shown,
+                    "reveals_shown": sum("previous_case" in t for t in shown),
+                }
+            )
+    reveals = all(
+        c["reveals_shown"] == (CASES - 1 if c["variant"] in LEARNING_RATES else 0) for c in contexts
+    )
     return {
-        "schema_version": "epistemics.disposition-task-validation.v1",
+        "schema_version": "epistemics.disposition-task-validation.v2",
         "seed": seed,
         "implementation_sha256": fingerprint(),
         "audit": audited,
         "tolerance": TOLERANCE,
         "contexts": contexts,
-        "passed": all(c["recovered"] and c["reloaded"] for c in contexts),
+        "passed": reveals and all(c["recovered"] and c["reloaded"] for c in contexts),
         "scope": "Rendering audit and complete synthetic collections through the service at low report noise; no respondent behavior is validated",
     }

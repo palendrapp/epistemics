@@ -129,3 +129,37 @@ def check_values(items, function):
         - certainty(prior, function)
     )
     return decision, gain
+
+
+STRUCTURES = {"corroboration": corroboration, "disclosure": disclosure}
+
+
+def structure_posterior(module, items, rate):
+    """P(relay) or P(selective sender) per item given its evidence, under base rate `rate`.
+
+    Items without a second report have no structure to reveal and return NaN.
+    """
+    probed = {**items, "kind": np.where(items["kind"] == "single", "single", "probe")}
+    posterior = sigmoid(STRUCTURES[module](probed, rate, 1.0))
+    return np.where(items["kind"] == "single", np.nan, posterior)
+
+
+def revealed_counts(order, revealed):
+    """Revealed structures (1, 0 or None) shown before each item, aligned with item index.
+
+    `order` lists item indices in presentation order; `revealed` is aligned with item index and
+    each case's structure is revealed after it is answered.
+    """
+    successes, trials = np.zeros(len(order)), np.zeros(len(order))
+    seen, hits = 0, 0
+    for index in order:
+        successes[index], trials[index] = hits, seen
+        if revealed[index] is not None:
+            seen += 1
+            hits += int(revealed[index])
+    return successes, trials
+
+
+def learned(start, strength, successes, trials):
+    """Posterior mean base rate from a Beta prior with mean `start` and strength `strength`."""
+    return (np.asarray(start) * strength + successes) / (strength + trials)
