@@ -64,7 +64,9 @@ The [research-world generator](research-world-design.md) is implemented for deve
 
 The [research-dossier acceptance](research-acceptance-2026-09-27.md) completed all 12 contexts without tool errors, at 0.31–0.37 million input tokens per nine-case context. Astra and Sol reported the normative posterior to the nearest point on every case, in every arm. They bought the independent survey exactly when it was worth its price, and every paired neglect estimate was zero. The templated cues stated the disclosure rule and the relay attribution outright, so this is the calculator regime reached through prose.
 
-**Next: decide between harder cues in the same two families, where dependence and selection must be inferred, and the next family (register versus validity, or prestige versus track record). The acceptance collection is not scaled.**
+[Harder-cue dossiers (0.2)](research-world-design.md#11-harder-cues-research-world020-27-september) are implemented and validated. Relays are unattributed and partly rounded, no company-specific disclosure rule appears, and ten shuffled documents carry the same general background facts for every family.
+
+**Next: run the 0.2 acceptance with the same 12-context design; scale only if either configuration deviates.**
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

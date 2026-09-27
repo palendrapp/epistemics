@@ -199,3 +199,38 @@ The browser flow was also checked by hand in a synthetic preview.
 - **Purpose:** engineering, comprehension of dossiers and structure notes, survey use and measured cost per context. Eight worlds per family per arm cannot estimate neglect weights precisely at Sol-like noise.
 
 The first scaled collection follows once cost per context is measured.
+
+## 11. Harder cues, research-world/0.2.0 (27 September)
+
+The [0.1 acceptance](research-acceptance-2026-09-27.md) showed both configurations reading stated structure perfectly. Version 0.2 (`epistemics.research_world2`) keeps the 0.1 package, its evidence and the exact normative ledger unchanged. It removes the cues that let a reader take the structure straight from the text.
+
+| Element | 0.1 | 0.2 |
+| --- | --- | --- |
+| Relays | Two, each naming the analyst firm | Two to four, as news briefs, newsletters, forum posts or podcast summaries. None names the firm; some round the figure ("roughly seven in ten of the 40 resellers"). They link to the original survey only through sample size, figures and publication date |
+| Disclosure rule | Stated for the company in an analyst note beside the letter | No company-specific rule. A months-old initiation note, identical across the pair, lists the KPIs every letter has covered; the current letter simply lists fewer |
+| Background | None; relay attribution and the rule were in the documents | Every case brief carries the same three general facts, whatever its family: evidence varies independently given demand; outlets, newsletters, podcasts and forums only report surveys run by others; companies never omit a KPI that met or beat guidance |
+| Dossier | Four documents in date order | Ten documents, mostly distractors about other companies and the sector, in shuffled order |
+
+Only the manipulated slots differ within a pair: the letter, or the relay slots. Distractors are fixed per slot.
+
+**Fixes from the 0.1 acceptance:**
+- company names are unique within a design, and the manifest enforces it;
+- "meets or beats" wording is used consistently;
+- the negative-survey wording is clearer;
+- `get_trial` reports `cases_completed`.
+
+**Measurability.** With up to five mentions of one survey, full double counting can push a naive reading beyond 99%, where whole-percent reports cannot show it. The first 0.2 validation caught this: one estimate was 0.79 against a true weight of 1.0. Designs therefore use only worlds whose normative and naive readings both lie within 3–97%. The filter reads only the public prior and evidence pattern, never demand, so outcome scoring stays valid.
+
+**Validation.** Every 0.2 dossier pair passed the extraction audit (1,000 pairs per validation). The extractor links unattributed and rounded relays to their survey and derives omitted KPIs only through the background fact. Two fingerprint-bound validations passed against implementation `852e9ceeeac7d9cd147d704b194bb789cf744be15a7588710da9aa6d41479388`, recovering synthetic neglect weights of 1.0, 0.5 and 0.0 by arm:
+
+| Seed | Unprompted: disclosure / shared | Hinted: disclosure / shared | Explicit: disclosure / shared |
+| --- | --- | --- | --- |
+| 20260927 | 0.96 / 0.96 | 0.46 / 0.48 | −0.03 / −0.01 |
+| 20261027 | 1.09 / 1.01 | 0.55 / 0.50 | 0.05 / −0.00 |
+
+| Artifact | SHA-256 |
+| --- | --- |
+| research-world2-validation-20260927.json | `ea8ec0fabcb662398347042d7fdb3553e6cefe64dc777dbb56cf62adfa65374e` |
+| research-world2-validation-20261027.json | `56155f493da61bc8c3fcab4a3da0b95c918e63d702a57c01da3b018f99222cdf` |
+
+**Acceptance.** It uses the same design as the 0.1 acceptance: Astra and Sol, three arms, 12 contexts of nine cases. It runs through `python -m epistemics.research_world2.runner` and awaits operator approval.
