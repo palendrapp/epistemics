@@ -66,7 +66,9 @@ The [research-dossier acceptance](research-acceptance-2026-09-27.md) completed a
 
 [Harder-cue dossiers (0.2)](research-world-design.md#11-harder-cues-research-world020-27-september) are implemented and validated. Relays are unattributed and partly rounded, no company-specific disclosure rule appears, and ten shuffled documents carry the same general background facts for every family.
 
-**Next: run the 0.2 acceptance with the same 12-context design; scale only if either configuration deviates.**
+The [0.2 acceptance](research2-acceptance-2026-09-27.md) found no neglect either. Both configurations counted unattributed relays once and read omitted KPIs as misses in every arm, matching the normative posterior to the nearest point. Sol's one miss was an arithmetic slip on a control dossier, repeated identically across two contexts.
+
+**Next: choose the next lever, since numeric likelihoods with exact background facts still permit calculation.** The options are verbal reference rates, a family with documented frontier failures (register versus validity in synthesis, or prestige versus track record), or agent-directed research where the respondent chooses what to read.
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
