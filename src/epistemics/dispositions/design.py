@@ -97,36 +97,37 @@ _DISCLOSURE_PROBES = [
 # prior, high, low, gain, loss. Investing pays gain or loses loss; the threshold is
 # loss / (gain + loss). Four groups of six: zero decision value with outcomes on both sides of
 # 50%; zero decision value with outcomes on one side; positive decision value; and strong
-# checks with zero decision value.
+# checks with zero decision value. Every stated prior is the whole-percentage mixture of the two
+# stated posteriors, so the chance of a positive result is itself a whole percentage.
 _CHECKS = [
     # Zero decision value, outcomes straddle 50%.
     (0.5, 0.65, 0.35, 30, 70),
     (0.45, 0.6, 0.3, 30, 70),
-    (0.55, 0.68, 0.4, 30, 70),
+    (0.54, 0.68, 0.4, 30, 70),
     (0.5, 0.65, 0.35, 70, 30),
     (0.55, 0.7, 0.4, 70, 30),
-    (0.45, 0.6, 0.32, 70, 30),
+    (0.46, 0.6, 0.32, 70, 30),
     # Zero decision value, outcomes on one side of 50%.
-    (0.8, 0.9, 0.6, 50, 50),
-    (0.2, 0.4, 0.1, 50, 50),
+    (0.78, 0.9, 0.6, 50, 50),
+    (0.22, 0.4, 0.1, 50, 50),
     (0.85, 0.95, 0.7, 50, 50),
-    (0.75, 0.97, 0.52, 50, 50),
-    (0.25, 0.48, 0.03, 50, 50),
-    (0.8, 0.96, 0.55, 70, 30),
+    (0.75, 0.97, 0.53, 50, 50),
+    (0.25, 0.48, 0.02, 50, 50),
+    (0.8, 0.96, 0.56, 70, 30),
     # Positive decision value.
     (0.55, 0.8, 0.3, 50, 50),
     (0.4, 0.7, 0.2, 50, 50),
-    (0.35, 0.6, 0.15, 70, 30),
+    (0.35, 0.6, 0.1, 70, 30),
     (0.65, 0.85, 0.45, 30, 70),
     (0.5, 0.9, 0.1, 30, 70),
     (0.5, 0.75, 0.25, 50, 50),
     # Strong checks, zero decision value.
-    (0.6, 0.95, 0.35, 70, 30),
-    (0.4, 0.65, 0.05, 30, 70),
-    (0.65, 0.97, 0.4, 70, 30),
-    (0.85, 0.99, 0.6, 50, 50),
-    (0.15, 0.4, 0.01, 50, 50),
-    (0.75, 0.98, 0.55, 70, 30),
+    (0.65, 0.95, 0.35, 70, 30),
+    (0.41, 0.65, 0.05, 30, 70),
+    (0.68, 0.97, 0.39, 70, 30),
+    (0.8, 0.99, 0.61, 50, 50),
+    (0.2, 0.39, 0.01, 50, 50),
+    (0.75, 0.98, 0.52, 70, 30),
 ]
 
 

@@ -78,7 +78,9 @@ The [positive control](research3-positive-control-2026-09-27.md) shows the batte
 
 Those dossiers stated the environment fully, so capable configurations could only err. The [generative model of epistemic dispositions](epistemic-generative-model.md) instead leaves assumptions unstated and estimates them as interpretable parameters: dependence prior, suspicion of silence, value of certainty. The [first recovery study](disposition-recovery-2026-09-27.md) shows all three are identifiable in 24-checkpoint modules, with relay probes needed for dependence.
 
-**Next: render T2, T3 and T5 as compact checkpoint tasks, then run an agent acceptance with test–retest across fresh contexts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+The modules are now [rendered as checkpoint tasks](disposition-tasks.md) under two cover stories, with a validated collection pipeline and runner.
+
+**Next: an agent acceptance of the T2, T3 and T5 tasks with test–retest across fresh contexts (awaiting approval).** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

@@ -207,7 +207,7 @@ It is measured by log score on reports and by regret on the buyer's verification
 ## 8. Development sequence
 
 1. **Specify and simulate.** Done for T2, T3 and T5 ([recovery study](disposition-recovery-2026-09-27.md)). Write the joint likelihood. For each module, show parameter and model recovery on synthetic respondents across the plausible range, including the ideal observer and boundary cases. No respondent collection.
-2. **First modules: T2, T3, T5.** They map directly onto the dossier families already built (dependence, disclosure, verification) and give the fastest transfer test.
+2. **First modules: T2, T3, T5.** They map directly onto the dossier families already built (dependence, disclosure, verification) and give the fastest transfer test. Rendered as [checkpoint tasks](disposition-tasks.md).
 3. **T4, the HGF module.** Next, with the change-point model as competitor. It needs longer sequences and is the most expensive to validate.
 4. **Agent acceptance and test–retest.** Astra and Sol at medium and low effort, Luna and Terra, with repeated fresh contexts for reliability.
 5. **Transfer.** De-scaffolded dossiers, with predictions frozen before collection.
@@ -226,6 +226,6 @@ It is measured by log score on reports and by regret on the buyer's verification
 Recorded 27 September 2026. The [first recovery study](disposition-recovery-2026-09-27.md) settled decisions 2 and 3.
 
 1. **HGF depth:** the binary three-level HGF with \(\kappa\) fixed and \(\omega_2\), \(\vartheta\) free, against a change-point observer.
-2. **Certainty function:** fit both \(|2p-1|\) and negative entropy per respondent. The T5 design distinguishes them (97–100% model recovery at material values), and \(\lambda_c\) is read within the selected function.
+2. **Certainty function:** fit both \(|2p-1|\) and negative entropy per respondent. The T5 design distinguishes them (98–100% model recovery at material values), and \(\lambda_c\) is read within the selected function.
 3. **Elicited expectations:** include structure probes (probability that a report was relayed, or that a sender is selective). Without them T2 confounds \(\delta\) with \(\gamma\).
 4. **First modules:** T2, T3 and T5. Their synthetic recovery passed; T4 follows.

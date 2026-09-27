@@ -74,8 +74,8 @@ Ranges span the two seeds. Agent-like noise band, forecast designs unless stated
 | T2, with probes | 1.00 | 0.018–0.020 | 0.89 | 0.42–0.56 | — |
 | T3, forecasts only | 0.98 | 0.040–0.042 | 0.93–0.95 | −0.43 to −0.32 | 98–100% |
 | T3, with probes | 1.00 | 0.016–0.017 | 0.93–0.94 | −0.18 to 0.01 | — |
-| T5, linear certainty | 0.98–0.99 | 3.0–4.0 points | 0.98–0.99 | −0.59 to −0.42 | 98–100% |
-| T5, entropy certainty | 1.00 | 4.2–4.5 points | 0.96–0.98 | −0.42 to −0.41 | 100% |
+| T5, linear certainty | 0.98–0.99 | 3.0–4.0 points | 0.98–0.99 | −0.60 to −0.44 | 100% |
+| T5, entropy certainty | 0.99 | 4.2–4.5 points | 0.96–0.97 | −0.44 to −0.43 | 100% |
 
 In the human-like band, δ from forecasts alone fell to r = 0.79–0.82; with probes it stayed at 0.98–0.99. σ held at 0.93 from forecasts. λ_c held at 0.96–0.99.
 
@@ -85,9 +85,9 @@ In the human-like band, δ from forecasts alone fell to r = 0.79–0.82; with pr
 
 1. **T2 needs relay probes.** From forecasts alone, a respondent who overweights evidence looks like one who assumes reports are independent: the δ and γ errors correlate at 0.85. Six probes break the trade-off and bring absolute error from 0.07 to 0.02. They matter most at human-like noise. This answers decision 3 of the design: **include structure probes**. They are probability reports about how evidence was generated, not self-descriptions.
 2. **Silence is identified from forecasts.** Revealing one bad item exonerates a sender's omissions for the Bayesian observer but not for the heuristic. That contrast separates the two nearly perfectly. Probes still tighten σ.
-3. **The certainty functions are distinguishable, so fit both.** Linear certainty gives zero value to a check whose outcomes stay on one side of 50%; entropy values any informative check. With those items in the design, the generating function was identified in 97–100% of datasets where λ_c was material. This answers decision 2: **fit both functions per respondent** and read λ_c within the selected one; their scales differ.
+3. **The certainty functions are distinguishable, so fit both.** Linear certainty gives zero value to a check whose outcomes stay on one side of 50%; entropy values any informative check. With those items in the design, the generating function was identified in 98–100% of datasets where λ_c was material. This answers decision 2: **fit both functions per respondent** and read λ_c within the selected one; their scales differ.
 4. **Asymmetric stakes are necessary.** At a 50% action threshold, linear certainty value is proportional to decision value, so λ_c would be indistinguishable from stakes sensitivity. The design uses thresholds of 30%, 50% and 70%.
-5. **The weight on decision value is weakly identified** (r = 0.53–0.72), and its errors trade off against λ_c. λ_c itself stays well recovered because the zero-decision-value checks carry it. A respondent who misvalues decision-relevant checks is described by ν, but only coarsely.
+5. **The weight on decision value is weakly identified** (r = 0.55–0.72), and its errors trade off against λ_c. λ_c itself stays well recovered because the zero-decision-value checks carry it. A respondent who misvalues decision-relevant checks is described by ν, but only coarsely.
 
 ## What this does not show
 
@@ -97,7 +97,7 @@ In the human-like band, δ from forecasts alone fell to r = 0.79–0.82; with pr
 
 ## Next
 
-1. **Render the modules.** T2 with probes, T3 and T5 become compact checkpoint tasks through the existing interface, with paraphrase variants for the reliability check.
+1. **Render the modules.** T2 with probes, T3 and T5 become compact checkpoint tasks through the existing interface, with paraphrase variants for the reliability check. Done: [disposition tasks](disposition-tasks.md).
 2. **Agent acceptance with test–retest.** Astra and Sol at medium and low effort, plus Luna and Terra, in fresh repeated contexts. This needs account-backed runs and your approval.
 3. **Build T4 (HGF) offline in parallel.** Coupling κ stays fixed.
 
@@ -109,8 +109,10 @@ Reproduce with `uv run python -m epistemics.dispositions --output <empty directo
 
 | Artifact | SHA-256 |
 | --- | --- |
-| Implementation fingerprint | `eeb2adaa1070688d3ec909b72e9d28939bddaa1cfd3ab8237c22b976321306e1` |
-| Validation, seed 20260927 | `8a82fe0305b7c577e722300f2086ea3cc2662f53a8f6e43b9f47212c70758381` |
-| Validation, seed 20261027 | `aef06a53e0bae1eceacddca2ccb3338558a184cfe7855f1408012eb363143cdf` |
+| Implementation fingerprint | `ba8d4ba62a46ace62955d95fb116ca4f28b6589a35b3896c7d773ca8b533c946` |
+| Validation, seed 20260927 | `7be213b24e418441d4f18f5ea3f194d9d091f61b6f2138e3209f3cb5a240ce5a` |
+| Validation, seed 20261027 | `50034203a22661041f0d96217df67282480a10e86af531fe7d746e816d75b614` |
 
 Validation outputs remain in the ignored `output/` directory.
+
+**Revision, same day.** When the checks were rendered as text, 14 T5 items were adjusted by one to five points so that each stated prior is exactly the mixture of its two stated posteriors at a whole-percentage chance of a positive result. Every item kept its group. Both seeds were rerun. The results above and the commitments are from the revised design (earlier fingerprint `eeb2adaa…306e1`).
