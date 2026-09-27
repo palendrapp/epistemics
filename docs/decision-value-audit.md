@@ -104,4 +104,4 @@ uv run python -m epistemics.source_value_audit plan output/value-audit-20260927
 uv run python -m epistemics.source_value_audit run output/value-audit-20260927
 ```
 
-See the separate dated plan for exact commitments and the completed result document once available.
+See the [frozen dated plan](decision-value-audit-plan-2026-09-27.md) for exact commitments and the [completed results and strategy update](decision-value-audit-results-2026-09-27.md).

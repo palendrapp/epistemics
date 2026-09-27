@@ -4,6 +4,8 @@
 
 Completed the [frozen repeated comparison](cost-aware-plan-2026-09-26.md) of the [0.2 collector](cost-aware-verification.md). These are whole-policy trajectories in a controlled fictional task. Policies were disclosed at the start; results include anticipation and carryover. No profile-personalized rule was tested.
 
+**27 September follow-up:** the [completed offline value audit](decision-value-audit-results-2026-09-27.md) finds useful expected selective-check opportunities across 1,024 independent worlds and frequent two-world realized losses. Its explicitly exploratory application to these completed records keeps the original failed gate unchanged. The “next step” section below records the proposal as it stood on 26 September.
+
 ## Primary outcomes
 
 Net fictional points per later company, averaged over two context repeats in each of two new worlds. Every world has equal weight. Lower final Brier is better; higher net payoff is better.

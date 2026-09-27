@@ -36,6 +36,8 @@ The new [source-learning collection](docs/source-learning.md) supplies **24 comp
 
 The [0.2 delivery and passport increment](docs/source-delivery-acceptance-2026-09-26.md) makes research scope and outcome feedback explicit in both interfaces. Source passports preserve original evidence, distinguish configuration cohorts from single subjects, expose 17 scoped machine metrics and leave missing repeatability unmeasured. Candidate cognitive explanations remain development diagnostics. The subsequent [assigned-verification experiment](docs/verification-stage-a-results-2026-09-26.md) completed 288 checkpoints: more accurate forecasts did not earn back the cost of always buying a sample. Both configurations failed the predeclared net-benefit gate. The [cost-aware follow-up](docs/cost-aware-results-2026-09-26.md) completed a further 864 checkpoints: selective purchasing saved costs but again failed versus no-check.
 
+The [27 September offline audit](docs/decision-value-audit-results-2026-09-27.md) separates expected value, calibration and realized luck across **1,024 independent worlds**. Selective checking gained 0.0155 points/company for the public-information observer, yet lost on 27% of two-world samples. Synthetic reporting biases reduced absolute decision quality even when they increased the improvement from checking. Next reduce collection cost and freeze a calibration-focused comparison across more independent worlds; real-agent benefit and passport-guided allocation remain unvalidated.
+
 ## Implemented components
 
 | Component | Implemented |
@@ -49,6 +51,7 @@ The [0.2 delivery and passport increment](docs/source-delivery-acceptance-2026-0
 | Source-learning collection | Continuous history across 24 companies; shared browser/MCP, sparse/dense prompting, truthful audits, calibration-only fitting and prospective prediction locks |
 | Source-learning passport | Exact-source HTML/Markdown/JSON; repeated-world summaries, separate model diagnostics and explicit configuration-cohort identity; scoped offline attestation and consumer support |
 | Assigned verification | Versioned browser/MCP collectors; completed eight-context blanket and 24-context cost-aware comparisons; balanced prices, repeats, immutable answers and audited gross/net outcomes; benefit gates failed |
+| Decision-value audit | Exact expected/realized payoffs, public observer versus privileged oracle, synthetic calibration controls and purchase/action regret; completed 1,024-world offline comparison |
 | Source-panel comparison | Fact-preserving prose adapter; repeated sparse/dense contexts; configuration/shared profiles frozen before a new world; prospective prediction and presentation evidence |
 | Matched studies | Frozen assignments, fresh-process MCP collection, joint parameter fitting, held-out predictions and uncertainty reports |
 | Provenance pilot | Separate matched independent/copied-evidence design; profile/policy/held-out partitions; synthetic recovery, structural prediction and a nonlinear negative control |
