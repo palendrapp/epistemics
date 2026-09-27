@@ -54,9 +54,11 @@ The offline tests cover:
 - a complete authenticated browser collection;
 - acceptance-plan preparation.
 
-**Token savings are not yet estimated.** A simple accumulation model fitted to the 0.2 Astra transcripts implies negative fixed cost per turn. The harness evidently does not resend every earlier tool result on every call; code-mode execution can batch calls within one model turn. Byte and call reductions are therefore not a token forecast. Actual usage must be measured in a fresh-agent acceptance. The runner now also records model turns.
+**Token savings could not be estimated offline.** A simple accumulation model fitted to the 0.2 Astra transcripts implies negative fixed cost per turn. The harness evidently does not resend every earlier tool result on every call; code-mode execution can batch calls within one model turn. Byte and call reductions are therefore not a token forecast. Actual usage must be measured in a fresh-agent acceptance. The runner now also records model turns.
 
-## Acceptance plan (not yet run)
+## Acceptance
+
+**Completed 27 September; [results](compact-acceptance-2026-09-27.md).** Engineering and comprehension passed in all six contexts. Astra used about 22% fewer input tokens per context than under 0.2; Sol's harness varied too much to show a change.
 
 `python -m epistemics.source_compact.runner <directory> --validation <seed-a> --validation <seed-b>` prepares and runs a frozen acceptance:
 - **Contexts:** one new world, with Astra and Sol medium each completing all three policies (six fresh contexts, two at a time).
