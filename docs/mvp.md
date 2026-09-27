@@ -21,7 +21,7 @@ The [26 September strategy revision](decision-value-pilot.md) makes the next pro
 | Collection | Transactional state, immutable answers, idempotent retry/resume, private evaluator state, byte-stable completion | Hosted tenant boundaries and evaluator/subject execution isolation |
 | Validation | Synthetic recovery; matched discovery assignments, fresh-process collection and held-out prediction tooling | Real-agent evidence for intended product claims and task selection utility |
 | Active discovery development | Completed 0.3 pilot and evidence-linked passports; two numerical auxiliary diagnostics; narrative acceptance and exact-wording repeat; corroboration acceptance with both research branches exercised | Human acceptance, passport integration of scoped narrative facts and broader discovery; parameter explanations still lack adequate empirical new-case fit |
-| Source-inference redesign | Simulator, 16-session panel, clarified collection and source passports; eight-context blanket and 24-context selective comparisons; 1,024-world expected-value/calibration audit complete | Cheaper collection; naturalistic disclosure/shared-origin pilot with the calibration comparison as its explicit arm; real-agent benefit, human usability, personalization and broad traits remain unsupported |
+| Source-inference redesign | Simulator, 16-session panel, clarified collection and source passports; eight-context blanket and 24-context selective comparisons; 1,024-world expected-value/calibration audit; compact 0.3 delivery validated offline | Compact fresh-agent acceptance; naturalistic disclosure/shared-origin pilot with the calibration comparison as its explicit arm; real-agent benefit, human usability, personalization and broad traits remain unsupported |
 | Predictive usefulness | Completed 432-episode comparison with frozen predictions, baselines, uncertainty and recovery accounting; predictive criteria not met, including no gain over pooling | Diagnose residuals/repeatability, validate revisions on new cases and separately test support benefit |
 | Passport signature and consumer | Offline attestations, pinned devnet reads, signed pre-collection enrollment, authority recheck, lifecycle status, private retrieval and task decisions; complete synthetic enrollment preview | Owned-identity real-agent demonstration, public availability, tenant isolation and outcome-validated policies |
 | Legacy Solana records | v1–v3 report signatures, devnet Memo construction/simulation/submission and finalized inclusion verifier | Validator/live-network validation; current RPC integration coverage is mocked |
@@ -53,7 +53,14 @@ The [27 September audit](decision-value-audit-results-2026-09-27.md) is complete
 
 The [27 September literature review](literature-review-2026-09-27.md) explains the near-Bayesian and pooling results as properties of the measured regime. Evidence came with disclosed rates, tabulated source archives and named source processes, and a report followed every item. Capable models look close to Bayes under those conditions. The consequential deviations reported elsewhere arise when the respondent must construct the representation: noticing selective disclosure, shared-origin corroboration or missing evidence in naturalistic material.
 
-**Next: reduce collection cost, then run a naturalistic [disclosure and shared-origin pilot](decision-value-pilot.md#2b-naturalistic-disclosure-and-shared-origin-pilot) whose explicit arm carries the starting-calibration comparison.**
+The [compact 0.3 delivery](source-compact.md) is implemented and validated offline.
+- **Size:** it sends the same information as 0.2 at about 11% of the checkpoint bytes.
+- **Calls:** it needs 38 respondent tool calls per collection instead of at least 74.
+- **Equivalence:** every checkpoint is refused unless it expands exactly to its 0.2 form.
+
+Actual token savings will be measured in its fresh-agent acceptance.
+
+**Next: run the compact acceptance, then a naturalistic [disclosure and shared-origin pilot](decision-value-pilot.md#2b-naturalistic-disclosure-and-shared-origin-pilot) whose explicit arm carries the starting-calibration comparison.**
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
