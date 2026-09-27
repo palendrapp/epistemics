@@ -68,7 +68,9 @@ The [research-dossier acceptance](research-acceptance-2026-09-27.md) completed a
 
 The [0.2 acceptance](research2-acceptance-2026-09-27.md) found no neglect either. Both configurations counted unattributed relays once and read omitted KPIs as misses in every arm, matching the normative posterior to the nearest point. Sol's one miss was an arithmetic slip on a control dossier, repeated identically across two contexts.
 
-**Next: run the [register-versus-validity acceptance (0.3)](research-world-design.md#12-register-versus-validity-research-world030-27-september).** Fabricated-but-polished and valid-but-informal survey reports sit within multi-source dossiers. The remaining levers, verbal reference rates and agent-directed research, follow if needed.
+The [register-versus-validity acceptance (0.3)](research3-acceptance-2026-09-27.md) was a third null. Both configurations gave fabricated-but-polished reports no weight and informal valid reports full weight in every arm, naming every impossibility type unprompted.
+
+**Next: a positive control on these batteries with configurations expected to reason less carefully (GPT-5.6 Luna/Terra, or GPT-6 at low effort), to establish whether the battery separates real configurations before building harder regimes.**
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
