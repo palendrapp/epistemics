@@ -1,6 +1,6 @@
 # Research-world generator: design draft
 
-Draft, 27 September 2026, for the [naturalistic disclosure and shared-origin pilot](decision-value-pilot.md#2b-naturalistic-disclosure-and-shared-origin-pilot). It follows the [literature review](literature-review-2026-09-27.md). Nothing here is implemented. Section 8 lists the decisions that need review before implementation. No existing battery, evaluator or evidence changes.
+Design, 27 September 2026, for the [naturalistic disclosure and shared-origin pilot](decision-value-pilot.md#2b-naturalistic-disclosure-and-shared-origin-pilot). It follows the [literature review](literature-review-2026-09-27.md). Section 8 records the design decisions reviewed on 27 September; pilot scale remains open. Section 9 records what is implemented. No existing battery, evaluator or evidence changes.
 
 ## 1. Purpose
 
@@ -84,11 +84,53 @@ The existing structured source task remains a separate calculation control carry
 3. **Decision value:** compute the check's expected value under the generator across worlds, confirming that verification is valuable where the structure is misread and not elsewhere.
 4. **Cost:** projected tokens per context using compact-acceptance measurements.
 
-## 8. Decisions needed before implementation
+## 8. Decisions (reviewed 27 September)
 
-1. **Domain.** Stay with fictional company due diligence (continuity with the payoff frame and existing controls), or render a second domain from the start to limit presentation-specific findings?
-2. **Rendering.** Templated first, with LLM paraphrase later, as proposed; or LLM-rendered prose from the start with extraction audits?
-3. **Pairing.** Contrasts between contexts on matched worlds, as proposed; or also within a context across companies, which is cheaper but risks contrast effects?
-4. **Explicit arms.** Keep both the rendered-explicit arm and the existing numeric task, or drop one?
-5. **Active inspection.** Allow the respondent to request provenance details (who first reported a figure, the company's past disclosure practice) as a priced action? This adds the check-generation dimension the literature identifies, but complicates scoring.
-6. **Pilot scale.** Suggested: two configurations × two families × three arms, with enough independent worlds to separate χ = 0 from χ = 0.5, set from the synthetic precision estimate and the compact acceptance's measured cost.
+1. **Domain.** Fictional company due diligence only for the first version, for continuity with the payoff frame and existing controls. A second domain follows once a first family shows a deviation.
+2. **Rendering.** Templated first, with extraction audits. LLM paraphrase comes later, only after two independent extractors confirm the ledger.
+3. **Pairing.** Contrasts between contexts on matched worlds. Within-context pairing is excluded because a side-by-side contrast removes neglect in humans.
+4. **Explicit arms.** Keep both the rendered-explicit arm, which separates noticing from computing on identical prose, and the existing numeric task, which carries the calibration comparison.
+5. **Active inspection.** Deferred to a second version. The first version measures noticing and uses assigned or priced checks only.
+
+Still open: **pilot scale.** The suggested design is two configurations × two families × three arms, with the number of independent worlds set from the synthetic precision estimate and the compact acceptance's measured cost.
+
+## 9. Implementation status (27 September)
+
+`epistemics.research_world` (research-world/0.1.0) implements the development generator:
+- private worlds and the normative and naive ledgers (`world.py`);
+- deterministic templated dossiers, where matched presentations share company, dates, outlets, phrasing and distractors (`render.py`);
+- an extractor that recovers the ledger from public text alone and audits each pair (`extract.py`);
+- synthetic respondents and the paired neglect estimator (`synthetic.py`).
+
+**Audits.** All 1,000 audited pairs (500 seeds × two families) matched their ledgers. The offline tests cover:
+- shared worlds and posteriors within pairs;
+- naive-reading definitions;
+- absence of private state in rendered text;
+- rejection of altered verdicts, dates or relays;
+- single counting of relays;
+- demand drawn from the complete posterior;
+- estimator recovery.
+
+**Rendering.** Relays paraphrase rather than copy the analyst's sentence, and keep attribution and identical figures as the provenance cue. The case brief says only that each research firm fields its own survey, not that relays are dependent.
+
+**Precision study.** The study (`research-world-precision-20260927.json`, private output, SHA-256 `a282130305981f4f65f5807f8f192cb6b339c6cfc5a4030308c52699bfeacf14`) ran 400 repetitions per cell. Each cell has one report per presentation, on independent generated worlds, with probability noise and whole-percent rounding. The table shows the sampling standard deviation of the neglect weight and the rate of correctly classifying a respondent at χ = 0 versus χ = 0.5 at the midpoint cut.
+
+| Family | Report noise (sd) | Independent worlds | SD of χ̂ (χ = 0 / 0.5 / 1) | Correct 0 vs 0.5 classification |
+| --- | ---: | ---: | --- | ---: |
+| Disclosure | 2 points | 8 | 0.06 / 0.07 / 0.09 | 99.9% |
+| Disclosure | 8 points | 16 | 0.17 / 0.17 / 0.19 | 95.5% |
+| Disclosure | 8 points | 24 | 0.14 / 0.13 / 0.14 | 98.1% |
+| Shared origin | 2 points | 8 | 0.04 / 0.09 / 0.09 | 100% |
+| Shared origin | 8 points | 16 | 0.15 / 0.16 / 0.18 | 95.1% |
+| Shared origin | 8 points | 24 | 0.12 / 0.14 / 0.15 | 97.6% |
+
+The two noise levels bracket the reproducibility observed in the source panel: repeat differences of 2.8 and 10.8 points RMS, or about 2 and 8 points standard deviation per report. At high noise the disclosure estimate is biased upward (mean 0.55 at χ = 0.5 and 1.06 at χ = 1). The shared-origin estimate is biased downward at χ = 1 (mean 0.93), because triple-counted posteriors are clipped at 99%. These biases are small beside the separation of interest.
+
+**Pilot scale.** About 24 independent worlds per family and configuration suffice for the noisier configuration. Each world appears in two matched presentations in different contexts. Combined with the [compact acceptance](compact-acceptance-2026-09-27.md) costs, this sets the size of the first collection.
+
+**Not yet implemented:**
+- the collection service and MCP/browser adapters for dossiers;
+- arm instructions;
+- the priced verification check;
+- operator runner and freezing plan;
+- two-type mixture estimation.
