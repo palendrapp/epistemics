@@ -79,7 +79,7 @@ The runner's plan preparation was dry-run against these validations: it produced
 
 ## Proposed agent acceptance
 
-Not run; it uses the existing ChatGPT subscription through the Codex CLI and needs approval.
+Run on 27 September; see the [acceptance record](disposition-acceptance-2026-09-27.md). It uses the existing ChatGPT subscription through the Codex CLI.
 
 | Setting | Proposal |
 | --- | --- |
