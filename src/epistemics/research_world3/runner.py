@@ -43,7 +43,15 @@ PROMPT = (
     "the completion questions and describe confusing instructions or interface friction. Do not "
     "guess cognitive labels or evaluation scores."
 )
-CONFIGURATIONS = {"astra": "gpt-6-astra", "sol": "gpt-6-sol"}
+# Label -> (requested model alias, reasoning effort). Weaker entries serve as positive controls.
+CONFIGURATIONS = {
+    "astra": ("gpt-6-astra", "medium"),
+    "sol": ("gpt-6-sol", "medium"),
+    "astra-low": ("gpt-6-astra", "low"),
+    "sol-low": ("gpt-6-sol", "low"),
+    "luna": ("gpt-5.6-luna", "medium"),
+    "terra": ("gpt-5.6-terra", "medium"),
+}
 
 
 def command(root, entry, config):
@@ -113,8 +121,8 @@ def prepare(
         raise ValueError("Snapshot mismatch")
     configs = {
         label: {
-            "model": CONFIGURATIONS[label],
-            "reasoning_effort": "medium",
+            "model": CONFIGURATIONS[label][0],
+            "reasoning_effort": CONFIGURATIONS[label][1],
             "model_revision": "unverified_requested_alias",
             "temperature": None,
             "codex_version": codex_version(),
