@@ -128,9 +128,74 @@ The two noise levels bracket the reproducibility observed in the source panel: r
 
 **Pilot scale.** About 24 independent worlds per family and configuration suffice for the noisier configuration. Each world appears in two matched presentations in different contexts. Combined with the [compact acceptance](compact-acceptance-2026-09-27.md) costs, this sets the size of the first collection.
 
-**Not yet implemented:**
-- the collection service and MCP/browser adapters for dossiers;
-- arm instructions;
-- the priced verification check;
-- operator runner and freezing plan;
-- two-type mixture estimation.
+**Not yet implemented:** two-type mixture estimation. The collection interface is in section 10.
+
+## 10. Collection interface (27 September)
+
+The collection runs in one fresh context over a fixed list of cases, through the same service for MCP and the private browser. As in the compact interface, `submit_answer` returns the next checkpoint.
+
+**Frozen manifest.** It binds:
+- the implementation fingerprint;
+- the arm and each case's world seed, family, presentation and check price;
+- the exact bytes of every rendered dossier.
+
+Each public checkpoint is locked before its answer. Answers are immutable, identical retries are idempotent, and reports are rebuilt from the manifest and accepted answers, with the analysis recomputed on load.
+
+**Checkpoints.** One per case: a probability, invest or decline, and buy or skip the survey when a check is offered.
+- **Buy:** exactly one follow-up checkpoint adds the survey result as document C1 and states the charged cost.
+- **Skip:** the first answer is final.
+
+There are no empty final checkpoints. Company outcomes are not revealed during a collection (`continuous_within_collection_no_outcome_feedback`), because feedback could teach the structure mid-context and confound noticing.
+
+**Arms.** Documents are identical across arms:
+- **Unprompted:** the protocol mentions neither provenance nor omission.
+- **Hinted:** one general sentence asks how each document's information was produced.
+- **Explicit:** each case carries a structure note generated from the ledger. The same note style appears for controls, e.g. "the letter reports all four KPIs the company tracks".
+
+**Check.** The check is an independent 20-customer survey. It reads positive 80% of the time under strong demand and 20% under weak, and is drawn from the world's demand, so matched presentations share its result. Prices come from {0.02, 0.05, 0.10} per world, so both presentations of a world carry the same price. Analysis compares each purchase with the survey's normative net value and with its value at the respondent's own report.
+
+**Scoring.** Each case is scored against the private ledger:
+- reported against normative and naive probabilities, on the log-odds scale;
+- decision consistency;
+- ex ante expected payoff under the normative posterior given everything seen, including a bought survey;
+- action regret.
+
+Realized payoff is secondary.
+
+**Context design (`design.py`).**
+- Type A shows full letters and relayed coverage; type B shows selected letters and single coverage. Each context therefore carries one manipulated family and one control family, and never both presentations of one world.
+- Scale anchors join only the context type where they cannot contrast with the manipulation: silent-control letters with full letters, independent surveys with single surveys.
+- `panel()` pairs matched presentations across separate contexts within one configuration and arm, and refuses pairs from the same context.
+
+**Validation.** Two fingerprint-bound validations passed on 27 September against implementation `b4531ca555d77d0e18b6d4dcf8b2269848a5daaf18f9871b97f0b47744ec446d`. Each audited 1,000 dossier pairs and ran complete synthetic collections through the service in every arm, with priced checks and synthetic neglect weights of 1.0 (unprompted), 0.5 (hinted) and 0.0 (explicit), 12 pairs per family. Recovered weights:
+
+| Seed | Unprompted: disclosure / shared | Hinted: disclosure / shared | Explicit: disclosure / shared |
+| --- | --- | --- | --- |
+| 20260927 | 1.07 / 0.91 | 0.55 / 0.44 | −0.01 / −0.04 |
+| 20261027 | 1.03 / 0.93 | 0.50 / 0.45 | −0.00 / −0.05 |
+
+| Artifact | SHA-256 |
+| --- | --- |
+| research-world-validation-20260927.json | `f9808e612e3cdae3f3b98927b540ac81fb31f19604246fd67052e6870fba8dbc` |
+| research-world-validation-20261027.json | `a3f3da07198ce5369712274b121a756c7dbe025a7203049dab284d5fd13e8e8c` |
+
+**Tests.** The collection tests cover:
+- the buy and skip flow;
+- immutability and concurrent retries;
+- check validation;
+- arms changing only structure statements;
+- manifest and report tampering;
+- design separation and price matching;
+- cross-context panel recovery;
+- a complete stdio MCP collection;
+- a complete authenticated browser collection;
+- plan freezing.
+
+The browser flow was also checked by hand in a synthetic preview.
+
+**Proposed acceptance (not run).** `python -m epistemics.research_world.runner <directory> --validation <a> --validation <b>` freezes a plan and runs it:
+- **Contexts:** Astra and Sol medium, all three arms, and one type A and one type B context each, with 4 disclosure and 4 shared-origin worlds per context plus one anchor (9 cases): 12 fresh contexts, two at a time.
+- **Limits:** a 10-million known-token admission ceiling, a 1-million reserve per context, 900 seconds per context and no retries.
+- **Purpose:** engineering, comprehension of dossiers and structure notes, survey use and measured cost per context. Eight worlds per family per arm cannot estimate neglect weights precisely at Sol-like noise.
+
+The first scaled collection follows once cost per context is measured.

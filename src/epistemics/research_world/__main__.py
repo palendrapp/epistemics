@@ -39,6 +39,18 @@ def main():
     sample.add_argument("--family", choices=sorted(PAIRS), required=True)
     check = sub.add_parser("audit")
     check.add_argument("--seeds", type=int, default=500)
+    validate = sub.add_parser("validate")
+    validate.add_argument("--seed", type=int, required=True)
+    validate.add_argument("--output", type=Path, required=True)
+    demo = sub.add_parser("demo")
+    demo.add_argument("--directory", type=Path, required=True)
+    demo.add_argument("--arm", choices=["unprompted", "hinted", "explicit"], default="unprompted")
+    demo.add_argument("--seed", type=int, default=1)
+    serve = sub.add_parser("serve")
+    serve.add_argument("--directory", type=Path, required=True)
+    serve.add_argument("--port", type=int, default=8781)
+    out = sub.add_parser("export")
+    out.add_argument("--directory", type=Path, required=True)
     precision = sub.add_parser("precision")
     precision.add_argument("--output", type=Path, required=True)
     precision.add_argument("--seed", type=int, default=0)
@@ -52,6 +64,32 @@ def main():
                 worlds = generate(seed, family)
                 audit(worlds, {p: render(w) for p, w in worlds.items()})
         print(json.dumps({"audited_pairs": a.seeds * len(PAIRS), "passed": True}))
+    elif a.command == "validate":
+        from epistemics.research_world.validation import validate as run_validation
+
+        result = run_validation(a.seed)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        save(a.output, encoded(result))
+        print(json.dumps({"passed": result["passed"], "estimates": result["estimates"]}))
+        if not result["passed"]:
+            raise SystemExit(1)
+    elif a.command == "demo":
+        from epistemics.research_world.design import design
+        from epistemics.research_world.simulation import simulate
+
+        items = design(a.seed, 4, 4, 1, check_offered=True)[0]["items"]
+        report = simulate(
+            a.directory, items, arm=a.arm, check_offered=True, chi=0.5, noise_sd=0.02, seed=a.seed
+        )
+        print(json.dumps({k: v for k, v in report.analysis.items() if k != "rows"}, indent=2))
+    elif a.command == "serve":
+        from epistemics.research_world.web import serve
+
+        serve(a.directory, a.port)
+    elif a.command == "export":
+        from epistemics.research_world.collection import export
+
+        export(a.directory)
     else:
         from epistemics.research_world.synthetic import precision as run
 

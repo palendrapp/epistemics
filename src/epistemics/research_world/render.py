@@ -290,3 +290,40 @@ def render(world: World):
         "case": brief(world, n),
         "documents": docs,
     }
+
+
+def structure_note(world: World):
+    """The explicit arm's statement of provenance or disclosure, generated from the ledger."""
+    n = names(world.pair_seed, world.family)
+    if world.presentation == "full":
+        return f"The letter reports all {WORDS[len(world.atoms)]} KPIs the company tracks."
+    if world.presentation == "selected":
+        missing = ", ".join(world.atom(i).name for i in world.implied)
+        return (
+            "The letter covers only KPIs that met or exceeded guidance, so the tracked KPIs it "
+            f"omits ({missing}) missed guidance."
+        )
+    if world.presentation == "silent_control":
+        return "The company tracks only the KPIs its letter reports; nothing is omitted."
+    if world.presentation == "single":
+        return "Only D1 reports a reseller survey; the other documents concern other companies or the sector."
+    if world.presentation == "relayed":
+        return (
+            f"D2 and D3 repeat the figures from {possessive(n['analysts'][0])} survey in D1; "
+            "they are not separate surveys."
+        )
+    return "D1, D2 and D3 report three separate surveys by different research firms."
+
+
+def check_document(result, sample, count, day):
+    """The purchased independent survey, as a new dossier document."""
+    return document(
+        "C1",
+        "commissioned survey",
+        "Independent survey commissioned for you",
+        day,
+        "End-customer spending survey",
+        f"Of {sample} end customers surveyed, {count} said they are increasing spend with the "
+        f"company this year. The survey reads {'positive' if result else 'negative'} "
+        "(a majority increasing versus not).",
+    )

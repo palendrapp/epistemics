@@ -62,7 +62,7 @@ Its [six-context acceptance](compact-acceptance-2026-09-27.md) passed engineerin
 
 The [research-world generator](research-world-design.md) is implemented for development: private worlds, a normative ledger, templated dossiers and an extraction audit. Its synthetic precision study sizes the pilot.
 
-**Next: build the naturalistic collection interface on the generator, then run the [disclosure and shared-origin pilot](decision-value-pilot.md#2b-naturalistic-disclosure-and-shared-origin-pilot) whose explicit arm carries the starting-calibration comparison.**
+**Next: run the research-dossier [collection acceptance](research-world-design.md#10-collection-interface-27-september), then size and run the [disclosure and shared-origin pilot](decision-value-pilot.md#2b-naturalistic-disclosure-and-shared-origin-pilot) whose explicit arm carries the starting-calibration comparison.**
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
