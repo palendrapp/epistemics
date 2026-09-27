@@ -164,7 +164,7 @@ Short modules in the style of classic paradigms, delivered through the compact i
 | T3 Silence | A sender of unstated type reveals or withholds binary items; estimate the hidden state; optional feedback | \(\sigma\) (and learning of \(\sigma\) with feedback) | Disclosure games ([Jin, Luca & Martin 2021](https://www.aeaweb.org/articles?id=10.1257/mic.20180217); [Farina et al. 2026](https://doi.org/10.5281/zenodo.18825108)); argument from ignorance |
 | T4 Volatile reliability | Adviser accuracy switches across stable and volatile blocks; trial-wise reports and choices; HGF fit | \(\omega_2\), \(\vartheta\) (against a hazard model) | [Behrens et al. 2008](https://www.nature.com/articles/nature07538); [Diaconescu et al. 2014](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003810) |
 | T5 Value of certainty | Sequential sampling with per-draw prices, checks with zero decision value, and an abstain/defer option | \(\lambda_c\) | Beads task with costs; paying for confidence |
-| T6 Signal strength | Bookbag trials sweeping weak to strong diagnosticity | \(\gamma\), \(\beta\) | [Augenblick, Lazarus & Thaler 2025](https://arxiv.org/abs/2109.09871) (downloaded data); [Benjamin 2019](https://www.nber.org/papers/w25200) pooled data |
+| T6 Signal strength | Bookbag trials sweeping weak to strong diagnosticity | \(\gamma\), \(\beta\) | [Augenblick, Lazarus & Thaler 2025](https://arxiv.org/abs/2109.09871) and the [Benjamin 2019](https://www.nber.org/papers/w25200) pooled data (public, not yet downloaded) |
 
 Each module aims for 12–24 checkpoints. At the 0.3–0.4 million input tokens measured per nine-case dossier context, the whole battery should cost about one to two million tokens per respondent context.
 
@@ -211,7 +211,7 @@ It is measured by log score on reports and by regret on the buyer's verification
 3. **T4, the HGF module.** Next, with the change-point model as competitor. It needs longer sequences and is the most expensive to validate.
 4. **Agent acceptance and test–retest.** Astra and Sol at medium and low effort, Luna and Terra, with repeated fresh contexts for reliability.
 5. **Transfer.** De-scaffolded dossiers, with predictions frozen before collection.
-6. **Human arm.** When fresh human collection resumes, run the same modules. Use the downloaded replication data now for T2, T3 and T6 references.
+6. **Human arm.** When fresh human collection resumes, run the same modules. Use the downloaded replication data now for T2 and T3 references. T6 needs the 262 MB Augenblick–Lazarus–Thaler package, not yet downloaded.
 
 ## 9. Risks
 
