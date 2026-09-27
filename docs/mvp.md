@@ -70,7 +70,13 @@ The [0.2 acceptance](research2-acceptance-2026-09-27.md) found no neglect either
 
 The [register-versus-validity acceptance (0.3)](research3-acceptance-2026-09-27.md) was a third null. Both configurations gave fabricated-but-polished reports no weight and informal valid reports full weight in every arm, naming every impossibility type unprompted.
 
-**Next: a positive control on these batteries with configurations expected to reason less carefully (GPT-5.6 Luna/Terra, or GPT-6 at low effort), to establish whether the battery separates real configurations before building harder regimes.**
+The [positive control](research3-positive-control-2026-09-27.md) shows the battery separates real configurations.
+- **Luna:** GPT-5.6 Luna took fabricated survey figures at face value when unprompted, while its own summary called them unreliable, and it under-bought verification.
+- **Terra and Astra (low):** GPT-5.6 Terra and GPT-6 Astra at low effort missed the impossible margin-of-error fabrication.
+- **Explicit arm:** structure notes removed every face-value acceptance.
+- **Sol (low):** GPT-6 Sol at low effort stayed exact.
+
+**Next: a bounded estimation collection for the weaker configurations, with more worlds and fabrication types balanced by design, to make scoped reading-guide claims issuable.**
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
