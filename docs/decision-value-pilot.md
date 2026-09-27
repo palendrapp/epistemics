@@ -1,6 +1,6 @@
 # From a cognitive profile to a useful decision
 
-Strategy revision, 26 September 2026, updated after the [bounded source-panel results](source-panel-results-2026-09-26.md). This is the agreed delivery direction. The completed panel establishes only its narrow task/presentation observations; decision benefit remains untested. The [roadmap](mvp.md) records implementation status. The [source-learning collection](source-learning.md) remains at battery/evaluator 0.1.0; this document changes no active task, fitting rule, report contract or issued evidence.
+Strategy revision, 26 September 2026, updated after the [bounded source-panel results](source-panel-results-2026-09-26.md) and revised on 27 September after the [literature review](literature-review-2026-09-27.md) (see [section 2b](#2b-naturalistic-disclosure-and-shared-origin-pilot)). This is the agreed delivery direction. The completed panel establishes only its narrow task/presentation observations; decision benefit remains untested. The [roadmap](mvp.md) records implementation status. The [source-learning collection](source-learning.md) remains at battery/evaluator 0.1.0; this document changes no active task, fitting rule, report contract or issued evidence.
 
 ## First product claim and buyer decision
 
@@ -19,6 +19,8 @@ The next product milestone is one defensible behavioral claim that transfers to 
 | Validity | Tested transfer scope, evaluation date, relevant configuration changes and re-evaluation rule |
 
 An illustrative, **unmeasured** claim is: “Under the tested selective-reporting conditions, this configuration overweights favorable source reports; a source-history ledger reduces resulting decision errors.” Evidence would need to establish the directional pattern, the comparison reference and the ledger's effect separately. A fitted reporting gain alone would not support this wording. The current collection does not test copied-source dependence, so a claim about treating copied reports as independent needs a separate contrast.
+
+From 27 September, the passport's primary form is a **reading guide for the consumer**: how to read this configuration's outputs under stated conditions. It covers calibration, precision and identified blind spots, each with the conditions under which it holds and a recommended consumer action. Cognitive accounts fill the Explanation field only where they improve prediction. Handing profile cards to an LLM orchestrator has not improved delegation in published comparisons, so a claim should parameterize an explicit decision rule whose regret is measured against simple policies.
 
 ## What is being profiled
 
@@ -54,7 +56,41 @@ The [source-panel implementation](source-panel.md) now supplies that bounded com
 
 **Panel completed on 26 September:** the exact sixteen-session allocation, configurations, private worlds, comparator fits, analysis and resource limits were frozen before responses. All 576 checkpoints completed without failed submissions or answer retries, in 33 minutes 13 seconds and 20.11 million known processed tokens. The [results](source-panel-results-2026-09-26.md) show lower repeat variation for Astra than Sol in both baseline worlds; dense questions produced no clear common forecast shift. Astra's joint-process predictions remained close across the two presentations in one new world, while Sol's individual fit lost to pooling and all candidates failed its adequacy screen. Keep fixed/shared alternatives and scope the passport observation; do not issue the fitted family/gain as a trait. This remains a feasibility comparison, not a powered certification study.
 
-The separately versioned [0.2 interface](source-delivery-v2.md) now clarifies research scope, per-customer measurement accuracy, provisional/final decisions and outcome feedback. The [source-learning passport adapter](source-learning-passport.md) derives coverage, repeatability and outcome facts from exact records, keeping model diagnostics and identity scope separate. The [acceptance record](source-delivery-acceptance-2026-09-26.md) documents validation and the fresh respondent. Original artifacts and active human sessions remain unchanged. The [assigned-verification comparison](verification-stage-a-results-2026-09-26.md) is now complete. Eight contexts improved Brier under always-check in all four contrasts, but every net-payoff contrast was negative; both configurations failed the frozen gate. The [24-context cost-aware follow-up](cost-aware-results-2026-09-26.md) subsequently separated prices from priors, balanced order and repeated contexts. It saved 92.375% of check expenditure and beat always-check but lost to no-check in all eight matched repeats. A post-result diagnostic found near-benchmark sample incorporation; all harmful selective revisions came from two distinct companies repeated across contexts. The [completed 1,024-world offline audit](decision-value-audit-results-2026-09-27.md) finds positive expected selective value for oracle and public-information observers, despite a roughly 27% loss frequency over two-world samples. It also shows why incremental support benefit and absolute decision quality need separate reporting. Next simplify collection cost and freeze a starting-calibration comparison across more independent worlds, with public pre-outcome opportunity strata and a small repeatability check. Preserve the failed gate and defer passport-guided allocation; do not select favorable sample realizations or tune to these two cases.
+The separately versioned [0.2 interface](source-delivery-v2.md) now clarifies research scope, per-customer measurement accuracy, provisional/final decisions and outcome feedback. The [source-learning passport adapter](source-learning-passport.md) derives coverage, repeatability and outcome facts from exact records, keeping model diagnostics and identity scope separate. The [acceptance record](source-delivery-acceptance-2026-09-26.md) documents validation and the fresh respondent. Original artifacts and active human sessions remain unchanged. The [assigned-verification comparison](verification-stage-a-results-2026-09-26.md) is now complete. Eight contexts improved Brier under always-check in all four contrasts, but every net-payoff contrast was negative; both configurations failed the frozen gate. The [24-context cost-aware follow-up](cost-aware-results-2026-09-26.md) subsequently separated prices from priors, balanced order and repeated contexts. It saved 92.375% of check expenditure and beat always-check but lost to no-check in all eight matched repeats. A post-result diagnostic found near-benchmark sample incorporation; all harmful selective revisions came from two distinct companies repeated across contexts. The [completed 1,024-world offline audit](decision-value-audit-results-2026-09-27.md) finds positive expected selective value for oracle and public-information observers, despite a roughly 27% loss frequency over two-world samples. It also shows why incremental support benefit and absolute decision quality need separate reporting. Next simplify collection cost, then run the [naturalistic pilot](#2b-naturalistic-disclosure-and-shared-origin-pilot). Its explicit arm carries the starting-calibration comparison across more independent worlds, with public pre-outcome opportunity strata and a small repeatability check. Preserve the failed gate and defer passport-guided allocation; do not select favorable sample realizations or tune to these two cases.
+
+### 2b. Naturalistic disclosure and shared-origin pilot
+
+Added 27 September after the [literature review](literature-review-2026-09-27.md).
+
+**Why move.** The completed collections measured computation within a supplied representation:
+- disclosed business rates;
+- tabulated source archives;
+- named source processes with definitive audits;
+- a report after every item.
+
+Recent work finds capable models close to Bayes in that regime. The deviations that matter to a research buyer appear when the respondent must construct the representation. Human studies show the same pattern: correlation and selection neglect are failures to notice structure, and they fade when the structure is made salient. The next evaluation moves there. The existing task is kept as its control.
+
+**Design.**
+- **World and rendering.** Generate a private research world: a fact ledger, a provenance graph (who observed, relayed or summarized whom), each sender's incentive and disclosure rule, and a normative likelihood for each document. Render it as realistic documents. Dependence and selection are recoverable only from textual cues such as attribution, shared quotations, common datasets and timestamps, never from instructions.
+- **Contrasts.** Two information-equivalent pairs:
+  - *Selective disclosure:* a source reveals only favorable metrics, versus the same facts fully disclosed or with a transparent disclosure rule.
+  - *Shared-origin corroboration:* several reports relaying one upstream source, versus independently sourced reports carrying the same information.
+
+  The within-pair difference in estimates and decisions is the primary measurement. It needs neither a reference posterior nor an interpretation of reports as beliefs. Audit equivalence of content, not only of arithmetic. Dependent reports can be more informative than independent ones, so scoring uses the full normative model rather than a "discount duplicates" rule.
+- **Arms.**
+  - *Unprompted:* the buyer-relevant condition.
+  - *Hinted:* a general reminder to consider how evidence was produced.
+  - *Explicit:* the existing structured source task. It carries the audit's starting-calibration comparison, with calibration separated from error relative to the privileged oracle.
+- **Decision.** Couple the verification choice to the structure: checks carry decision value where silence or shared origin matters, alongside low-value controls. Score ex ante against the generator. Report realized payoff with uncertainty, and absolute decision quality separately from improvement.
+- **Validation before collection.** Build a separately versioned module. Validate it with synthetic Bayesian, fully naive and mixed reporters; recovery of the neglect weight and the mixture share; information-equivalence audits; and MCP acceptance at reduced collection cost.
+- **Human reference.** Use published human benchmarks and replication data where available (for example Enke & Zimmermann 2019; Enke 2020; Jin, Luca & Martin 2021). No fresh human collection for at least several weeks.
+- **Scale and stopping rule.** Two configurations, more independent worlds, fewer repeats, sparse elicitation. If neither configuration shows either deviation unprompted, record that scope and move to the next family (register versus validity, or reliability learned through prestige cues) rather than scaling.
+
+An illustrative, **unmeasured** reading-guide claim:
+
+> Under unprompted conditions this configuration treats shared-origin corroboration as independent; require verification when a conclusion rests on reports sharing an upstream source.
+
+Evaluate it against always-deduplicate-provenance and always-verify policies. In human studies, naivety on these tasks is close to bimodal. If configurations likewise split, configuration-specific guidance could beat pooling where evidence-weight profiles did not. Retain configuration-specific guidance only when it changes the recommended action and improves regret.
 
 ### 3. Verification and support value
 
