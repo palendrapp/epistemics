@@ -122,16 +122,16 @@ def descriptions(p, family, sentences):
     low, middle, high = mapping[0], mapping[2], mapping[4]
     if family == "relay":
         claim = (
-            "It turns what it is told about an outlet into a base rate for copying: "
-            f"{pct(high)} for an aggregator with no reporters, {pct(low)} for a newsroom whose "
-            "reporters interview customers."
+            "Told that some outlets copy others, it turns what it is told about an outlet into a "
+            f"base rate for copying: {pct(high)} for an aggregator with no reporters, {pct(low)} "
+            "for a newsroom whose reporters interview customers."
         )
         subject = "a report was copied"
     else:
         claim = (
-            "It turns what it is told about a company into a base rate for selective silence: "
-            f"{pct(high)} when the chief executive's bonus depends on the numbers, {pct(low)} "
-            "when an independent auditor checks them."
+            "Told that some companies hide bad numbers, it turns what it is told about a company "
+            f"into a base rate for selective silence: {pct(high)} when the chief executive's bonus "
+            f"depends on the numbers, {pct(low)} when an independent auditor checks them."
         )
         subject = "a company's silence was selective"
     irrelevant = sentences[family]["cues-a"][2]
@@ -150,9 +150,9 @@ def descriptions(p, family, sentences):
             "sentences": sentences[family]["cues-a"],
         },
         fact=(
-            "Copying suspected, newsroom → aggregator"
+            "When told: copying, newsroom → aggregator"
             if family == "relay"
-            else "Silence suspected, audited → bonus at stake",
+            else "When told: silence, audited → bonus at stake",
             f"{pct(low)} → {pct(high)}",
         ),
     )
@@ -221,9 +221,9 @@ def noticing(config, analyses):
                     "compare": row.get("prompted_mapping"),
                 },
                 fact=(
-                    "Unprompted, newsroom → aggregator"
+                    "Not told: copying, newsroom → aggregator"
                     if family == "relay"
-                    else "Unprompted, audited → bonus at stake",
+                    else "Not told: silence, audited → bonus at stake",
                     f"{pct(mapping[0])} → {pct(mapping[4])}",
                 ),
             )

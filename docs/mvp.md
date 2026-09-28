@@ -115,7 +115,9 @@ On the description modules, [GPT-5.6 Terra](disposition-weaker-cues-2026-09-28.m
 
 The first [dossier transfer](disposition-transfer-2026-09-28.md) found that the formal description-to-prior mappings predict answers to the same cases presented as realistic documents. Errors were 1.4–4.0 points, against 7.7–9.2 for a neutral 50% observer.
 
-**Next: an unprompted transfer variant (forecast-only dossiers with no mechanism statement), Luna and Terra on the dossiers, and a first reading-guide draft from the passport.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+The [unprompted dossiers](disposition-unprompted-2026-09-28.md) showed that these mappings depend on the mechanism being named. Without it, Astra and Sol treated a matching report from an aggregator with no reporters as independent evidence, and read silence as only slightly bad news. Luna's and Terra's relay mappings transferred to dossiers; their disclosure mappings did not. The first [reading guide](ledger.md#parts) turns the passport into plain-language readings, each with its evidence and scope.
+
+**Next: a salience test (one sentence naming the mechanism without a rate), and a review of the reading guide's wording and thresholds.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

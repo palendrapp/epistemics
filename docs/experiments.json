@@ -295,8 +295,9 @@
       "roots": [
         "output/disposition-unprompted-20260928"
       ],
-      "status": "running",
-      "prediction": "U1: strongly suggestive minus strongly reassuring implied prior at least 0.30 in all four Astra/Sol cells. U2: irrelevant level at most 0.20 (0.50 when prompted). U3: unprompted range smaller than prompted. U4 exploratory. W1: Luna/Terra own formal priors beat 50% on dossiers in all four cells. W2: Terra coherent in at least 4/6 dossier sessions, Luna in at most 2/6."
+      "status": "complete",
+      "prediction": "U1: strongly suggestive minus strongly reassuring implied prior at least 0.30 in all four Astra/Sol cells. U2: irrelevant level at most 0.20 (0.50 when prompted). U3: unprompted range smaller than prompted. U4 exploratory. W1: Luna/Terra own formal priors beat 50% on dossiers in all four cells. W2: Terra coherent in at least 4/6 dossier sessions, Luna in at most 2/6.",
+      "outcome": "Mappings are conditional on the mechanism being named. Unprompted, Astra and Sol treated every matching report as independent, including an aggregator with no reporters (relay priors 0.00-0.03; full neglect, U1 fails) and read silence as only slightly bad news (disclosure range 0.22-0.23; U1 fails). Irrelevant level 0.00-0.02 (U2 supported); ranges shrank in all four cells (U3 supported); full neglect predicts unprompted forecasts best (0.2-4.5 points). Luna/Terra: relay mappings transfer, disclosure do not (W1 2/4); Terra coherence fell to 2/6 (W2 fails for Terra, holds for Luna at 0/6)."
     },
     {
       "id": "source-learning-acceptance",
@@ -366,9 +367,8 @@
     }
   ],
   "next": [
-    "Unprompted transfer: forecast-only dossiers with no mechanism statement (noticing as well as using).",
-    "Luna and Terra on the dossiers.",
-    "Reading-guide draft from the passport.",
+    "Salience test: one sentence naming the mechanism without a rate, to see how little prompting restores the description mapping.",
+    "Reading guide: review the draft wording and thresholds; decide which readings go into a first passport.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."
   ]
