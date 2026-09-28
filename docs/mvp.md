@@ -113,7 +113,9 @@ The preregistered [variance study](disposition-variance-2026-09-28.md) measured 
 
 On the description modules, [GPT-5.6 Terra](disposition-weaker-cues-2026-09-28.md) follows the frontier mapping, more noisily. GPT-5.6 Luna states similar base rates, but its forecasts do not apply them: it was coherent in 1 of 6 sessions.
 
-**Next: transfer to dossiers without background facts, and a first reading-guide draft from the passport.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+The first [dossier transfer](disposition-transfer-2026-09-28.md) found that the formal description-to-prior mappings predict answers to the same cases presented as realistic documents. Errors were 1.4–4.0 points, against 7.7–9.2 for a neutral 50% observer.
+
+**Next: an unprompted transfer variant (forecast-only dossiers with no mechanism statement), Luna and Terra on the dossiers, and a first reading-guide draft from the passport.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
