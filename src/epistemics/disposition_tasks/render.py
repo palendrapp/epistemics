@@ -28,6 +28,8 @@ DOSSIER_MODULES = ("corroboration-dossier", "disclosure-dossier")
 DOSSIER_VARIANTS = ("dossier-a",)
 # Noticing: dossiers that never state the mechanism, forecasts only (same description set A).
 UNPROMPTED_MODULES = ("corroboration-unprompted", "disclosure-unprompted")
+# Salience: "named-a" adds one sentence naming the mechanism, without its rate, to every brief.
+UNPROMPTED_VARIANTS = ("dossier-a", "named-a")
 RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
@@ -604,8 +606,10 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in CUE_VARIANTS
     if module in RANGE_MODULES:
         return cover == "markets" and variant in RANGE_VARIANTS
-    if module in DOSSIER_MODULES + UNPROMPTED_MODULES:
+    if module in DOSSIER_MODULES:
         return cover == "markets" and variant in DOSSIER_VARIANTS
+    if module in UNPROMPTED_MODULES:
+        return cover == "markets" and variant in UNPROMPTED_VARIANTS
     if module == "checks":
         return variant == "paired"
     return variant in VARIANTS

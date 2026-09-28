@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 864
+    assert audit()["cases"] == 912
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 38
+    assert result["passed"] and len(result["contexts"]) == 40
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -578,3 +578,19 @@ def test_unprompted_dossiers_never_state_the_mechanism(tmp_path):
         cues = report.analysis["cues"]
         assert np.allclose(cues["implied"], slots, atol=0.06)
         assert cues["stated"] is None and cues["stated_minus_implied_mae"] is None
+
+
+def test_salience_variant_adds_exactly_one_sentence():
+    from epistemics.disposition_tasks.dossier import NAMED
+
+    for module, name in (
+        ("corroboration-unprompted", "relay"),
+        ("disclosure-unprompted", "disclosure"),
+    ):
+        for i in range(24):
+            plain = render(module, "markets", i, "dossier-a")
+            named = render(module, "markets", i, "named-a")
+            assert named["case"].replace(f" Background: {NAMED[name]}", "") == plain["case"]
+            assert named["question"] == plain["question"]
+    with pytest.raises(ValueError, match="variant"):
+        render("corroboration-dossier", "markets", 0, "named-a")

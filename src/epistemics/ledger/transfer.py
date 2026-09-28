@@ -102,8 +102,12 @@ def noticing(records):
     irrelevant level, per-session unprompted mappings with their lower 90% bounds, and the error of
     predicting the unprompted forecasts from the prompted mapping, from full neglect (no relays or
     selective senders at any level) and from indifference (50% at every level).
+
+    Salience sessions ("named-a": the same dossiers plus one sentence naming the mechanism without
+    its rate) are reported beside them under "named", with the unprompted mapping as a further
+    candidate prior.
     """
-    prompted, unprompted = {}, {}
+    prompted, unprompted, named = {}, {}, {}
     for r in records:
         if not r.get("verified") or r.get("slot_fits") is None:
             continue
@@ -114,7 +118,8 @@ def noticing(records):
                 prompted.setdefault(key, []).append(implied)
             elif r["module"] == UNPROMPTED[module]:
                 lower = [s["implied"]["interval_90"][0] for s in r["slot_fits"]]
-                unprompted.setdefault(key, []).append((implied, lower, r))
+                target = named if r.get("variant") == "named-a" else unprompted
+                target.setdefault(key, []).append((implied, lower, r))
     result = {}
     for (config, module), sessions in sorted(unprompted.items()):
         mapping = np.mean([i for i, _, _ in sessions], axis=0)
@@ -144,5 +149,30 @@ def noticing(records):
             )
             for name, priors in candidates.items()
         }
+        if (config, module) in named:
+            given = named[(config, module)]
+            mapping_named = np.mean([i for i, _, _ in given], axis=0)
+            candidates["unprompted"] = mapping
+            row["named"] = {
+                "sessions": len(given),
+                "mapping": mapping_named.tolist(),
+                "range": float(mapping_named[-1] - mapping_named[0]),
+                "irrelevant": float(mapping_named[2]),
+                "to_prompted_mae": float(np.mean(np.abs(mapping_named - candidates["prompted"])))
+                if "prompted" in candidates
+                else None,
+                "to_unprompted_mae": float(np.mean(np.abs(mapping_named - mapping))),
+                "per_session": [
+                    {"run_id": r["run_id"], "implied": i, "lower_90": lo} for i, lo, r in given
+                ],
+                "prediction_mae": {
+                    name: float(
+                        np.mean(
+                            [mean_absolute_error(module, priors, r, items) for _, _, r in given]
+                        )
+                    )
+                    for name, priors in candidates.items()
+                },
+            }
         result[f"{config}/{module}"] = row
     return result

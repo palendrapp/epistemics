@@ -206,6 +206,13 @@ def noticing(config, analyses):
             detail += f"; when the mechanism was named, {pct(row['prompted_irrelevant'])}."
         else:
             detail += "."
+        if row.get("named"):
+            extreme = "aggregator" if family == "relay" else "bonus description"
+            detail += (
+                " One added sentence saying the mechanism exists, with no rate, moved the "
+                f"{extreme} from {pct(mapping[4])} to {pct(row['named']['mapping'][4])} "
+                f"({count(row['named']['sessions'])})."
+            )
         result.append(
             reading(
                 f"noticing-{family}",

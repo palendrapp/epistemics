@@ -66,6 +66,11 @@ BACKGROUND_RELAY = (
     "Some outlets relay another outlet's call instead of checking for themselves; a relayed call "
     "simply repeats the original call."
 )
+# The salience variant's one added sentence per module: the mechanism, without its rate.
+NAMED = {
+    "relay": BACKGROUND_RELAY,
+    "disclosure": "Some companies share every on-target indicator and withhold every off-target one.",
+}
 
 
 def document(kind, source, date, body):
@@ -251,7 +256,8 @@ def relay_unprompted(items, i, cover, variant):
         "—",
         f"{base.own(subject)} quarterly demand is either high or low. Before any reports, the "
         f"probability that demand is high is {base.percent(items['prior'][i])}. Track records: "
-        + " ".join(rates),
+        + " ".join(rates)
+        + (f" Background: {NAMED['relay']}" if variant == "named-a" else ""),
     )
     call_a = _call(items["report_a"][i])
     original = f"Demand at {subject} is {call_a} this quarter, on our reading of the market."
@@ -282,7 +288,8 @@ def disclosure_unprompted(items, i, cover, variant):
         f"{subject} tracks four indicators ({', '.join(k_.lower() for k_ in order)}). When demand "
         f"is high, each independently lands on target with probability {good}; when demand is "
         f"low, with probability {bad}. Across the sector, a given indicator is left out of a "
-        f"quarterly update {base.percent(items['omission'][i])} of the time.",
+        f"quarterly update {base.percent(items['omission'][i])} of the time."
+        + (f" Background: {NAMED['disclosure']}" if variant == "named-a" else ""),
     )
     reported = [f"{name} came in on target." for name in order[:m]]
     reported += [f"{name} came in below target." for name in order[m : m + j]]

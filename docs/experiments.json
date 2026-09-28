@@ -300,6 +300,20 @@
       "outcome": "Mappings are conditional on the mechanism being named. Unprompted, Astra and Sol treated every matching report as independent, including an aggregator with no reporters (relay priors 0.00-0.03; full neglect, U1 fails) and read silence as only slightly bad news (disclosure range 0.22-0.23; U1 fails). Irrelevant level 0.00-0.02 (U2 supported); ranges shrank in all four cells (U3 supported); full neglect predicts unprompted forecasts best (0.2-4.5 points). Luna/Terra: relay mappings transfer, disclosure do not (W1 2/4); Terra coherence fell to 2/6 (W2 fails for Terra, holds for Luna at 0/6)."
     },
     {
+      "id": "disposition-salience",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Salience: one sentence naming the mechanism",
+      "question": "Does one sentence saying the mechanism exists, without its rate, restore Astra's and Sol's description-to-prior mappings in the unprompted dossiers?",
+      "doc": "docs/disposition-salience-2026-09-28.md",
+      "roots": [
+        "output/disposition-salience-20260928"
+      ],
+      "status": "running",
+      "prediction": "S1: strongly suggestive minus strongly reassuring at least 0.30 in all four cells. S2: irrelevant level between 0.35 and 0.65. S3: named mapping within 0.10 of the prompted-dossier mapping on average. S4 (best predictor) exploratory."
+    },
+    {
       "id": "source-learning-acceptance",
       "date": "2026-09-26",
       "track": "archive",

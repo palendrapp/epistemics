@@ -37,6 +37,7 @@
   --p-formal-b: #5f8a2f;
   --p-dossier: #c0522a;
   --p-unprompted: #7a4fa0;
+  --p-named: #1f8a7a;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -76,6 +77,7 @@
     --p-formal-b: #a5c872;
     --p-dossier: #ee8f62;
     --p-unprompted: #c29be6;
+    --p-named: #5fd1bd;
   }
 }
 :root[data-theme="dark"] {
@@ -113,6 +115,7 @@
   --p-formal-b: #a5c872;
   --p-dossier: #ee8f62;
   --p-unprompted: #c29be6;
+  --p-named: #5fd1bd;
 }
 body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; display: grid; gap: 36px; }
@@ -360,7 +363,7 @@ label.check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6
 
     <section class="step" id="step-descriptions">
       <div><p class="eyebrow">5 · Application</p><h3 class="step-title">Descriptions become priors</h3></div>
-      <p class="lede">In the description modules each of five source descriptions gets its own implied prior, fitted from that description's forecasts and probes. Thin lines are single sessions and the filled shape is their average; ticks under each row are the base rates the agent stated when asked directly. Formal sessions shown here use random case order. Dossiers present the same cases as realistic document bundles. Unprompted dossiers never mention relaying or selective withholding, so a prior above zero means the agent raised the possibility itself.</p>
+      <p class="lede">In the description modules each of five source descriptions gets its own implied prior, fitted from that description's forecasts and probes. Thin lines are single sessions and the filled shape is their average; ticks under each row are the base rates the agent stated when asked directly. Formal sessions shown here use random case order. Dossiers present the same cases as realistic document bundles. Unprompted dossiers never mention relaying or selective withholding, so a prior above zero means the agent raised the possibility itself. Named dossiers add one sentence saying the mechanism exists, without its rate.</p>
       <div class="controls">
         <div class="seg" id="desc-config" role="group" aria-label="Configuration"></div>
         <div class="seg" id="desc-presentation" role="group" aria-label="Presentations"></div>
@@ -1297,7 +1300,9 @@ function descriptionSection(models) {
     { key: "dossier", label: "Dossier · set A", color: "var(--p-dossier)", short: "D",
       match: s => s.module.endsWith("-dossier") },
     { key: "unprompted", label: "Unprompted · set A", color: "var(--p-unprompted)", short: "U",
-      match: s => s.module.endsWith("-unprompted") }
+      match: s => s.module.endsWith("-unprompted") && s.variant === "dossier-a" },
+    { key: "named", label: "Named, no rate · set A", color: "var(--p-named)", short: "N",
+      match: s => s.module.endsWith("-unprompted") && s.variant === "named-a" }
   ];
   const FAMILIES = [
     { key: "relay", prefix: "corroboration-", title: "Relay: how often does an outlet like this relay instead of checking?", axis: "implied prior of relaying" },

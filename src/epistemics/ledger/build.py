@@ -52,7 +52,8 @@ PRESENTATIONS = {
     "cues-a": ("cues", ("cues-a",)),
     "cues-b": ("cues", ("cues-b",)),
     "dossier": ("dossier", None),
-    "unprompted": ("unprompted", None),
+    "unprompted": ("unprompted", ("dossier-a",)),
+    "named": ("unprompted", ("named-a",)),
 }
 
 

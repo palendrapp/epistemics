@@ -26,6 +26,7 @@ from epistemics.disposition_tasks.render import (
     RANGE_MODULES,
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
+    UNPROMPTED_VARIANTS,
     VARIANTS,
     items_for,
     render,
@@ -102,8 +103,10 @@ def variants_of(module):
         return CUE_VARIANTS
     if module in RANGE_MODULES:
         return RANGE_VARIANTS
-    if module in DOSSIER_MODULES + UNPROMPTED_MODULES:
+    if module in DOSSIER_MODULES:
         return DOSSIER_VARIANTS
+    if module in UNPROMPTED_MODULES:
+        return UNPROMPTED_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
 
 
@@ -113,6 +116,20 @@ def covers_of(module):
         if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES
         else COVERS
     )
+
+
+def states_only_the_named(module, variant, case):
+    """Unprompted cases never state the mechanism; named cases state exactly its one sentence."""
+    from epistemics.disposition_tasks.dossier import NAMED
+
+    text = case["case"]
+    if variant == "named-a":
+        sentence = NAMED["relay" if module.startswith("corroboration") else "disclosure"]
+        if text.count(sentence) != 1:
+            return False
+        text = text.replace(sentence, "")
+    shown = json.dumps({**case, "case": text}).lower()
+    return not any(word in shown for word in MECHANISM)
 
 
 def audit():
@@ -132,10 +149,10 @@ def audit():
                             raise ValueError(f"{where} does not display {p}")
                     if any(word in json.dumps(case).lower() for word in PRIVATE):
                         raise ValueError(f"{where} shows a private label")
-                    if module in UNPROMPTED_MODULES and any(
-                        word in json.dumps(case).lower() for word in MECHANISM
+                    if module in UNPROMPTED_MODULES and not states_only_the_named(
+                        module, variant, case
                     ):
-                        raise ValueError(f"{where} states the mechanism")
+                        raise ValueError(f"{where} states the mechanism beyond its variant")
                     if module != "checks" and kinds[i] != "single":
                         two_way = any(phrase in case["case"] for phrase in TWO_WAY)
                         if two_way != (variant == "paired"):
@@ -166,8 +183,8 @@ def contexts_to_validate():
         for variant in LEARNING_RATES:
             yield module, "markets", variant, LEARNER
     # Appended last, so earlier contexts keep the random draws of earlier battery versions.
-    for module in UNPROMPTED_MODULES:
-        for variant in DOSSIER_VARIANTS:
+    for variant in UNPROMPTED_VARIANTS:
+        for module in UNPROMPTED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT
 
 
