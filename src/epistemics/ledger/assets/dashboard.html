@@ -205,7 +205,7 @@ function renderPassport(passport) {
   const table = document.getElementById("passport");
   const head = ["Configuration", "Relay default", "Silence default", "Value of certainty", "Evidence sensitivity",
     "Report noise", "Learning (start, κ)", "Relay descriptions", "Disclosure descriptions",
-    "Retest difference", "Relative-judgement contrast", "Session SD (ambiguous)", "Contexts"];
+    "Retest difference", "Relative-judgement contrast", "Session SD (ambiguous)", "Stated = implied", "Contexts"];
   table.append(el("thead", {}, el("tr", {}, head.map(h => el("th", {}, h)))));
   const body = el("tbody");
   for (const [config, p] of Object.entries(passport)) {
@@ -230,6 +230,7 @@ function renderPassport(passport) {
       el("td", { class: "num" }, p.ambiguous_description_session_sd
         ? `${f2(p.ambiguous_description_session_sd.estimate)} [${p.ambiguous_description_session_sd.interval_95.map(f2).join(", ")}] (${p.ambiguous_description_session_sd.sessions})`
         : "—"),
+      el("td", { class: "num" }, p.description_coherence ? `${p.description_coherence[0]}/${p.description_coherence[1]} sessions` : "—"),
       el("td", { class: "num" }, p.contexts)
     ));
   }

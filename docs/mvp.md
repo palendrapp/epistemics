@@ -111,7 +111,9 @@ The preregistered [variance study](disposition-variance-2026-09-28.md) measured 
 - **Astra:** 0.07, with its uninformative default fixed at 50%.
 - **Sol:** 0.11, with its default ranging from 22% to 52%.
 
-**Next: the weaker configurations on the description modules with several sessions each, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+On the description modules, [GPT-5.6 Terra](disposition-weaker-cues-2026-09-28.md) follows the frontier mapping, more noisily. GPT-5.6 Luna states similar base rates, but its forecasts do not apply them: it was coherent in 1 of 6 sessions.
+
+**Next: transfer to dossiers without background facts, and a first reading-guide draft from the passport.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

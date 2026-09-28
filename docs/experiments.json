@@ -265,9 +265,9 @@
       "roots": [
         "output/disposition-weaker-cues-20260928"
       ],
-      "status": "running",
+      "status": "complete",
       "prediction": "W1: strongly suggestive above strongly reassuring by at least 0.30 in both modules. W2: median report noise above 0.05. W3: stated and implied within 0.10 at every level in at least 4 of 6 sessions per configuration.",
-      "outcome": null
+      "outcome": "W1 supported in 3 of 4 cells (Luna disclosure range only 0.22); W2 supported (median noise Luna 0.51, Terra 0.32); W3 supported for Terra (5/6) but not Luna (1/6): Luna states frontier-like base rates but its forecasts do not use them."
     },
     {
       "id": "source-learning-acceptance",
@@ -337,8 +337,8 @@
     }
   ],
   "next": [
-    "Report the weaker-configuration description study against its preregistration.",
     "Transfer: dossiers without background facts, starting with descriptions from the fixed extremes.",
+    "Reading guide draft from the passport: defaults, learning, description mapping, session variability, coherence, precision.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."
   ]

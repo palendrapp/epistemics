@@ -113,6 +113,19 @@ def passport(pairs, retests, contrasts):
             ),
             "relative_judgement_contrast": contrasts.get(config, {}).get("mean"),
             "ambiguous_description_session_sd": session_variance(pairs, config),
+            # Sessions whose forecasts use the base rates they state (every level within 0.10).
+            "description_coherence": [
+                sum(s["stated_minus_implied_max"] <= 0.10 for s in cue_rows),
+                len(cue_rows),
+            ]
+            if (
+                cue_rows := [
+                    s
+                    for _, s in mine
+                    if s["module"].endswith("-cues") and "stated_minus_implied_max" in s
+                ]
+            )
+            else None,
             "contexts": len(mine),
         }
         if any(v is not None for k, v in entry.items() if k != "contexts"):

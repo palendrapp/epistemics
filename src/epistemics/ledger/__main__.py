@@ -74,6 +74,8 @@ def main():
     v.add_argument("--variant", default="cues-a")
     v.add_argument("--levels", type=int, nargs="+", default=[1, 2, 3])
     v.add_argument("--order-policy", default="random", help="'any' to pool every order policy")
+    cs = sub.add_parser("cues-summary")
+    cs.add_argument("roots", type=Path, nargs="+")
     val = sub.add_parser("variance-validate")
     val.add_argument("--output", type=Path, required=True)
     val.add_argument("--seed", type=int, default=20260928)
@@ -99,6 +101,30 @@ def main():
     elif a.command == "contrast":
         contrast = dispositions.range_contrast(verified_pairs(a.root))
         print(json.dumps(contrast, indent=2))
+    elif a.command == "cues-summary":
+        import numpy as np
+
+        groups = {}
+        for root in a.roots:
+            for record, s in verified_pairs(root):
+                if s["module"].endswith("-cues"):
+                    groups.setdefault(
+                        (record["configuration"], s["module"], s["variant"]), []
+                    ).append(s)
+        print(
+            "| Configuration | Module | Set | Sessions | Mean mapping | Suggestive − reassuring | "
+            "Median τ | Sessions coherent within 0.10 | Irrelevant level |"
+        )
+        print("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+        for (config, module, variant), rows in sorted(groups.items()):
+            implied = np.array([r["implied"] for r in rows])
+            mean = implied.mean(axis=0)
+            coherent = sum(r["stated_minus_implied_max"] <= 0.10 for r in rows)
+            print(
+                f"| {config} | {module} | {variant} | {len(rows)} | {fmt(list(mean))} | "
+                f"{mean[-1] - mean[0]:.2f} | {np.median([r['report_sd'] for r in rows]):.2f} | "
+                f"{coherent}/{len(rows)} | {fmt(list(implied[:, 2]))} |"
+            )
     elif a.command == "variance":
         from epistemics.ledger import variance
 
