@@ -82,7 +82,14 @@ The modules are now [rendered as checkpoint tasks](disposition-tasks.md) under t
 
 The [task acceptance](disposition-acceptance-2026-09-27.md) found GPT-6 Astra and Sol at medium effort to be indifference Bayesians. They set every missing base rate to 50%, computed exactly and valued checks only for their decision value, identically across fresh contexts and cover stories.
 
-**Next: weaker configurations on the same tasks, framings that break the two-way symmetry, and transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+[Round 2](disposition-round2-2026-09-28.md) showed where the default comes from:
+- **Framing:** it survives removing the two-way framing.
+- **Learning:** it is learned like a Laplace learner when earlier cases are revealed.
+- **Descriptions:** it moves with qualitative source descriptions. How far it moves is the first disposition difference between frontier configurations: Sol discounts disclosure for an outside auditor, while Astra ignores such detail.
+
+Weaker configurations share the priors and the zero value of certainty, and differ only in precision.
+
+**Next: measure the mapping from qualitative cues to priors with graded descriptors and base-rate probes, retest the descriptor effects, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
