@@ -65,7 +65,7 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.3.1"] = VERSION
+    battery_version: Literal["disposition-tasks/0.3.2"] = VERSION
     model_version: Literal["disposition-model/0.3.0"] = MODEL_VERSION
     design_version: Literal["disposition-design/0.3.0"] = DESIGN_VERSION
     study_id: str

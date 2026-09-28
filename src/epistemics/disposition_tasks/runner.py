@@ -31,6 +31,7 @@ from epistemics.disposition_tasks.render import (
     MODULES,
     VARIANTS,
     allowed,
+    items_for,
 )
 from epistemics.investigation_pilot.runner import EXTRA_DISABLED
 from epistemics.research_world3.runner import CONFIGURATIONS
@@ -101,9 +102,34 @@ def command(root, entry, config):
     ] + [PROMPT]
 
 
+# Case-order policies. The last three apply to cue modules: the irrelevant description's
+# base-rate question first (the baseline before any other description), or all reassuring or
+# all suggestive cases first (anchoring). With shared_order, every run in a group gets one order.
+ORDER_POLICIES = ("random", "irrelevant-first", "reassuring-first", "suggestive-first")
+
+
+def arrange(module, policy, rng):
+    order = list(range(CASES))
+    rng.shuffle(order)
+    if policy == "random":
+        return order
+    items = items_for(module)
+    slots, kinds = items["slot"], items["kind"]
+    if policy == "irrelevant-first":
+        first = [i for i in order if slots[i] == 2 and kinds[i] == "rate"]
+    elif policy == "reassuring-first":
+        first = [i for i in order if slots[i] in (0, 1)]
+    else:
+        first = [i for i in order if slots[i] in (3, 4)]
+    return first + [i for i in order if i not in first]
+
+
 def check_groups(groups):
-    runs = set()
-    for group in groups:
+    runs = {}
+    for index, group in enumerate(groups):
+        policy = group.get("order", "random")
+        if policy not in ORDER_POLICIES:
+            raise ValueError(f"Unknown order policy: {policy}")
         configurations, modules = group["configurations"], group["modules"]
         contexts = [tuple(c) for c in group["contexts"]]
         if not configurations or set(configurations) - set(CONFIGURATIONS):
@@ -120,11 +146,13 @@ def check_groups(groups):
                 for variant, cover, repeat in contexts:
                     if not allowed(module, cover, variant):
                         raise ValueError(f"{module} does not offer {variant} in {cover}")
+                    if policy != "random" and module not in CUE_MODULES:
+                        raise ValueError("Order policies other than random need a cue module")
                     key = (config, module, variant, cover, repeat)
                     if key in runs:
                         raise ValueError("Every run must be distinct")
-                    runs.add(key)
-    return sorted(runs)
+                    runs[key] = (policy, index, bool(group.get("shared_order", False)))
+    return [(*key, *runs[key]) for key in sorted(runs)]
 
 
 def prepare(
@@ -197,14 +225,16 @@ def prepare(
             "authentication": "existing_chatgpt_login",
             "implementation_sha256": fingerprint(),
         }
-        for label in sorted({config for config, *_ in planned})
+        for label in sorted({run[0] for run in planned})
     }
     case_seed, order_seed = secrets.randbits(63), secrets.randbits(63)
     shuffle = random.Random(case_seed)
-    runs = []
-    for config, module, variant, cover, repeat in planned:
-        order = list(range(CASES))
-        shuffle.shuffle(order)
+    runs, shared_orders = [], {}
+    for config, module, variant, cover, repeat, policy, group, shared in planned:
+        if shared:
+            order = shared_orders.setdefault((group, module), arrange(module, policy, shuffle))
+        else:
+            order = arrange(module, policy, shuffle)
         runs.append(
             {
                 "run_id": f"{config}-{module}-{variant}-{cover}{repeat}",
@@ -214,6 +244,7 @@ def prepare(
                 "cover": cover,
                 "repeat": repeat,
                 "order": order,
+                "order_policy": policy,
                 "reveal_seed": secrets.randbits(63) if variant in LEARNING_RATES else None,
             }
         )
@@ -226,7 +257,14 @@ def prepare(
         "validations": validations,
         "configurations": configs,
         "groups": [
-            {k: [list(c) for c in v] if k == "contexts" else list(v) for k, v in g.items()}
+            {
+                k: [list(c) for c in v]
+                if k == "contexts"
+                else v
+                if isinstance(v, str | bool)
+                else list(v)
+                for k, v in g.items()
+            }
             for g in groups
         ],
         "case_order_seed": case_seed,

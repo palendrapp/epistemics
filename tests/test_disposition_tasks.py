@@ -408,3 +408,33 @@ def test_cue_summaries_handle_ties_and_feed_the_run_summary():
     ]
     result = agreement({("sol", "disclosure-cues"): rows})["sol/disclosure-cues"]
     assert result["repeat_differences"] == [pytest.approx(0.02)]
+
+
+def test_order_policies_control_the_first_cases():
+    import random
+
+    from epistemics.disposition_tasks import runner
+
+    items = items_for("corroboration-cues")
+    first = runner.arrange("corroboration-cues", "irrelevant-first", random.Random(1))[0]
+    assert items["slot"][first] == 2 and items["kind"][first] == "rate"
+    reassuring = runner.arrange("corroboration-cues", "reassuring-first", random.Random(2))
+    assert all(items["slot"][i] in (0, 1) for i in reassuring[:8])
+    assert sorted(reassuring) == list(range(24))
+    groups = [
+        {
+            "configurations": ["astra", "sol"],
+            "modules": ["corroboration-cues"],
+            "contexts": [["cues-a", "markets", 3], ["cues-a", "markets", 4]],
+            "order": "irrelevant-first",
+            "shared_order": True,
+        }
+    ]
+    planned = runner.check_groups(groups)
+    assert len(planned) == 4 and all(p[5:] == ("irrelevant-first", 0, True) for p in planned)
+    with pytest.raises(ValueError, match="cue module"):
+        runner.check_groups(
+            [{**groups[0], "modules": ["disclosure"], "contexts": [["open", "markets", 1]]}]
+        )
+    with pytest.raises(ValueError, match="Unknown order"):
+        runner.check_groups([{**groups[0], "order": "alphabetical"}])
