@@ -203,9 +203,20 @@ def noticing(config, analyses):
             f"source was {what}, for each description. An irrelevant detail gave {pct(mapping[2])}"
         )
         if "prompted_mapping" in row:
-            detail += f"; when the mechanism was named, {pct(row['prompted_irrelevant'])}."
+            detail += (
+                "; in the prompted dossiers, which named the mechanism and asked for its base "
+                f"rate, {pct(row['prompted_irrelevant'])}."
+            )
         else:
             detail += "."
+        if row.get("named") and row["named"]["range"] >= 0.30:
+            claim += (
+                " One sentence saying that outlets can copy one another is enough for it to "
+                "discount obvious copiers."
+                if family == "relay"
+                else " One sentence saying that some companies hide bad numbers is enough for it "
+                "to read silence as bad news when there is a motive."
+            )
         if row.get("named"):
             extreme = "aggregator" if family == "relay" else "bonus description"
             detail += (
