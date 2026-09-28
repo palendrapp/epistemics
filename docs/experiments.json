@@ -409,6 +409,19 @@
       "roots": [],
       "status": "complete",
       "outcome": "Deviations arise when agents must construct the problem; motivated the naturalistic and disposition tracks."
+    },
+    {
+      "id": "structure-inclusion-model",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "model",
+      "title": "Second-layer model: structure inclusion (draft)",
+      "question": "Can a few abstract parameters (inclusion threshold on a salience ladder, cue-driven inclusion, session drift, default, description sensitivity) explain the unprompted, named, asked and probed results, and are they recoverable?",
+      "doc": "docs/structure-inclusion-model.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Draft; built after the data, so the fits are exploratory. Confirmatory test proposed: abstract urn tasks on the same ladder.",
+      "outcome": "Threshold recovers well (correlation 0.98, MAE 0.16-0.21 on a 0.3-2.7 range); session drift moderately; cue weight under-covers (0.75) with a plug-in mapping. Exploratory fits: Astra theta 0.65, Sol 0.96; inclusion for an uninformative description at rungs 0-3: Astra 0.12/0.74/0.99/1.00, Sol 0.12/0.52/0.90/0.99. Shared vs family-specific thresholds indistinguishable (<=1.1 nats); shared model misfits unprompted inclusion (relays over, disclosure under)."
     }
   ],
   "next": [

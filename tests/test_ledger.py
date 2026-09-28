@@ -382,3 +382,18 @@ def test_reading_guide_flags_a_coherence_gap_confined_to_one_condition():
     assert guide.coherence(p)["caution"] is None
     del p["description_coherence_by_condition"]["corroboration-asked/named-a"]
     assert guide.coherence(p)["caution"] is None
+
+
+def test_inclusion_layer_orders_thresholds_and_reports_rungs():
+    from epistemics.ledger import inclusion
+
+    rng = np.random.default_rng(3)
+    low = inclusion.fit(inclusion.simulate(rng, {"theta": 0.5, "w": 0.3, "sigma": 0.3}))
+    high = inclusion.fit(inclusion.simulate(rng, {"theta": 2.5, "w": 0.3, "sigma": 0.3}))
+    assert low["parameters"]["theta"]["mean"] < 1.2 < 1.8 < high["parameters"]["theta"]["mean"]
+    assert low["inclusion_by_rung"]["relay"]["1"] > high["inclusion_by_rung"]["relay"]["1"]
+    assert set(low["mapping"]) == {"relay", "disclosure"}
+    split = inclusion.fit(
+        inclusion.simulate(rng, {"theta": 0.5, "w": 0.3, "sigma": 0.3}), "theta_by_family"
+    )
+    assert {"theta_relay", "theta_disclosure", "w", "sigma"} == set(split["parameters"])

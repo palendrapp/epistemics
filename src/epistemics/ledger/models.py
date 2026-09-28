@@ -140,9 +140,11 @@ def check_session(items, wtp):
     return marginals(posterior, names), predictive(pmfs, wtp, POINTS)
 
 
-def cue_session(module, items, reports):
-    """Description session: a prior per description level with shared (gamma, bias, noise)."""
-    model = CUE_MODELS[module]
+def cue_marginals(model, items, reports):
+    """Per-level prior marginals, the joint weights and the shared posterior of a description fit.
+
+    Mirrors fit.fit_cues: stated base-rate answers do not enter the fit.
+    """
     slots, kinds = items["slot"], items["kind"]
     evidence = kinds != "rate"
 
@@ -162,7 +164,14 @@ def cue_session(module, items, reports):
     posterior = normalise(shared)
     conditional = np.exp(per_slot - slot_evidence[:, None])
     joint = conditional * posterior[None, None]
-    slot_marginals = joint.sum(axis=(2, 3, 4))
+    return joint.sum(axis=(2, 3, 4)), joint, posterior, levels
+
+
+def cue_session(module, items, reports):
+    """Description session: a prior per description level with shared (gamma, bias, noise)."""
+    model = CUE_MODELS[module]
+    slots, kinds = items["slot"], items["kind"]
+    slot_marginals, joint, posterior, levels = cue_marginals(model, items, reports)
     result = {"slots": slot_marginals} | marginals(posterior, ("gamma", "bias", "report_sd"))
 
     observer = fit.REPORT_MODELS[model]

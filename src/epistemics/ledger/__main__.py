@@ -6,6 +6,8 @@ uv run python -m epistemics.ledger retest <first root> <second root>
 uv run python -m epistemics.ledger contrast <root>
 uv run python -m epistemics.ledger transfer <roots...>
 uv run python -m epistemics.ledger noticing <roots...>
+uv run python -m epistemics.ledger inclusion [--configuration astra --configuration sol]
+uv run python -m epistemics.ledger inclusion-validate --output <file>
 """
 
 import argparse
@@ -81,6 +83,12 @@ def main():
     tr.add_argument("roots", type=Path, nargs="+")
     no = sub.add_parser("noticing")
     no.add_argument("roots", type=Path, nargs="+")
+    inc = sub.add_parser("inclusion")
+    inc.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
+    inc.add_argument("--configuration", action="append", default=None)
+    iv = sub.add_parser("inclusion-validate")
+    iv.add_argument("--output", type=Path, required=True)
+    iv.add_argument("--datasets", type=int, default=40)
     cs = sub.add_parser("cues-summary")
     cs.add_argument("roots", type=Path, nargs="+")
     val = sub.add_parser("variance-validate")
@@ -119,6 +127,35 @@ def main():
 
         records = [r for root in a.roots for r in dispositions.extract(root)]
         print(json.dumps(transfer.noticing(records), indent=2))
+    elif a.command == "inclusion":
+        from epistemics.ledger import inclusion
+
+        models = json.loads(a.ledger.read_text())["models"]
+        result = {}
+        for config in a.configuration or ["astra", "sol"]:
+            rows = inclusion.ledger_sessions(models, config)
+            result[config] = {v: inclusion.fit(rows, v) for v in inclusion.VARIANTS}
+        print(json.dumps(result, indent=2))
+    elif a.command == "inclusion-validate":
+        from epistemics.ledger import inclusion
+
+        runs = {
+            f"{variant}-{seed}": inclusion.validate(seed, a.datasets, variant)
+            for variant, seeds in (
+                ("shared", (20260928, 20261028)),
+                ("theta_by_family", (20260928,)),
+            )
+            for seed in seeds
+        }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(runs, indent=2, sort_keys=True) + "\n")
+        for key, run in runs.items():
+            print(
+                key,
+                json.dumps(
+                    {k: {m: round(v, 3) for m, v in x.items()} for k, x in run["metrics"].items()}
+                ),
+            )
     elif a.command == "cues-summary":
         import numpy as np
 
