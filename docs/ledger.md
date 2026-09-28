@@ -25,7 +25,7 @@ Every number in a results doc should be reproducible from frozen artifacts by a 
   - **Readings.** Fixed rules turn each measured parameter into a reading. Each reading has a claim, a detail line, the evidence behind it (module and number of sessions), a short fact for the label, and a caution where a behaviour could mislead a reader. Examples: "treats a missing base rate as 50/50"; "its probabilities carry about ±10 points of noise"; "states sensible base rates, but its forecasts often use different ones".
   - **Thresholds.** They live in the code, so the guide changes only when the evidence does.
   - **Scope.** Readings describe behaviour in these tasks; they are not claims about internal beliefs.
-  - **Page.** [`src/epistemics/ledger/assets/guide.html`](../src/epistemics/ledger/assets/guide.html) renders the guide as its own private artifact, separate from the dashboard, with `guide.json` published alongside.
+  - **Page.** [`src/epistemics/ledger/assets/guide.html`](../src/epistemics/ledger/assets/guide.html) renders the guide as its own private artifact, separate from the dashboard, with `guide.json` published alongside: https://claude.ai/artifact/FxwAGdpF1ZLYDgxvAPeQXZ. Republish it after each rebuild, as for the dashboard.
 
 ## Commands
 
