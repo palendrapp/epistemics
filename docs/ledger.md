@@ -1,6 +1,6 @@
 # Experiment ledger
 
-Every number in a results doc should be reproducible from frozen artifacts by a versioned command. The ledger (`epistemics.ledger`, ledger/0.1.0) does that and feeds a private dashboard.
+Every number in a results doc should be reproducible from frozen artifacts by a versioned command. The ledger (`epistemics.ledger`, ledger/0.2.0) does that and feeds a private dashboard.
 
 ## Parts
 
@@ -13,6 +13,12 @@ Every number in a results doc should be reproducible from frozen artifacts by a 
   - evidence sensitivity and report noise;
   - learning;
   - description mappings, retest differences and the relative-judgement contrast.
+
+- **Model views** (`epistemics.ledger.models`, the `models` block of `ledger.json`), for the dashboard's Models tab:
+  - **Grid posteriors.** For every verified disposition session, full grid posteriors are recomputed from its responses and its collected item design, using the current model code (mirroring `fit.fit_reports`, `fit.fit_checks` and `fit.fit_cues`). Each session records `recorded_difference`: the largest gap between the recomputed posterior means and the verified report's own, as a share of the grid's range. It is 0 for every session except the six version-0.1 checks sessions of the first acceptance run, which were fitted under an earlier model and are marked in the page.
+  - **Posterior predictive checks.** Each report's predictive distribution mixes the whole-percentage (or whole-point) report likelihood over the joint grid posterior. Each session stores the 5/25/50/75/95% predictive quantiles of every report and the number of reports inside the central 90%.
+  - **Recovery sample.** 100 simulated respondents per module (relay and disclosure probe designs; checks under the linear certainty function), drawn from the validation study's generating ranges with seed 20260928 and fitted by the real fits. Intervals are widened to grid-cell edges, as in the validation study. The sample is cached under `output/ledger-recovery-v2-<model fingerprint>-…json`.
+  - **Designs.** Each distinct item design, with case labels and reference observer values. The page's JavaScript port of the relay and disclosure observers is checked against these on load, and the page reports the largest difference.
 
 ## Commands
 
@@ -43,7 +49,16 @@ After each run:
 2. Rebuild the ledger.
 3. Republish the page together with the new `ledger.json`.
 
-The page never contains transcripts or prompts, only the summary figures that the docs already report.
+The page has two tabs:
+- **Ledger:** the passport, experiments and token use.
+- **Models:** five views in Bayesian-workflow order.
+  1. The generative model, drawn as a Kruschke-style diagram whose parameter nodes are sliders. It feeds response curves and a prior-predictive ridgeline, onto which any session's reports can be overlaid with their log-likelihood.
+  2. Parameter recovery on simulated respondents.
+  3. Half-eye grid posteriors for each session, set against the uniform prior.
+  4. Posterior predictive interval checks, with a calibration strip over all sessions.
+  5. Ridgelines of the implied prior for each description level, comparing formal presentations with dossiers.
+
+The page never contains transcripts or prompts, only summary figures, item designs and the fitted posteriors derived from the verified reports.
 
 ## Tables regenerated so far
 

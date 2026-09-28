@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from epistemics.ledger import VERSION, dispositions, roots, variance
+from epistemics.ledger import VERSION, dispositions, models, roots, variance
 
 CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
 
@@ -183,6 +183,10 @@ def build(registry_path="docs/experiments.json"):
             contrasts.update(contrast)
         all_pairs += [(r, s) for r, s in pairs if r.get("verified")]
         experiments.append(item)
+    experiment_for = {}
+    for entry in registry["experiments"]:
+        for r in entry.get("roots", []):
+            experiment_for.setdefault(r, entry["id"])
     totals = {
         "experiments": len(experiments),
         "contexts_completed": sum(f["runs_completed"] for e in experiments for f in e["facts"]),
@@ -199,5 +203,8 @@ def build(registry_path="docs/experiments.json"):
         "experiments": experiments,
         "passport": passport(all_pairs, all_retests, contrasts),
         "totals": totals,
+        "models": models.build(
+            {r: records for r, records in extracted.items() if is_disposition(r)}, experiment_for
+        ),
         "scope": "Recomputed from frozen plans, executions and verified reports; model revisions are requested aliases and execution is operator-asserted.",
     }

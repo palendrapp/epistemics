@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from epistemics.disposition_tasks.simulation import simulate
-from epistemics.ledger import dispositions, roots
+from epistemics.ledger import dispositions, models, roots
 from epistemics.ledger.build import passport
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
@@ -152,3 +152,54 @@ def test_transfer_scores_own_pooled_and_neutral_priors():
         assert row["prediction_mae"]["own_formal"] < 0.006
         assert row["gain_over_neutral"] > 0.03
         assert row["gain_over_pooled"] > 0
+
+
+def test_model_views_reproduce_recorded_fits_and_bracket_the_data(tmp_path):
+    report = {"disposition": 0.3, "gamma": 0.9, "bias": 0.1, "report_sd": 0.3}
+    cues = {"slots": [0.1, 0.35, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.2}
+    check = {"function": "linear", "certainty_value": 20.0, "decision_weight": 1.0, "wtp_sd": 3.0}
+    root = make_root(
+        tmp_path,
+        [
+            (
+                "t2",
+                "astra",
+                dict(module="corroboration", cover="markets", order=ORDER, truth=report, seed=3),
+            ),
+            (
+                "t3",
+                "astra",
+                dict(module="disclosure", cover="markets", order=ORDER, truth=report, seed=4),
+            ),
+            ("t5", "sol", dict(module="checks", cover="markets", order=ORDER, truth=check, seed=5)),
+            (
+                "cues",
+                "sol",
+                dict(
+                    module="disclosure-cues",
+                    cover="markets",
+                    order=ORDER,
+                    truth=cues,
+                    seed=6,
+                    variant="cues-a",
+                ),
+            ),
+        ],
+    )
+    records = dispositions.extract(root, source=SOURCE)
+    designs = models.Designs()
+    sessions = [models.session({**r, "root": root.name}, "test", designs) for r in records]
+    for s in sessions:
+        # The recomputed grid posterior is the fit the verified report recorded.
+        assert s["recorded_difference"] < 1e-6
+        for weights in s["posterior"].values():
+            assert sum(weights) == pytest.approx(1.0, abs=1e-4)
+        q = np.array(s["ppc"]["quantiles"])
+        assert q.shape == (24, 5) and np.all(np.diff(q, axis=1) >= 0)
+        assert s["ppc"]["inside_90"] >= 18
+    assert len(sessions[3]["slots"]) == 5
+    assert np.allclose(sessions[3]["slot_means"], cues["slots"], atol=0.15)
+    assert {d["family"] for d in designs.table} == {"relay", "disclosure", "checks"}
+    relay = next(d for d in designs.table if d["family"] == "relay")
+    assert len(relay["labels"]) == 24 and len(relay["reference"]) == 3
+    assert set(relay["groups"]) == {"single", "conflict", "agree", "probe"}

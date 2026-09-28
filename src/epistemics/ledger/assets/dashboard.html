@@ -18,6 +18,24 @@
   --bad: #b42318;
   --bad-soft: #fbe4e1;
   --bar: #9cc3d2;
+  --plot-grid: #e8ecf1;
+  --c-astra: #0072b2;
+  --c-sol: #d55e00;
+  --c-astra-low: #56b4e9;
+  --c-sol-low: #e69f00;
+  --c-luna: #cc79a7;
+  --c-terra: #009e73;
+  --g-single: #8a94a3;
+  --g-conflict: #b7791f;
+  --g-agree: #6d5bb0;
+  --g-probe: #1f6f8b;
+  --g-rate: #16202c;
+  --g-withheld: #6d5bb0;
+  --g-control: #8a94a3;
+  --g-check: #1f6f8b;
+  --p-formal: #2f6690;
+  --p-formal-b: #5f8a2f;
+  --p-dossier: #c0522a;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -38,6 +56,24 @@
     --bad: #f08672;
     --bad-soft: #3a1c18;
     --bar: #2f6a80;
+    --plot-grid: #1d2631;
+    --c-astra: #4ea5e6;
+    --c-sol: #f0874a;
+    --c-astra-low: #9fd0f2;
+    --c-sol-low: #f3c25a;
+    --c-luna: #e59cc7;
+    --c-terra: #3fc79c;
+    --g-single: #7d8898;
+    --g-conflict: #e0b25a;
+    --g-agree: #a996e6;
+    --g-probe: #5fb3ce;
+    --g-rate: #e4e9f0;
+    --g-withheld: #a996e6;
+    --g-control: #7d8898;
+    --g-check: #5fb3ce;
+    --p-formal: #7fb2e0;
+    --p-formal-b: #a5c872;
+    --p-dossier: #ee8f62;
   }
 }
 :root[data-theme="dark"] {
@@ -56,6 +92,24 @@
   --bad: #f08672;
   --bad-soft: #3a1c18;
   --bar: #2f6a80;
+  --plot-grid: #1d2631;
+  --c-astra: #4ea5e6;
+  --c-sol: #f0874a;
+  --c-astra-low: #9fd0f2;
+  --c-sol-low: #f3c25a;
+  --c-luna: #e59cc7;
+  --c-terra: #3fc79c;
+  --g-single: #7d8898;
+  --g-conflict: #e0b25a;
+  --g-agree: #a996e6;
+  --g-probe: #5fb3ce;
+  --g-rate: #e4e9f0;
+  --g-withheld: #a996e6;
+  --g-control: #7d8898;
+  --g-check: #5fb3ce;
+  --p-formal: #7fb2e0;
+  --p-formal-b: #a5c872;
+  --p-dossier: #ee8f62;
 }
 body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; display: grid; gap: 36px; }
@@ -119,6 +173,82 @@ details[open] summary { margin-bottom: 10px; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
 .error { background: var(--bad-soft); color: var(--bad); border-radius: 8px; padding: 14px 16px; }
 @media (prefers-reduced-motion: no-preference) { .card { transition: border-color 0.15s; } .card:hover { border-color: var(--accent); } }
+/* Tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); }
+.tabs button { font: 500 14px var(--sans); color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; margin-bottom: -1px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button:focus-visible, .seg button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel { display: grid; gap: 36px; }
+/* Models */
+.step { display: grid; gap: 14px; min-width: 0; }
+.eyebrow { font: 600 12px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.step-title { font-size: 21px; font-weight: 600; }
+.lede { max-width: 74ch; color: var(--muted); }
+.lede em { color: var(--ink); font-style: normal; font-weight: 500; }
+.model-grid { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; min-width: 0; }
+.fig { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.fig figcaption { font-size: 13px; color: var(--muted); display: grid; gap: 2px; }
+.fig figcaption b { color: var(--ink); font-weight: 600; font-size: 14px; }
+.plot { width: 100%; min-width: 0; }
+.plot svg { display: block; width: 100%; height: auto; }
+.plot svg text { font-family: var(--sans); }
+.axis text { fill: var(--muted); font: 11px var(--mono); }
+.axis path, .axis line { stroke: var(--rule); }
+.gridline { stroke: var(--plot-grid); stroke-width: 1; }
+.t-lab { fill: var(--ink); font-size: 11.5px; }
+.t-muted { fill: var(--muted); font-size: 11px; }
+.t-num { fill: var(--muted); font: 11px var(--mono); }
+.t-title { fill: var(--muted); font-size: 11.5px; }
+.t-head { fill: var(--ink); font-size: 12.5px; font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 999px; padding: 2px; gap: 2px; background: var(--surface); }
+.seg button { font: 500 13px var(--sans); border: 0; background: none; color: var(--muted); padding: 4px 12px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+select { font: 13px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 5px 8px; max-width: 100%; }
+label.check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+.key { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.note { font-size: 12px; color: var(--muted); }
+.note.bad { color: var(--bad); }
+.readout { font: 12px var(--mono); color: var(--muted); }
+.readout b { color: var(--ink); font-weight: 500; }
+/* Kruschke-style diagram */
+.diagram { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; display: grid; gap: 0; }
+.diagram .top { display: grid; gap: 10px; margin-bottom: 4px; }
+.priors { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.node { border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 3px; background: var(--paper); min-width: 0; }
+.node .name { font-weight: 600; font-size: 13px; display: flex; justify-content: space-between; gap: 6px; }
+.node .name .val { font: 500 12px var(--mono); color: var(--accent); }
+.node .sub { font-size: 11.5px; color: var(--muted); }
+.node input[type="range"] { width: 100%; margin: 2px 0 0; accent-color: var(--accent); }
+.node svg { display: block; width: 100%; height: 26px; }
+.node.box { background: var(--surface); }
+.node.data { background: var(--accent-soft); border-color: var(--accent); }
+.formula { font: 12px/1.55 var(--mono); color: var(--ink); overflow-wrap: anywhere; }
+.formula .note { display: block; margin-top: 4px; font-family: var(--sans); line-height: 1.45; }
+.link { position: relative; height: 26px; display: grid; place-items: center; }
+.link::before { content: ""; position: absolute; top: 0; bottom: 5px; left: 50%; border-left: 1px solid var(--muted); }
+.link::after { content: ""; position: absolute; bottom: 0; left: calc(50% - 4px); border: 5px solid transparent; border-top-color: var(--muted); border-bottom: 0; }
+.link span { position: relative; background: var(--surface); font: 12px var(--mono); color: var(--muted); padding: 0 6px; margin-left: 34px; }
+.hl .curve { opacity: 0.12; }
+.hl .curve.on { opacity: 1; stroke-width: 2.4; }
+.hl .ridge-row { opacity: 0.3; }
+.hl .ridge-row.on { opacity: 1; }
+.two-fig { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.ppc-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 12px; align-items: start; }
+.desc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.level { display: grid; gap: 2px; padding-top: 8px; border-top: 1px solid var(--plot-grid); }
+.level:first-of-type { border-top: 0; padding-top: 0; }
+.level-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.level-head h4 { margin: 0; font-size: 13px; font-weight: 600; }
+.level-head .means { font: 12px var(--mono); display: flex; gap: 8px; white-space: nowrap; }
+.level p { font-size: 12px; color: var(--muted); max-width: 70ch; }
+.level svg, .fig > svg { display: block; width: 100%; height: auto; }
+@media (max-width: 900px) {
+  .model-grid, .ppc-grid, .desc-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) { .priors { grid-template-columns: 1fr; } }
 </style>
 
 <div class="wrap">
@@ -126,6 +256,12 @@ details[open] summary { margin-bottom: 10px; }
     <h1>Epistemics Ledger</h1>
     <p class="meta" id="meta">Loading the ledger…</p>
   </header>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="tab-ledger-btn" aria-controls="tab-ledger" aria-selected="true">Ledger</button>
+    <button type="button" role="tab" id="tab-models-btn" aria-controls="tab-models" aria-selected="false">Models</button>
+  </nav>
+
+  <div class="panel" id="tab-ledger" role="tabpanel" aria-labelledby="tab-ledger-btn">
   <div class="stats" id="stats"></div>
 
   <section>
@@ -155,8 +291,83 @@ details[open] summary { margin-bottom: 10px; }
     <h2>Token use</h2>
     <div class="chart" id="usage"></div>
   </section>
+  </div>
+
+  <div class="panel" id="tab-models" role="tabpanel" aria-labelledby="tab-models-btn" hidden>
+    <p class="lede" id="models-intro">Every figure here is recomputed by the ledger from the verified reports. The steps follow a Bayesian workflow: state the model, check that the design can recover its parameters, fit, check the fit against the data, then use it.</p>
+
+    <section class="step" id="step-model">
+      <div><p class="eyebrow">1 · Model</p><h3 class="step-title">The report model, and what it predicts</h3></div>
+      <p class="lede">Each case states a prior, some evidence and how reliable its sources are. A Bayesian observer with one free assumption about the world turns the case into log-odds. The assumption is how often outlets relay each other, or how often companies withhold bad news. Stated reliabilities pass through <em>evidence sensitivity γ</em>, forecasts can carry a <em>bias b</em>, and the report gets <em>noise τ</em> on the log-odds scale before it is rounded to a whole percent. The parameter nodes are sliders: move them to see what a respondent with those settings would report.</p>
+      <div class="model-grid">
+        <div class="diagram" id="diagram"></div>
+        <div class="stack">
+          <figure class="fig">
+            <figcaption><b>Median report as the prior changes</b><span>One line per case at the current sensitivity and bias. Steep lines are the cases that carry information about the prior; flat ones pin down the other parameters.</span></figcaption>
+            <div class="key" id="curves-key"></div>
+            <div class="plot" id="curves"></div>
+          </figure>
+          <figure class="fig">
+            <figcaption><b>What a respondent with these settings would report</b><span id="ridge-caption"></span></figcaption>
+            <div class="controls"><label class="note" for="m-session">Overlay a session</label><select id="m-session"></select></div>
+            <div class="plot" id="ridge"></div>
+            <p class="readout" id="ridge-readout"></p>
+          </figure>
+        </div>
+      </div>
+      <p class="note" id="parity"></p>
+    </section>
+
+    <section class="step" id="step-recovery">
+      <div><p class="eyebrow">2 · Recovery</p><h3 class="step-title">Can the design recover what it measures?</h3></div>
+      <p class="lede">Before fitting agents, the fit is run on simulated respondents whose settings are known. Each point is one of 100 simulated respondents per module: its true value against its posterior mean, with the 90% interval widened to the edges of its grid cells. Red points are respondents whose interval misses the truth; about one in ten should.</p>
+      <div class="controls"><div class="seg" id="recovery-param" role="group" aria-label="Parameter"></div></div>
+      <div class="two-fig" id="recovery"></div>
+    </section>
+
+    <section class="step" id="step-posteriors">
+      <div><p class="eyebrow">3 · Posteriors</p><h3 class="step-title">What each session says about the parameters</h3></div>
+      <p class="lede">Grid posteriors for every verified session, grouped by configuration. Each slab is a posterior density scaled to its row. The dot is the posterior mean, the thick bar the central 66% and the thin bar the central 90%. The dashed line is the uniform grid prior on the same scale, so a slab far above it means the session pinned the parameter down.</p>
+      <div class="controls">
+        <div class="seg" id="post-param" role="group" aria-label="Parameter"></div>
+        <label class="check" for="m-post-desc"><input type="checkbox" id="m-post-desc"> Include description and dossier sessions</label>
+      </div>
+      <figure class="fig">
+        <figcaption id="post-caption"></figcaption>
+        <div class="plot" id="forest"></div>
+      </figure>
+    </section>
+
+    <section class="step" id="step-ppc">
+      <div><p class="eyebrow">4 · Checks</p><h3 class="step-title">Do the fits reproduce the reports?</h3></div>
+      <p class="lede">The fitted posterior predicts a distribution for every report in its session, mixing over all grid parameter values by their posterior weight. If the model describes the respondent, about 90% of reports fall inside their central 90% predictive interval. The strip shows that share for every session; select a dot, or pick a session, to see its cases.</p>
+      <div class="ppc-grid">
+        <figure class="fig">
+          <figcaption><b>Share of reports inside their 90% interval</b><span>One dot per session; the diamond pools each configuration.</span></figcaption>
+          <div class="plot" id="calibration"></div>
+        </figure>
+        <figure class="fig">
+          <figcaption id="ppc-caption"></figcaption>
+          <div class="controls"><label class="note" for="m-ppc-session">Session</label><select id="m-ppc-session"></select></div>
+          <div class="key"><span><i style="background:var(--muted);height:3px;vertical-align:3px"></i>90% predictive</span><span><i style="background:var(--muted)"></i>50% predictive</span><span><i style="background:var(--ink);border-radius:50%"></i>reported</span><span><i style="background:var(--bad);border-radius:50%"></i>outside 90%</span></div>
+          <div class="plot" id="ppc"></div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="step" id="step-descriptions">
+      <div><p class="eyebrow">5 · Application</p><h3 class="step-title">Descriptions become priors</h3></div>
+      <p class="lede">In the description modules each of five source descriptions gets its own implied prior, fitted from that description's forecasts and probes. Thin lines are single sessions and the filled shape is their average; ticks under each row are the base rates the agent stated when asked directly. Formal sessions shown here use random case order; dossiers present the same cases as realistic document bundles.</p>
+      <div class="controls">
+        <div class="seg" id="desc-config" role="group" aria-label="Configuration"></div>
+        <div class="seg" id="desc-presentation" role="group" aria-label="Presentations"></div>
+      </div>
+      <div class="desc-grid" id="descriptions"></div>
+    </section>
+  </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
 const REPO = "https://github.com/palendrapp/epistemics/blob/main/";
 const TRACKS = ["all", "dispositions", "naturalistic", "delivery", "archive"];
@@ -368,8 +579,811 @@ function render(ledger) {
   }
   draw();
   renderUsage(t.usage_by_day);
+  if (ledger.models) renderModels(ledger.models);
+  else document.getElementById("models-intro").replaceChildren(el("div", { class: "error" }, "This ledger has no model block. Rebuild it with ledger 0.2 or later."));
 }
 
+/* ---------- Tabs ---------- */
+function setupTabs() {
+  const tabs = ["ledger", "models"];
+  const button = (t) => document.getElementById(`tab-${t}-btn`);
+  const show = (name, remember) => {
+    for (const t of tabs) {
+      const on = t === name;
+      document.getElementById(`tab-${t}`).hidden = !on;
+      button(t).setAttribute("aria-selected", String(on));
+      button(t).tabIndex = on ? 0 : -1;
+    }
+    if (remember) { try { localStorage.setItem("ledger-tab", name); } catch (e) {} }
+  };
+  for (const t of tabs) button(t).addEventListener("click", () => {
+    show(t, true);
+    try { history.replaceState(null, "", `#${t}`); } catch (e) {}
+  });
+  document.querySelector(".tabs").addEventListener("keydown", (ev) => {
+    if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+    const current = tabs.findIndex(t => button(t).getAttribute("aria-selected") === "true");
+    const next = tabs[(current + (ev.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+    show(next, true);
+    button(next).focus();
+  });
+  let initial = (location.hash || "").replace("#", "");
+  if (!tabs.includes(initial)) {
+    try { initial = localStorage.getItem("ledger-tab") || "ledger"; } catch (e) { initial = "ledger"; }
+  }
+  show(tabs.includes(initial) ? initial : "ledger", false);
+}
+
+/* ---------- Model views: constants ---------- */
+const LEVEL_NAMES = ["Strongly reassuring", "Mildly reassuring", "Irrelevant", "Mildly suggestive", "Strongly suggestive"];
+const CONFIG_ORDER = ["astra", "sol", "astra-low", "sol-low", "luna", "terra"];
+const GROUP_ORDER = ["single", "conflict", "agree", "withheld", "control", "probe", "rate", "check"];
+const GROUP_NAMES = {
+  single: "one outlet", conflict: "outlets disagree", agree: "outlets agree", probe: "structure probe",
+  rate: "stated base rate", withheld: "indicators withheld", control: "control", check: "check"
+};
+const MODULE_SHORT = {
+  corroboration: "T2 relay", disclosure: "T3 disclosure", checks: "T5 checks",
+  "corroboration-cues": "relay descriptions", "disclosure-cues": "disclosure descriptions",
+  "corroboration-dossier": "relay dossier", "disclosure-dossier": "disclosure dossier"
+};
+const cfgName = (c) => CONFIG_NAMES[c] || c;
+const cfgColor = (c) => `var(--c-${c})`;
+const grpColor = (g) => `var(--g-${g})`;
+const pct = (p) => `${Math.round(p * 100)}%`;
+const byConfig = (a, b) => CONFIG_ORDER.indexOf(a) - CONFIG_ORDER.indexOf(b);
+
+/* ---------- Numerics: a port of epistemics.dispositions (checked against Python below) ---------- */
+const sigmoid = (x) => x >= 0 ? 1 / (1 + Math.exp(-x)) : Math.exp(x) / (1 + Math.exp(x));
+const logit = (p) => Math.log(p) - Math.log1p(-p);
+const ERFC = [-1.26551223, 1.00002368, 0.37409196, 0.09678418, -0.18628806, 0.27886807,
+  -1.13520398, 1.48851587, -0.82215223, 0.17087277];
+function erfc(x) {
+  const z = Math.abs(x);
+  if (!Number.isFinite(z)) return x > 0 ? 0 : 2;
+  const t = 1 / (1 + 0.5 * z);
+  let poly = 0;
+  for (let i = ERFC.length - 1; i >= 0; i--) poly = ERFC[i] + t * poly;
+  const tail = t * Math.exp(-z * z + poly);
+  return x >= 0 ? tail : 2 - tail;
+}
+function intervalMass(lower, upper, mean, sd) {
+  const lo = (lower - mean) / (Math.SQRT2 * sd), hi = (upper - mean) / (Math.SQRT2 * sd);
+  const mass = lo >= 0 ? 0.5 * (erfc(lo) - erfc(hi)) : 0.5 * (erfc(-hi) - erfc(-lo));
+  return Math.max(mass, 0);
+}
+const LOWER = Array.from({ length: 101 }, (_, r) => r === 0 ? -Infinity : logit(r / 100 - 0.005));
+const UPPER = Array.from({ length: 101 }, (_, r) => r === 100 ? Infinity : logit(r / 100 + 0.005));
+function reportPmf(mu, sd) {
+  const out = new Array(101).fill(0);
+  if (mu === -Infinity) { out[0] = 1; return out; }
+  if (mu === Infinity) { out[100] = 1; return out; }
+  let total = 0;
+  for (let r = 0; r <= 100; r++) { out[r] = intervalMass(LOWER[r], UPPER[r], mu, sd); total += out[r]; }
+  return out.map(v => v / total);
+}
+function pmfQuantile(pmf, p) {
+  let c = 0;
+  for (let r = 0; r < pmf.length; r++) { c += pmf[r]; if (c >= p - 1e-12) return r / 100; }
+  return 1;
+}
+const EDGE = 1e-6;
+const clip = (x) => Math.min(Math.max(x, EDGE), 1 - EDGE);
+const perceived = (q, g) => sigmoid(g * logit(q));
+function relayLatent(it, delta, g) {
+  const d = clip(delta);
+  const qa = perceived(it.accuracy_a, g), qb = perceived(it.accuracy_b, g);
+  const a1 = it.report_a > 0 ? qa : 1 - qa, a0 = 1 - a1;
+  const b1 = it.report_b > 0 ? qb : 1 - qb, b0 = 1 - b1;
+  const match = it.report_a === it.report_b ? 1 : 0;
+  const relay = d * Math.exp(g * it.cue / 2), independent = (1 - d) * Math.exp(-g * it.cue / 2);
+  const p = it.prior;
+  if (it.kind === "single") return logit(p) + Math.log(a1) - Math.log(a0);
+  if (it.kind === "probe") {
+    return Math.log(relay * match * (p * a1 + (1 - p) * a0)) - Math.log(independent * (p * a1 * b1 + (1 - p) * a0 * b0));
+  }
+  return logit(p) + Math.log(a1 * (relay * match + independent * b1)) - Math.log(a0 * (relay * match + independent * b0));
+}
+function disclosureLatent(it, sigma, g) {
+  const s = clip(sigma), q = perceived(it.good, g);
+  const m = it.shared_good, j = it.shared_bad, k = it.withheld, rate = it.omission, p = it.prior;
+  const possible = j === 0 ? 1 : 0;
+  const sel1 = possible * q ** m * (1 - q) ** k, sel0 = possible * (1 - q) ** m * q ** k;
+  const common = rate ** k * (1 - rate) ** (m + j);
+  const r1 = common * q ** m * (1 - q) ** j, r0 = common * (1 - q) ** m * q ** j;
+  if (it.kind === "probe") return Math.log(s * (p * sel1 + (1 - p) * sel0)) - Math.log((1 - s) * (p * r1 + (1 - p) * r0));
+  return logit(p) + Math.log(s * sel1 + (1 - s) * r1) - Math.log(s * sel0 + (1 - s) * r0);
+}
+const latentFor = (family) => family === "relay" ? relayLatent : disclosureLatent;
+const isForecast = (it) => it.kind !== "probe" && it.kind !== "rate";
+function itemRows(design) {
+  const keys = Object.keys(design.items);
+  return design.items[keys[0]].map((_, i) => Object.fromEntries(keys.map(k => [k, design.items[k][i]])));
+}
+function cueName(v) {
+  if (Math.abs(v) < 1e-9) return "";
+  const size = Math.abs(v) > 2 ? "strong" : Math.abs(v) > 1 ? "moderate" : "weak";
+  return `${size} ${v > 0 ? "same" : "different"} wording`;
+}
+function shortLabel(design, i) {
+  const it = Object.fromEntries(Object.keys(design.items).map(k => [k, design.items[k][i]]));
+  const g = design.groups[i];
+  const level = it.slot === undefined ? "" : it.slot >= 0 ? `${LEVEL_NAMES[it.slot].toLowerCase()} · ` : "anchor · ";
+  if (design.family === "relay") {
+    const call = (r) => r > 0 ? "high" : "low";
+    const cue = cueName(it.cue);
+    if (g === "rate") return level + "stated base rate";
+    if (g === "single") return level + `one outlet, ${pct(it.accuracy_a)}, says ${call(it.report_a)}`;
+    if (g === "probe") return level + `probe: relayed? both ${call(it.report_a)}${cue ? ", " + cue : ""}`;
+    if (g === "agree") return level + `both ${call(it.report_a)}, prior ${pct(it.prior)}${cue ? ", " + cue : ""}`;
+    return level + `${pct(it.accuracy_a)} ${call(it.report_a)} vs ${pct(it.accuracy_b)} ${call(it.report_b)}`;
+  }
+  if (design.family === "disclosure") {
+    if (g === "rate") return level + "stated base rate";
+    const head = g === "probe" ? "probe: selective? " : "";
+    return level + head + `${it.shared_good} on, ${it.shared_bad} below, ${it.withheld} withheld`;
+  }
+  return `${pct(it.prior)} → ${pct(it.high)} or ${pct(it.low)}, stakes ${it.gain}/${it.loss}`;
+}
+function cellWidths(grid) {
+  const n = grid.length;
+  return grid.map((g, i) => {
+    const lo = i === 0 ? g - (grid[1] - grid[0]) / 2 : (g + grid[i - 1]) / 2;
+    const hi = i === n - 1 ? g + (grid[n - 1] - grid[n - 2]) / 2 : (g + grid[i + 1]) / 2;
+    return hi - lo;
+  });
+}
+function gridQuantile(grid, mass, p) {
+  let c = 0;
+  for (let i = 0; i < grid.length; i++) { c += mass[i]; if (c >= p - 1e-9) return grid[i]; }
+  return grid[grid.length - 1];
+}
+const gridMean = (grid, mass) => grid.reduce((s, g, i) => s + g * mass[i], 0);
+const sessionTail = (s) => s.run_id.split("-").pop();
+const expShort = (s) => (s.experiment || s.root).replace(/^disposition-/, "");
+function sessionLabel(s, withModule) {
+  const tags = [];
+  if (!["paired", "cues-a", "dossier-a"].includes(s.variant)) tags.push(s.variant);
+  if (s.order_policy && s.order_policy !== "random") tags.push(s.order_policy);
+  return [expShort(s), withModule ? MODULE_SHORT[s.module] : null, tags.join(" ") || null, sessionTail(s)]
+    .filter(Boolean).join(" · ");
+}
+const flagged = (s) => s.recorded_difference > 0.01;
+const rootKey = (s) => s.root.slice(-8) + s.root;
+
+/* ---------- Drawing helpers ---------- */
+const drawers = new Map();
+const resizer = typeof ResizeObserver === "function" ? new ResizeObserver((entries) => {
+  for (const entry of entries) {
+    const draw = drawers.get(entry.target);
+    const width = Math.round(entry.contentRect.width);
+    if (draw && width > 0 && Math.abs(width - (draw.width || 0)) > 3) { draw.width = width; requestAnimationFrame(draw); }
+  }
+}) : null;
+function mount(container, draw) {
+  drawers.set(container, draw);
+  draw.width = container.clientWidth;
+  draw();
+  if (resizer) resizer.observe(container);
+}
+function makeSvg(container, height, label) {
+  const width = Math.max(240, Math.floor(container.clientWidth || 640));
+  container.replaceChildren();
+  const svg = d3.select(container).append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`).attr("width", width).attr("height", height)
+    .attr("role", "img").attr("aria-label", label || "");
+  return { svg, width };
+}
+function fitText(text, px, charPx = 6.0) {
+  const n = Math.max(4, Math.floor(px / charPx));
+  return text.length > n ? text.slice(0, n - 1) + "…" : text;
+}
+function axisBottom(svg, x, y, ticks, format) {
+  const axis = d3.axisBottom(x).ticks(ticks).tickSizeOuter(0);
+  if (format) axis.tickFormat(format);
+  return svg.append("g").attr("class", "axis").attr("transform", `translate(0,${y})`).call(axis);
+}
+function vGrid(svg, x, values, y0, y1) {
+  svg.append("g").selectAll("line").data(values).join("line").attr("class", "gridline")
+    .attr("x1", d => x(d)).attr("x2", d => x(d)).attr("y1", y0).attr("y2", y1);
+}
+function segmented(container, options, initial, onChange, multi = false) {
+  container.replaceChildren();
+  let chosen = multi ? new Set(initial) : initial;
+  const buttons = options.map(o => {
+    const b = el("button", { type: "button", id: `${container.id}-${o.key}`, "aria-pressed": "false" }, o.label);
+    b.addEventListener("click", () => {
+      if (multi) {
+        if (chosen.has(o.key) && chosen.size > 1) chosen.delete(o.key); else chosen.add(o.key);
+      } else chosen = o.key;
+      sync();
+      onChange(multi ? new Set(chosen) : chosen);
+    });
+    container.append(b);
+    return [o.key, b];
+  });
+  const sync = () => buttons.forEach(([k, b]) => b.setAttribute("aria-pressed", String(multi ? chosen.has(k) : chosen === k)));
+  sync();
+}
+
+/* ---------- 1 · Model and prior predictive ---------- */
+function modelSection(models) {
+  const designs = Object.fromEntries(models.designs.map(d => [d.id, d]));
+  const state = { family: "relay", d: 0.5, g: 1, b: 0, t: 0.2, session: null };
+  const baseModule = () => state.family === "relay" ? "corroboration" : "disclosure";
+  const baseDesign = () => {
+    const latest = models.sessions.filter(s => s.module === baseModule()).sort((a, b) => rootKey(b).localeCompare(rootKey(a)))[0];
+    return latest ? designs[latest.design] : models.designs.find(d => d.family === state.family && !d.items.slot);
+  };
+  const design = () => state.session ? designs[state.session.design] : baseDesign();
+
+  const SLIDERS = [
+    { key: "d", id: "m-delta", grid: "disposition", min: 0, max: 1, sub: "21 points on 0–1" },
+    { key: "g", id: "m-gamma", grid: "gamma", min: 0.5, max: 1.5, sub: "11 points on 0.5–1.5",
+      name: "Evidence sensitivity γ", help: "A stated accuracy q is read as σ(γ·logit q). Below 1 discounts stated reliability; above 1 exaggerates it." },
+    { key: "b", id: "m-bias", grid: "bias", min: -0.6, max: 0.6, sub: "9 points on −0.6–0.6",
+      name: "Forecast bias b", help: "Added to the log-odds of every forecast; probes are unbiased." },
+    { key: "t", id: "m-tau", grid: "report_sd", min: 0.05, max: 1, sub: "10 points on 0.05–1",
+      name: "Report noise τ", help: "Standard deviation of report noise on the log-odds scale." }
+  ];
+  const priorName = () => state.family === "relay" ? "Relay prior δ" : "Silence prior σ";
+  const priorHelp = () => state.family === "relay"
+    ? "The respondent's base rate for an outlet relaying another outlet's call instead of checking for itself."
+    : "The respondent's base rate for a company sharing every on-target indicator and withholding every off-target one.";
+
+  const diagram = document.getElementById("diagram");
+  const family = el("div", { class: "seg", id: "m-family", role: "group", "aria-label": "Module" });
+  const nodes = {};
+  const priorGrid = el("div", { class: "priors" });
+  for (const s of SLIDERS) {
+    const grid = models.grids[s.grid];
+    const glyph = d3.create("svg").attr("viewBox", "0 0 140 26").attr("preserveAspectRatio", "none").attr("aria-hidden", "true");
+    const gx = (v) => 4 + (v - s.min) / (s.max - s.min) * 132;
+    glyph.append("line").attr("x1", 2).attr("x2", 138).attr("y1", 23).attr("y2", 23).attr("stroke", "var(--rule)");
+    glyph.selectAll("line.stem").data(grid).join("line").attr("class", "stem")
+      .attr("x1", gx).attr("x2", gx).attr("y1", 23).attr("y2", 12).attr("stroke", "var(--muted)").attr("stroke-width", 1.2);
+    const marker = glyph.append("rect").attr("y", 3).attr("height", 20).attr("width", 2.4).attr("fill", "var(--accent)");
+    const value = el("span", { class: "val" });
+    const input = el("input", { type: "range", id: s.id, min: s.min, max: s.max, step: 0.01, value: state[s.key], "aria-label": s.name || "Prior" });
+    const name = el("span", {});
+    const node = el("div", { class: "node" }, el("div", { class: "name" }, name, value), glyph.node(), input, el("div", { class: "sub" }, s.sub));
+    input.addEventListener("input", () => { state[s.key] = Number(input.value); update(); });
+    nodes[s.key] = { node, input, value, marker, gx, name };
+    priorGrid.append(node);
+  }
+  const observer = el("div", { class: "formula" });
+  const noiseGlyph = d3.create("svg").attr("viewBox", "0 0 140 26").attr("preserveAspectRatio", "none").attr("aria-hidden", "true");
+  const noisePath = noiseGlyph.append("path").attr("fill", "var(--accent-soft)").attr("stroke", "var(--accent)").attr("stroke-width", 1.2);
+  noiseGlyph.append("line").attr("x1", 70).attr("x2", 70).attr("y1", 2).attr("y2", 24).attr("stroke", "var(--muted)").attr("stroke-dasharray", "2 2");
+  const link = (sym) => el("div", { class: "link", "aria-hidden": "true" }, el("span", {}, sym));
+  diagram.append(
+    el("div", { class: "top" }, family, priorGrid),
+    link("="),
+    el("div", { class: "node box" }, el("div", { class: "name" }, "Bayesian observer"), observer),
+    link("="),
+    el("div", { class: "node box" }, el("div", { class: "name" }, "Forecast bias"),
+      el("div", { class: "formula" }, "μᵢ = ℓᵢ + b on forecasts; μᵢ = ℓᵢ on probes")),
+    link("~"),
+    el("div", { class: "node box" }, el("div", { class: "name" }, "Report noise"), noiseGlyph.node(),
+      el("div", { class: "formula" }, "y*ᵢ ~ Normal(μᵢ, τ), log-odds scale")),
+    link("="),
+    el("div", { class: "node box" }, el("div", { class: "name" }, "Rounding"),
+      el("div", { class: "formula" }, "reportᵢ = round(100 · σ(y*ᵢ)) %")),
+    link(""),
+    el("div", { class: "node data" }, el("div", { class: "name" }, "24 reports per session"),
+      el("div", { class: "sub" }, "Fitted jointly on the four grids with uniform priors; the rows below are that fit, session by session."))
+  );
+  segmented(family, [{ key: "relay", label: "Relay · T2" }, { key: "disclosure", label: "Disclosure · T3" }], state.family, (v) => {
+    state.family = v; state.session = null; fillSessions(); update();
+  });
+
+  const select = document.getElementById("m-session");
+  function fillSessions() {
+    select.replaceChildren(el("option", { value: "" }, "None: settings only"));
+    const sessions = models.sessions.filter(s => s.module === baseModule());
+    const configs = [...new Set(sessions.map(s => s.configuration))].sort(byConfig);
+    for (const c of configs) {
+      const group = el("optgroup", { label: cfgName(c) });
+      for (const s of sessions.filter(x => x.configuration === c).sort((a, b) => a.id.localeCompare(b.id))) {
+        group.append(el("option", { value: s.id }, `${sessionLabel(s)} · ${state.family === "relay" ? "δ̂" : "σ̂"} ${f2(s.means.disposition)}`));
+      }
+      select.append(group);
+    }
+    select.value = state.session ? state.session.id : "";
+  }
+  select.addEventListener("change", () => {
+    state.session = models.sessions.find(s => s.id === select.value) || null;
+    if (state.session) {
+      const m = state.session.means;
+      Object.assign(state, { d: m.disposition, g: m.gamma, b: m.bias, t: m.report_sd });
+    }
+    update();
+  });
+
+  let highlighted = null;
+  function highlight(i) {
+    highlighted = i;
+    for (const id of ["curves", "ridge"]) {
+      const g = d3.select(`#${id} g.items`);
+      g.classed("hl", i !== null);
+      g.selectAll(".curve, .ridge-row").classed("on", d => d === i);
+    }
+  }
+
+  function drawCurves() {
+    const box = document.getElementById("curves");
+    const dz = design(), items = itemRows(dz), latent = latentFor(state.family);
+    const H = 250, m = { l: 42, r: 14, t: 10, b: 38 };
+    const { svg, width } = makeSvg(box, H, "Median report against the prior for each case");
+    const x = d3.scaleLinear([0, 1], [m.l, width - m.r]);
+    const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
+    svg.append("g").selectAll("line").data([0.25, 0.5, 0.75]).join("line").attr("class", "gridline")
+      .attr("x1", m.l).attr("x2", width - m.r).attr("y1", d => y(d)).attr("y2", d => y(d));
+    axisBottom(svg, x, H - m.b, 5);
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
+      .call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".0%")).tickSizeOuter(0));
+    svg.append("text").attr("class", "t-title").attr("x", width - m.r).attr("y", H - 4).attr("text-anchor", "end")
+      .text(state.family === "relay" ? "relay prior δ" : "silence prior σ");
+    const xs = d3.range(0, 1.0001, 0.01);
+    const line = d3.line().x(d => x(d[0])).y(d => y(d[1]));
+    const g = svg.append("g").attr("class", "items");
+    items.forEach((it, i) => {
+      const pts = xs.map(v => [v, sigmoid(latent(it, v, state.g) + (isForecast(it) ? state.b : 0))]);
+      const path = g.append("path").datum(i).attr("class", "curve").attr("d", line(pts)).attr("fill", "none")
+        .attr("stroke", grpColor(dz.groups[i])).attr("stroke-width", 1.4);
+      path.append("title").text(dz.labels[i]);
+      g.append("path").datum(i).attr("d", line(pts)).attr("fill", "none").attr("stroke", "transparent").attr("stroke-width", 9)
+        .style("pointer-events", "stroke").on("mouseenter", () => highlight(i)).on("mouseleave", () => highlight(null))
+        .append("title").text(dz.labels[i]);
+    });
+    svg.append("line").attr("x1", x(state.d)).attr("x2", x(state.d)).attr("y1", m.t).attr("y2", H - m.b)
+      .attr("stroke", "var(--ink)").attr("stroke-dasharray", "3 3").attr("stroke-width", 1);
+    svg.append("g").selectAll("circle").data(items).join("circle")
+      .attr("cx", x(state.d)).attr("cy", it => y(sigmoid(latent(it, state.d, state.g) + (isForecast(it) ? state.b : 0))))
+      .attr("r", 2.6).attr("fill", (_, i) => grpColor(dz.groups[i])).attr("stroke", "var(--surface)").attr("stroke-width", 1);
+    const groups = [...new Set(dz.groups)].sort((a, b) => GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b));
+    document.getElementById("curves-key").replaceChildren(...groups.map(gr =>
+      el("span", {}, el("i", { style: `background:${grpColor(gr)}` }), GROUP_NAMES[gr])));
+    if (highlighted !== null) highlight(highlighted);
+  }
+
+  function drawRidge() {
+    const box = document.getElementById("ridge");
+    const dz = design(), items = itemRows(dz), latent = latentFor(state.family);
+    const order = d3.range(items.length).sort((a, b) =>
+      GROUP_ORDER.indexOf(dz.groups[a]) - GROUP_ORDER.indexOf(dz.groups[b]) || a - b);
+    const rowH = 21, m = { t: 14, b: 36, r: 12 };
+    const H = m.t + order.length * rowH + m.b;
+    const { svg, width } = makeSvg(box, H, "Predicted report distribution for each case");
+    const L = Math.min(250, Math.max(120, Math.round(width * 0.42)));
+    const x = d3.scaleLinear([0, 1], [L + 8, width - m.r]);
+    vGrid(svg, x, [0, 0.25, 0.5, 0.75, 1], m.t - 6, H - m.b);
+    axisBottom(svg, x, H - m.b, 4, d3.format(".0%"));
+    svg.append("text").attr("class", "t-title").attr("x", width - m.r).attr("y", H - 4).attr("text-anchor", "end").text("reported probability");
+    const observed = state.session ? state.session.ppc.observed : null;
+    const g = svg.append("g").attr("class", "items");
+    const area = d3.area().curve(d3.curveStep).x(d => x(d[0]));
+    let logLik = 0;
+    order.forEach((i, k) => {
+      const it = items[i];
+      const mu = latent(it, state.d, state.g) + (isForecast(it) ? state.b : 0);
+      const pmf = reportPmf(mu, state.t);
+      const peak = Math.max(...pmf);
+      const y0 = m.t + (k + 1) * rowH - 4;
+      const h = rowH * 1.2;
+      const row = g.append("g").datum(i).attr("class", "ridge-row")
+        .on("mouseenter", () => highlight(i)).on("mouseleave", () => highlight(null));
+      row.append("rect").attr("x", 0).attr("y", y0 - rowH + 4).attr("width", width).attr("height", rowH).attr("fill", "transparent");
+      row.append("path").attr("d", area.y0(y0).y1(d => y0 - d[1] * h)(pmf.map((p, r) => [r / 100, p / peak])))
+        .attr("fill", grpColor(dz.groups[i])).attr("fill-opacity", 0.32)
+        .attr("stroke", grpColor(dz.groups[i])).attr("stroke-width", 1);
+      row.append("line").attr("x1", x(sigmoid(mu))).attr("x2", x(sigmoid(mu))).attr("y1", y0).attr("y2", y0 + 3)
+        .attr("stroke", "var(--ink)").attr("stroke-width", 1.2);
+      row.append("text").attr("class", "t-lab").attr("x", L).attr("y", y0 - 3).attr("text-anchor", "end")
+        .text(fitText(shortLabel(dz, i), L - 4));
+      row.append("title").text(dz.labels[i]);
+      if (observed) {
+        const v = observed[i];
+        const outside = v < pmfQuantile(pmf, 0.05) - 1e-9 || v > pmfQuantile(pmf, 0.95) + 1e-9;
+        logLik += Math.log(Math.max(pmf[Math.round(v * 100)], 1e-300));
+        row.append("circle").attr("cx", x(v)).attr("cy", y0 - 4).attr("r", 3.3)
+          .attr("fill", outside ? "var(--bad)" : "var(--ink)").attr("stroke", "var(--surface)").attr("stroke-width", 1.2)
+          .append("title").text(`reported ${pct(v)}${outside ? " (outside the central 90%)" : ""}`);
+      }
+    });
+    document.getElementById("ridge-caption").textContent = state.session
+      ? "Shapes: predicted distribution of each whole-percentage report at the settings. Dots: the session's own reports, red when outside the central 90%. The sliders start at the session's posterior means; drag them to see where the fit would go."
+      : "Predicted distribution of each whole-percentage report at the settings, with a tick at the median. Hover a row to find its line above.";
+    const readout = document.getElementById("ridge-readout");
+    if (state.session) {
+      const s = state.session;
+      let atMeans = 0;
+      items.forEach((it, i) => {
+        const mu = latent(it, s.means.disposition, s.means.gamma) + (isForecast(it) ? s.means.bias : 0);
+        atMeans += Math.log(Math.max(reportPmf(mu, s.means.report_sd)[Math.round(observed[i] * 100)], 1e-300));
+      });
+      readout.replaceChildren("Log-likelihood of the 24 reports: at these settings ", el("b", {}, logLik.toFixed(1)),
+        " · at the session's posterior means ", el("b", {}, atMeans.toFixed(1)));
+    } else readout.textContent = "";
+    if (highlighted !== null) highlight(highlighted);
+  }
+
+  function update() {
+    for (const s of SLIDERS) {
+      const n = nodes[s.key];
+      n.input.value = state[s.key];
+      n.value.textContent = Number(state[s.key]).toFixed(2);
+      n.marker.attr("x", n.gx(state[s.key]) - 1.2);
+      n.name.textContent = s.key === "d" ? priorName() : s.name;
+      n.node.title = s.key === "d" ? priorHelp() : s.help;
+    }
+    const sd = state.t, nx = (v) => 70 + v / 2.5 * 66;
+    const pts = d3.range(-2.5, 2.5001, 0.05).map(v => [nx(v), 24 - 20 * Math.exp(-0.5 * (v / sd) ** 2)]);
+    noisePath.attr("d", `M${nx(-2.5)},24` + pts.map(p => `L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join("") + `L${nx(2.5)},24Z`);
+    observer.replaceChildren(
+      "ℓᵢ = log-odds of high demand given case i and " + (state.family === "relay" ? "δ, γ." : "σ, γ."),
+      el("br"),
+      el("span", { class: "note" }, state.family === "relay"
+        ? "Uses the case's prior, what each outlet called, their stated accuracies and any wording cue. Probes ask for the log-odds that the second outlet relayed the first."
+        : "Uses the case's prior, the indicators shared on and below target, how many were withheld and the random omission rate. Probes ask for the log-odds that the company withholds selectively."));
+    select.value = state.session ? state.session.id : "";
+    drawCurves();
+    drawRidge();
+  }
+
+  fillSessions();
+  mount(document.getElementById("curves"), drawCurves);
+  mount(document.getElementById("ridge"), drawRidge);
+  update();
+
+  // The browser port must reproduce the Python observers on the reference values the ledger ships.
+  let worst = 0, checked = 0;
+  for (const dz of models.designs.filter(d => d.reference)) {
+    const items = itemRows(dz), latent = latentFor(dz.family);
+    for (const ref of dz.reference) {
+      items.forEach((it, i) => {
+        const a = latent(it, ref.disposition, ref.gamma), b = ref.latent[i];
+        worst = Math.max(worst, Math.abs(a - b) / Math.max(1, Math.abs(b)));
+        checked++;
+      });
+    }
+  }
+  const parity = document.getElementById("parity");
+  parity.textContent = worst < 1e-9
+    ? `The browser's copy of the observers matches the Python model on ${checked} reference values (largest relative difference ${worst.toExponential(0)}).`
+    : `The browser's copy of the observers disagrees with the Python model (largest relative difference ${worst.toExponential(1)}); treat the playground as approximate until this is fixed.`;
+  parity.classList.toggle("bad", !(worst < 1e-9));
+}
+
+/* ---------- 2 · Recovery ---------- */
+function recoverySection(models) {
+  const rec = models.recovery;
+  const FAMILIES = [
+    { key: "relay", title: "Relay · T2", params: ["disposition", "gamma", "report_sd"], names: ["Relay prior δ", "Evidence sensitivity γ", "Report noise τ"] },
+    { key: "disclosure", title: "Disclosure · T3", params: ["disposition", "gamma", "report_sd"], names: ["Silence prior σ", "Evidence sensitivity γ", "Report noise τ"] },
+    { key: "checks", title: "Checks · T5", params: ["certainty_value", "decision_weight", "wtp_sd"], names: ["Value of certainty λ", "Decision weight", "Price noise (points)"] }
+  ];
+  let which = 0;
+  const box = document.getElementById("recovery");
+  const figures = FAMILIES.map(f => {
+    const caption = el("figcaption", {});
+    const plot = el("div", { class: "plot" });
+    box.append(el("figure", { class: "fig" }, caption, plot));
+    const draw = () => {
+      const param = f.params[which];
+      const rows = rec[f.key].map(r => r[param]);
+      const covered = rows.filter(r => r[2] <= r[0] && r[0] <= r[3]).length;
+      const mae = d3.mean(rows, r => Math.abs(r[1] - r[0]));
+      const digits = param === "certainty_value" ? 1 : param === "wtp_sd" ? 2 : 3;
+      caption.replaceChildren(el("b", {}, `${f.title}: ${f.names[which]}`),
+        el("span", {}, `90% intervals cover the truth for ${covered} of ${rows.length}; mean absolute error ${mae.toFixed(digits)}`));
+      const W = plot.clientWidth || 300;
+      const H = Math.min(300, Math.max(220, Math.round(W * 0.8))), m = { l: 44, r: 12, t: 10, b: 38 };
+      const { svg, width } = makeSvg(plot, H, `Recovery of ${f.names[which]}`);
+      const lo = d3.min(rows, r => Math.min(r[0], r[2])), hi = d3.max(rows, r => Math.max(r[0], r[3]));
+      const pad = (hi - lo) * 0.04;
+      const x = d3.scaleLinear([lo - pad, hi + pad], [m.l, width - m.r]).nice();
+      const y = d3.scaleLinear(x.domain(), [H - m.b, m.t]);
+      svg.append("g").selectAll("line").data(y.ticks(4)).join("line").attr("class", "gridline")
+        .attr("x1", m.l).attr("x2", width - m.r).attr("y1", d => y(d)).attr("y2", d => y(d));
+      axisBottom(svg, x, H - m.b, 4);
+      svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSizeOuter(0));
+      svg.append("line").attr("x1", x(x.domain()[0])).attr("y1", y(x.domain()[0])).attr("x2", x(x.domain()[1])).attr("y2", y(x.domain()[1]))
+        .attr("stroke", "var(--muted)").attr("stroke-dasharray", "4 3");
+      const g = svg.append("g");
+      for (const r of rows) {
+        const miss = !(r[2] <= r[0] && r[0] <= r[3]);
+        g.append("line").attr("x1", x(r[0])).attr("x2", x(r[0])).attr("y1", y(r[2])).attr("y2", y(r[3]))
+          .attr("stroke", miss ? "var(--bad)" : "var(--accent)").attr("stroke-opacity", miss ? 0.7 : 0.28).attr("stroke-width", 1.3);
+      }
+      for (const r of rows) {
+        const miss = !(r[2] <= r[0] && r[0] <= r[3]);
+        g.append("circle").attr("cx", x(r[0])).attr("cy", y(r[1])).attr("r", 2.7)
+          .attr("fill", miss ? "var(--bad)" : "var(--accent)").attr("fill-opacity", 0.85)
+          .append("title").text(`true ${r[0]} · mean ${r[1]} · 90% [${r[2]}, ${r[3]}]`);
+      }
+      svg.append("text").attr("class", "t-title").attr("x", width - m.r).attr("y", H - 4).attr("text-anchor", "end").text("true value");
+      svg.append("text").attr("class", "t-title").attr("x", m.l + 4).attr("y", m.t + 10).text("posterior mean");
+    };
+    mount(plot, draw);
+    return draw;
+  });
+  segmented(document.getElementById("recovery-param"),
+    [{ key: 0, label: "Prior or value" }, { key: 1, label: "Sensitivity or weight" }, { key: 2, label: "Noise" }], 0,
+    (v) => { which = v; figures.forEach(d => d()); });
+}
+
+/* ---------- 3 · Posteriors ---------- */
+function posteriorSection(models) {
+  const PARAMS = [
+    { key: "relay", label: "Relay prior δ", param: "disposition", modules: ["corroboration"] },
+    { key: "silence", label: "Silence prior σ", param: "disposition", modules: ["disclosure"] },
+    { key: "certainty", label: "Value of certainty λ", param: "certainty_value", modules: ["checks"] },
+    { key: "gamma", label: "Sensitivity γ", param: "gamma", shared: true },
+    { key: "bias", label: "Bias b", param: "bias", shared: true },
+    { key: "noise", label: "Noise τ", param: "report_sd", shared: true }
+  ];
+  let chosen = "relay";
+  const toggle = document.getElementById("m-post-desc");
+  const box = document.getElementById("forest");
+  const caption = document.getElementById("post-caption");
+  const draw = () => {
+    const p = PARAMS.find(x => x.key === chosen);
+    toggle.disabled = !p.shared;
+    const base = ["corroboration", "disclosure"];
+    const modules = p.modules || (toggle.checked ? [...base, ...Object.keys(MODULE_SHORT).filter(k => k.includes("-"))] : base);
+    const sessions = models.sessions.filter(s => modules.includes(s.module) && s.posterior[p.param]);
+    const configs = [...new Set(sessions.map(s => s.configuration))].sort(byConfig);
+    const grid = models.grids[p.param];
+    const widths = cellWidths(grid);
+    const prior = grid.map((_, i) => (1 / grid.length) / widths[i]);
+    const rowH = 19, headH = 26, m = { t: 8, b: 38, r: 14 };
+    const layout = [];
+    let yPos = m.t;
+    for (const c of configs) {
+      layout.push({ head: c, y: yPos + 18 }); yPos += headH;
+      const mine = sessions.filter(s => s.configuration === c)
+        .sort((a, b) => rootKey(a).localeCompare(rootKey(b)) || a.module.localeCompare(b.module) || a.run_id.localeCompare(b.run_id));
+      for (const s of mine) { layout.push({ s, y: yPos + rowH - 3 }); yPos += rowH; }
+    }
+    const H = yPos + m.b;
+    const { svg, width } = makeSvg(box, H, `Posterior of ${p.label} per session`);
+    const L = Math.min(280, Math.max(130, Math.round(width * 0.4)));
+    const x = d3.scaleLinear([grid[0], grid[grid.length - 1]], [L + 10, width - m.r]);
+    vGrid(svg, x, x.ticks(5), m.t, H - m.b);
+    axisBottom(svg, x, H - m.b, 5);
+    svg.append("text").attr("class", "t-title").attr("x", width - m.r).attr("y", H - 4).attr("text-anchor", "end").text(p.label);
+    const area = d3.area().curve(d3.curveMonotoneX).x(d => x(d[0]));
+    const line = d3.line().curve(d3.curveMonotoneX).x(d => x(d[0]));
+    const outline = d3.line().curve(d3.curveMonotoneX).x(d => x(d[0]));
+    for (const row of layout) {
+      if (row.head) {
+        svg.append("rect").attr("x", 0).attr("y", row.y - 9).attr("width", 10).attr("height", 10).attr("rx", 2).attr("fill", cfgColor(row.head));
+        svg.append("text").attr("class", "t-head").attr("x", 16).attr("y", row.y).text(cfgName(row.head));
+        continue;
+      }
+      const s = row.s, mass = s.posterior[p.param];
+      const dens = mass.map((v, i) => v / widths[i]);
+      const peak = Math.max(...dens);
+      outline.defined(d => d[1] > peak * 0.004);
+      const h = rowH * 1.35, y0 = row.y;
+      const scale = (v) => y0 - Math.min(v / peak, 1.25) * h;
+      const points = grid.map((g, i) => [g, dens[i]]);
+      svg.append("path").attr("d", area.y0(y0).y1(d => scale(d[1]))(points))
+        .attr("fill", cfgColor(s.configuration)).attr("fill-opacity", 0.42);
+      svg.append("path").attr("d", outline.y(d => scale(d[1]))(points))
+        .attr("fill", "none").attr("stroke", cfgColor(s.configuration)).attr("stroke-width", 0.9);
+      svg.append("path").attr("d", line.y(d => scale(d[1]))(grid.map((g, i) => [g, prior[i]])))
+        .attr("fill", "none").attr("stroke", "var(--muted)").attr("stroke-dasharray", "2 2").attr("stroke-width", 0.8);
+      const q = [0.05, 0.17, 0.83, 0.95].map(v => gridQuantile(grid, mass, v));
+      const mean = gridMean(grid, mass);
+      svg.append("line").attr("x1", x(q[0])).attr("x2", x(q[3])).attr("y1", y0).attr("y2", y0).attr("stroke", "var(--ink)").attr("stroke-width", 1.3);
+      svg.append("line").attr("x1", x(q[1])).attr("x2", x(q[2])).attr("y1", y0).attr("y2", y0).attr("stroke", "var(--ink)").attr("stroke-width", 3.4).attr("stroke-linecap", "round");
+      svg.append("circle").attr("cx", x(mean)).attr("cy", y0).attr("r", 2.8).attr("fill", "var(--ink)").attr("stroke", "var(--surface)").attr("stroke-width", 1);
+      const label = fitText(sessionLabel(s, p.shared), L - 26) + (flagged(s) ? " †" : "");
+      const t = svg.append("text").attr("class", "t-lab").attr("x", L).attr("y", y0 - 2).attr("text-anchor", "end").text(label);
+      t.append("title").text(`${s.id}${flagged(s) ? " · fitted under an earlier model version; shown as recomputed under the current model" : ""}`);
+      svg.append("rect").attr("x", L + 10).attr("y", y0 - h).attr("width", width - m.r - L - 10).attr("height", h + 3).attr("fill", "transparent")
+        .append("title").text(`${s.id}\nmean ${mean.toFixed(3)} · 66% [${q[1]}, ${q[2]}] · 90% [${q[0]}, ${q[3]}]`);
+    }
+    const n = sessions.length, marked = sessions.filter(flagged).length;
+    caption.replaceChildren(el("b", {}, `${p.label}: ${n} sessions`),
+      el("span", {}, `Grid of ${grid.length} points from ${grid[0]} to ${grid[grid.length - 1]}.` +
+        (marked ? ` † ${marked} sessions were fitted under an earlier model version and are shown as recomputed under the current one.` : "")));
+  };
+  segmented(document.getElementById("post-param"), PARAMS.map(p => ({ key: p.key, label: p.label })), chosen, (v) => { chosen = v; draw(); });
+  toggle.addEventListener("change", draw);
+  mount(box, draw);
+}
+
+/* ---------- 4 · Posterior predictive checks ---------- */
+function ppcSection(models) {
+  const designs = Object.fromEntries(models.designs.map(d => [d.id, d]));
+  const sessions = models.sessions;
+  const share = (s) => s.ppc.inside_90 / s.ppc.items;
+  let current = [...sessions].sort((a, b) => share(a) - share(b) || a.id.localeCompare(b.id))[0];
+  const select = document.getElementById("m-ppc-session");
+  const configs = [...new Set(sessions.map(s => s.configuration))].sort(byConfig);
+  for (const c of configs) {
+    const group = el("optgroup", { label: cfgName(c) });
+    for (const s of sessions.filter(x => x.configuration === c).sort((a, b) => a.id.localeCompare(b.id))) {
+      group.append(el("option", { value: s.id }, `${sessionLabel(s, true)} · ${s.ppc.inside_90}/${s.ppc.items}`));
+    }
+    select.append(group);
+  }
+  const hash = (text) => { let h = 2166136261; for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return ((h >>> 0) % 1000) / 1000; };
+  const calBox = document.getElementById("calibration");
+  const drawCalibration = () => {
+    const rowH = 40, m = { l: 124, r: 52, t: 6, b: 38 };
+    const H = m.t + configs.length * rowH + m.b;
+    const { svg, width } = makeSvg(calBox, H, "Share of reports inside the 90% predictive interval, per session");
+    const low = Math.min(0.5, Math.floor(d3.min(sessions, share) * 10) / 10);
+    const x = d3.scaleLinear([low, 1], [m.l, width - m.r]);
+    vGrid(svg, x, x.ticks(5), m.t, H - m.b);
+    axisBottom(svg, x, H - m.b, 5, d3.format(".0%"));
+    svg.append("line").attr("x1", x(0.9)).attr("x2", x(0.9)).attr("y1", m.t).attr("y2", H - m.b)
+      .attr("stroke", "var(--ink)").attr("stroke-dasharray", "4 3");
+    svg.append("text").attr("class", "t-title").attr("x", width - m.r).attr("y", H - 4).attr("text-anchor", "end").text("inside the 90% interval");
+    configs.forEach((c, k) => {
+      const yc = m.t + k * rowH + rowH / 2;
+      svg.append("text").attr("class", "t-lab").attr("x", m.l - 8).attr("y", yc + 4).attr("text-anchor", "end").text(fitText(cfgName(c), m.l - 10));
+      const mine = sessions.filter(s => s.configuration === c);
+      for (const s of mine) {
+        const jy = (hash(s.id) - 0.5) * (rowH - 14);
+        const dot = svg.append("circle").attr("cx", x(share(s))).attr("cy", yc + jy).attr("r", s === current ? 5 : 3.6)
+          .attr("fill", cfgColor(c)).attr("fill-opacity", 0.75)
+          .attr("stroke", s === current ? "var(--ink)" : "var(--surface)").attr("stroke-width", s === current ? 1.8 : 0.8)
+          .style("cursor", "pointer").on("click", () => { current = s; select.value = s.id; drawCalibration(); drawPpc(); });
+        dot.append("title").text(`${s.id}\n${s.ppc.inside_90} of ${s.ppc.items} inside`);
+      }
+      const pooled = d3.sum(mine, s => s.ppc.inside_90) / d3.sum(mine, s => s.ppc.items);
+      svg.append("path").attr("d", d3.symbol(d3.symbolDiamond, 70)()).attr("transform", `translate(${x(pooled)},${yc})`)
+        .attr("fill", "var(--ink)").attr("stroke", "var(--surface)");
+      svg.append("text").attr("class", "t-num").attr("x", x(1) + 12).attr("y", yc + 4).text(pct(pooled));
+    });
+  };
+  const ppcBox = document.getElementById("ppc");
+  const drawPpc = () => {
+    const s = current, dz = designs[s.design];
+    const checks = dz.family === "checks";
+    const q = s.ppc.quantiles, obs = s.ppc.observed;
+    const rowH = 17, m = { t: 8, b: 38, r: 14 };
+    const H = m.t + q.length * rowH + m.b;
+    const { svg, width } = makeSvg(ppcBox, H, "Posterior predictive intervals and reported values");
+    const L = Math.min(250, Math.max(120, Math.round(width * 0.42)));
+    const top = checks ? Math.max(d3.max(q, r => r[4]), d3.max(obs)) * 1.08 + 1 : 1;
+    const x = d3.scaleLinear([0, top], [L + 10, width - m.r]);
+    if (checks) x.nice();
+    vGrid(svg, x, x.ticks(5), m.t, H - m.b);
+    axisBottom(svg, x, H - m.b, 5, checks ? null : d3.format(".0%"));
+    svg.append("text").attr("class", "t-title").attr("x", width - m.r).attr("y", H - 4).attr("text-anchor", "end")
+      .text(checks ? "price of the check (points)" : "reported probability");
+    const color = cfgColor(s.configuration);
+    q.forEach((r, i) => {
+      const y = m.t + i * rowH + rowH / 2 + 2;
+      const outside = obs[i] < r[0] - 1e-9 || obs[i] > r[4] + 1e-9;
+      svg.append("text").attr("class", "t-lab").attr("x", L).attr("y", y + 4).attr("text-anchor", "end")
+        .text(fitText(shortLabel(dz, i), L - 4)).append("title").text(dz.labels[i]);
+      svg.append("line").attr("x1", x(r[0])).attr("x2", x(r[4])).attr("y1", y).attr("y2", y)
+        .attr("stroke", color).attr("stroke-opacity", 0.5).attr("stroke-width", 2).attr("stroke-linecap", "round");
+      svg.append("line").attr("x1", x(r[1])).attr("x2", x(r[3])).attr("y1", y).attr("y2", y)
+        .attr("stroke", color).attr("stroke-width", 6).attr("stroke-linecap", "round");
+      svg.append("circle").attr("cx", x(obs[i])).attr("cy", y).attr("r", 3.4)
+        .attr("fill", outside ? "var(--bad)" : "var(--ink)").attr("stroke", "var(--surface)").attr("stroke-width", 1.2)
+        .append("title").text(`${dz.labels[i]}\nreported ${checks ? obs[i] : pct(obs[i])} · 50% [${r[1]}, ${r[3]}] · 90% [${r[0]}, ${r[4]}]`);
+    });
+    document.getElementById("ppc-caption").replaceChildren(
+      el("b", {}, `${cfgName(s.configuration)} · ${sessionLabel(s, true)}`),
+      el("span", {}, `${s.ppc.inside_90} of ${s.ppc.items} reports inside their 90% predictive interval.` +
+        (flagged(s) ? " Fitted under an earlier model version; shown as recomputed under the current model." : "")));
+  };
+  select.value = current.id;
+  select.addEventListener("change", () => { current = sessions.find(s => s.id === select.value) || current; drawCalibration(); drawPpc(); });
+  mount(calBox, drawCalibration);
+  mount(ppcBox, drawPpc);
+}
+
+/* ---------- 5 · Descriptions become priors ---------- */
+function descriptionSection(models) {
+  const PRESENTATIONS = [
+    { key: "formal-a", label: "Formal · set A", color: "var(--p-formal)", short: "A",
+      match: s => s.module.endsWith("-cues") && s.variant === "cues-a" && s.order_policy === "random" },
+    { key: "formal-b", label: "Formal · set B", color: "var(--p-formal-b)", short: "B",
+      match: s => s.module.endsWith("-cues") && s.variant === "cues-b" },
+    { key: "dossier", label: "Dossier · set A", color: "var(--p-dossier)", short: "D",
+      match: s => s.module.endsWith("-dossier") }
+  ];
+  const FAMILIES = [
+    { key: "relay", prefix: "corroboration-", title: "Relay: how often does an outlet like this relay instead of checking?", axis: "implied prior of relaying" },
+    { key: "disclosure", prefix: "disclosure-", title: "Disclosure: how often does a company like this withhold selectively?", axis: "implied prior of selective withholding" }
+  ];
+  const withSlots = models.sessions.filter(s => s.slots);
+  const configs = [...new Set(withSlots.map(s => s.configuration))].sort(byConfig);
+  let config = configs.includes("astra") ? "astra" : configs[0];
+  let shown = new Set(["formal-a", "dossier"]);
+  const box = document.getElementById("descriptions");
+  const grid = models.grids.disposition;
+  const panels = FAMILIES.map(f => {
+    const fig = el("figure", { class: "fig" });
+    box.append(fig);
+    const draw = () => {
+      const active = PRESENTATIONS.filter(p => shown.has(p.key)).map(p => ({
+        ...p, sessions: withSlots.filter(s => s.configuration === config && s.module.startsWith(f.prefix) && p.match(s))
+      })).filter(p => p.sessions.length);
+      const counts = PRESENTATIONS.filter(p => shown.has(p.key)).map(p => {
+        const n = withSlots.filter(s => s.configuration === config && s.module.startsWith(f.prefix) && p.match(s)).length;
+        return el("span", {}, el("i", { style: `background:${p.color}` }), `${p.label}: ${n} session${n === 1 ? "" : "s"}`);
+      });
+      fig.replaceChildren(el("figcaption", {}, el("b", {}, f.title)), el("div", { class: "key" }, counts));
+      if (!active.length) { fig.append(el("p", { class: "note" }, "No sessions of this kind for this configuration.")); return; }
+      const width = Math.max(240, Math.floor(fig.clientWidth ? fig.clientWidth - 34 : 480));
+      const x = d3.scaleLinear([0, 1], [16, width - 16]);
+      const sentences = models.descriptors[f.key];
+      for (let level = 0; level < 5; level++) {
+        const curves = active.map(p => {
+          const each = p.sessions.map(s => s.slots[level].map(v => v / 0.05));
+          const pooled = grid.map((_, i) => d3.mean(each, c => c[i]));
+          const stated = p.sessions.flatMap(s => s.stated[level]);
+          const mean = d3.mean(p.sessions, s => s.slot_means[level]);
+          return { p, each, pooled, stated, mean };
+        });
+        const peak = d3.max(curves, c => Math.max(d3.max(c.pooled), ...c.each.map(e => d3.max(e))));
+        const H = 62, base = 46, h = 42;
+        const scale = (v) => base - v / peak * h;
+        const svg = d3.create("svg").attr("viewBox", `0 0 ${width} ${H}`).attr("width", width).attr("height", H)
+          .attr("role", "img").attr("aria-label", `Implied priors for the ${LEVEL_NAMES[level].toLowerCase()} description`);
+        vGrid(svg, x, [0, 0.25, 0.5, 0.75, 1], 2, base);
+        svg.append("line").attr("x1", x(0)).attr("x2", x(1)).attr("y1", base).attr("y2", base).attr("stroke", "var(--rule)");
+        const area = d3.area().curve(d3.curveMonotoneX).x((_, i) => x(grid[i])).y0(base).y1(v => scale(v));
+        const line = d3.line().curve(d3.curveMonotoneX).x((_, i) => x(grid[i])).y(v => scale(v));
+        for (const c of curves) {
+          svg.append("path").attr("d", area(c.pooled)).attr("fill", c.p.color).attr("fill-opacity", 0.2)
+            .attr("stroke", c.p.color).attr("stroke-width", 1.8);
+          for (const e of c.each) {
+            svg.append("path").attr("d", line(e)).attr("fill", "none").attr("stroke", c.p.color).attr("stroke-opacity", 0.5).attr("stroke-width", 0.9);
+          }
+          for (const v of c.stated) {
+            svg.append("line").attr("x1", x(v)).attr("x2", x(v)).attr("y1", base + 3).attr("y2", base + 12)
+              .attr("stroke", c.p.color).attr("stroke-width", 1.6).attr("stroke-opacity", 0.8)
+              .append("title").text(`${c.p.label}: stated ${pct(v)}`);
+          }
+        }
+        const text = [el("p", {}, `A: ${sentences["cues-a"][level]}`)];
+        if (shown.has("formal-b")) text.push(el("p", {}, `B: ${sentences["cues-b"][level]}`));
+        fig.append(el("div", { class: "level" },
+          el("div", { class: "level-head" }, el("h4", {}, LEVEL_NAMES[level]),
+            el("span", { class: "means" }, curves.map(c => el("span", { style: `color:${c.p.color}`, title: `${c.p.label}: mean implied prior` }, `${c.p.short} ${f2(c.mean)}`)))),
+          ...text, svg.node()));
+      }
+      const axis = d3.create("svg").attr("viewBox", `0 0 ${width} 34`).attr("width", width).attr("height", 34);
+      axisBottom(axis, x, 2, 5);
+      axis.append("text").attr("class", "t-title").attr("x", width - 16).attr("y", 32).attr("text-anchor", "end").text(f.axis);
+      fig.append(axis.node());
+    };
+    mount(fig, draw);
+    return draw;
+  });
+  segmented(document.getElementById("desc-config"), configs.map(c => ({ key: c, label: cfgName(c) })), config,
+    (v) => { config = v; panels.forEach(d => d()); });
+  segmented(document.getElementById("desc-presentation"), PRESENTATIONS.map(p => ({ key: p.key, label: p.label })), [...shown],
+    (v) => { shown = v; panels.forEach(d => d()); }, true);
+}
+
+function renderModels(models) {
+  const sections = [modelSection, recoverySection, posteriorSection, ppcSection, descriptionSection];
+  if (typeof d3 === "undefined") {
+    document.getElementById("models-intro").replaceChildren(el("div", { class: "error" }, "The charting library did not load, so the model views cannot be drawn. Reload the page to try again."));
+    return;
+  }
+  for (const section of sections) {
+    try { section(models); } catch (err) {
+      console.error(err);
+      document.getElementById("models-intro").append(el("div", { class: "error" }, `A model view failed to draw (${section.name}: ${err.message}).`));
+    }
+  }
+}
+
+setupTabs();
 fetch("ledger.json")
   .then(r => { if (!r.ok) throw new Error(`ledger.json returned ${r.status}`); return r.json(); })
   .then(render)

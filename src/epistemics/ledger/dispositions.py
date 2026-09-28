@@ -51,7 +51,8 @@ for entry in plan["runs"]:
                   variant=getattr(m, "variant", "paired"), order=list(m.order),
                   responses=responses,
                   kinds=[str(k) for k in items["kind"]] if "kind" in items else None,
-                  slots=[int(s) for s in items["slot"]] if "slot" in items else None)
+                  slots=[int(s) for s in items["slot"]] if "slot" in items else None,
+                  items={k: np.asarray(v).tolist() for k, v in items.items()})
     if m.module == "checks":
         decision, _ = observers.check_values(items, "linear")
         record["decision_values"] = [float(v) for v in decision]

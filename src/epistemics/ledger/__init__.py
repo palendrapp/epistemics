@@ -6,4 +6,4 @@ version-specific designs are interpreted by the code that produced them. The han
 registry (`docs/experiments.json`) supplies questions, predictions and outcomes.
 """
 
-VERSION = "ledger/0.1.0"
+VERSION = "ledger/0.2.0"

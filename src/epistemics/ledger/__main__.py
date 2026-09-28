@@ -86,7 +86,7 @@ def main():
     if a.command == "build":
         ledger = build(a.registry)
         a.output.parent.mkdir(parents=True, exist_ok=True)
-        a.output.write_text(json.dumps(ledger, indent=2, sort_keys=True) + "\n")
+        a.output.write_text(json.dumps(ledger, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({"output": str(a.output), **ledger["totals"]}, indent=2))
     elif a.command == "runs":
         print(runs_table(a.root))
