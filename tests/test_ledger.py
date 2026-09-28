@@ -345,3 +345,21 @@ def test_reading_guide_turns_the_passport_into_scoped_readings():
         "how fast it learns base rates from experience"
         in result["configurations"]["noisy"]["not_yet_measured"]
     )
+
+
+def test_reading_guide_flags_a_coherence_gap_confined_to_one_condition():
+    from epistemics.ledger import guide
+
+    p = {
+        "description_coherence": [25, 30],
+        "description_coherence_by_condition": {
+            "corroboration-cues/cues-a": [11, 12],
+            "corroboration-asked/named-a": [0, 3],
+            "disclosure-asked/named-a": [3, 3],
+        },
+    }
+    r = guide.coherence(p)
+    assert r["caution"] and "ask for its rate" in r["claim"]
+    assert "0 of 3" in r["detail"]
+    del p["description_coherence_by_condition"]["corroboration-asked/named-a"]
+    assert guide.coherence(p)["caution"] is None

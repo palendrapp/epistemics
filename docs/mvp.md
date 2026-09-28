@@ -119,7 +119,9 @@ The [unprompted dossiers](disposition-unprompted-2026-09-28.md) showed that thes
 
 A [salience test](disposition-salience-2026-09-28.md) then added one sentence naming the mechanism without a rate. That restored the discount for clear cases (the aggregator, the bonus at stake) but not the 50% default for ambiguous sources.
 
-**Next: a default-induction test (ask for each description's base rate in the named design), and a review of the reading guide's wording and thresholds.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+A [default-induction test](disposition-asked-2026-09-28.md) then asked for each description's base rate as well. That brought back Astra's 50% default and prompted mapping. Sol stated about 40% for ambiguous outlets but its relay forecasts acted on 9–17%, the first gap between stated and applied rates in a frontier configuration.
+
+**Next: retest Sol's relay gap, with and without the structure probes, and review the reading guide's wording and thresholds.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

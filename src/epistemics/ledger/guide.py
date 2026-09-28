@@ -453,12 +453,34 @@ def sessions_vary(p):
     )
 
 
+CONDITIONS = {
+    "corroboration-cues": "formal relay cases",
+    "disclosure-cues": "formal disclosure cases",
+    "corroboration-dossier": "relay dossiers",
+    "disclosure-dossier": "disclosure dossiers",
+    "corroboration-asked": "relay dossiers that name copying and ask for its rate",
+    "disclosure-asked": "disclosure dossiers that name selective silence and ask for its rate",
+}
+
+
 def coherence(p):
     x = p.get("description_coherence")
     if not x:
         return None
     k, n = x
-    if k >= 0.8 * n:
+    exceptions = [
+        (CONDITIONS.get(key.split("/")[0], key), kc, nc)
+        for key, (kc, nc) in sorted((p.get("description_coherence_by_condition") or {}).items())
+        if nc >= 3 and kc <= nc / 3
+    ]
+    if k >= 0.8 * n and exceptions:
+        label, kc, nc = exceptions[0]
+        claim = (
+            "The base rates it states are usually the ones its forecasts use, but not in every "
+            f"condition: in {label}, its forecasts did not follow the rates it stated."
+        )
+        caution = "Stated and applied base rates disagree in one condition"
+    elif k >= 0.8 * n:
         claim = "The base rates it states are the ones its forecasts use."
         caution = None
     elif k <= 0.4 * n:
@@ -475,7 +497,8 @@ def coherence(p):
         "reliability",
         claim,
         f"In {k} of {n} sessions every stated base rate was within 10 points of the one its "
-        "forecasts implied.",
+        "forecasts implied."
+        + "".join(f" In {label}: {kc} of {nc}." for label, kc, nc in exceptions),
         f"Description modules and prompted dossiers, {count(n)}.",
         n,
         {"kind": "count", "k": k, "n": n},

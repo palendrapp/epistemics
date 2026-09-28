@@ -325,8 +325,9 @@
       "roots": [
         "output/disposition-asked-20260928"
       ],
-      "status": "running",
-      "prediction": "A1: irrelevant level between 0.35 and 0.65 in all four cells. A2: asked mapping within 0.10 of the prompted-dossier mapping on average. A3: stated within 0.10 of implied at every level in at least 5 of 6 sessions per configuration. A4 (best predictor) exploratory."
+      "status": "complete",
+      "prediction": "A1: irrelevant level between 0.35 and 0.65 in all four cells. A2: asked mapping within 0.10 of the prompted-dossier mapping on average. A3: stated within 0.10 of implied at every level in at least 5 of 6 sessions per configuration. A4 (best predictor) exploratory.",
+      "outcome": "Split by configuration. Astra: asking restores the 50% default and the prompted mapping (irrelevant 0.38 and 0.48; within 0.04-0.08 of prompted; coherent 5/6) - A1-A3 hold. Sol: relay stated rates return to about 40% for ambiguous outlets but its forecasts act on 9-17% (coherent 0/3 relay, 3/3 disclosure; default 0.09 and 0.29) - A1-A3 fail. First stated-applied gap in a frontier configuration; Sol's forecasts follow its named mapping."
     },
     {
       "id": "source-learning-acceptance",
@@ -396,7 +397,7 @@
     }
   ],
   "next": [
-    "Default induction: add the per-description base-rate question (or probes) to the named design, to test whether asking for the rate restores the 50% default.",
+    "Retest Sol's relay gap: three fresh asked sessions plus a variant adding the structure probes (the remaining difference from the prompted dossiers).",
     "Reading guide: review the draft wording and thresholds; decide which readings go into a first passport.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."

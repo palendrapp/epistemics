@@ -75,6 +75,18 @@ def mapping_sessions(select, base):
     }
 
 
+def coherence_by_condition(mine):
+    """Largest stated-minus-implied gap per session, grouped by module and variant."""
+    result = {}
+    for _, s in mine:
+        if s["module"].endswith(("-cues", "-dossier", "-asked")) and (
+            s.get("stated_minus_implied_max") is not None
+        ):
+            key = f"{s['module']}/{s['variant']}"
+            result.setdefault(key, []).append(s["stated_minus_implied_max"])
+    return result
+
+
 def passport(pairs, retests, contrasts):
     """Per configuration: the parameters measured so far, pooled over verified contexts."""
     result = {}
@@ -152,6 +164,11 @@ def passport(pairs, retests, contrasts):
                 ]
             )
             else None,
+            "description_coherence_by_condition": {
+                condition: [sum(g <= 0.10 for g in gaps), len(gaps)]
+                for condition, gaps in coherence_by_condition(mine).items()
+            }
+            or None,
             "contexts": len(mine),
         }
         if any(v is not None for k, v in entry.items() if k != "contexts"):
