@@ -224,6 +224,11 @@ def noticing(config, analyses):
                 f"{extreme} from {pct(mapping[4])} to {pct(row['named']['mapping'][4])} "
                 f"({count(row['named']['sessions'])})."
             )
+        if row.get("asked"):
+            detail += (
+                " Asked for each description's base rate as well, it gave an irrelevant "
+                f"description {pct(row['asked']['irrelevant'])} ({count(row['asked']['sessions'])})."
+            )
         result.append(
             reading(
                 f"noticing-{family}",

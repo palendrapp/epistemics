@@ -21,6 +21,8 @@ MODULES = (
     "disclosure-dossier",
     "corroboration-unprompted",
     "disclosure-unprompted",
+    "corroboration-asked",
+    "disclosure-asked",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -30,6 +32,9 @@ DOSSIER_VARIANTS = ("dossier-a",)
 UNPROMPTED_MODULES = ("corroboration-unprompted", "disclosure-unprompted")
 # Salience: "named-a" adds one sentence naming the mechanism, without its rate, to every brief.
 UNPROMPTED_VARIANTS = ("dossier-a", "named-a")
+# Default induction: the named dossiers plus each description's base-rate question.
+ASKED_MODULES = ("corroboration-asked", "disclosure-asked")
+ASKED_VARIANTS = ("named-a",)
 RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
@@ -298,6 +303,10 @@ def items_for(module):
         return design.corroboration_unprompted()
     if module == "disclosure-unprompted":
         return design.disclosure_unprompted()
+    if module == "corroboration-asked":
+        return design.corroboration_asked()
+    if module == "disclosure-asked":
+        return design.disclosure_asked()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -592,6 +601,8 @@ RENDERERS = {
     "disclosure-dossier": lambda *a: _dossier("disclosure", *a),
     "corroboration-unprompted": lambda *a: _dossier("relay_unprompted", *a),
     "disclosure-unprompted": lambda *a: _dossier("disclosure_unprompted", *a),
+    "corroboration-asked": lambda *a: _dossier("relay_asked", *a),
+    "disclosure-asked": lambda *a: _dossier("disclosure_asked", *a),
 }
 
 
@@ -610,6 +621,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in DOSSIER_VARIANTS
     if module in UNPROMPTED_MODULES:
         return cover == "markets" and variant in UNPROMPTED_VARIANTS
+    if module in ASKED_MODULES:
+        return cover == "markets" and variant in ASKED_VARIANTS
     if module == "checks":
         return variant == "paired"
     return variant in VARIANTS
@@ -634,8 +647,9 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
-    if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES and items["kind"][index] == "rate":
-        disclosure = module in ("disclosure-cues", "disclosure-dossier")
+    described = CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + ASKED_MODULES
+    if module in described and items["kind"][index] == "rate":
+        disclosure = module in ("disclosure-cues", "disclosure-dossier", "disclosure-asked")
         return [percent(items["omission"][index])] if disclosure else []
     if module == "checks":
         prior, high, low = (items[f][index] for f in ("prior", "high", "low"))
@@ -646,6 +660,7 @@ def stated_percentages(module, index):
         "corroboration-range",
         "corroboration-dossier",
         "corroboration-unprompted",
+        "corroboration-asked",
     ):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":

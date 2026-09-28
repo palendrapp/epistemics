@@ -306,3 +306,55 @@ def disclosure_unprompted(items, i, cover, variant):
     )
     lines = arrange(i, brief, [letter, *profile, *distractors(i)])
     return lines, f"What is the probability that {base.own(subject)} demand is high?"
+
+
+# Asked dossiers (default induction): the named dossiers plus each description's base-rate
+# question, worded as in the description modules.
+def relay_asked(items, i, cover, variant):
+    if items["kind"][i] != "rate":
+        return relay_unprompted(items, i, cover, variant)
+    slot, b = int(items["slot"][i]), base.OUTLETS_B[i]
+    brief = document(
+        "Case brief",
+        "Evaluator",
+        "—",
+        f"This case concerns the news outlet {b}. Background: {NAMED['relay']}",
+    )
+    profile = document(
+        "About us",
+        b,
+        "—",
+        f"{b} covers companies' demand. " + base.cue_sentence("corroboration", "cues-a", slot, b),
+    )
+    lines = arrange(i, brief, [profile, *distractors(i)])
+    question = (
+        f"Among outlets like {b}, what proportion relay another outlet's call instead of "
+        "checking for themselves?"
+    )
+    return lines, question
+
+
+def disclosure_asked(items, i, cover, variant):
+    if items["kind"][i] != "rate":
+        return disclosure_unprompted(items, i, cover, variant)
+    slot, subject = int(items["slot"][i]), base.COMPANIES[i]
+    brief = document(
+        "Case brief",
+        "Evaluator",
+        "—",
+        f"This case concerns {subject}, which tracks four operating indicators. Across the "
+        f"sector, a given indicator is left out of a quarterly update "
+        f"{base.percent(items['omission'][i])} of the time. Background: {NAMED['disclosure']}",
+    )
+    profile = document(
+        "Company profile",
+        "Market Directory",
+        "—",
+        base.cue_sentence("disclosure", "cues-a", slot, subject),
+    )
+    lines = arrange(i, brief, [profile, *distractors(i)])
+    question = (
+        f"Among companies like {subject}, what proportion share every on-target indicator and "
+        "withhold every off-target one, rather than leaving indicators out at random?"
+    )
+    return lines, question

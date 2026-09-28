@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 912
+    assert audit()["cases"] == 960
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 40
+    assert result["passed"] and len(result["contexts"]) == 42
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -594,3 +594,30 @@ def test_salience_variant_adds_exactly_one_sentence():
             assert named["question"] == plain["question"]
     with pytest.raises(ValueError, match="variant"):
         render("corroboration-dossier", "markets", 0, "named-a")
+
+
+def test_asked_dossiers_add_the_base_rate_question_to_the_named_design(tmp_path):
+    items = items_for("corroboration-asked")
+    assert list(items["kind"]).count("rate") == 5 and len(items["prior"]) == 24
+    for module in ("corroboration-asked", "disclosure-asked"):
+        kinds = items_for(module)["kind"]
+        for i in range(24):
+            case = render(module, "markets", i, "named-a")
+            assert case["case"].count("Background: Some") == 1
+            asks_rate = case["question"].startswith("Among ")
+            assert asks_rate == (kinds[i] == "rate")
+    with pytest.raises(ValueError, match="variant"):
+        render("corroboration-asked", "markets", 0, "dossier-a")
+    truth = {"slots": [0.05, 0.3, 0.5, 0.6, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+    report = simulate(
+        tmp_path / "asked",
+        module="disclosure-asked",
+        cover="markets",
+        order=ORDER,
+        truth=truth,
+        seed=11,
+        variant="named-a",
+    )
+    cues = report.analysis["cues"]
+    assert np.allclose(cues["implied"], truth["slots"], atol=0.08)
+    assert cues["stated"] is not None and cues["stated_minus_implied_mae"] < 0.1

@@ -315,6 +315,20 @@
       "outcome": "One sentence restores the discount for clear cases: aggregator 0-3% to 86-92% copied, bonus description 22-24% to 60-73% selective (S1 supported, ranges 0.52-0.92). The 50% default does not return: irrelevant level 0.17-0.33 pooled, per session near 0 or 0.50 (S2 fails); named mapping 0.12-0.22 from prompted (S3 fails). Prompted mapping predicts named forecasts best (6.6-10.7 points). Hypothesis: the 50% default is induced by being asked for the rate."
     },
     {
+      "id": "disposition-asked",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Default induction: asking for the base rate",
+      "question": "Does asking directly for each description's base rate, in dossiers that name the mechanism without a rate, bring back the 50% default for ambiguous sources?",
+      "doc": "docs/disposition-asked-2026-09-28.md",
+      "roots": [
+        "output/disposition-asked-20260928"
+      ],
+      "status": "running",
+      "prediction": "A1: irrelevant level between 0.35 and 0.65 in all four cells. A2: asked mapping within 0.10 of the prompted-dossier mapping on average. A3: stated within 0.10 of implied at every level in at least 5 of 6 sessions per configuration. A4 (best predictor) exploratory."
+    },
+    {
       "id": "source-learning-acceptance",
       "date": "2026-09-26",
       "track": "archive",

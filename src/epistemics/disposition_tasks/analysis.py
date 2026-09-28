@@ -24,6 +24,8 @@ CUE_MODELS = {
     "disclosure-dossier": "disclosure",
     "corroboration-unprompted": "dependence",
     "disclosure-unprompted": "disclosure",
+    "corroboration-asked": "dependence",
+    "disclosure-asked": "disclosure",
 }
 RANGE_TARGETS = 5
 

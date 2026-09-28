@@ -340,3 +340,34 @@ def disclosure_unprompted():
         rows + _DISCLOSURE_ANCHORS,
         ("kind", "prior", "good", "omission", "shared_good", "shared_bad", "withheld", "slot"),
     )
+
+
+# Asked dossiers (default induction): the unprompted forecasts, three per description level,
+# plus that level's stated base-rate question, as in the description modules. The implied prior
+# is still fitted from forecasts only, so asking for the rate can be compared with applying it.
+def corroboration_asked():
+    rows = [
+        row
+        for s in range(len(CUE_LEVELS))
+        # The three most informative of the four forecasts (recovery correlation 0.93 on three
+        # pilot seeds, against 0.92 for the first three).
+        for row in [("rate", 0.5, 0.75, 1, 0.85, 1, "none", s), *_relay_unprompted_slot(s)[1:]]
+    ]
+    table = columns(
+        rows + _RELAY_UNPROMPTED_ANCHORS,
+        ("kind", "prior", "accuracy_a", "report_a", "accuracy_b", "report_b", "cue", "slot"),
+    )
+    table["cue"] = np.array([CUES[c] for c in table["cue"]])
+    return table
+
+
+def disclosure_asked():
+    rows = [
+        row
+        for s in range(len(CUE_LEVELS))
+        for row in [("rate", 0.5, 0.75, 0.5, 0, 0, 4, s), *_disclosure_unprompted_slot(s)[:3]]
+    ]
+    return columns(
+        rows + _DISCLOSURE_ANCHORS,
+        ("kind", "prior", "good", "omission", "shared_good", "shared_bad", "withheld", "slot"),
+    )

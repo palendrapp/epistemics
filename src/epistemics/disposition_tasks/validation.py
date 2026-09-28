@@ -16,6 +16,8 @@ import numpy as np
 
 from epistemics.disposition_tasks.collection import CASES, fingerprint, load_report, public_trial
 from epistemics.disposition_tasks.render import (
+    ASKED_MODULES,
+    ASKED_VARIANTS,
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
@@ -107,13 +109,16 @@ def variants_of(module):
         return DOSSIER_VARIANTS
     if module in UNPROMPTED_MODULES:
         return UNPROMPTED_VARIANTS
+    if module in ASKED_MODULES:
+        return ASKED_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
 
 
 def covers_of(module):
     return (
         ("markets",)
-        if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES
+        if module
+        in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES + ASKED_MODULES
         else COVERS
     )
 
@@ -153,6 +158,12 @@ def audit():
                         module, variant, case
                     ):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
+                    # Asked cases: the case text names the mechanism once; only a base-rate
+                    # question mentions it again.
+                    if module in ASKED_MODULES and not states_only_the_named(
+                        module, variant, {"case": case["case"]}
+                    ):
+                        raise ValueError(f"{where} states the mechanism beyond its variant")
                     if module != "checks" and kinds[i] != "single":
                         two_way = any(phrase in case["case"] for phrase in TWO_WAY)
                         if two_way != (variant == "paired"):
@@ -185,6 +196,9 @@ def contexts_to_validate():
     # Appended last, so earlier contexts keep the random draws of earlier battery versions.
     for variant in UNPROMPTED_VARIANTS:
         for module in UNPROMPTED_MODULES:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for variant in ASKED_VARIANTS:
+        for module in ASKED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT
 
 

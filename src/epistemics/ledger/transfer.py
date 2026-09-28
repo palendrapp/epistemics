@@ -23,6 +23,8 @@ UNPROMPTED_ITEMS = {
     "relay": design.corroboration_unprompted,
     "disclosure": design.disclosure_unprompted,
 }
+ASKED = {"relay": "corroboration-asked", "disclosure": "disclosure-asked"}
+ASKED_ITEMS = {"relay": design.corroboration_asked, "disclosure": design.disclosure_asked}
 OBSERVERS = {"relay": observers.corroboration, "disclosure": observers.disclosure}
 
 
@@ -107,7 +109,7 @@ def noticing(records):
     its rate) are reported beside them under "named", with the unprompted mapping as a further
     candidate prior.
     """
-    prompted, unprompted, named = {}, {}, {}
+    prompted, unprompted, named, asked = {}, {}, {}, {}
     for r in records:
         if not r.get("verified") or r.get("slot_fits") is None:
             continue
@@ -120,6 +122,9 @@ def noticing(records):
                 lower = [s["implied"]["interval_90"][0] for s in r["slot_fits"]]
                 target = named if r.get("variant") == "named-a" else unprompted
                 target.setdefault(key, []).append((implied, lower, r))
+            elif r["module"] == ASKED[module]:
+                stated = [s["stated"][0] for s in r["slot_fits"]]
+                asked.setdefault(key, []).append((implied, stated, r))
     result = {}
     for (config, module), sessions in sorted(unprompted.items()):
         mapping = np.mean([i for i, _, _ in sessions], axis=0)
@@ -174,5 +179,37 @@ def noticing(records):
                     for name, priors in candidates.items()
                 },
             }
+        if (config, module) in asked:
+            row["asked"] = asked_row(module, asked[(config, module)], candidates, row)
         result[f"{config}/{module}"] = row
     return result
+
+
+def asked_row(module, sessions, candidates, row):
+    """Asked sessions: the named dossiers plus each description's base-rate question."""
+    mapping = np.mean([i for i, _, _ in sessions], axis=0)
+    stated = np.mean([s for _, s, _ in sessions], axis=0)
+    items = ASKED_ITEMS[module]()
+    priors = dict(candidates)
+    if row.get("named"):
+        priors["named"] = np.array(row["named"]["mapping"])
+    gaps = [float(np.max(np.abs(np.subtract(s, i)))) for i, s, _ in sessions]
+    return {
+        "sessions": len(sessions),
+        "mapping": mapping.tolist(),
+        "stated": stated.tolist(),
+        "range": float(mapping[-1] - mapping[0]),
+        "irrelevant": float(mapping[2]),
+        "coherent_sessions": sum(g <= 0.10 for g in gaps),
+        "to_prompted_mae": float(np.mean(np.abs(mapping - priors["prompted"])))
+        if "prompted" in priors
+        else None,
+        "to_named_mae": float(np.mean(np.abs(mapping - priors["named"])))
+        if "named" in priors
+        else None,
+        "per_session": [{"run_id": r["run_id"], "implied": i, "stated": s} for i, s, r in sessions],
+        "prediction_mae": {
+            name: float(np.mean([mean_absolute_error(module, p, r, items) for _, _, r in sessions]))
+            for name, p in priors.items()
+        },
+    }

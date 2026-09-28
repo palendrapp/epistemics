@@ -77,8 +77,12 @@ CUE_MODULES = {
         observers.corroboration,
     ),
     "disclosure-unprompted": ("disclosure", design.disclosure_unprompted, observers.disclosure),
+    # The same forecasts, three per level, with each level's stated base-rate question.
+    "corroboration-asked": ("dependence", design.corroboration_asked, observers.corroboration),
+    "disclosure-asked": ("disclosure", design.disclosure_asked, observers.disclosure),
 }
 UNPROMPTED = ("corroboration-unprompted", "disclosure-unprompted")
+ASKED = ("corroboration-asked", "disclosure-asked")
 REPORT_GRIDS = {
     "disposition": fit.DISPOSITION,
     "gamma": fit.GAMMA,
@@ -423,6 +427,13 @@ def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25)
         )
         for offset, module in enumerate(UNPROMPTED)
     }
+    results["asked"] = {
+        module: cue_metrics(
+            cue_recovery(module, respondents, np.random.default_rng(seed + 600 + offset)),
+            GATES["agent_noise_band"]["report_sd"],
+        )
+        for offset, module in enumerate(ASKED)
+    }
     rng = np.random.default_rng(seed + 100)
     items = design.checks()
     checks = {"parameter_recovery": {}}
@@ -492,8 +503,9 @@ def check_gates(results):
         and cues["mae"] <= GATES["maximum_cue_mae"]
         and cues["coverage_90"] >= GATES["minimum_interval_coverage"]
     )
-    for module in UNPROMPTED:
-        cues = results["unprompted"][module]["implied"]
+    for module in UNPROMPTED + ASKED:
+        group = "unprompted" if module in UNPROMPTED else "asked"
+        cues = results[group][module]["implied"]
         checks[f"{module.replace('-', '_')}_cue_recovery"] = (
             cues["correlation"] >= GATES["minimum_cue_correlation"]
             and cues["mae"] <= GATES["maximum_cue_mae"]
@@ -542,6 +554,8 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
             "corroboration_range": listed(design.corroboration_range()),
             "corroboration_unprompted": listed(design.corroboration_unprompted()),
             "disclosure_unprompted": listed(design.disclosure_unprompted()),
+            "corroboration_asked": listed(design.corroboration_asked()),
+            "disclosure_asked": listed(design.disclosure_asked()),
         },
         "gates": GATES,
     }

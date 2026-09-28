@@ -236,6 +236,18 @@ def test_noticing_compares_unprompted_with_prompted_dossiers(tmp_path):
         ]
         + [
             (
+                "astra-asked",
+                "astra",
+                dict(
+                    module="corroboration-asked",
+                    cover="markets",
+                    order=ORDER,
+                    truth=prompted,
+                    seed=10,
+                    variant="named-a",
+                ),
+            ),
+            (
                 "astra-named",
                 "astra",
                 dict(
@@ -246,18 +258,24 @@ def test_noticing_compares_unprompted_with_prompted_dossiers(tmp_path):
                     seed=9,
                     variant="named-a",
                 ),
-            )
+            ),
         ],
     )
     records = dispositions.extract(root, source=SOURCE)
-    summaries = [dispositions.summary(r) for r in records]
-    assert summaries[1]["stated"] is None and summaries[1]["stated_minus_implied_max"] is None
+    summaries = {r["run_id"]: dispositions.summary(r) for r in records}
+    unprompted_summary = summaries["astra-corroboration-unprompted"]
+    assert unprompted_summary["stated"] is None
+    assert unprompted_summary["stated_minus_implied_max"] is None
     row = transfer.noticing(records)["astra/relay"]
     assert row["unprompted_sessions"] == 1 and row["prompted_sessions"] == 1
     assert row["unprompted_range"] == pytest.approx(0.8, abs=0.1)
     assert row["unprompted_irrelevant"] < 0.1 and row["prompted_irrelevant"] == pytest.approx(
         0.5, abs=0.06
     )
+    asked = row["asked"]
+    assert asked["sessions"] == 1 and asked["coherent_sessions"] == 1
+    assert asked["irrelevant"] == pytest.approx(0.5, abs=0.08) and asked["to_prompted_mae"] < 0.1
+    assert asked["prediction_mae"]["prompted"] < asked["prediction_mae"]["neglect"]
     # Named sessions are reported apart from the unprompted ones.
     assert row["unprompted_sessions"] == 1 and row["named"]["sessions"] == 1
     assert row["named"]["to_prompted_mae"] < 0.1 and row["named"]["irrelevant"] > 0.4

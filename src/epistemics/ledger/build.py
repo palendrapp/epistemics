@@ -54,6 +54,7 @@ PRESENTATIONS = {
     "dossier": ("dossier", None),
     "unprompted": ("unprompted", ("dossier-a",)),
     "named": ("unprompted", ("named-a",)),
+    "asked": ("asked", None),
 }
 
 
@@ -146,7 +147,7 @@ def passport(pairs, retests, contrasts):
                 cue_rows := [
                     s
                     for _, s in mine
-                    if s["module"].endswith(("-cues", "-dossier"))
+                    if s["module"].endswith(("-cues", "-dossier", "-asked"))
                     and s.get("stated_minus_implied_max") is not None
                 ]
             )
