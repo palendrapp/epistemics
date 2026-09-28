@@ -310,8 +310,9 @@
       "roots": [
         "output/disposition-salience-20260928"
       ],
-      "status": "running",
-      "prediction": "S1: strongly suggestive minus strongly reassuring at least 0.30 in all four cells. S2: irrelevant level between 0.35 and 0.65. S3: named mapping within 0.10 of the prompted-dossier mapping on average. S4 (best predictor) exploratory."
+      "status": "complete",
+      "prediction": "S1: strongly suggestive minus strongly reassuring at least 0.30 in all four cells. S2: irrelevant level between 0.35 and 0.65. S3: named mapping within 0.10 of the prompted-dossier mapping on average. S4 (best predictor) exploratory.",
+      "outcome": "One sentence restores the discount for clear cases: aggregator 0-3% to 86-92% copied, bonus description 22-24% to 60-73% selective (S1 supported, ranges 0.52-0.92). The 50% default does not return: irrelevant level 0.17-0.33 pooled, per session near 0 or 0.50 (S2 fails); named mapping 0.12-0.22 from prompted (S3 fails). Prompted mapping predicts named forecasts best (6.6-10.7 points). Hypothesis: the 50% default is induced by being asked for the rate."
     },
     {
       "id": "source-learning-acceptance",
@@ -381,7 +382,7 @@
     }
   ],
   "next": [
-    "Salience test: one sentence naming the mechanism without a rate, to see how little prompting restores the description mapping.",
+    "Default induction: add the per-description base-rate question (or probes) to the named design, to test whether asking for the rate restores the 50% default.",
     "Reading guide: review the draft wording and thresholds; decide which readings go into a first passport.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."

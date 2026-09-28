@@ -117,7 +117,9 @@ The first [dossier transfer](disposition-transfer-2026-09-28.md) found that the 
 
 The [unprompted dossiers](disposition-unprompted-2026-09-28.md) showed that these mappings depend on the mechanism being named. Without it, Astra and Sol treated a matching report from an aggregator with no reporters as independent evidence, and read silence as only slightly bad news. Luna's and Terra's relay mappings transferred to dossiers; their disclosure mappings did not. The first [reading guide](ledger.md#parts) turns the passport into plain-language readings, each with its evidence and scope.
 
-**Next: a salience test (one sentence naming the mechanism without a rate), and a review of the reading guide's wording and thresholds.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+A [salience test](disposition-salience-2026-09-28.md) then added one sentence naming the mechanism without a rate. That restored the discount for clear cases (the aggregator, the bonus at stake) but not the 50% default for ambiguous sources.
+
+**Next: a default-induction test (ask for each description's base rate in the named design), and a review of the reading guide's wording and thresholds.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
