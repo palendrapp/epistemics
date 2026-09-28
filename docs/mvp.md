@@ -95,7 +95,11 @@ The [description-to-prior acceptance](disposition-cues-acceptance-2026-09-28.md)
 - **Relaying:** Astra and Sol share nearly one mapping, from 5% to 95%.
 - **Disclosure:** Sol applies governance and incentive information consistently, while Astra ignored it in one of two description sets.
 
-**Next: retest the description mapping for within-configuration reliability, add the weaker configurations, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+A [retest](disposition-cues-acceptance-2026-09-28.md#retest) in fresh contexts showed:
+- **Disclosure:** the mappings reproduce within 0.00–0.04, including Astra's stable, description-specific disregard of one set of company background.
+- **Relaying:** the mappings keep their extremes, but the baseline for an ordinary outlet can move from 50% to about 30% between contexts.
+
+**Next: identify what sets the relay baseline, add the weaker configurations, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
