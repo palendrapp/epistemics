@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 768
+    assert audit()["cases"] == 816
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 34
+    assert result["passed"] and len(result["contexts"]) == 36
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -220,6 +220,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
         runner.check_groups(cue_in_ecology)
     assert len(runner.check_groups(runner.PRESETS["cues"])) == 8
     assert len(runner.check_groups(runner.PRESETS["range"])) == 8
+    assert len(runner.check_groups(runner.PRESETS["transfer"])) == 12
     groups = [
         {
             "configurations": ["astra"],
@@ -506,3 +507,39 @@ def test_relative_judgement_module_shows_comparisons_first_and_contrasts_context
     )["sol/corroboration-range"]
     assert contrast["per_target"] == pytest.approx([0.2, 0.2, 0.0, 0.2, 0.2])
     assert contrast["mean"] == pytest.approx(0.16)
+
+
+def test_dossiers_render_the_description_items_as_documents(tmp_path):
+    relay = render("corroboration-dossier", "markets", 1, "dossier-a")["case"]
+    assert relay.startswith("**Case brief")
+    assert "About Oriel Business: Oriel Business employs twenty reporters" in relay
+    assert "Headline only (full story behind a paywall)" in relay
+    assert relay.count("**") == 2 * 5  # Brief, two stories and two distractors.
+    formal = render("corroboration-cues", "markets", 1, "cues-a")
+    dossier = render("corroboration-dossier", "markets", 1, "dossier-a")
+    assert formal["question"] == dossier["question"]
+    letter = render("disclosure-dossier", "markets", 17, "dossier-a")["case"]
+    assert "Letter to shareholders" in letter and "lose a large bonus" in letter
+    assert "came in on target" in letter
+    names = {"Aster Holdings", "Bellmore Group", "Calder Brands", "Dorrit Supply"}
+    for i in range(24):
+        text = render("disclosure-dossier", "markets", i, "dossier-a")["case"]
+        assert not any(c in text for c in ("Kestrel Foods", "Alder Mills")) or i in (0, 10)
+    assert any(
+        n in relay or n in letter
+        for n in names
+        | {"Elsmere Foods", "Fairlow Packaging", "Greyling Retail", "Hartwell Components"}
+    )
+    with pytest.raises(ValueError, match="variant"):
+        render("disclosure-dossier", "markets", 0, "cues-a")
+    truth = {"slots": [0.1, 0.3, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+    report = simulate(
+        tmp_path / "run",
+        module="disclosure-dossier",
+        cover="markets",
+        order=ORDER,
+        truth=truth,
+        seed=5,
+        variant="dossier-a",
+    )
+    assert np.allclose(report.analysis["cues"]["implied"], truth["slots"], atol=0.06)

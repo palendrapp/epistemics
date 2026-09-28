@@ -27,6 +27,8 @@ from epistemics.disposition_tasks.render import (
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
+    DOSSIER_MODULES,
+    DOSSIER_VARIANTS,
     LEARNING_RATES,
     MODULES,
     RANGE_MODULES,
@@ -101,6 +103,14 @@ AUDITED_CASES = (
     len(COVERS) * 24 * (2 * len(VARIANTS) + 1)
     + 24 * len(CUE_MODULES) * len(CUE_VARIANTS)
     + 24 * len(RANGE_MODULES) * len(RANGE_VARIANTS)
+    + 24 * len(DOSSIER_MODULES) * len(DOSSIER_VARIANTS)
+)
+PRESETS["transfer"] = (
+    {
+        "configurations": ("astra", "sol"),
+        "modules": DOSSIER_MODULES,
+        "contexts": tuple(("dossier-a", "markets", r) for r in (1, 2, 3)),
+    },
 )
 
 
@@ -157,7 +167,7 @@ def check_groups(groups):
         if not modules or set(modules) - set(MODULES):
             raise ValueError("Unknown module")
         if not contexts or any(
-            variant not in VARIANTS + CUE_VARIANTS + RANGE_VARIANTS
+            variant not in VARIANTS + CUE_VARIANTS + RANGE_VARIANTS + DOSSIER_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -194,7 +204,7 @@ def prepare(
         raw = Path(path).read_bytes()
         result = json.loads(raw)
         if (
-            result.get("schema_version") != "epistemics.disposition-task-validation.v4"
+            result.get("schema_version") != "epistemics.disposition-task-validation.v5"
             or not result["passed"]
             or result["implementation_sha256"] != fingerprint()
             or result["audit"]["cases"] != AUDITED_CASES
@@ -444,7 +454,7 @@ async def collect(root, entry, config, timeout):
 
 def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
-    if analysis["module"] in CUE_MODULES:
+    if analysis["module"] in CUE_MODULES + DOSSIER_MODULES:
         return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] in RANGE_MODULES:
         summary = analysis["range"]

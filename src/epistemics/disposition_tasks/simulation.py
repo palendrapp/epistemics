@@ -29,6 +29,8 @@ def responses(module, truth, rng, order=None, revealed=None):
                 "corroboration-cues": "dependence",
                 "disclosure-cues": "disclosure",
                 "corroboration-range": "dependence",
+                "corroboration-dossier": "dependence",
+                "disclosure-dossier": "disclosure",
             }[module]
         ]
         latent = observers.cue_observer(observer, items, truth["slots"], truth["gamma"])

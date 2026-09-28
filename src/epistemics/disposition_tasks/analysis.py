@@ -20,6 +20,8 @@ CUE_MODELS = {
     "corroboration-cues": "dependence",
     "disclosure-cues": "disclosure",
     "corroboration-range": "dependence",
+    "corroboration-dossier": "dependence",
+    "disclosure-dossier": "disclosure",
 }
 RANGE_TARGETS = 5
 

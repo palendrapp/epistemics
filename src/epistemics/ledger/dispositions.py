@@ -161,7 +161,7 @@ def summary(record):
         "stated_minus_implied_max": float(np.max(np.abs(np.subtract(stated, implied)))),
         "report_sd": record["shared"]["report_sd"]["mean"],
     }
-    if module.endswith("-cues"):
+    if module.endswith("-cues") or module.endswith("-dossier"):
         result["designed_order_spearman"] = spearman(range(len(implied)), implied)
         result["range"] = float(max(implied) - min(implied))
     return result

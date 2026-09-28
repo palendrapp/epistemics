@@ -19,6 +19,8 @@ from epistemics.disposition_tasks.render import (
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
+    DOSSIER_MODULES,
+    DOSSIER_VARIANTS,
     LEARNING_RATES,
     MODULES,
     RANGE_MODULES,
@@ -85,11 +87,13 @@ def variants_of(module):
         return CUE_VARIANTS
     if module in RANGE_MODULES:
         return RANGE_VARIANTS
+    if module in DOSSIER_MODULES:
+        return DOSSIER_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
 
 
 def covers_of(module):
-    return ("markets",) if module in CUE_MODULES + RANGE_MODULES else COVERS
+    return ("markets",) if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES else COVERS
 
 
 def audit():
@@ -124,6 +128,9 @@ def contexts_to_validate():
     for module in RANGE_MODULES:
         for variant in RANGE_VARIANTS:
             yield module, "markets", variant, RANGE_RESPONDENTS[variant]
+    for module in DOSSIER_MODULES:
+        for variant in DOSSIER_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
     for module in ("corroboration", "disclosure", "checks"):
         truths = CHECK_TRUTHS if module == "checks" else REPORT_TRUTHS
         for cover in COVERS:
@@ -205,7 +212,7 @@ def validate(seed):
         c["reveals_shown"] == (CASES - 1 if c["variant"] in LEARNING_RATES else 0) for c in contexts
     )
     return {
-        "schema_version": "epistemics.disposition-task-validation.v4",
+        "schema_version": "epistemics.disposition-task-validation.v5",
         "seed": seed,
         "implementation_sha256": fingerprint(),
         "audit": audited,

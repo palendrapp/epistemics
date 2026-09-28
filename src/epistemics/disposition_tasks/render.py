@@ -17,8 +17,13 @@ MODULES = (
     "corroboration-cues",
     "disclosure-cues",
     "corroboration-range",
+    "corroboration-dossier",
+    "disclosure-dossier",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
+# Transfer: the description modules' items rendered as realistic document dossiers.
+DOSSIER_MODULES = ("corroboration-dossier", "disclosure-dossier")
+DOSSIER_VARIANTS = ("dossier-a",)
 RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
@@ -279,6 +284,10 @@ def items_for(module):
         return design.disclosure_cues()
     if module == "corroboration-range":
         return design.corroboration_range()
+    if module == "corroboration-dossier":
+        return design.corroboration_cues()
+    if module == "disclosure-dossier":
+        return design.disclosure_cues()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -569,7 +578,15 @@ RENDERERS = {
     "corroboration-cues": _corroboration_cues,
     "disclosure-cues": _disclosure_cues,
     "corroboration-range": _corroboration_range,
+    "corroboration-dossier": lambda *a: _dossier("relay", *a),
+    "disclosure-dossier": lambda *a: _dossier("disclosure", *a),
 }
+
+
+def _dossier(kind, items, i, cover, variant):
+    from epistemics.disposition_tasks import dossier
+
+    return getattr(dossier, kind)(items, i, cover, variant)
 
 
 def allowed(module, cover, variant):
@@ -577,6 +594,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in CUE_VARIANTS
     if module in RANGE_MODULES:
         return cover == "markets" and variant in RANGE_VARIANTS
+    if module in DOSSIER_MODULES:
+        return cover == "markets" and variant in DOSSIER_VARIANTS
     if module == "checks":
         return variant == "paired"
     return variant in VARIANTS
@@ -601,12 +620,18 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
-    if module in CUE_MODULES + RANGE_MODULES and items["kind"][index] == "rate":
-        return [percent(items["omission"][index])] if module == "disclosure-cues" else []
+    if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES and items["kind"][index] == "rate":
+        disclosure = module in ("disclosure-cues", "disclosure-dossier")
+        return [percent(items["omission"][index])] if disclosure else []
     if module == "checks":
         prior, high, low = (items[f][index] for f in ("prior", "high", "low"))
         values = [prior, high, low, (prior - low) / (high - low)]
-    elif module in ("corroboration", "corroboration-cues", "corroboration-range"):
+    elif module in (
+        "corroboration",
+        "corroboration-cues",
+        "corroboration-range",
+        "corroboration-dossier",
+    ):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":
             values.append(items["accuracy_b"][index])

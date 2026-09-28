@@ -270,6 +270,21 @@
       "outcome": "W1 supported in 3 of 4 cells (Luna disclosure range only 0.22); W2 supported (median noise Luna 0.51, Terra 0.32); W3 supported for Terra (5/6) but not Luna (1/6): Luna states frontier-like base rates but its forecasts do not use them."
     },
     {
+      "id": "disposition-transfer",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Dossier transfer of description priors",
+      "question": "Do description-to-prior mappings measured in the formal modules predict answers when the same cases arrive as realistic document dossiers?",
+      "doc": "docs/disposition-transfer-2026-09-28.md",
+      "roots": [
+        "output/disposition-transfer-20260928"
+      ],
+      "status": "planned",
+      "prediction": "X1: dossier mapping within 0.10 of the formal mapping with rank agreement at least 0.8, for Astra and Sol in both modules. X2: own formal priors predict dossier answers better than 50% priors in all four cells. X3 (own versus pooled) exploratory.",
+      "outcome": null
+    },
+    {
       "id": "source-learning-acceptance",
       "date": "2026-09-26",
       "track": "archive",
@@ -337,7 +352,7 @@
     }
   ],
   "next": [
-    "Transfer: dossiers without background facts, starting with descriptions from the fixed extremes.",
+    "Run the dossier transfer (awaiting approval).",
     "Reading guide draft from the passport: defaults, learning, description mapping, session variability, coherence, precision.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."

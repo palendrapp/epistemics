@@ -74,6 +74,8 @@ def main():
     v.add_argument("--variant", default="cues-a")
     v.add_argument("--levels", type=int, nargs="+", default=[1, 2, 3])
     v.add_argument("--order-policy", default="random", help="'any' to pool every order policy")
+    tr = sub.add_parser("transfer")
+    tr.add_argument("roots", type=Path, nargs="+")
     cs = sub.add_parser("cues-summary")
     cs.add_argument("roots", type=Path, nargs="+")
     val = sub.add_parser("variance-validate")
@@ -101,13 +103,18 @@ def main():
     elif a.command == "contrast":
         contrast = dispositions.range_contrast(verified_pairs(a.root))
         print(json.dumps(contrast, indent=2))
+    elif a.command == "transfer":
+        from epistemics.ledger import transfer
+
+        records = [r for root in a.roots for r in dispositions.extract(root)]
+        print(json.dumps(transfer.analyse(records), indent=2))
     elif a.command == "cues-summary":
         import numpy as np
 
         groups = {}
         for root in a.roots:
             for record, s in verified_pairs(root):
-                if s["module"].endswith("-cues"):
+                if s["module"].endswith("-cues") or s["module"].endswith("-dossier"):
                     groups.setdefault(
                         (record["configuration"], s["module"], s["variant"]), []
                     ).append(s)

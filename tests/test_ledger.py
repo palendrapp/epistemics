@@ -112,3 +112,43 @@ def test_variance_estimator_separates_shared_shifts_from_level_noise():
     with pytest.raises(ValueError, match="three sessions"):
         variance.estimate(y[:2], s[:2])
     assert variance.standard_errors([[0.5, 0.5], [0.3, 0.63]])[1] == pytest.approx(0.1, abs=1e-3)
+
+
+def test_transfer_scores_own_pooled_and_neutral_priors():
+    from epistemics.dispositions import design, observers
+    from epistemics.dispositions.response import sigmoid
+    from epistemics.ledger import transfer
+
+    items = design.corroboration_cues()
+
+    def record(config, module, variant, priors, noise=0.0):
+        responses = sigmoid(observers.cue_observer(observers.corroboration, items, priors, 1.0))
+        slot_fits = [
+            {"slot": s, "implied": {"mean": p, "interval_90": [p, p]}, "stated": [p]}
+            for s, p in enumerate(priors)
+        ]
+        return {
+            "verified": True,
+            "configuration": config,
+            "module": module,
+            "variant": variant,
+            "order_policy": "random",
+            "responses": list(np.round(responses + noise, 2)),
+            "slot_fits": slot_fits,
+        }
+
+    astra = [0.05, 0.5, 0.5, 0.5, 0.95]
+    sol = [0.05, 0.3, 0.4, 0.6, 0.9]
+    records = [
+        record("astra", "corroboration-cues", "cues-a", astra),
+        record("sol", "corroboration-cues", "cues-a", sol),
+        record("astra", "corroboration-dossier", "dossier-a", astra),
+        record("sol", "corroboration-dossier", "dossier-a", sol),
+    ]
+    result = transfer.analyse(records)
+    for config in ("astra", "sol"):
+        row = result[f"{config}/relay"]
+        assert row["mapping_mae"] == pytest.approx(0, abs=1e-9)
+        assert row["prediction_mae"]["own_formal"] < 0.006
+        assert row["gain_over_neutral"] > 0.03
+        assert row["gain_over_pooled"] > 0
