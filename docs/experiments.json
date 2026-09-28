@@ -285,6 +285,20 @@
       "outcome": "Transfer holds: own formal priors predict dossier answers within 1.4-4.0 points versus 7.7-9.2 for 50% (X2 supported in all four cells); mappings differ by 0.025-0.060. X1's rank condition failed for relays (0.6, 0.7) because the middle levels are nearly tied; met for disclosure. Pooled priors do about as well as own. Dossiers were no less stable than the formal module."
     },
     {
+      "id": "disposition-unprompted",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Unprompted dossiers and weaker configurations on dossiers",
+      "question": "Without being told that relaying or selective withholding exists, do agents discount copied reports and read silence as bad news when source descriptions suggest it? Do Luna's and Terra's formal mappings carry over to dossiers?",
+      "doc": "docs/disposition-unprompted-2026-09-28.md",
+      "roots": [
+        "output/disposition-unprompted-20260928"
+      ],
+      "status": "running",
+      "prediction": "U1: strongly suggestive minus strongly reassuring implied prior at least 0.30 in all four Astra/Sol cells. U2: irrelevant level at most 0.20 (0.50 when prompted). U3: unprompted range smaller than prompted. U4 exploratory. W1: Luna/Terra own formal priors beat 50% on dossiers in all four cells. W2: Terra coherent in at least 4/6 dossier sessions, Luna in at most 2/6."
+    },
+    {
       "id": "source-learning-acceptance",
       "date": "2026-09-26",
       "track": "archive",

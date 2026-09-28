@@ -70,7 +70,15 @@ CUE_MODULES = {
     "corroboration": ("dependence", design.corroboration_cues, observers.corroboration),
     "disclosure": ("disclosure", design.disclosure_cues, observers.disclosure),
     "range": ("dependence", design.corroboration_range, observers.corroboration),
+    # Forecast-only designs without the mechanism (no stated base rates, no probes).
+    "corroboration-unprompted": (
+        "dependence",
+        design.corroboration_unprompted,
+        observers.corroboration,
+    ),
+    "disclosure-unprompted": ("disclosure", design.disclosure_unprompted, observers.disclosure),
 }
+UNPROMPTED = ("corroboration-unprompted", "disclosure-unprompted")
 REPORT_GRIDS = {
     "disposition": fit.DISPOSITION,
     "gamma": fit.GAMMA,
@@ -344,7 +352,7 @@ def cue_metrics(rows, limit):
     truth = np.array([t for r in agent for t in r["truth"]["slots"]])
     implied = [s["implied"] for r in agent for s in r["result"]["slots"]]
     mean = np.array([s["mean"] for s in implied])
-    stated = np.array([s["stated"][0] for r in agent for s in r["result"]["slots"]])
+    stated = [s["stated"][0] for r in agent for s in r["result"]["slots"] if s["stated"]]
     lower, upper = cell_edges(fit.DISPOSITION)
     lo = np.array([lower[np.searchsorted(fit.DISPOSITION, s["interval_90"][0])] for s in implied])
     hi = np.array([upper[np.searchsorted(fit.DISPOSITION, s["interval_90"][1])] for s in implied])
@@ -356,7 +364,8 @@ def cue_metrics(rows, limit):
             "mae": float(np.mean(np.abs(mean - truth))),
             "coverage_90": float(np.mean((lo <= truth) & (truth <= hi))),
         },
-        "stated_mae": float(np.mean(np.abs(stated - truth))),
+        # Unprompted designs ask for no stated base rates.
+        "stated_mae": float(np.mean(np.abs(np.array(stated) - truth))) if stated else None,
     }
 
 
@@ -407,6 +416,13 @@ def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25)
         cue_recovery("range", respondents, np.random.default_rng(seed + 400)),
         GATES["agent_noise_band"]["report_sd"],
     )
+    results["unprompted"] = {
+        module: cue_metrics(
+            cue_recovery(module, respondents, np.random.default_rng(seed + 500 + offset)),
+            GATES["agent_noise_band"]["report_sd"],
+        )
+        for offset, module in enumerate(UNPROMPTED)
+    }
     rng = np.random.default_rng(seed + 100)
     items = design.checks()
     checks = {"parameter_recovery": {}}
@@ -476,6 +492,13 @@ def check_gates(results):
         and cues["mae"] <= GATES["maximum_cue_mae"]
         and cues["coverage_90"] >= GATES["minimum_interval_coverage"]
     )
+    for module in UNPROMPTED:
+        cues = results["unprompted"][module]["implied"]
+        checks[f"{module.replace('-', '_')}_cue_recovery"] = (
+            cues["correlation"] >= GATES["minimum_cue_correlation"]
+            and cues["mae"] <= GATES["maximum_cue_mae"]
+            and cues["coverage_90"] >= GATES["minimum_interval_coverage"]
+        )
     for function, limits in CHECK_PRIOR["certainty_value"].items():
         agent = results["checks"]["parameter_recovery"][function]["agent_noise"]
         row = agent["parameters"]["certainty_value"]
@@ -517,6 +540,8 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
             "corroboration_cues": listed(design.corroboration_cues()),
             "disclosure_cues": listed(design.disclosure_cues()),
             "corroboration_range": listed(design.corroboration_range()),
+            "corroboration_unprompted": listed(design.corroboration_unprompted()),
+            "disclosure_unprompted": listed(design.disclosure_unprompted()),
         },
         "gates": GATES,
     }

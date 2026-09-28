@@ -18,17 +18,22 @@ PAIRS = {
     "disclosure": ("disclosure-cues", "disclosure-dossier"),
 }
 ITEMS = {"relay": design.corroboration_cues, "disclosure": design.disclosure_cues}
+UNPROMPTED = {"relay": "corroboration-unprompted", "disclosure": "disclosure-unprompted"}
+UNPROMPTED_ITEMS = {
+    "relay": design.corroboration_unprompted,
+    "disclosure": design.disclosure_unprompted,
+}
 OBSERVERS = {"relay": observers.corroboration, "disclosure": observers.disclosure}
 
 
-def predicted(module, priors):
-    items = ITEMS[module]()
+def predicted(module, priors, items=None):
+    items = ITEMS[module]() if items is None else items
     return sigmoid(observers.cue_observer(OBSERVERS[module], items, priors, 1.0)), items
 
 
-def mean_absolute_error(module, priors, record):
+def mean_absolute_error(module, priors, record, items=None):
     """Mean |predicted − reported| over the dossier's probes and forecasts (not base rates)."""
-    probabilities, items = predicted(module, priors)
+    probabilities, items = predicted(module, priors, items)
     evidence = items["kind"] != "rate"
     reported = np.array(record["responses"], dtype=float)
     return float(np.mean(np.abs(probabilities[evidence] - reported[evidence])))
@@ -41,6 +46,8 @@ def analyse(records, variant="cues-a"):
         if not r.get("verified") or r.get("slot_fits") is None:
             continue
         implied = [s["implied"]["mean"] for s in r["slot_fits"]]
+        if not all(s["stated"] for s in r["slot_fits"]):
+            continue  # Unprompted sessions: see noticing().
         stated = [s["stated"][0] for s in r["slot_fits"]]
         for module, (formal_module, dossier_module) in PAIRS.items():
             key = (r["configuration"], module)
@@ -85,4 +92,57 @@ def analyse(records, variant="cues-a"):
             "gain_over_neutral": errors["neutral"] - errors["own_formal"],
             "gain_over_pooled": errors["pooled_formal"] - errors["own_formal"],
         }
+    return result
+
+
+def noticing(records):
+    """Unprompted dossiers (no mechanism stated) against the prompted dossiers, same descriptions.
+
+    Per configuration and module: both mappings, the suggestive-minus-reassuring range, the
+    irrelevant level, per-session unprompted mappings with their lower 90% bounds, and the error of
+    predicting the unprompted forecasts from the prompted mapping, from full neglect (no relays or
+    selective senders at any level) and from indifference (50% at every level).
+    """
+    prompted, unprompted = {}, {}
+    for r in records:
+        if not r.get("verified") or r.get("slot_fits") is None:
+            continue
+        implied = [s["implied"]["mean"] for s in r["slot_fits"]]
+        for module in PAIRS:
+            key = (r["configuration"], module)
+            if r["module"] == PAIRS[module][1]:
+                prompted.setdefault(key, []).append(implied)
+            elif r["module"] == UNPROMPTED[module]:
+                lower = [s["implied"]["interval_90"][0] for s in r["slot_fits"]]
+                unprompted.setdefault(key, []).append((implied, lower, r))
+    result = {}
+    for (config, module), sessions in sorted(unprompted.items()):
+        mapping = np.mean([i for i, _, _ in sessions], axis=0)
+        row = {
+            "unprompted_sessions": len(sessions),
+            "unprompted_mapping": mapping.tolist(),
+            "unprompted_range": float(mapping[-1] - mapping[0]),
+            "unprompted_irrelevant": float(mapping[2]),
+            "sessions": [
+                {"run_id": r["run_id"], "implied": i, "lower_90": lo} for i, lo, r in sessions
+            ],
+        }
+        items = UNPROMPTED_ITEMS[module]()
+        candidates = {"neglect": np.zeros(5), "indifference": np.full(5, 0.5)}
+        if (config, module) in prompted:
+            reference = np.mean(prompted[(config, module)], axis=0)
+            row |= {
+                "prompted_sessions": len(prompted[(config, module)]),
+                "prompted_mapping": reference.tolist(),
+                "prompted_range": float(reference[-1] - reference[0]),
+                "prompted_irrelevant": float(reference[2]),
+            }
+            candidates["prompted"] = reference
+        row["prediction_mae"] = {
+            name: float(
+                np.mean([mean_absolute_error(module, priors, r, items) for _, _, r in sessions])
+            )
+            for name, priors in candidates.items()
+        }
+        result[f"{config}/{module}"] = row
     return result

@@ -35,6 +35,8 @@ CUE_MODELS = {
     "corroboration-dossier": "dependence",
     "disclosure-cues": "disclosure",
     "disclosure-dossier": "disclosure",
+    "corroboration-unprompted": "dependence",
+    "disclosure-unprompted": "disclosure",
 }
 CUE_NAMES = {round(v, 12): k for k, v in design.CUES.items()}
 REPORT_RECOVERY = {"disposition": fit.DISPOSITION, "gamma": fit.GAMMA, "report_sd": fit.REPORT_SD}

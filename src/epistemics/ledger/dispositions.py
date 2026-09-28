@@ -154,15 +154,20 @@ def summary(record):
             }
         return result
     implied = [s["implied"]["mean"] for s in record["slot_fits"]]
-    stated = [s["stated"][0] for s in record["slot_fits"]]
+    # Unprompted modules ask for no stated base rates.
+    fits = record["slot_fits"]
+    stated = [s["stated"][0] for s in fits] if all(s["stated"] for s in fits) else None
     result = {
         **base,
         "implied": implied,
+        "implied_lower_90": [s["implied"]["interval_90"][0] for s in fits],
         "stated": stated,
-        "stated_minus_implied_max": float(np.max(np.abs(np.subtract(stated, implied)))),
+        "stated_minus_implied_max": float(np.max(np.abs(np.subtract(stated, implied))))
+        if stated
+        else None,
         "report_sd": record["shared"]["report_sd"]["mean"],
     }
-    if module.endswith("-cues") or module.endswith("-dossier"):
+    if module.endswith(("-cues", "-dossier", "-unprompted")):
         result["designed_order_spearman"] = spearman(range(len(implied)), implied)
         result["range"] = float(max(implied) - min(implied))
     return result

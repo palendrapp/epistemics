@@ -66,3 +66,11 @@ Papers cited in conversation or design notes without full treatment, each with t
 | --- | --- | --- | --- |
 | [Parducci 1965](https://doi.org/10.1037/h0022602) | Range–frequency theory: category judgements depend on an item's position within the range and rank of the context's stimuli. It is the classic account of why the mild relay descriptions shifted with the other outlets in view while the extremes stayed fixed. | 28 Sep, [relay baseline](disposition-baseline-2026-09-28.md) | [M], DOI checked |
 | [Stewart, Chater & Brown 2006](https://doi.org/10.1016/j.cogpsych.2005.10.003) | Decision by sampling: judged magnitudes come from comparisons with a sample of items in memory and context. A candidate mechanism for the relative component of the description-to-prior mapping. The [confirmatory test](disposition-range-2026-09-28.md#results) did not support a comparison-set effect for Astra or Sol. | 28 Sep, [relay baseline](disposition-baseline-2026-09-28.md) | [M], DOI checked |
+
+## Noticing structure
+
+| Paper | Why it came up | Mentioned | Read |
+| --- | --- | --- | --- |
+| [Enke & Zimmermann 2019](https://doi.org/10.1093/restud/rdx081) | Correlation neglect: people treat correlated reports as independent, and neglect falls when the correlation is made salient. The human analogue of the [unprompted relay dossiers](disposition-unprompted-2026-09-28.md), which test whether agents discount a copy without being told copies exist. Inspiration, not replication. | 28 Sep, [unprompted dossiers](disposition-unprompted-2026-09-28.md) | [M], DOI checked |
+| [Enke 2020](https://doi.org/10.1093/qje/qjaa012) | "What you see is all there is": people neglect information that was selected out, and the neglect shrinks when the missing information is made salient. Frames the unprompted disclosure dossiers, where nothing says an update may omit bad news selectively. | 28 Sep, [unprompted dossiers](disposition-unprompted-2026-09-28.md) | [M], DOI checked |
+| [Jin, Luca & Martin 2021](https://doi.org/10.1257/mic.20180217) | Receivers are not skeptical enough about undisclosed information, so senders do not fully unravel. The human benchmark for whether silence is read as bad news. | 28 Sep, [unprompted dossiers](disposition-unprompted-2026-09-28.md) | [M], DOI checked |

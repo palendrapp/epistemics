@@ -22,6 +22,8 @@ CUE_MODELS = {
     "corroboration-range": "dependence",
     "corroboration-dossier": "dependence",
     "disclosure-dossier": "disclosure",
+    "corroboration-unprompted": "dependence",
+    "disclosure-unprompted": "disclosure",
 }
 RANGE_TARGETS = 5
 
@@ -63,17 +65,28 @@ def spearman(a, b):
 
 
 def cue_summary(result):
-    """Implied against stated priors, the designed ordering and the irrelevant control."""
+    """Implied against stated priors, the designed ordering and the irrelevant control.
+
+    Unprompted designs ask for no stated base rates, so their stated comparisons are None.
+    """
     implied = [s["implied"]["mean"] for s in result["slots"]]
-    stated = [s["stated"][0] for s in result["slots"]]
+    stated = (
+        [s["stated"][0] for s in result["slots"]]
+        if all(s["stated"] for s in result["slots"])
+        else None
+    )
     irrelevant = result["slots"][2]["implied"]
     low, high = irrelevant["interval_90"]
     shift = irrelevant["mean"] - 0.5
     return {
         "implied": implied,
         "stated": stated,
-        "stated_minus_implied_mae": float(np.mean(np.abs(np.subtract(stated, implied)))),
-        "stated_implied_spearman": spearman(stated, implied),
+        "stated_minus_implied_mae": float(np.mean(np.abs(np.subtract(stated, implied))))
+        if stated
+        else None,
+        "stated_implied_spearman": spearman(stated, implied) if stated else None,
+        # Unprompted: the lower 90% bound of each level's implied prior (0 is full neglect).
+        "implied_lower_90": [s["implied"]["interval_90"][0] for s in result["slots"]],
         "designed_order_spearman": spearman(range(len(implied)), implied),
         "range": float(max(implied) - min(implied)),
         # Moved: beyond one grid step from indifference, with an interval that excludes it.

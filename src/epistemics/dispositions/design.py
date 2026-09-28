@@ -289,3 +289,54 @@ def corroboration_range():
     )
     table["cue"] = np.array([CUES[c] for c in table["cue"]])
     return table
+
+
+# Unprompted dossiers: the description modules without the mechanism. Forecasts only: no stated
+# base-rate questions, no structure probes and no wording cues, so a relay or a selective sender is
+# never named. Each description level has four forecasts whose relay (selective) and independent
+# (random) readings differ; the anchors, which no relay or selective sender can explain, fix
+# sensitivity, bias and noise. An implied prior of zero at every level is full neglect.
+def _relay_unprompted_slot(slot):
+    # Accurate second outlets and priors leaning against the reports spread the relay and
+    # independent readings (a relay leaves only the first outlet's evidence).
+    return [
+        ("pair", 0.3, 0.75, 1, 0.9, 1, "none", slot),
+        ("pair", 0.7, 0.75, -1, 0.9, -1, "none", slot),
+        ("pair", 0.25, 0.7, 1, 0.95, 1, "none", slot),
+        ("pair", 0.75, 0.7, -1, 0.95, -1, "none", slot),
+    ]
+
+
+_RELAY_UNPROMPTED_ANCHORS = [
+    ("single", 0.5, 0.65, 1, 0.5, 0, "none", -1),
+    ("single", 0.3, 0.7, 1, 0.5, 0, "none", -1),
+    ("pair", 0.5, 0.8, 1, 0.65, -1, "none", -1),
+    ("pair", 0.6, 0.7, -1, 0.7, 1, "none", -1),
+]
+
+
+def _disclosure_unprompted_slot(slot):
+    return [
+        ("forecast", 0.3, 0.75, 0.5, 3, 0, 1, slot),
+        ("forecast", 0.5, 0.75, 0.5, 2, 0, 2, slot),
+        ("forecast", 0.5, 0.75, 0.5, 1, 0, 3, slot),
+        ("forecast", 0.7, 0.75, 0.5, 0, 0, 4, slot),
+    ]
+
+
+def corroboration_unprompted():
+    rows = [row for s in range(len(CUE_LEVELS)) for row in _relay_unprompted_slot(s)]
+    table = columns(
+        rows + _RELAY_UNPROMPTED_ANCHORS,
+        ("kind", "prior", "accuracy_a", "report_a", "accuracy_b", "report_b", "cue", "slot"),
+    )
+    table["cue"] = np.array([CUES[c] for c in table["cue"]])
+    return table
+
+
+def disclosure_unprompted():
+    rows = [row for s in range(len(CUE_LEVELS)) for row in _disclosure_unprompted_slot(s)]
+    return columns(
+        rows + _DISCLOSURE_ANCHORS,
+        ("kind", "prior", "good", "omission", "shared_good", "shared_bad", "withheld", "slot"),
+    )

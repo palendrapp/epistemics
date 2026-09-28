@@ -19,7 +19,7 @@ from epistemics.disposition_tasks.collection import (
 from epistemics.disposition_tasks.presentation import Answer
 from epistemics.disposition_tasks.render import items_for, render
 from epistemics.disposition_tasks.simulation import simulate
-from epistemics.disposition_tasks.validation import PRIVATE, audit, validate
+from epistemics.disposition_tasks.validation import MECHANISM, PRIVATE, audit, validate
 from epistemics.source_learning.simulation import PARTICIPANT
 from epistemics.source_learning.storage import encoded
 
@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 816
+    assert audit()["cases"] == 864
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 36
+    assert result["passed"] and len(result["contexts"]) == 38
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -543,3 +543,38 @@ def test_dossiers_render_the_description_items_as_documents(tmp_path):
         variant="dossier-a",
     )
     assert np.allclose(report.analysis["cues"]["implied"], truth["slots"], atol=0.06)
+
+
+def test_unprompted_dossiers_never_state_the_mechanism(tmp_path):
+    for module in ("corroboration-unprompted", "disclosure-unprompted"):
+        items = items_for(module)
+        assert set(items["kind"]) <= {"pair", "single", "forecast"}  # Forecasts only.
+        assert np.all(items["cue"] == 0) if "cue" in items else True
+        text = json.dumps([render(module, "markets", i, "dossier-a") for i in range(24)]).lower()
+        assert not any(word in text for word in MECHANISM + PRIVATE)
+    relay = render("corroboration-unprompted", "markets", 16, "dossier-a")["case"]
+    assert "aggregator site with no reporters" in relay
+    assert "Orchard Brief's demand calls are correct 90% of the time" in relay
+    assert "Headline only" in relay
+    silence = render("disclosure-unprompted", "markets", 19, "dossier-a")["case"]
+    assert "left out of a quarterly update 50% of the time" in silence
+    assert "strategy and hiring" in silence and "lose a large bonus" in silence
+    # A neglecting respondent (no relays, no selective senders) is recovered at zero, and a
+    # noticing one at its levels.
+    for module, slots in (
+        ("corroboration-unprompted", [0.0] * 5),
+        ("disclosure-unprompted", [0.05, 0.1, 0.2, 0.6, 0.9]),
+    ):
+        truth = {"slots": slots, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+        report = simulate(
+            tmp_path / module,
+            module=module,
+            cover="markets",
+            order=ORDER,
+            truth=truth,
+            seed=7,
+            variant="dossier-a",
+        )
+        cues = report.analysis["cues"]
+        assert np.allclose(cues["implied"], slots, atol=0.06)
+        assert cues["stated"] is None and cues["stated_minus_implied_mae"] is None

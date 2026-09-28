@@ -227,3 +227,75 @@ def disclosure(items, i, cover, variant):
     else:
         question = f"What is the probability that {base.own(subject)} demand is high?"
     return lines, question
+
+
+# Unprompted dossiers: the same documents without the mechanism. The brief states only the prior
+# and each source's track record (and, for disclosure, how often indicators go unreported); no
+# document says that outlets relay one another or that companies withhold selectively. Every second
+# outlet's story is a paywalled headline, so wording carries no copying signal.
+def relay_unprompted(items, i, cover, variant):
+    slot, kind = int(items["slot"][i]), items["kind"][i]
+    subject, a, b = base.COMPANIES[i], base.OUTLETS_A[i], base.OUTLETS_B[i]
+    set_name = "cues-" + variant[-1]
+    rates = [
+        f"{base.own(a)} demand calls are correct {base.percent(items['accuracy_a'][i])} of the time."
+    ]
+    if kind != "single":
+        rates.append(
+            f"{base.own(b)} demand calls are correct {base.percent(items['accuracy_b'][i])} of "
+            "the time."
+        )
+    brief = document(
+        "Case brief",
+        "Evaluator",
+        "—",
+        f"{base.own(subject)} quarterly demand is either high or low. Before any reports, the "
+        f"probability that demand is high is {base.percent(items['prior'][i])}. Track records: "
+        + " ".join(rates),
+    )
+    call_a = _call(items["report_a"][i])
+    original = f"Demand at {subject} is {call_a} this quarter, on our reading of the market."
+    documents = [document("Markets story", a, DATES[i % 3], original)]
+    if kind != "single":
+        call_b = _call(items["report_b"][i])
+        story = f"Headline only (full story behind a paywall): “{subject}: demand {call_b} this quarter”."
+        if slot >= 0:
+            story = f"About {b}: {base.cue_sentence('corroboration', set_name, slot, b)}\n{story}"
+        documents.append(document("Markets story", b, DATES[3 + i % 3], story))
+    lines = arrange(i, brief, [*documents, *distractors(i)])
+    return lines, f"What is the probability that {base.own(subject)} demand is high?"
+
+
+def disclosure_unprompted(items, i, cover, variant):
+    slot = int(items["slot"][i])
+    subject = base.COMPANIES[i]
+    set_name = "cues-" + variant[-1]
+    m, j = (int(items[f][i]) for f in ("shared_good", "shared_bad"))
+    good, bad = base.percent(items["good"][i]), base.percent(1 - items["good"][i])
+    order = KPIS[i % 4 :] + KPIS[: i % 4]
+    brief = document(
+        "Case brief",
+        "Evaluator",
+        "—",
+        f"{base.own(subject)} quarterly demand is either high or low. Before its update, the "
+        f"probability that demand is high is {base.percent(items['prior'][i])}. Reference rates: "
+        f"{subject} tracks four indicators ({', '.join(k_.lower() for k_ in order)}). When demand "
+        f"is high, each independently lands on target with probability {good}; when demand is "
+        f"low, with probability {bad}. Across the sector, a given indicator is left out of a "
+        f"quarterly update {base.percent(items['omission'][i])} of the time.",
+    )
+    reported = [f"{name} came in on target." for name in order[:m]]
+    reported += [f"{name} came in below target." for name in order[m : m + j]]
+    letter_body = " ".join(reported) if reported else "The letter discusses strategy and hiring."
+    letter = document(
+        "Letter to shareholders",
+        subject,
+        DATES[i % 6],
+        f"Quarterly update. {letter_body} We thank our customers and staff for their work.",
+    )
+    profile_text = base.cue_sentence("disclosure", set_name, slot, subject) if slot >= 0 else None
+    profile = (
+        [document("Company profile", "Market Directory", "—", profile_text)] if profile_text else []
+    )
+    lines = arrange(i, brief, [letter, *profile, *distractors(i)])
+    return lines, f"What is the probability that {base.own(subject)} demand is high?"

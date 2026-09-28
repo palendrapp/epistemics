@@ -33,6 +33,7 @@ from epistemics.disposition_tasks.render import (
     MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
+    UNPROMPTED_MODULES,
     VARIANTS,
     allowed,
     items_for,
@@ -104,10 +105,25 @@ AUDITED_CASES = (
     + 24 * len(CUE_MODULES) * len(CUE_VARIANTS)
     + 24 * len(RANGE_MODULES) * len(RANGE_VARIANTS)
     + 24 * len(DOSSIER_MODULES) * len(DOSSIER_VARIANTS)
+    + 24 * len(UNPROMPTED_MODULES) * len(DOSSIER_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
         "configurations": ("astra", "sol"),
+        "modules": DOSSIER_MODULES,
+        "contexts": tuple(("dossier-a", "markets", r) for r in (1, 2, 3)),
+    },
+)
+# Noticing: the frontier pair on dossiers that never state the mechanism, and the weaker pair on
+# the prompted dossiers (transfer of their formal mappings).
+PRESETS["unprompted"] = (
+    {
+        "configurations": ("astra", "sol"),
+        "modules": UNPROMPTED_MODULES,
+        "contexts": tuple(("dossier-a", "markets", r) for r in (1, 2, 3)),
+    },
+    {
+        "configurations": ("luna", "terra"),
         "modules": DOSSIER_MODULES,
         "contexts": tuple(("dossier-a", "markets", r) for r in (1, 2, 3)),
     },
@@ -454,7 +470,7 @@ async def collect(root, entry, config, timeout):
 
 def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
-    if analysis["module"] in CUE_MODULES + DOSSIER_MODULES:
+    if analysis["module"] in CUE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES:
         return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] in RANGE_MODULES:
         summary = analysis["range"]

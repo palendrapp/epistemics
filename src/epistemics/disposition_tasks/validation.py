@@ -25,6 +25,7 @@ from epistemics.disposition_tasks.render import (
     MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
+    UNPROMPTED_MODULES,
     VARIANTS,
     items_for,
     render,
@@ -80,6 +81,20 @@ PRIVATE = (
     "reassuring",
 )
 TWO_WAY = (" may have ", "could be either kind")
+# Unprompted dossiers must not name or describe relaying or selective withholding.
+MECHANISM = (
+    "relay",
+    "withh",
+    "selective",
+    "repeat",
+    "copies",
+    "copied",
+    "for itself",
+    "for themselves",
+    "at random",
+    "on purpose",
+    "strategic",
+)
 
 
 def variants_of(module):
@@ -87,13 +102,17 @@ def variants_of(module):
         return CUE_VARIANTS
     if module in RANGE_MODULES:
         return RANGE_VARIANTS
-    if module in DOSSIER_MODULES:
+    if module in DOSSIER_MODULES + UNPROMPTED_MODULES:
         return DOSSIER_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
 
 
 def covers_of(module):
-    return ("markets",) if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES else COVERS
+    return (
+        ("markets",)
+        if module in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES
+        else COVERS
+    )
 
 
 def audit():
@@ -113,6 +132,10 @@ def audit():
                             raise ValueError(f"{where} does not display {p}")
                     if any(word in json.dumps(case).lower() for word in PRIVATE):
                         raise ValueError(f"{where} shows a private label")
+                    if module in UNPROMPTED_MODULES and any(
+                        word in json.dumps(case).lower() for word in MECHANISM
+                    ):
+                        raise ValueError(f"{where} states the mechanism")
                     if module != "checks" and kinds[i] != "single":
                         two_way = any(phrase in case["case"] for phrase in TWO_WAY)
                         if two_way != (variant == "paired"):
@@ -142,6 +165,10 @@ def contexts_to_validate():
             yield module, "markets", variant, REPORT_TRUTHS[0]
         for variant in LEARNING_RATES:
             yield module, "markets", variant, LEARNER
+    # Appended last, so earlier contexts keep the random draws of earlier battery versions.
+    for module in UNPROMPTED_MODULES:
+        for variant in DOSSIER_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):

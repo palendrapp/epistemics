@@ -4,4 +4,4 @@ Offline specification only. No respondent collection, trait issuance or passport
 """
 
 MODEL_VERSION = "disposition-model/0.4.0"
-DESIGN_VERSION = "disposition-design/0.4.0"
+DESIGN_VERSION = "disposition-design/0.5.0"

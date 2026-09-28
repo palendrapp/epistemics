@@ -19,11 +19,15 @@ MODULES = (
     "corroboration-range",
     "corroboration-dossier",
     "disclosure-dossier",
+    "corroboration-unprompted",
+    "disclosure-unprompted",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
 DOSSIER_MODULES = ("corroboration-dossier", "disclosure-dossier")
 DOSSIER_VARIANTS = ("dossier-a",)
+# Noticing: dossiers that never state the mechanism, forecasts only (same description set A).
+UNPROMPTED_MODULES = ("corroboration-unprompted", "disclosure-unprompted")
 RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
@@ -288,6 +292,10 @@ def items_for(module):
         return design.corroboration_cues()
     if module == "disclosure-dossier":
         return design.disclosure_cues()
+    if module == "corroboration-unprompted":
+        return design.corroboration_unprompted()
+    if module == "disclosure-unprompted":
+        return design.disclosure_unprompted()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -580,6 +588,8 @@ RENDERERS = {
     "corroboration-range": _corroboration_range,
     "corroboration-dossier": lambda *a: _dossier("relay", *a),
     "disclosure-dossier": lambda *a: _dossier("disclosure", *a),
+    "corroboration-unprompted": lambda *a: _dossier("relay_unprompted", *a),
+    "disclosure-unprompted": lambda *a: _dossier("disclosure_unprompted", *a),
 }
 
 
@@ -594,7 +604,7 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in CUE_VARIANTS
     if module in RANGE_MODULES:
         return cover == "markets" and variant in RANGE_VARIANTS
-    if module in DOSSIER_MODULES:
+    if module in DOSSIER_MODULES + UNPROMPTED_MODULES:
         return cover == "markets" and variant in DOSSIER_VARIANTS
     if module == "checks":
         return variant == "paired"
@@ -631,6 +641,7 @@ def stated_percentages(module, index):
         "corroboration-cues",
         "corroboration-range",
         "corroboration-dossier",
+        "corroboration-unprompted",
     ):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":

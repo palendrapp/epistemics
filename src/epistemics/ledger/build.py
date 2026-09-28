@@ -48,6 +48,21 @@ def session_variance(pairs, config):
     return {"sessions": result["sessions"], **result["total_sd"]}
 
 
+def mappings(select, base):
+    """Mean implied prior per description level, by presentation."""
+    presentations = {
+        "cues-a": (f"{base}-cues", ("cues-a",)),
+        "cues-b": (f"{base}-cues", ("cues-b",)),
+        "dossier": (f"{base}-dossier", None),
+        "unprompted": (f"{base}-unprompted", None),
+    }
+    return {
+        name: np.mean([s["implied"] for s in rows], axis=0).tolist()
+        for name, (module, variants) in presentations.items()
+        if (rows := select(module, variants))
+    }
+
+
 def passport(pairs, retests, contrasts):
     """Per configuration: the parameters measured so far, pooled over verified contexts."""
     result = {}
@@ -96,18 +111,9 @@ def passport(pairs, retests, contrasts):
             }
             if learning
             else None,
-            "relay_description_mapping": {
-                variant: np.mean([s["implied"] for s in rows], axis=0).tolist()
-                for variant in ("cues-a", "cues-b")
-                if (rows := select("corroboration-cues", (variant,)))
-            }
-            or None,
-            "disclosure_description_mapping": {
-                variant: np.mean([s["implied"] for s in rows], axis=0).tolist()
-                for variant in ("cues-a", "cues-b")
-                if (rows := select("disclosure-cues", (variant,)))
-            }
-            or None,
+            # Per presentation: formal sets A and B, the prompted dossier and the unprompted one.
+            "relay_description_mapping": mappings(select, "corroboration") or None,
+            "disclosure_description_mapping": mappings(select, "disclosure") or None,
             "description_retest_difference": mean_of(
                 [r["mean_absolute_difference"] for r in retests if r["configuration"] == config]
             ),

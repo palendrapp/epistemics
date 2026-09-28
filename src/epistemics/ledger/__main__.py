@@ -4,6 +4,8 @@ uv run python -m epistemics.ledger build [--output output/ledger.json]
 uv run python -m epistemics.ledger runs <root>
 uv run python -m epistemics.ledger retest <first root> <second root>
 uv run python -m epistemics.ledger contrast <root>
+uv run python -m epistemics.ledger transfer <roots...>
+uv run python -m epistemics.ledger noticing <roots...>
 """
 
 import argparse
@@ -76,6 +78,8 @@ def main():
     v.add_argument("--order-policy", default="random", help="'any' to pool every order policy")
     tr = sub.add_parser("transfer")
     tr.add_argument("roots", type=Path, nargs="+")
+    no = sub.add_parser("noticing")
+    no.add_argument("roots", type=Path, nargs="+")
     cs = sub.add_parser("cues-summary")
     cs.add_argument("roots", type=Path, nargs="+")
     val = sub.add_parser("variance-validate")
@@ -108,13 +112,18 @@ def main():
 
         records = [r for root in a.roots for r in dispositions.extract(root)]
         print(json.dumps(transfer.analyse(records), indent=2))
+    elif a.command == "noticing":
+        from epistemics.ledger import transfer
+
+        records = [r for root in a.roots for r in dispositions.extract(root)]
+        print(json.dumps(transfer.noticing(records), indent=2))
     elif a.command == "cues-summary":
         import numpy as np
 
         groups = {}
         for root in a.roots:
             for record, s in verified_pairs(root):
-                if s["module"].endswith("-cues") or s["module"].endswith("-dossier"):
+                if s["module"].endswith(("-cues", "-dossier", "-unprompted")):
                     groups.setdefault(
                         (record["configuration"], s["module"], s["variant"]), []
                     ).append(s)
@@ -126,11 +135,12 @@ def main():
         for (config, module, variant), rows in sorted(groups.items()):
             implied = np.array([r["implied"] for r in rows])
             mean = implied.mean(axis=0)
-            coherent = sum(r["stated_minus_implied_max"] <= 0.10 for r in rows)
+            gaps = [r["stated_minus_implied_max"] for r in rows]
+            coherent = "—" if None in gaps else f"{sum(g <= 0.10 for g in gaps)}/{len(rows)}"
             print(
                 f"| {config} | {module} | {variant} | {len(rows)} | {fmt(list(mean))} | "
                 f"{mean[-1] - mean[0]:.2f} | {np.median([r['report_sd'] for r in rows]):.2f} | "
-                f"{coherent}/{len(rows)} | {fmt(list(implied[:, 2]))} |"
+                f"{coherent} | {fmt(list(implied[:, 2]))} |"
             )
     elif a.command == "variance":
         from epistemics.ledger import variance

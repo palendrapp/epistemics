@@ -203,3 +203,48 @@ def test_model_views_reproduce_recorded_fits_and_bracket_the_data(tmp_path):
     relay = next(d for d in designs.table if d["family"] == "relay")
     assert len(relay["labels"]) == 24 and len(relay["reference"]) == 3
     assert set(relay["groups"]) == {"single", "conflict", "agree", "probe"}
+
+
+def test_noticing_compares_unprompted_with_prompted_dossiers(tmp_path):
+    from epistemics.ledger import transfer
+
+    prompted = {
+        "slots": [0.05, 0.45, 0.5, 0.55, 0.95],
+        "gamma": 1.0,
+        "bias": 0.0,
+        "report_sd": 0.05,
+    }
+    unprompted = {"slots": [0.0, 0.0, 0.0, 0.3, 0.8], "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+    root = make_root(
+        tmp_path,
+        [
+            (
+                f"astra-{module}",
+                "astra",
+                dict(
+                    module=module,
+                    cover="markets",
+                    order=ORDER,
+                    truth=truth,
+                    seed=seed,
+                    variant="dossier-a",
+                ),
+            )
+            for seed, (module, truth) in enumerate(
+                [("corroboration-dossier", prompted), ("corroboration-unprompted", unprompted)]
+            )
+        ],
+    )
+    records = dispositions.extract(root, source=SOURCE)
+    summaries = [dispositions.summary(r) for r in records]
+    assert summaries[1]["stated"] is None and summaries[1]["stated_minus_implied_max"] is None
+    row = transfer.noticing(records)["astra/relay"]
+    assert row["unprompted_sessions"] == 1 and row["prompted_sessions"] == 1
+    assert row["unprompted_range"] == pytest.approx(0.8, abs=0.1)
+    assert row["unprompted_irrelevant"] < 0.1 and row["prompted_irrelevant"] == pytest.approx(
+        0.5, abs=0.06
+    )
+    errors = row["prediction_mae"]
+    assert errors["neglect"] < errors["indifference"] and errors["neglect"] < errors["prompted"]
+    # Unprompted sessions do not enter the formal-to-dossier transfer.
+    assert transfer.analyse(records) == {}
