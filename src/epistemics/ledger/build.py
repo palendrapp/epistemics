@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from epistemics.ledger import VERSION, dispositions, roots
+from epistemics.ledger import VERSION, dispositions, roots, variance
 
 CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
 
@@ -27,6 +27,25 @@ def commit():
 def mean_of(values):
     values = [v for v in values if v is not None]
     return {"mean": float(np.mean(values)), "contexts": len(values)} if values else None
+
+
+def session_variance(pairs, config):
+    """Between-session SD of the ambiguous relay levels over random-order set-A sessions."""
+    y, s = [], []
+    for record, summary in pairs:
+        if (
+            record["configuration"] == config
+            and summary.get("module") == "corroboration-cues"
+            and summary.get("variant") == "cues-a"
+            and summary.get("order_policy") == "random"
+        ):
+            chosen = [record["slot_fits"][level]["implied"] for level in (1, 2, 3)]
+            y.append([c["mean"] for c in chosen])
+            s.append(variance.standard_errors([c["interval_90"] for c in chosen]))
+    if len(y) < 3:
+        return None
+    result = variance.estimate(y, s)
+    return {"sessions": result["sessions"], **result["total_sd"]}
 
 
 def passport(pairs, retests, contrasts):
@@ -93,6 +112,7 @@ def passport(pairs, retests, contrasts):
                 [r["mean_absolute_difference"] for r in retests if r["configuration"] == config]
             ),
             "relative_judgement_contrast": contrasts.get(config, {}).get("mean"),
+            "ambiguous_description_session_sd": session_variance(pairs, config),
             "contexts": len(mine),
         }
         if any(v is not None for k, v in entry.items() if k != "contexts"):

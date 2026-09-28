@@ -107,7 +107,11 @@ The preregistered [relative-judgement test](disposition-range-2026-09-28.md) the
 
 All experiments, predictions and outcomes are tracked in the [ledger](ledger.md) and its private dashboard.
 
-**Next: estimate the context-level variance of ambiguous descriptions hierarchically, add the weaker configurations, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+The preregistered [variance study](disposition-variance-2026-09-28.md) measured the between-session SD of priors from ambiguous descriptions:
+- **Astra:** 0.07, with its uninformative default fixed at 50%.
+- **Sol:** 0.11, with its default ranging from 22% to 52%.
+
+**Next: the weaker configurations on the description modules with several sessions each, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

@@ -250,9 +250,9 @@
       "roots": [
         "output/disposition-variance-20260928"
       ],
-      "status": "running",
+      "status": "complete",
       "prediction": "P1: total between-session SD of the ambiguous levels at least 0.05 in both configurations. P2: the shared session shift is the larger component in both. No directional prediction between configurations.",
-      "outcome": null
+      "outcome": "P1 supported: between-session SD of ambiguous description priors 0.07 (Astra, moderate) and 0.11 (Sol, unstable by point estimate). P2 not supported: variation mostly level-specific. Astra's uninformative default fixed at 50%; Sol's ranged 22-52%, with one stated-implied divergence."
     },
     {
       "id": "source-learning-acceptance",
@@ -322,8 +322,7 @@
     }
   ],
   "next": [
-    "Report the between-session variance study against its preregistration.",
-    "Weaker configurations (Luna, Terra) on the description modules.",
+    "Weaker configurations (Luna, Terra) on the description modules, with three or more sessions each.",
     "Transfer: dossiers without background facts, starting with descriptions from the fixed extremes.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."

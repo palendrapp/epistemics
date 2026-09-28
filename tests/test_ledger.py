@@ -92,3 +92,23 @@ def test_retest_contrast_and_passport_tables():
     assert table["sol"]["description_retest_difference"]["mean"] == pytest.approx(0.04)
     assert table["astra"]["relative_judgement_contrast"] == pytest.approx(0.16)
     assert table["sol"]["disclosure_description_mapping"]["cues-a"][0] == pytest.approx(0.15)
+
+
+def test_variance_estimator_separates_shared_shifts_from_level_noise():
+    from epistemics.ledger import variance
+
+    rng = np.random.default_rng(3)
+    means = np.array([0.4, 0.5, 0.6])
+    shifts = rng.normal(0, 0.1, 40)
+    y = means + shifts[:, None] + rng.normal(0, 0.02, (40, 3))
+    s = np.full_like(y, 0.015)
+    result = variance.estimate(y, s)
+    assert result["session_shift_sd"]["estimate"] == pytest.approx(0.1, abs=0.03)
+    assert result["level_specific_sd"]["estimate"] < 0.04
+    low, high = result["total_sd"]["interval_95"]
+    assert low <= np.hypot(0.1, 0.02) <= high
+    flat = variance.estimate(np.tile(means, (6, 1)), np.full((6, 3), 0.015))
+    assert flat["total_sd"]["estimate"] == 0
+    with pytest.raises(ValueError, match="three sessions"):
+        variance.estimate(y[:2], s[:2])
+    assert variance.standard_errors([[0.5, 0.5], [0.3, 0.63]])[1] == pytest.approx(0.1, abs=1e-3)
