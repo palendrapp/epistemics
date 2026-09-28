@@ -10,8 +10,16 @@ import numpy as np
 
 from epistemics.dispositions import design
 
-MODULES = ("corroboration", "disclosure", "checks", "corroboration-cues", "disclosure-cues")
+MODULES = (
+    "corroboration",
+    "disclosure",
+    "checks",
+    "corroboration-cues",
+    "disclosure-cues",
+    "corroboration-range",
+)
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
+RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
 # sentence is removed. suggestive / reassuring: open, plus a qualitative sentence making a relay
@@ -20,6 +28,9 @@ COVERS = ("markets", "ecology")
 VARIANTS = ("paired", "open", "suggestive", "reassuring", "learning-high", "learning-low")
 # Cue modules (markets only): two paraphrase sets of five graded descriptions each.
 CUE_VARIANTS = ("cues-a", "cues-b")
+# Relative-judgement module (markets only): the comparison outlets are all strongly reassuring or
+# all strongly suggestive; the five target descriptions are the same in both.
+RANGE_VARIANTS = ("range-reassuring", "range-suggestive")
 LEARNING_RATES = {"learning-high": 0.8, "learning-low": 0.2}
 
 _PREFIXES = [
@@ -219,6 +230,26 @@ CUE_DESCRIPTORS = {
         "{name} is in talks to be sold, and the buyer's price depends on these indicators.",
     ],
 }
+RANGE_TARGETS = [
+    "{name} sometimes runs its own surveys of retailers.",
+    "{name} has a few analysts who occasionally speak to suppliers.",
+    "{name} is based in a city on the coast.",
+    "{name} is a small newsletter with two analysts.",
+    "{name} usually publishes shortly after larger outlets.",
+]
+RANGE_COMPARISONS = {
+    "range-reassuring": [
+        "{name} employs twenty reporters who interview the company's customers and suppliers "
+        "before every call.",
+        "{name} has a research desk that visits the company's factories before every call.",
+        "{name} runs a monthly survey of two thousand retailers and publishes its method.",
+    ],
+    "range-suggestive": [
+        "{name} is an aggregator site with no reporters that posts dozens of market calls a day.",
+        "{name} is a one-person blog that posts within minutes of larger outlets.",
+        "{name} is an automated feed with no staff that rewrites other outlets' stories.",
+    ],
+}
 TERMS = {
     "markets": {
         "state": "demand",
@@ -246,6 +277,8 @@ def items_for(module):
         return design.corroboration_cues()
     if module == "disclosure-cues":
         return design.disclosure_cues()
+    if module == "corroboration-range":
+        return design.corroboration_range()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -468,13 +501,30 @@ def cue_sentence(base, variant, slot, name):
     return CUE_DESCRIPTORS[(base, variant)][slot].format(name=name, own=own(name))
 
 
+def range_sentence(variant, slot, name):
+    if slot < len(RANGE_TARGETS):
+        template = RANGE_TARGETS[slot]
+    else:
+        template = RANGE_COMPARISONS[variant][slot - len(RANGE_TARGETS)]
+    return template.format(name=name, own=own(name))
+
+
+def _corroboration_range(items, i, cover, variant):
+    return _relay_described(items, i, cover, lambda slot, name: range_sentence(variant, slot, name))
+
+
 def _corroboration_cues(items, i, cover, variant):
+    return _relay_described(
+        items, i, cover, lambda slot, name: cue_sentence("corroboration", variant, slot, name)
+    )
+
+
+def _relay_described(items, i, cover, sentence):
     slot = int(items["slot"][i])
     b = OUTLETS_B[i]
     if items["kind"][i] == "rate":
         lines = [
-            f"{b} is a news outlet that covers companies' demand. "
-            + cue_sentence("corroboration", variant, slot, b),
+            f"{b} is a news outlet that covers companies' demand. " + sentence(slot, b),
             "Some outlets relay another outlet's call instead of checking for themselves; a "
             "relayed call simply repeats the original call.",
         ]
@@ -485,7 +535,7 @@ def _corroboration_cues(items, i, cover, variant):
         return lines, question
     lines, question = _corroboration(items, i, cover, "open")
     if slot >= 0:
-        lines.insert(4, cue_sentence("corroboration", variant, slot, b))
+        lines.insert(4, sentence(slot, b))
     return lines, question
 
 
@@ -518,12 +568,15 @@ RENDERERS = {
     "checks": _checks,
     "corroboration-cues": _corroboration_cues,
     "disclosure-cues": _disclosure_cues,
+    "corroboration-range": _corroboration_range,
 }
 
 
 def allowed(module, cover, variant):
     if module in CUE_MODULES:
         return cover == "markets" and variant in CUE_VARIANTS
+    if module in RANGE_MODULES:
+        return cover == "markets" and variant in RANGE_VARIANTS
     if module == "checks":
         return variant == "paired"
     return variant in VARIANTS
@@ -548,12 +601,12 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
-    if module in CUE_MODULES and items["kind"][index] == "rate":
+    if module in CUE_MODULES + RANGE_MODULES and items["kind"][index] == "rate":
         return [percent(items["omission"][index])] if module == "disclosure-cues" else []
     if module == "checks":
         prior, high, low = (items[f][index] for f in ("prior", "high", "low"))
         values = [prior, high, low, (prior - low) / (high - low)]
-    elif module in ("corroboration", "corroboration-cues"):
+    elif module in ("corroboration", "corroboration-cues", "corroboration-range"):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":
             values.append(items["accuracy_b"][index])

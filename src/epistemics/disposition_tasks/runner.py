@@ -29,6 +29,8 @@ from epistemics.disposition_tasks.render import (
     CUE_VARIANTS,
     LEARNING_RATES,
     MODULES,
+    RANGE_MODULES,
+    RANGE_VARIANTS,
     VARIANTS,
     allowed,
     items_for,
@@ -87,8 +89,18 @@ PRESETS["cues"] = (
         "contexts": tuple((v, "markets", 1) for v in CUE_VARIANTS),
     },
 )
-AUDITED_CASES = len(COVERS) * 24 * (2 * len(VARIANTS) + 1) + 24 * len(CUE_MODULES) * len(
-    CUE_VARIANTS
+PRESETS["range"] = (
+    {
+        "configurations": ("astra", "sol"),
+        "modules": RANGE_MODULES,
+        "contexts": tuple((v, "markets", r) for v in RANGE_VARIANTS for r in (1, 2)),
+        "order": "comparison-first",
+    },
+)
+AUDITED_CASES = (
+    len(COVERS) * 24 * (2 * len(VARIANTS) + 1)
+    + 24 * len(CUE_MODULES) * len(CUE_VARIANTS)
+    + 24 * len(RANGE_MODULES) * len(RANGE_VARIANTS)
 )
 
 
@@ -105,7 +117,13 @@ def command(root, entry, config):
 # Case-order policies. The last three apply to cue modules: the irrelevant description's
 # base-rate question first (the baseline before any other description), or all reassuring or
 # all suggestive cases first (anchoring). With shared_order, every run in a group gets one order.
-ORDER_POLICIES = ("random", "irrelevant-first", "reassuring-first", "suggestive-first")
+ORDER_POLICIES = (
+    "random",
+    "irrelevant-first",
+    "reassuring-first",
+    "suggestive-first",
+    "comparison-first",
+)
 
 
 def arrange(module, policy, rng):
@@ -115,7 +133,9 @@ def arrange(module, policy, rng):
         return order
     items = items_for(module)
     slots, kinds = items["slot"], items["kind"]
-    if policy == "irrelevant-first":
+    if policy == "comparison-first":
+        first = [i for i in order if slots[i] >= 5]
+    elif policy == "irrelevant-first":
         first = [i for i in order if slots[i] == 2 and kinds[i] == "rate"]
     elif policy == "reassuring-first":
         first = [i for i in order if slots[i] in (0, 1)]
@@ -137,7 +157,9 @@ def check_groups(groups):
         if not modules or set(modules) - set(MODULES):
             raise ValueError("Unknown module")
         if not contexts or any(
-            variant not in VARIANTS + CUE_VARIANTS or cover not in COVERS or repeat < 1
+            variant not in VARIANTS + CUE_VARIANTS + RANGE_VARIANTS
+            or cover not in COVERS
+            or repeat < 1
             for variant, cover, repeat in contexts
         ):
             raise ValueError("Contexts are (variant, cover, repeat) with known values")
@@ -146,7 +168,9 @@ def check_groups(groups):
                 for variant, cover, repeat in contexts:
                     if not allowed(module, cover, variant):
                         raise ValueError(f"{module} does not offer {variant} in {cover}")
-                    if policy != "random" and module not in CUE_MODULES:
+                    if policy == "comparison-first" and module not in RANGE_MODULES:
+                        raise ValueError("comparison-first needs a relative-judgement module")
+                    if policy not in ("random", "comparison-first") and module not in CUE_MODULES:
                         raise ValueError("Order policies other than random need a cue module")
                     key = (config, module, variant, cover, repeat)
                     if key in runs:
@@ -170,7 +194,7 @@ def prepare(
         raw = Path(path).read_bytes()
         result = json.loads(raw)
         if (
-            result.get("schema_version") != "epistemics.disposition-task-validation.v3"
+            result.get("schema_version") != "epistemics.disposition-task-validation.v4"
             or not result["passed"]
             or result["implementation_sha256"] != fingerprint()
             or result["audit"]["cases"] != AUDITED_CASES
@@ -422,6 +446,9 @@ def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
     if analysis["module"] in CUE_MODULES:
         return {"parameter": "cue_mapping", **analysis["cues"]}
+    if analysis["module"] in RANGE_MODULES:
+        summary = analysis["range"]
+        return {"parameter": "range_targets", "implied": summary["targets_implied"], **summary}
     if analysis["module"] == "checks":
         selected = analysis["certainty_function"]["preferred"]
         fits = analysis["fits"]["linear" if selected == "undetermined" else selected]
@@ -442,7 +469,7 @@ def headline(analysis):
 def difference(a, b):
     if a["parameter"] != b["parameter"]:
         return None
-    if a["parameter"] == "cue_mapping":
+    if a["parameter"] in ("cue_mapping", "range_targets"):
         return float(np.mean(np.abs(np.subtract(a["implied"], b["implied"]))))
     return abs(a["mean"] - b["mean"])
 
@@ -465,6 +492,27 @@ def agreement(estimates):
             a, b = firsts
             entry["cross_cover_difference"] = difference(a, b)
         result[f"{config}/{module}"] = entry
+    return result
+
+
+def range_contrast(estimates):
+    """Per configuration: mean target priors among reassuring minus among suggestive outlets."""
+    result = {}
+    for (config, module), rows in estimates.items():
+        if module not in RANGE_MODULES:
+            continue
+        means = {}
+        for variant in RANGE_VARIANTS:
+            chosen = [r["estimate"]["implied"] for r in rows if r["variant"] == variant]
+            if chosen:
+                means[variant] = np.mean(chosen, axis=0)
+        if len(means) == 2:
+            contrast = means["range-reassuring"] - means["range-suggestive"]
+            result[f"{config}/{module}"] = {
+                "per_target": [float(v) for v in contrast],
+                "mean": float(np.mean(contrast)),
+                "contexts": {v: sum(r["variant"] == v for r in rows) for v in RANGE_VARIANTS},
+            }
     return result
 
 
@@ -516,6 +564,7 @@ def summarize(root):
         "phase": plan["phase"],
         "runs": runs,
         "agreement": agreement(estimates),
+        "range_contrast": range_contrast(estimates),
         "known_usage": {
             k: sum(r["usage"][k] for r in runs.values())
             for k in ("input_tokens", "cached_input_tokens", "output_tokens")

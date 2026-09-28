@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 720
+    assert audit()["cases"] == 768
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 32
+    assert result["passed"] and len(result["contexts"]) == 34
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -219,6 +219,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
     with pytest.raises(ValueError, match="does not offer"):
         runner.check_groups(cue_in_ecology)
     assert len(runner.check_groups(runner.PRESETS["cues"])) == 8
+    assert len(runner.check_groups(runner.PRESETS["range"])) == 8
     groups = [
         {
             "configurations": ["astra"],
@@ -438,3 +439,70 @@ def test_order_policies_control_the_first_cases():
         )
     with pytest.raises(ValueError, match="Unknown order"):
         runner.check_groups([{**groups[0], "order": "alphabetical"}])
+
+
+def test_relative_judgement_module_shows_comparisons_first_and_contrasts_contexts(tmp_path):
+    import random
+
+    from epistemics.disposition_tasks import runner
+
+    for index in (0, 3, 9):
+        assert render("corroboration-range", "markets", index, "range-reassuring") == render(
+            "corroboration-range", "markets", index, "range-suggestive"
+        )
+    assert (
+        "twenty reporters"
+        in render("corroboration-range", "markets", 15, "range-reassuring")["case"]
+    )
+    assert "aggregator" in render("corroboration-range", "markets", 15, "range-suggestive")["case"]
+    items = items_for("corroboration-range")
+    order = runner.arrange("corroboration-range", "comparison-first", random.Random(4))
+    assert all(items["slot"][i] >= 5 for i in order[:6])
+    with pytest.raises(ValueError, match="relative-judgement"):
+        runner.check_groups(
+            [
+                {
+                    "configurations": ["astra"],
+                    "modules": ["corroboration-cues"],
+                    "contexts": [["cues-a", "markets", 1]],
+                    "order": "comparison-first",
+                }
+            ]
+        )
+    truth = {
+        "slots": [0.45, 0.5, 0.55, 0.7, 0.75, 0.05, 0.05, 0.1],
+        "gamma": 1.0,
+        "bias": 0.0,
+        "report_sd": 0.05,
+    }
+    report = simulate(
+        tmp_path / "run",
+        module="corroboration-range",
+        cover="markets",
+        order=order,
+        truth=truth,
+        seed=2,
+        variant="range-reassuring",
+    )
+    summary = report.analysis["range"]
+    assert np.allclose(summary["targets_implied"], truth["slots"][:5], atol=0.05)
+    assert np.allclose(summary["comparisons_implied"], truth["slots"][5:], atol=0.05)
+
+    def row(variant, targets):
+        return {
+            "variant": variant,
+            "cover": "markets",
+            "repeat": 1,
+            "estimate": {"parameter": "range_targets", "implied": targets},
+        }
+
+    contrast = runner.range_contrast(
+        {
+            ("sol", "corroboration-range"): [
+                row("range-reassuring", [0.6, 0.6, 0.5, 0.7, 0.7]),
+                row("range-suggestive", [0.4, 0.4, 0.5, 0.5, 0.5]),
+            ]
+        }
+    )["sol/corroboration-range"]
+    assert contrast["per_target"] == pytest.approx([0.2, 0.2, 0.0, 0.2, 0.2])
+    assert contrast["mean"] == pytest.approx(0.16)

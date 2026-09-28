@@ -16,7 +16,26 @@ MODELS = {
     "disclosure": ("disclosure", "linear_skepticism"),
     "checks": ("linear", "entropy"),
 }
-CUE_MODELS = {"corroboration-cues": "dependence", "disclosure-cues": "disclosure"}
+CUE_MODELS = {
+    "corroboration-cues": "dependence",
+    "disclosure-cues": "disclosure",
+    "corroboration-range": "dependence",
+}
+RANGE_TARGETS = 5
+
+
+def range_summary(result):
+    """Targets (the same descriptions in every variant) and the comparison outlets."""
+    implied = [s["implied"]["mean"] for s in result["slots"]]
+    stated = [s["stated"][0] for s in result["slots"]]
+    return {
+        "targets_implied": implied[:RANGE_TARGETS],
+        "targets_stated": stated[:RANGE_TARGETS],
+        "comparisons_implied": implied[RANGE_TARGETS:],
+        "comparisons_stated": stated[RANGE_TARGETS:],
+        "stated_minus_implied_mae": float(np.mean(np.abs(np.subtract(stated, implied)))),
+        "targets_mean": float(np.mean(implied[:RANGE_TARGETS])),
+    }
 
 
 def ranks(values):
@@ -103,11 +122,15 @@ def analyze(manifest, observations):
     ]
     if manifest.module in CUE_MODELS:
         result = fit.fit_cues(CUE_MODELS[manifest.module], items, responses)
+        if manifest.module.endswith("-range"):
+            summary = {"range": range_summary(result)}
+        else:
+            summary = {"cues": cue_summary(result)}
         return {
             "module": manifest.module,
             "variant": manifest.variant,
             "fit": result,
-            "cues": cue_summary(result),
+            **summary,
             "rows": rows,
         }
     model, rival = MODELS[manifest.module]

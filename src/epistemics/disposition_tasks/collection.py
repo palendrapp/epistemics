@@ -32,7 +32,14 @@ from epistemics.participants import Digest, Participant, ParticipantDescriptor
 from epistemics.service import now
 from epistemics.source_learning.storage import digest, encoded, save
 
-Module = Literal["corroboration", "disclosure", "checks", "corroboration-cues", "disclosure-cues"]
+Module = Literal[
+    "corroboration",
+    "disclosure",
+    "checks",
+    "corroboration-cues",
+    "disclosure-cues",
+    "corroboration-range",
+]
 Cover = Literal["markets", "ecology"]
 Variant = Literal[
     "paired",
@@ -43,6 +50,8 @@ Variant = Literal[
     "learning-low",
     "cues-a",
     "cues-b",
+    "range-reassuring",
+    "range-suggestive",
 ]
 CASES = 24
 
@@ -65,9 +74,9 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.3.2"] = VERSION
-    model_version: Literal["disposition-model/0.3.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.3.0"] = DESIGN_VERSION
+    battery_version: Literal["disposition-tasks/0.4.0"] = VERSION
+    model_version: Literal["disposition-model/0.4.0"] = MODEL_VERSION
+    design_version: Literal["disposition-design/0.4.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest

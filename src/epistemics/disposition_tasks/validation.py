@@ -21,6 +21,8 @@ from epistemics.disposition_tasks.render import (
     CUE_VARIANTS,
     LEARNING_RATES,
     MODULES,
+    RANGE_MODULES,
+    RANGE_VARIANTS,
     VARIANTS,
     items_for,
     render,
@@ -43,6 +45,21 @@ CHECK_TRUTHS = [
 # study scores the start only from strength 8) while learning remains detectable.
 LEARNER = {"start": 0.5, "strength": 8.0, "gamma": 1.0, "bias": 0.0, "report_sd": 0.1}
 CUE_RESPONDENT = {"slots": [0.1, 0.3, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.15}
+# A relative judge: targets sit higher among well-staffed outlets than among aggregators.
+RANGE_RESPONDENTS = {
+    "range-reassuring": {
+        "slots": [0.45, 0.5, 0.55, 0.7, 0.75, 0.05, 0.05, 0.1],
+        "gamma": 1.0,
+        "bias": 0.0,
+        "report_sd": 0.15,
+    },
+    "range-suggestive": {
+        "slots": [0.2, 0.25, 0.4, 0.45, 0.5, 0.9, 0.95, 0.9],
+        "gamma": 1.0,
+        "bias": 0.0,
+        "report_sd": 0.15,
+    },
+}
 PRIVATE = (
     "disposition",
     "probe",
@@ -66,11 +83,13 @@ TWO_WAY = (" may have ", "could be either kind")
 def variants_of(module):
     if module in CUE_MODULES:
         return CUE_VARIANTS
+    if module in RANGE_MODULES:
+        return RANGE_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
 
 
 def covers_of(module):
-    return ("markets",) if module in CUE_MODULES else COVERS
+    return ("markets",) if module in CUE_MODULES + RANGE_MODULES else COVERS
 
 
 def audit():
@@ -102,6 +121,9 @@ def contexts_to_validate():
     for module in CUE_MODULES:
         for variant in CUE_VARIANTS:
             yield module, "markets", variant, CUE_RESPONDENT
+    for module in RANGE_MODULES:
+        for variant in RANGE_VARIANTS:
+            yield module, "markets", variant, RANGE_RESPONDENTS[variant]
     for module in ("corroboration", "disclosure", "checks"):
         truths = CHECK_TRUTHS if module == "checks" else REPORT_TRUTHS
         for cover in COVERS:
@@ -121,7 +143,11 @@ def estimate(module, analysis, truth):
         error = abs(row["mean"] - truth["certainty_value"])
         return row["mean"], error <= TOLERANCE["certainty_value"]
     if "slots" in truth:
-        implied = analysis["cues"]["implied"]
+        if "range" in analysis:
+            summary = analysis["range"]
+            implied = summary["targets_implied"] + summary["comparisons_implied"]
+        else:
+            implied = analysis["cues"]["implied"]
         error = max(abs(a - b) for a, b in zip(implied, truth["slots"], strict=True))
         return error, error <= TOLERANCE["cue"]
     if "strength" in truth:
@@ -131,7 +157,12 @@ def estimate(module, analysis, truth):
         # revealed rate differs from the starting value by at least 0.25.
         visible = abs(analysis["revealed_rate"] - truth["start"]) >= 0.25
         detected = learning["learning_probability"] > 0.5 or not visible
-        return row["mean"], detected and abs(row["mean"] - truth["start"]) <= TOLERANCE["start"]
+        # How well one context pins the start depends on its order (how many informative cases
+        # precede the reveals), so the check is coverage by the 90% interval, widened by half a
+        # grid step, rather than a fixed tolerance on the posterior mean.
+        low, high = row["interval_90"]
+        covered = low - 0.025 <= truth["start"] <= high + 0.025
+        return row["mean"], detected and covered
     row = analysis["fit"]["parameters"]["disposition"]
     return row["mean"], abs(row["mean"] - truth["disposition"]) <= TOLERANCE["disposition"]
 
@@ -174,7 +205,7 @@ def validate(seed):
         c["reveals_shown"] == (CASES - 1 if c["variant"] in LEARNING_RATES else 0) for c in contexts
     )
     return {
-        "schema_version": "epistemics.disposition-task-validation.v3",
+        "schema_version": "epistemics.disposition-task-validation.v4",
         "seed": seed,
         "implementation_sha256": fingerprint(),
         "audit": audited,

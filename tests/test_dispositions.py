@@ -148,6 +148,7 @@ def test_small_validation_run_is_immutable(tmp_path):
         "disclosure_learning_detection",
         "disclosure_learning_start_recovery",
         "disclosure_cue_recovery",
+        "range_cue_recovery",
         "certainty_value_recovery_linear",
         "certainty_value_recovery_entropy",
     }

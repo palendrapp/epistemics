@@ -69,6 +69,7 @@ LEARNING = {
 CUE_MODULES = {
     "corroboration": ("dependence", design.corroboration_cues, observers.corroboration),
     "disclosure": ("disclosure", design.disclosure_cues, observers.disclosure),
+    "range": ("dependence", design.corroboration_range, observers.corroboration),
 }
 REPORT_GRIDS = {
     "disposition": fit.DISPOSITION,
@@ -331,7 +332,7 @@ def cue_recovery(module, respondents, rng):
     rows = []
     for _ in range(respondents):
         truth = draw(rng, {k: v for k, v in REPORT_PRIOR.items() if k != "disposition"})
-        truth["slots"] = rng.uniform(0, 1, len(design.CUE_LEVELS)).tolist()
+        truth["slots"] = rng.uniform(0, 1, len(set(items["slot"][items["slot"] >= 0]))).tolist()
         latent = observers.cue_observer(observer, items, truth["slots"], truth["gamma"])
         reports = sample_reports(latent + truth["bias"] * forecast, truth["report_sd"], rng)
         rows.append({"truth": truth, "result": fit.fit_cues(model, items, reports)})
@@ -402,6 +403,10 @@ def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25)
                 GATES["agent_noise_band"]["report_sd"],
             ),
         }
+    results["range"] = cue_metrics(
+        cue_recovery("range", respondents, np.random.default_rng(seed + 400)),
+        GATES["agent_noise_band"]["report_sd"],
+    )
     rng = np.random.default_rng(seed + 100)
     items = design.checks()
     checks = {"parameter_recovery": {}}
@@ -465,6 +470,12 @@ def check_gates(results):
         checks[f"{module}_model_recovery"] = all(
             v["accuracy"] >= GATES["minimum_model_recovery_accuracy"] for v in accuracy.values()
         )
+    cues = results["range"]["implied"]
+    checks["range_cue_recovery"] = (
+        cues["correlation"] >= GATES["minimum_cue_correlation"]
+        and cues["mae"] <= GATES["maximum_cue_mae"]
+        and cues["coverage_90"] >= GATES["minimum_interval_coverage"]
+    )
     for function, limits in CHECK_PRIOR["certainty_value"].items():
         agent = results["checks"]["parameter_recovery"][function]["agent_noise"]
         row = agent["parameters"]["certainty_value"]
@@ -505,6 +516,7 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
             "checks": listed(design.checks()),
             "corroboration_cues": listed(design.corroboration_cues()),
             "disclosure_cues": listed(design.disclosure_cues()),
+            "corroboration_range": listed(design.corroboration_range()),
         },
         "gates": GATES,
     }

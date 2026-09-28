@@ -247,3 +247,45 @@ def disclosure_cues():
         rows + _DISCLOSURE_ANCHORS,
         ("kind", "prior", "good", "omission", "shared_good", "shared_bad", "withheld", "slot"),
     )
+
+
+# Relative-judgement module (relay). Five fixed target descriptions (slots 0-4: two mildly
+# reassuring, the irrelevant one, two mildly suggestive) are judged after a comparison set of
+# three outlets (slots 5-7) that is either all strongly reassuring or all strongly suggestive.
+# Targets get a base-rate question, a probe and a forecast; comparisons a base-rate question and
+# a probe; three anchors carry no description.
+RANGE_TARGETS = 5
+RANGE_COMPARISONS = 3
+
+
+def _range_target(slot):
+    r = 1 if slot % 2 == 0 else -1
+    prior = 0.35 if r > 0 else 0.65
+    return [
+        ("rate", 0.5, 0.75, r, 0.85, r, "none", slot),
+        ("probe", 0.5, 0.75, r, 0.85, r, "none", slot),
+        ("pair", prior, 0.75, r, 0.85, r, "none", slot),
+    ]
+
+
+def _range_comparison(slot):
+    r = 1 if slot % 2 == 0 else -1
+    return [
+        ("rate", 0.5, 0.75, r, 0.85, r, "none", slot),
+        ("probe", 0.5, 0.75, r, 0.85, r, "none", slot),
+    ]
+
+
+def corroboration_range():
+    rows = [row for s in range(RANGE_TARGETS) for row in _range_target(s)]
+    rows += [
+        row
+        for s in range(RANGE_TARGETS, RANGE_TARGETS + RANGE_COMPARISONS)
+        for row in _range_comparison(s)
+    ]
+    rows += _RELAY_ANCHORS[:3]
+    table = columns(
+        rows, ("kind", "prior", "accuracy_a", "report_a", "accuracy_b", "report_b", "cue", "slot")
+    )
+    table["cue"] = np.array([CUES[c] for c in table["cue"]])
+    return table
