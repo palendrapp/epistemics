@@ -388,3 +388,23 @@ def test_cue_modules_render_descriptions_and_recover_the_mapping(tmp_path):
     assert np.allclose(cues["stated"], truth["slots"], atol=0.02)
     assert cues["designed_order_spearman"] == pytest.approx(1.0)
     assert not cues["irrelevant_moved"]
+
+
+def test_cue_summaries_handle_ties_and_feed_the_run_summary():
+    from epistemics.disposition_tasks.analysis import spearman
+    from epistemics.disposition_tasks.runner import agreement, headline
+
+    assert spearman(range(5), [0.5] * 5) is None
+    assert spearman(range(5), [0.05, 0.6, 0.5, 0.6, 0.9]) == pytest.approx(0.8208, abs=1e-3)
+    analysis = {
+        "module": "disclosure-cues",
+        "cues": {"implied": [0.2, 0.1, 0.5, 0.7, 0.7], "stated": [0.2, 0.1, 0.5, 0.7, 0.8]},
+    }
+    top = headline(analysis)
+    other = {**top, "implied": [0.3, 0.1, 0.5, 0.7, 0.7]}
+    rows = [
+        {"variant": "cues-a", "cover": "markets", "repeat": 1, "estimate": top},
+        {"variant": "cues-a", "cover": "markets", "repeat": 2, "estimate": other},
+    ]
+    result = agreement({("sol", "disclosure-cues"): rows})["sol/disclosure-cues"]
+    assert result["repeat_differences"] == [pytest.approx(0.02)]

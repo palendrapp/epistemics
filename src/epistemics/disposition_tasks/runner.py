@@ -19,6 +19,8 @@ import tempfile
 import time
 from pathlib import Path
 
+import numpy as np
+
 from epistemics.benchmark.runner import DISABLED_FEATURES, codex_version, read_usage
 from epistemics.disposition_tasks.collection import CASES, create, export, fingerprint, load_report
 from epistemics.disposition_tasks.render import (
@@ -380,6 +382,8 @@ async def collect(root, entry, config, timeout):
 
 def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
+    if analysis["module"] in CUE_MODULES:
+        return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] == "checks":
         selected = analysis["certainty_function"]["preferred"]
         fits = analysis["fits"]["linear" if selected == "undetermined" else selected]
@@ -397,6 +401,14 @@ def headline(analysis):
     return result
 
 
+def difference(a, b):
+    if a["parameter"] != b["parameter"]:
+        return None
+    if a["parameter"] == "cue_mapping":
+        return float(np.mean(np.abs(np.subtract(a["implied"], b["implied"]))))
+    return abs(a["mean"] - b["mean"])
+
+
 def agreement(estimates):
     """Estimates per context, with differences between repeats and between paired covers."""
     result = {}
@@ -409,16 +421,11 @@ def agreement(estimates):
             if r == 1 and (v, c, 2) in by_context
         ]
         if repeats:
-            entry["repeat_differences"] = [
-                abs(a["mean"] - b["mean"]) if a["parameter"] == b["parameter"] else None
-                for a, b in repeats
-            ]
+            entry["repeat_differences"] = [difference(a, b) for a, b in repeats]
         firsts = [by_context[("paired", c, 1)] for c in COVERS if ("paired", c, 1) in by_context]
         if len(firsts) == 2:
             a, b = firsts
-            entry["cross_cover_difference"] = (
-                abs(a["mean"] - b["mean"]) if a["parameter"] == b["parameter"] else None
-            )
+            entry["cross_cover_difference"] = difference(a, b)
         result[f"{config}/{module}"] = entry
     return result
 

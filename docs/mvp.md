@@ -89,7 +89,13 @@ The [task acceptance](disposition-acceptance-2026-09-27.md) found GPT-6 Astra an
 
 Weaker configurations share the priors and the zero value of certainty, and differ only in precision.
 
-**Next: measure the mapping from qualitative cues to priors with graded descriptors and base-rate probes, retest the descriptor effects, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+The [description-to-prior acceptance](disposition-cues-acceptance-2026-09-28.md) measured each configuration's mapping from five graded descriptions to priors:
+- **Coherence:** stated base rates equal implied priors.
+- **Irrelevant details:** ignored.
+- **Relaying:** Astra and Sol share nearly one mapping, from 5% to 95%.
+- **Disclosure:** Sol applies governance and incentive information consistently, while Astra ignored it in one of two description sets.
+
+**Next: retest the description mapping for within-configuration reliability, add the weaker configurations, then transfer to dossiers without background facts.** The dossiers become the transfer test, with background facts removed. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

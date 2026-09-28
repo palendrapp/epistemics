@@ -20,7 +20,18 @@ CUE_MODELS = {"corroboration-cues": "dependence", "disclosure-cues": "disclosure
 
 
 def ranks(values):
-    return np.argsort(np.argsort(values, kind="stable"), kind="stable").astype(float)
+    """Average ranks, so tied values (to 0.001) share a rank."""
+    values = np.round(np.asarray(values, dtype=float), 3)
+    order = np.argsort(values, kind="stable")
+    result = np.empty(len(values))
+    i = 0
+    while i < len(values):
+        j = i
+        while j + 1 < len(values) and values[order[j + 1]] == values[order[i]]:
+            j += 1
+        result[order[i : j + 1]] = (i + j) / 2
+        i = j + 1
+    return result
 
 
 def spearman(a, b):
