@@ -137,7 +137,12 @@ _CHECKS = [
 def columns(rows, names):
     table = {name: np.array([row[i] for row in rows]) for i, name in enumerate(names)}
     for name, values in table.items():
-        if values.dtype.kind in "iu" and name not in {"shared_good", "shared_bad", "withheld"}:
+        if values.dtype.kind in "iu" and name not in {
+            "shared_good",
+            "shared_bad",
+            "withheld",
+            "slot",
+        }:
             table[name] = values.astype(float)
     return table
 
@@ -176,3 +181,69 @@ def disclosure(probes=False):
 
 def checks():
     return columns(_CHECKS, ("prior", "high", "low", "gain", "loss"))
+
+
+# Cue modules. Five description levels (slots), from strongly reassuring to strongly suggestive,
+# with an irrelevant description in the middle. Each slot has a stated base-rate question
+# ("rate"), a structure probe and two forecasts; four anchors carry no description and fix
+# evidence sensitivity, bias and noise.
+CUE_LEVELS = (
+    "strong-reassuring",
+    "mild-reassuring",
+    "irrelevant",
+    "mild-suggestive",
+    "strong-suggestive",
+)
+
+
+def _relay_slot(slot):
+    r = 1 if slot % 2 == 0 else -1
+    prior = 0.35 if r > 0 else 0.65
+    return [
+        ("rate", 0.5, 0.75, r, 0.85, r, "none", slot),
+        ("probe", 0.5, 0.75, r, 0.85, r, "none", slot),
+        ("pair", prior, 0.75, r, 0.85, r, "none", slot),
+        ("pair", 1 - prior, 0.75, -r, 0.85, -r, "weak_different", slot),
+    ]
+
+
+_RELAY_ANCHORS = [
+    ("single", 0.5, 0.65, 1, 0.5, 0, "none", -1),
+    ("single", 0.3, 0.7, 1, 0.5, 0, "none", -1),
+    ("pair", 0.5, 0.8, 1, 0.65, -1, "strong_different", -1),
+    ("pair", 0.6, 0.7, -1, 0.7, 1, "none", -1),
+]
+
+
+def _disclosure_slot(slot):
+    return [
+        ("rate", 0.5, 0.75, 0.5, 0, 0, 4, slot),
+        ("probe", 0.5, 0.75, 0.5, 2, 0, 2, slot),
+        ("forecast", 0.3, 0.75, 0.5, 3, 0, 1, slot),
+        ("forecast", 0.5, 0.75, 0.5, 1, 0, 3, slot),
+    ]
+
+
+_DISCLOSURE_ANCHORS = [
+    ("forecast", 0.5, 0.75, 0.25, 3, 1, 0, -1),
+    ("forecast", 0.3, 0.65, 0.25, 4, 0, 0, -1),
+    ("forecast", 0.5, 0.75, 0.5, 2, 1, 1, -1),
+    ("forecast", 0.5, 0.75, 0.25, 1, 1, 2, -1),
+]
+
+
+def corroboration_cues():
+    rows = [row for s in range(len(CUE_LEVELS)) for row in _relay_slot(s)] + _RELAY_ANCHORS
+    table = columns(
+        rows, ("kind", "prior", "accuracy_a", "report_a", "accuracy_b", "report_b", "cue", "slot")
+    )
+    table["cue"] = np.array([CUES[c] for c in table["cue"]])
+    return table
+
+
+def disclosure_cues():
+    rows = [row for s in range(len(CUE_LEVELS)) for row in _disclosure_slot(s)]
+    return columns(
+        rows + _DISCLOSURE_ANCHORS,
+        ("kind", "prior", "good", "omission", "shared_good", "shared_bad", "withheld", "slot"),
+    )

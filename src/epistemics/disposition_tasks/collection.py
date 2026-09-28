@@ -18,7 +18,13 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from epistemics.disposition_tasks import VERSION
 from epistemics.disposition_tasks.presentation import Answer, describe, present
-from epistemics.disposition_tasks.render import LEARNING_RATES, items_for, render, reveal
+from epistemics.disposition_tasks.render import (
+    LEARNING_RATES,
+    allowed,
+    items_for,
+    render,
+    reveal,
+)
 from epistemics.dispositions import DESIGN_VERSION, MODEL_VERSION
 from epistemics.dispositions.observers import structure_posterior
 from epistemics.models import Model
@@ -26,9 +32,18 @@ from epistemics.participants import Digest, Participant, ParticipantDescriptor
 from epistemics.service import now
 from epistemics.source_learning.storage import digest, encoded, save
 
-Module = Literal["corroboration", "disclosure", "checks"]
+Module = Literal["corroboration", "disclosure", "checks", "corroboration-cues", "disclosure-cues"]
 Cover = Literal["markets", "ecology"]
-Variant = Literal["paired", "open", "suggestive", "reassuring", "learning-high", "learning-low"]
+Variant = Literal[
+    "paired",
+    "open",
+    "suggestive",
+    "reassuring",
+    "learning-high",
+    "learning-low",
+    "cues-a",
+    "cues-b",
+]
 CASES = 24
 
 
@@ -47,12 +62,12 @@ def fingerprint():
 
 
 class Manifest(Model):
-    schema_version: Literal["epistemics.disposition-collection.v2"] = (
-        "epistemics.disposition-collection.v2"
+    schema_version: Literal["epistemics.disposition-collection.v3"] = (
+        "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.2.0"] = VERSION
-    model_version: Literal["disposition-model/0.2.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.2.0"] = DESIGN_VERSION
+    battery_version: Literal["disposition-tasks/0.3.0"] = VERSION
+    model_version: Literal["disposition-model/0.3.0"] = MODEL_VERSION
+    design_version: Literal["disposition-design/0.3.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest
@@ -79,8 +94,8 @@ class Manifest(Model):
             raise ValueError("Case order must be a permutation of the design items")
         if len(self.case_sha256) != CASES:
             raise ValueError("One case commitment per checkpoint")
-        if self.module == "checks" and self.variant != "paired":
-            raise ValueError("The checks module has only the paired variant")
+        if not allowed(self.module, self.cover, self.variant):
+            raise ValueError("This module does not offer that variant and cover")
         learning = self.variant in LEARNING_RATES
         if learning != (self.revealed is not None):
             raise ValueError("Revealed structures exist exactly for learning variants")
@@ -287,7 +302,7 @@ class Observation(Model):
 
 
 class Report(Model):
-    schema_version: Literal["epistemics.disposition-report.v2"] = "epistemics.disposition-report.v2"
+    schema_version: Literal["epistemics.disposition-report.v3"] = "epistemics.disposition-report.v3"
     manifest: Manifest
     manifest_sha256: Digest
     completed_at: AwareDatetime

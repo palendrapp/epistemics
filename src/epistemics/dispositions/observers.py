@@ -163,3 +163,17 @@ def revealed_counts(order, revealed):
 def learned(start, strength, successes, trials):
     """Posterior mean base rate from a Beta prior with mean `start` and strength `strength`."""
     return (np.asarray(start) * strength + successes) / (strength + trials)
+
+
+def cue_observer(model, items, dispositions, gamma):
+    """Latent log-odds for a cue module: each description slot has its own disposition.
+
+    Stated base-rate questions ("rate") report the slot's disposition itself; anchors (slot -1)
+    do not depend on it.
+    """
+    slots = items["slot"]
+    table = np.asarray(dispositions, dtype=float)
+    delta = np.where(slots >= 0, table[np.maximum(slots, 0)], 0.5)
+    latent = model(items, delta, gamma)
+    stated = logit(np.clip(delta, EDGE, 1 - EDGE))
+    return np.where(items["kind"] == "rate", stated, latent)

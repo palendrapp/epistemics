@@ -17,6 +17,8 @@ import numpy as np
 from epistemics.disposition_tasks.collection import CASES, fingerprint, load_report, public_trial
 from epistemics.disposition_tasks.render import (
     COVERS,
+    CUE_MODULES,
+    CUE_VARIANTS,
     LEARNING_RATES,
     MODULES,
     VARIANTS,
@@ -26,7 +28,7 @@ from epistemics.disposition_tasks.render import (
 )
 from epistemics.disposition_tasks.simulation import simulate
 
-TOLERANCE = {"disposition": 0.15, "certainty_value": 15.0, "start": 0.15}
+TOLERANCE = {"disposition": 0.15, "certainty_value": 15.0, "start": 0.15, "cue": 0.15}
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -40,6 +42,7 @@ CHECK_TRUTHS = [
 # A learner starting at indifference. Strength 8 keeps the start identifiable (the recovery
 # study scores the start only from strength 8) while learning remains detectable.
 LEARNER = {"start": 0.5, "strength": 8.0, "gamma": 1.0, "bias": 0.0, "report_sd": 0.1}
+CUE_RESPONDENT = {"slots": [0.1, 0.3, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.15}
 PRIVATE = (
     "disposition",
     "probe",
@@ -61,7 +64,13 @@ TWO_WAY = (" may have ", "could be either kind")
 
 
 def variants_of(module):
+    if module in CUE_MODULES:
+        return CUE_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
+
+
+def covers_of(module):
+    return ("markets",) if module in CUE_MODULES else COVERS
 
 
 def audit():
@@ -69,7 +78,7 @@ def audit():
     count = 0
     for module in MODULES:
         kinds = items_for(module).get("kind")
-        for cover in COVERS:
+        for cover in covers_of(module):
             for variant in variants_of(module):
                 cases = [render(module, cover, i, variant) for i in range(CASES)]
                 if len({c["case"] for c in cases}) != CASES:
@@ -90,7 +99,10 @@ def audit():
 
 
 def contexts_to_validate():
-    for module in MODULES:
+    for module in CUE_MODULES:
+        for variant in CUE_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for module in ("corroboration", "disclosure", "checks"):
         truths = CHECK_TRUTHS if module == "checks" else REPORT_TRUTHS
         for cover in COVERS:
             for truth in truths:
@@ -108,10 +120,17 @@ def estimate(module, analysis, truth):
         row = analysis["fits"][truth["function"]]["parameters"]["certainty_value"]
         error = abs(row["mean"] - truth["certainty_value"])
         return row["mean"], error <= TOLERANCE["certainty_value"]
+    if "slots" in truth:
+        implied = analysis["cues"]["implied"]
+        error = max(abs(a - b) for a, b in zip(implied, truth["slots"], strict=True))
+        return error, error <= TOLERANCE["cue"]
     if "strength" in truth:
         learning = analysis["learning"]
         row = learning["parameters"]["start"]
-        detected = learning["learning_probability"] > 0.5
+        # As in the recovery study, learning must be detected only where it is visible: when the
+        # revealed rate differs from the starting value by at least 0.25.
+        visible = abs(analysis["revealed_rate"] - truth["start"]) >= 0.25
+        detected = learning["learning_probability"] > 0.5 or not visible
         return row["mean"], detected and abs(row["mean"] - truth["start"]) <= TOLERANCE["start"]
     row = analysis["fit"]["parameters"]["disposition"]
     return row["mean"], abs(row["mean"] - truth["disposition"]) <= TOLERANCE["disposition"]
@@ -155,7 +174,7 @@ def validate(seed):
         c["reveals_shown"] == (CASES - 1 if c["variant"] in LEARNING_RATES else 0) for c in contexts
     )
     return {
-        "schema_version": "epistemics.disposition-task-validation.v2",
+        "schema_version": "epistemics.disposition-task-validation.v3",
         "seed": seed,
         "implementation_sha256": fingerprint(),
         "audit": audited,

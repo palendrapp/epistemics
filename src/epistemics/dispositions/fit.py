@@ -120,3 +120,66 @@ def fit_learning(model, items, reports, successes, trials):
     odds = marginal[learning].mean() / marginal[~learning].mean()
     result["learning_probability"] = float(odds / (1 + odds))
     return result
+
+
+def _report_grid(model, items, reports, delta):
+    """Log-likelihood over (delta, gamma, bias, report_sd) for the given items."""
+    latent = REPORT_MODELS[model](items, delta, GAMMA[None, :, None])
+    latent = np.broadcast_to(
+        latent, (np.shape(delta)[0] if np.ndim(delta) else 1, *latent.shape[-2:])
+    )
+    forecast = (items["kind"] != "probe").astype(float)
+    means = latent[:, :, None, :] + BIAS[None, None, :, None] * forecast
+    return np.stack([report_log_likelihood(means, reports, sd) for sd in REPORT_SD], axis=-1)
+
+
+def _marginal(weights, grid):
+    cdf = np.cumsum(weights)
+    lo, hi = np.searchsorted(cdf, [0.05, 0.95])
+    return {
+        "mean": float(weights @ grid),
+        "interval_90": [float(grid[min(lo, len(grid) - 1)]), float(grid[min(hi, len(grid) - 1)])],
+    }
+
+
+def fit_cues(model, items, reports):
+    """A disposition for each description slot, with shared sensitivity, bias and noise.
+
+    Stated base-rate answers are not used for the fit; they are returned beside the implied
+    dispositions so the two can be compared.
+    """
+    slots, kinds = items["slot"], items["kind"]
+    evidence = kinds != "rate"
+
+    def part(mask):
+        return {k: v[mask] for k, v in items.items()}, reports[mask]
+
+    anchor_items, anchor_reports = part(evidence & (slots < 0))
+    shared = _report_grid(model, anchor_items, anchor_reports, 0.5)[0]
+    levels = sorted(set(slots[slots >= 0].tolist()))
+    per_slot = np.stack(
+        [
+            _report_grid(model, *part(evidence & (slots == s)), DISPOSITION[:, None, None])
+            for s in levels
+        ]
+    )
+    slot_evidence = logsumexp(per_slot, axis=1)
+    shared = shared + (slot_evidence - np.log(len(DISPOSITION))).sum(axis=0)
+    total = logsumexp(shared)
+    posterior = np.exp(shared - total)
+    conditional = np.exp(per_slot - slot_evidence[:, None])
+    marginals = (conditional * posterior[None, None]).sum(axis=(2, 3, 4))
+    stated = {s: [float(r) for r in reports[(kinds == "rate") & (slots == s)]] for s in levels}
+    return {
+        "log_evidence": float(total - np.log(posterior.size)),
+        "slots": [
+            {"slot": s, "implied": _marginal(marginals[i], DISPOSITION), "stated": stated[s]}
+            for i, s in enumerate(levels)
+        ],
+        "parameters": {
+            name: _marginal(posterior.sum(axis=tuple(j for j in range(3) if j != axis)), grid)
+            for axis, (name, grid) in enumerate(
+                (("gamma", GAMMA), ("bias", BIAS), ("report_sd", REPORT_SD))
+            )
+        },
+    }

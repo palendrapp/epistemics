@@ -10,13 +10,16 @@ import numpy as np
 
 from epistemics.dispositions import design
 
-MODULES = ("corroboration", "disclosure", "checks")
+MODULES = ("corroboration", "disclosure", "checks", "corroboration-cues", "disclosure-cues")
+CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
 # sentence is removed. suggestive / reassuring: open, plus a qualitative sentence making a relay
 # or a selective sender more / less plausible. learning-*: open, and each checkpoint reveals how
 # the previous case was produced, from a world with the given relay or selective rate.
 VARIANTS = ("paired", "open", "suggestive", "reassuring", "learning-high", "learning-low")
+# Cue modules (markets only): two paraphrase sets of five graded descriptions each.
+CUE_VARIANTS = ("cues-a", "cues-b")
 LEARNING_RATES = {"learning-high": 0.8, "learning-low": 0.2}
 
 _PREFIXES = [
@@ -182,6 +185,40 @@ DESCRIPTORS = {
         ],
     },
 }
+# Slots follow design.CUE_LEVELS: strongly reassuring, mildly reassuring, irrelevant, mildly
+# suggestive, strongly suggestive. None states or implies a numeric rate.
+CUE_DESCRIPTORS = {
+    ("corroboration", "cues-a"): [
+        "{name} employs twenty reporters who interview the company's customers and suppliers "
+        "before every call.",
+        "{name} sometimes runs its own surveys of retailers.",
+        "{name} is based in a city on the coast.",
+        "{name} is a small newsletter with two analysts.",
+        "{name} is an aggregator site with no reporters that posts dozens of market calls a day.",
+    ],
+    ("corroboration", "cues-b"): [
+        "{name} has a research desk that visits the company's factories before every call.",
+        "{name} has a few analysts who occasionally speak to suppliers.",
+        "{name} prints its stories in a blue-and-white layout.",
+        "{name} usually publishes shortly after larger outlets.",
+        "{name} is a one-person blog that posts within minutes of larger outlets.",
+    ],
+    ("disclosure", "cues-a"): [
+        "{own} updates are checked by an independent auditor before release.",
+        "{name} has a reputation among investors for plain, complete reporting.",
+        "{name} moved its headquarters to a new building last year.",
+        "{name} is hoping to raise new financing later this year.",
+        "{own} chief executive will lose a large bonus unless these indicators look good this "
+        "quarter.",
+    ],
+    ("disclosure", "cues-b"): [
+        "{name} is owned by a customer cooperative that publishes all its data a month later.",
+        "{own} finance team has worked with the same outside accountants for twenty years.",
+        "{name} sponsors a local football team.",
+        "{own} share price has fallen for three quarters in a row.",
+        "{name} is in talks to be sold, and the buyer's price depends on these indicators.",
+    ],
+}
 TERMS = {
     "markets": {
         "state": "demand",
@@ -205,6 +242,10 @@ def items_for(module):
         return design.disclosure(probes=True)
     if module == "checks":
         return design.checks()
+    if module == "corroboration-cues":
+        return design.corroboration_cues()
+    if module == "disclosure-cues":
+        return design.disclosure_cues()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -423,13 +464,75 @@ def _checks(items, i, cover, variant):
     return lines, question
 
 
-RENDERERS = {"corroboration": _corroboration, "disclosure": _disclosure, "checks": _checks}
+def cue_sentence(base, variant, slot, name):
+    return CUE_DESCRIPTORS[(base, variant)][slot].format(name=name, own=own(name))
+
+
+def _corroboration_cues(items, i, cover, variant):
+    slot = int(items["slot"][i])
+    b = OUTLETS_B[i]
+    if items["kind"][i] == "rate":
+        lines = [
+            f"{b} is a news outlet that covers companies' demand. "
+            + cue_sentence("corroboration", variant, slot, b),
+            "Some outlets relay another outlet's call instead of checking for themselves; a "
+            "relayed call simply repeats the original call.",
+        ]
+        question = (
+            f"Among outlets like {b}, what proportion relay another outlet's call instead of "
+            "checking for themselves?"
+        )
+        return lines, question
+    lines, question = _corroboration(items, i, cover, "open")
+    if slot >= 0:
+        lines.insert(4, cue_sentence("corroboration", variant, slot, b))
+    return lines, question
+
+
+def _disclosure_cues(items, i, cover, variant):
+    slot = int(items["slot"][i])
+    subject = COMPANIES[i]
+    if items["kind"][i] == "rate":
+        rate = percent(items["omission"][i])
+        lines = [
+            f"{subject} tracks 4 operating indicators. "
+            + cue_sentence("disclosure", variant, slot, subject),
+            "Some companies share every on-target indicator and withhold every off-target one. "
+            "Others leave indicators out of their updates at random: each indicator is left out "
+            f"with probability {rate}, whether or not it was on target.",
+        ]
+        question = (
+            f"Among companies like {subject}, what proportion share every on-target indicator "
+            "and withhold every off-target one, rather than leaving indicators out at random?"
+        )
+        return lines, question
+    lines, question = _disclosure(items, i, cover, "open")
+    if slot >= 0:
+        lines.insert(3, cue_sentence("disclosure", variant, slot, subject))
+    return lines, question
+
+
+RENDERERS = {
+    "corroboration": _corroboration,
+    "disclosure": _disclosure,
+    "checks": _checks,
+    "corroboration-cues": _corroboration_cues,
+    "disclosure-cues": _disclosure_cues,
+}
+
+
+def allowed(module, cover, variant):
+    if module in CUE_MODULES:
+        return cover == "markets" and variant in CUE_VARIANTS
+    if module == "checks":
+        return variant == "paired"
+    return variant in VARIANTS
 
 
 def render(module, cover, index, variant="paired"):
     if cover not in COVERS:
         raise ValueError(f"Unknown cover: {cover}")
-    if variant not in VARIANTS or (module == "checks" and variant != "paired"):
+    if module not in RENDERERS or not allowed(module, cover, variant):
         raise ValueError(f"Unknown variant for {module}: {variant}")
     items = items_for(module)
     if not 0 <= index < len(items["prior"]):
@@ -445,10 +548,12 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
+    if module in CUE_MODULES and items["kind"][index] == "rate":
+        return [percent(items["omission"][index])] if module == "disclosure-cues" else []
     if module == "checks":
         prior, high, low = (items[f][index] for f in ("prior", "high", "low"))
         values = [prior, high, low, (prior - low) / (high - low)]
-    elif module == "corroboration":
+    elif module in ("corroboration", "corroboration-cues"):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":
             values.append(items["accuracy_b"][index])

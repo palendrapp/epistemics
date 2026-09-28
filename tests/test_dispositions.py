@@ -142,10 +142,12 @@ def test_small_validation_run_is_immutable(tmp_path):
         "corroboration_model_recovery",
         "corroboration_learning_detection",
         "corroboration_learning_start_recovery",
+        "corroboration_cue_recovery",
         "disclosure_disposition_recovery",
         "disclosure_model_recovery",
         "disclosure_learning_detection",
         "disclosure_learning_start_recovery",
+        "disclosure_cue_recovery",
         "certainty_value_recovery_linear",
         "certainty_value_recovery_entropy",
     }
@@ -192,3 +194,31 @@ def test_learning_respondent_is_detected_and_start_recovered():
     assert fits[2.0]["learning_probability"] > 0.9
     assert fits[1024.0]["learning_probability"] < 0.1
     assert fits[1024.0]["parameters"]["start"]["mean"] == pytest.approx(0.5, abs=0.05)
+
+
+@pytest.mark.parametrize(
+    "build, observer, model",
+    [
+        (design.corroboration_cues, observers.corroboration, "dependence"),
+        (design.disclosure_cues, observers.disclosure, "disclosure"),
+    ],
+)
+def test_cue_modules_recover_a_disposition_per_description(build, observer, model):
+    items = build()
+    assert len(items["kind"]) == 24
+    assert sorted(set(items["slot"].tolist())) == [-1, 0, 1, 2, 3, 4]
+    assert all((items["kind"][items["slot"] == s] == "rate").sum() == 1 for s in range(5))
+    measured = ~np.isin(items["kind"], ("probe", "rate"))
+    for disposition in (0.0, 1.0):
+        p = sigmoid(observer(items, disposition, 1.0))[measured]
+        assert np.all((p >= 0.03) & (p <= 0.97))
+    truth = [0.1, 0.3, 0.5, 0.7, 0.9]
+    latent = observers.cue_observer(observer, items, truth, 1.0)
+    rate = items["kind"] == "rate"
+    assert np.allclose(sigmoid(latent[rate]), truth, atol=1e-6)
+    reports = sample_reports(latent, 0.05, np.random.default_rng(1))
+    result = fit.fit_cues(model, items, reports)
+    implied = [s["implied"]["mean"] for s in result["slots"]]
+    assert np.allclose(implied, truth, atol=0.05)
+    stated = [s["stated"][0] for s in result["slots"]]
+    assert np.allclose(stated, truth, atol=0.02)

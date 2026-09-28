@@ -27,6 +27,9 @@ GATES = {
     "minimum_learning_detection_accuracy": 0.85,
     "minimum_start_correlation": 0.85,
     "maximum_start_mae": 0.12,
+    # Cue modules: the disposition implied for each description slot.
+    "minimum_cue_correlation": 0.9,
+    "maximum_cue_mae": 0.1,
 }
 REPORT_PRIOR = {
     "disposition": (0.0, 1.0),
@@ -62,6 +65,10 @@ LEARNING = {
     "start_scored_if_strength_at_least": 8.0,
     # Learning is invisible when the starting disposition already matches the revealed rate.
     "detection_if_start_differs_from_rate_by": 0.25,
+}
+CUE_MODULES = {
+    "corroboration": ("dependence", design.corroboration_cues, observers.corroboration),
+    "disclosure": ("disclosure", design.disclosure_cues, observers.disclosure),
 }
 REPORT_GRIDS = {
     "disposition": fit.DISPOSITION,
@@ -316,6 +323,42 @@ def learning_metrics(rows, limit):
     }
 
 
+def cue_recovery(module, respondents, rng):
+    """Respondents with an independent disposition for each description slot."""
+    model, build, observer = CUE_MODULES[module]
+    items = build()
+    forecast = ~np.isin(items["kind"], ("probe", "rate"))
+    rows = []
+    for _ in range(respondents):
+        truth = draw(rng, {k: v for k, v in REPORT_PRIOR.items() if k != "disposition"})
+        truth["slots"] = rng.uniform(0, 1, len(design.CUE_LEVELS)).tolist()
+        latent = observers.cue_observer(observer, items, truth["slots"], truth["gamma"])
+        reports = sample_reports(latent + truth["bias"] * forecast, truth["report_sd"], rng)
+        rows.append({"truth": truth, "result": fit.fit_cues(model, items, reports)})
+    return rows
+
+
+def cue_metrics(rows, limit):
+    agent = [r for r in rows if r["truth"]["report_sd"] <= limit]
+    truth = np.array([t for r in agent for t in r["truth"]["slots"]])
+    implied = [s["implied"] for r in agent for s in r["result"]["slots"]]
+    mean = np.array([s["mean"] for s in implied])
+    stated = np.array([s["stated"][0] for r in agent for s in r["result"]["slots"]])
+    lower, upper = cell_edges(fit.DISPOSITION)
+    lo = np.array([lower[np.searchsorted(fit.DISPOSITION, s["interval_90"][0])] for s in implied])
+    hi = np.array([upper[np.searchsorted(fit.DISPOSITION, s["interval_90"][1])] for s in implied])
+    return {
+        "respondents": len(agent),
+        "slots": len(truth),
+        "implied": {
+            "correlation": float(np.corrcoef(truth, mean)[0, 1]),
+            "mae": float(np.mean(np.abs(mean - truth))),
+            "coverage_90": float(np.mean((lo <= truth) & (truth <= hi))),
+        },
+        "stated_mae": float(np.mean(np.abs(stated - truth))),
+    }
+
+
 def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25):
     if respondents < 10 or model_datasets < 5 or boundary_repetitions < 1:
         raise ValueError("Use at least 10 respondents, 5 model datasets and 1 boundary repetition")
@@ -352,6 +395,10 @@ def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25)
                     respondents,
                     np.random.default_rng(seed + 200 + offset),
                 ),
+                GATES["agent_noise_band"]["report_sd"],
+            ),
+            "cues": cue_metrics(
+                cue_recovery(module, respondents, np.random.default_rng(seed + 300 + offset)),
                 GATES["agent_noise_band"]["report_sd"],
             ),
         }
@@ -408,6 +455,12 @@ def check_gates(results):
             learning["start"]["correlation"] >= GATES["minimum_start_correlation"]
             and learning["start"]["mae"] <= GATES["maximum_start_mae"]
         )
+        cues = results[module]["cues"]["implied"]
+        checks[f"{module}_cue_recovery"] = (
+            cues["correlation"] >= GATES["minimum_cue_correlation"]
+            and cues["mae"] <= GATES["maximum_cue_mae"]
+            and cues["coverage_90"] >= GATES["minimum_interval_coverage"]
+        )
         accuracy = results[module]["model_recovery"]["agent_noise"]
         checks[f"{module}_model_recovery"] = all(
             v["accuracy"] >= GATES["minimum_model_recovery_accuracy"] for v in accuracy.values()
@@ -429,7 +482,7 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
         return {k: v.tolist() for k, v in items.items()}
 
     return {
-        "schema_version": "epistemics.disposition-validation-plan.v2",
+        "schema_version": "epistemics.disposition-validation-plan.v3",
         "model_version": MODEL_VERSION,
         "design_version": DESIGN_VERSION,
         "implementation_sha256": fingerprint(),
@@ -450,6 +503,8 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
             "disclosure": listed(design.disclosure()),
             "disclosure_probes": listed(design.disclosure(probes=True)),
             "checks": listed(design.checks()),
+            "corroboration_cues": listed(design.corroboration_cues()),
+            "disclosure_cues": listed(design.disclosure_cues()),
         },
         "gates": GATES,
     }

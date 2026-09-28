@@ -21,7 +21,15 @@ from pathlib import Path
 
 from epistemics.benchmark.runner import DISABLED_FEATURES, codex_version, read_usage
 from epistemics.disposition_tasks.collection import CASES, create, export, fingerprint, load_report
-from epistemics.disposition_tasks.render import COVERS, LEARNING_RATES, MODULES, VARIANTS
+from epistemics.disposition_tasks.render import (
+    COVERS,
+    CUE_MODULES,
+    CUE_VARIANTS,
+    LEARNING_RATES,
+    MODULES,
+    VARIANTS,
+    allowed,
+)
 from epistemics.investigation_pilot.runner import EXTRA_DISABLED
 from epistemics.research_world3.runner import CONFIGURATIONS
 from epistemics.service import now
@@ -45,12 +53,18 @@ PROMPT = (
 # (variant, cover, repeat): repeats give retest agreement; covers and variants test wording.
 CONTEXTS = (("paired", "markets", 1), ("paired", "markets", 2), ("paired", "ecology", 1))
 PRESETS = {
-    "acceptance": ({"configurations": ("astra", "sol"), "modules": MODULES, "contexts": CONTEXTS},),
+    "acceptance": (
+        {
+            "configurations": ("astra", "sol"),
+            "modules": ("corroboration", "disclosure", "checks"),
+            "contexts": CONTEXTS,
+        },
+    ),
     # Weaker configurations on the paired tasks; the frontier pair on the new framings.
     "round-2": (
         {
             "configurations": ("luna", "terra", "astra-low", "sol-low"),
-            "modules": MODULES,
+            "modules": ("corroboration", "disclosure", "checks"),
             "contexts": (("paired", "markets", 1),),
         },
         {
@@ -63,7 +77,16 @@ PRESETS = {
         },
     ),
 }
-AUDITED_CASES = len(COVERS) * 24 * (2 * len(VARIANTS) + 1)
+PRESETS["cues"] = (
+    {
+        "configurations": ("astra", "sol"),
+        "modules": CUE_MODULES,
+        "contexts": tuple((v, "markets", 1) for v in CUE_VARIANTS),
+    },
+)
+AUDITED_CASES = len(COVERS) * 24 * (2 * len(VARIANTS) + 1) + 24 * len(CUE_MODULES) * len(
+    CUE_VARIANTS
+)
 
 
 def command(root, entry, config):
@@ -86,15 +109,15 @@ def check_groups(groups):
         if not modules or set(modules) - set(MODULES):
             raise ValueError("Unknown module")
         if not contexts or any(
-            variant not in VARIANTS or cover not in COVERS or repeat < 1
+            variant not in VARIANTS + CUE_VARIANTS or cover not in COVERS or repeat < 1
             for variant, cover, repeat in contexts
         ):
             raise ValueError("Contexts are (variant, cover, repeat) with known values")
         for config in configurations:
             for module in modules:
                 for variant, cover, repeat in contexts:
-                    if module == "checks" and variant != "paired":
-                        raise ValueError("The checks module has only the paired variant")
+                    if not allowed(module, cover, variant):
+                        raise ValueError(f"{module} does not offer {variant} in {cover}")
                     key = (config, module, variant, cover, repeat)
                     if key in runs:
                         raise ValueError("Every run must be distinct")
@@ -117,7 +140,7 @@ def prepare(
         raw = Path(path).read_bytes()
         result = json.loads(raw)
         if (
-            result.get("schema_version") != "epistemics.disposition-task-validation.v2"
+            result.get("schema_version") != "epistemics.disposition-task-validation.v3"
             or not result["passed"]
             or result["implementation_sha256"] != fingerprint()
             or result["audit"]["cases"] != AUDITED_CASES
@@ -284,43 +307,52 @@ async def collect(root, entry, config, timeout):
                     limit=4000000,
                     start_new_session=True,
                 )
-                async with asyncio.timeout(timeout):
-                    while line := await process.stdout.readline():
-                        event = json.loads(line)
-                        if event.get("type") == "thread.started":
-                            execution["thread_id"] = event.get("thread_id")
-                        if event.get("type") in {"error", "turn.failed"}:
-                            execution["diagnostics"].append(str(event)[:4000])
-                        if event.get("type") == "turn.completed":
-                            usage = read_usage(event.get("usage"))
-                            old = execution["usage"] or dict.fromkeys(usage, 0)
-                            execution["usage"] = {k: old[k] + usage[k] for k in usage}
-                        if event.get("type") != "item.completed":
-                            continue
-                        item = event.get("item", {})
-                        kind = item.get("type")
-                        if kind == "mcp_tool_call":
-                            call = {k: item.get(k) for k in ("server", "tool", "status", "error")}
-                            call["elapsed_seconds"] = time.monotonic() - started
-                            call["result_is_error"] = (item.get("result") or {}).get(
-                                "isError", False
-                            )
-                            if (
-                                call["result_is_error"]
-                                or call["error"]
-                                or call["status"] != "completed"
-                            ):
-                                call["public_error_result"] = str(item.get("result"))[:4000]
-                            execution["tools"].append(call)
-                            if call["server"] != "collection" or call["tool"] not in TOOLS:
-                                raise ValueError("Unexpected tool outside public interface")
-                        elif kind == "agent_message":
-                            execution["messages"].append(item.get("text", "")[:12000])
-                        elif kind == "error":
-                            execution["diagnostics"].append(str(item)[:4000])
-                        elif kind not in {"reasoning", "plan", None}:
-                            raise ValueError(f"Unexpected action {kind}")
-                    await process.wait()
+                # Wall-clock deadline: a monotonic timeout pauses while the machine sleeps.
+                deadline = time.time() + timeout
+                while True:
+                    try:
+                        line = await asyncio.wait_for(process.stdout.readline(), 5)
+                    except TimeoutError:
+                        if time.time() > deadline:
+                            raise TimeoutError("Per-run wall-clock limit reached") from None
+                        continue
+                    if time.time() > deadline:
+                        raise TimeoutError("Per-run wall-clock limit reached")
+                    if not line:
+                        break
+                    event = json.loads(line)
+                    if event.get("type") == "thread.started":
+                        execution["thread_id"] = event.get("thread_id")
+                    if event.get("type") in {"error", "turn.failed"}:
+                        execution["diagnostics"].append(str(event)[:4000])
+                    if event.get("type") == "turn.completed":
+                        usage = read_usage(event.get("usage"))
+                        old = execution["usage"] or dict.fromkeys(usage, 0)
+                        execution["usage"] = {k: old[k] + usage[k] for k in usage}
+                    if event.get("type") != "item.completed":
+                        continue
+                    item = event.get("item", {})
+                    kind = item.get("type")
+                    if kind == "mcp_tool_call":
+                        call = {k: item.get(k) for k in ("server", "tool", "status", "error")}
+                        call["elapsed_seconds"] = time.monotonic() - started
+                        call["result_is_error"] = (item.get("result") or {}).get("isError", False)
+                        if (
+                            call["result_is_error"]
+                            or call["error"]
+                            or call["status"] != "completed"
+                        ):
+                            call["public_error_result"] = str(item.get("result"))[:4000]
+                        execution["tools"].append(call)
+                        if call["server"] != "collection" or call["tool"] not in TOOLS:
+                            raise ValueError("Unexpected tool outside public interface")
+                    elif kind == "agent_message":
+                        execution["messages"].append(item.get("text", "")[:12000])
+                    elif kind == "error":
+                        execution["diagnostics"].append(str(item)[:4000])
+                    elif kind not in {"reasoning", "plan", None}:
+                        raise ValueError(f"Unexpected action {kind}")
+                await process.wait()
             if process.returncode or execution["usage"] is None:
                 raise ValueError(f"Process exit {process.returncode} or missing usage")
             export(directory)
@@ -455,14 +487,14 @@ async def run(root, plan):
         raise ValueError("Execution plan differs from committed bytes")
     if plan["implementation_sha256"] != fingerprint():
         raise ValueError("Frozen implementation changed before admission")
-    start = time.monotonic()
+    start = time.time()
     executions = []
     failure = None
     try:
         step = plan["limits"]["concurrency"]
         for offset in range(0, len(plan["runs"]), step):
             batch = plan["runs"][offset : offset + step]
-            remaining = plan["limits"]["total_seconds"] - (time.monotonic() - start)
+            remaining = plan["limits"]["total_seconds"] - (time.time() - start)
             known = sum(
                 e["usage"]["input_tokens"] + e["usage"]["output_tokens"]
                 for e in executions
@@ -495,7 +527,7 @@ async def run(root, plan):
         "status": "failed" if failure else "completed",
         "error": failure,
         "finished_at": now(),
-        "elapsed_seconds": time.monotonic() - start,
+        "elapsed_seconds": time.time() - start,
         "executions": executions,
         "unattempted_runs": len(plan["runs"]) - len(executions),
         "known_usage": {

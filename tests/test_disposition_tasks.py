@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 624
+    assert audit()["cases"] == 720
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 28
+    assert result["passed"] and len(result["contexts"]) == 32
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -207,8 +207,18 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
     bad = [
         {"configurations": ["astra"], "modules": ["checks"], "contexts": [["open", "markets", 1]]}
     ]
-    with pytest.raises(ValueError, match="only the paired"):
+    with pytest.raises(ValueError, match="does not offer"):
         runner.prepare(tmp_path / "two", paths, groups=bad)
+    cue_in_ecology = [
+        {
+            "configurations": ["astra"],
+            "modules": ["disclosure-cues"],
+            "contexts": [["cues-a", "ecology", 1]],
+        }
+    ]
+    with pytest.raises(ValueError, match="does not offer"):
+        runner.check_groups(cue_in_ecology)
+    assert len(runner.check_groups(runner.PRESETS["cues"])) == 8
     groups = [
         {
             "configurations": ["astra"],
@@ -250,6 +260,16 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
     )
     with pytest.raises(ValueError, match="committed bytes"):
         asyncio.run(runner.run(root, dict(plan, order_seed=0)))
+    # A respondent that never answers fails at the wall-clock limit, not a paused monotonic one.
+    stalled = plan["runs"][0]
+    monkeypatch.setattr(
+        runner, "command", lambda *_: [sys.executable, "-c", "import time; time.sleep(60)"]
+    )
+    execution = asyncio.run(
+        runner.collect(root, stalled, plan["configurations"][stalled["configuration"]], 1)
+    )
+    assert execution["status"] == "failed" and "wall-clock" in execution["error"]
+    assert execution["elapsed_seconds"] < 15
 
 
 def test_agreement_compares_repeats_and_covers():
@@ -339,3 +359,32 @@ def test_value_of_certainty_near_zero_selects_no_function(tmp_path):
     assert report.analysis["certainty_function"]["preferred"] == "undetermined"
     assert report.analysis["mean_points"]["zero_decision_value"] == 0
     assert report.analysis["mean_points"]["positive_decision_value"] == pytest.approx(59 / 6)
+
+
+def test_cue_modules_render_descriptions_and_recover_the_mapping(tmp_path):
+    rate = render("corroboration-cues", "markets", 16, "cues-b")
+    assert rate["question"].startswith("Among outlets like")
+    assert "one-person blog" in rate["case"]
+    probe = render("disclosure-cues", "markets", 17, "cues-a")
+    assert "withholds every off-target indicator" in probe["question"]
+    assert "lose a large bonus" in probe["case"]
+    anchor = render("disclosure-cues", "markets", 21, "cues-a")["case"]
+    for sentence in ("auditor", "financing", "bonus", "headquarters", "reputation"):
+        assert sentence not in anchor
+    with pytest.raises(ValueError, match="variant"):
+        render("corroboration-cues", "ecology", 0, "cues-a")
+    truth = {"slots": [0.1, 0.3, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+    report = simulate(
+        tmp_path / "run",
+        module="corroboration-cues",
+        cover="markets",
+        order=ORDER,
+        truth=truth,
+        seed=3,
+        variant="cues-a",
+    )
+    cues = report.analysis["cues"]
+    assert np.allclose(cues["implied"], truth["slots"], atol=0.05)
+    assert np.allclose(cues["stated"], truth["slots"], atol=0.02)
+    assert cues["designed_order_spearman"] == pytest.approx(1.0)
+    assert not cues["irrelevant_moved"]

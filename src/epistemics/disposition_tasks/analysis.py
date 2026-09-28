@@ -16,6 +16,38 @@ MODELS = {
     "disclosure": ("disclosure", "linear_skepticism"),
     "checks": ("linear", "entropy"),
 }
+CUE_MODELS = {"corroboration-cues": "dependence", "disclosure-cues": "disclosure"}
+
+
+def ranks(values):
+    return np.argsort(np.argsort(values, kind="stable"), kind="stable").astype(float)
+
+
+def spearman(a, b):
+    a, b = ranks(np.asarray(a)), ranks(np.asarray(b))
+    if np.std(a) == 0 or np.std(b) == 0:
+        return None
+    return float(np.corrcoef(a, b)[0, 1])
+
+
+def cue_summary(result):
+    """Implied against stated priors, the designed ordering and the irrelevant control."""
+    implied = [s["implied"]["mean"] for s in result["slots"]]
+    stated = [s["stated"][0] for s in result["slots"]]
+    irrelevant = result["slots"][2]["implied"]
+    low, high = irrelevant["interval_90"]
+    shift = irrelevant["mean"] - 0.5
+    return {
+        "implied": implied,
+        "stated": stated,
+        "stated_minus_implied_mae": float(np.mean(np.abs(np.subtract(stated, implied)))),
+        "stated_implied_spearman": spearman(stated, implied),
+        "designed_order_spearman": spearman(range(len(implied)), implied),
+        "range": float(max(implied) - min(implied)),
+        # Moved: beyond one grid step from indifference, with an interval that excludes it.
+        "irrelevant_shift": float(shift),
+        "irrelevant_moved": bool(abs(shift) > 0.05 and not low <= 0.5 <= high),
+    }
 
 
 def subset(items, mask):
@@ -58,6 +90,15 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in CUE_MODELS:
+        result = fit.fit_cues(CUE_MODELS[manifest.module], items, responses)
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "fit": result,
+            "cues": cue_summary(result),
+            "rows": rows,
+        }
     model, rival = MODELS[manifest.module]
     if manifest.module == "checks":
         fits = {f: fit.fit_checks(f, items, responses) for f in (model, rival)}
