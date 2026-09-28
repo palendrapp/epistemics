@@ -498,6 +498,12 @@ def coherence(p):
         caution = "Stated and applied base rates disagree"
     else:
         claim = "The base rates it states and the ones its forecasts use agree in most sessions, not all."
+        if exceptions:
+            label, wide, nc = exceptions[0]
+            claim += (
+                f" In {label}, its forecasts departed widely from the rates it stated in {wide} "
+                f"of {nc} sessions."
+            )
         caution = None
     return reading(
         "coherence",
