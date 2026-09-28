@@ -421,13 +421,13 @@
       "roots": [],
       "status": "complete",
       "prediction": "Draft; built after the data, so the fits are exploratory. Confirmatory test proposed: abstract urn tasks on the same ladder.",
-      "outcome": "Threshold recovers well (correlation 0.98, MAE 0.16-0.21 on a 0.3-2.7 range); session drift moderately; cue weight under-covers (0.75) with a plug-in mapping. Exploratory fits: Astra theta 0.65, Sol 0.96; inclusion for an uninformative description at rungs 0-3: Astra 0.12/0.74/0.99/1.00, Sol 0.12/0.52/0.90/0.99. Shared vs family-specific thresholds indistinguishable (<=1.1 nats); shared model misfits unprompted inclusion (relays over, disclosure under)."
+      "outcome": "Threshold recovers well (correlation 0.98, MAE 0.16-0.21 on a 0.3-2.7 range); session drift moderately; cue weight under-covers (0.75) with a plug-in mapping. Exploratory fits: Astra theta 0.65, Sol 0.96; inclusion for an uninformative description at rungs 0-3: Astra 0.12/0.74/0.99/1.00, Sol 0.12/0.52/0.90/0.99. Shared vs family-specific thresholds indistinguishable (<=1.1 nats); shared model misfits unprompted inclusion (relays over, disclosure under). Joint fit (MCMC, stated-rate channel at the ambiguous levels): recovery theta r=0.98, w coverage 0.90, fidelity phi r=0.94; Astra theta 0.47, sigma 0.39, phi 0.97; Sol theta 0.74, sigma 0.74, phi 0.87 (mixture beats pure hypotheses; marks exactly Sol's wide-gap sessions)."
     }
   ],
   "next": [
-    "Second-layer model: structure inclusion, closed-world default, description sensitivity and stated-applied fidelity, fitted hierarchically across the ladder; recovery first (docs/structure-inclusion-model.md).",
-    "Abstract transfer task: contentless urn versions of copying and selection, plus a third hidden structure, to test whether the second-layer parameters transfer.",
-    "Reading guide: review the draft wording and thresholds.",
+    "Abstract transfer task (confirmatory): contentless urn versions of copying and selection plus a third hidden structure on the same ladder; preregister that the dossier-fitted theta, sigma and phi predict the abstract tasks.",
+    "Luna and Terra on rungs 0-2 so their inclusion parameters are identified.",
+    "Reading guide: add second-layer readings once they transfer.",
     "HGF volatility module (T4) offline."
   ]
 }

@@ -122,18 +122,86 @@ Only Astra and Sol have sessions on every rung; Luna and Terra have only rung 3,
 
 The shared model over-predicts unprompted inclusion for relays and under-predicts it for disclosure. That is the pattern a family-specific threshold captures: copying needs more prompting than selective silence. The comparison above is not decisive, so this is the first question for new data.
 
+## Joint fit
+
+The two-stage fit above plugs in the mapping. The joint fit (`epistemics.ledger.inclusion_joint`) samples everything together:
+- the mapping (five levels and a spread per family);
+- θ, w and σ;
+- a stated-rate channel.
+
+It uses adaptive random-walk Metropolis: four chains of 20,000 iterations, the first 8,000 discarded, every fifth kept. Priors are uniform on the same bounded scales as the grids, with φ uniform on [0, 1]. Every real-data fit converged (R-hat at most 1.02).
+
+**Stated rates as their own channel.** A stated base rate, when asked, can be explained in two ways:
+- **Applied:** it is the prior that session's forecasts apply.
+- **Considered:** it is the configuration's usual mapping, whatever the session applies.
+
+The mixture adds **φ, stated–applied fidelity**: the probability that a session's stated rates are its applied priors. This is the fidelity parameter proposed above, now estimated directly. Each session also gets a posterior probability of being coherent.
+
+**A specification choice made after seeing the data.** The stated channel uses the three ambiguous levels only. With all five levels, the extreme levels dominated it. There, applied priors sit near 0 and 1, and the log-odds scale magnifies differences of a point or two between a whole-percentage stated rate and the fitted prior.
+
+That version gave Sol φ = 0.57 and marked as incoherent many formal and dossier sessions that pass the plain coherence check (every level within 10 points). With the ambiguous levels only, the sessions it marks are exactly the ones the descriptive analysis found. Both results are recorded below.
+
+**Recovery** (final specification: synthetic configurations through the real designs and fits, 4 chains of 10,000 iterations):
+
+| | Correlation | MAE | 90% coverage |
+| --- | --- | --- | --- |
+| θ (30 datasets) | 0.98 | 0.11 | 0.90 |
+| w | 0.96 | 0.07 | 0.90 |
+| σ | 0.88 | 0.12 | 0.83 |
+| Mapping (all levels) | — | 0.014 | 0.90 |
+| φ (20 datasets) | 0.94 | 0.07 | 0.90 |
+
+- **The joint fit fixes w's coverage** (0.90, against 0.68–0.75 with the plug-in mapping).
+- **Model recovery:** the paired WAIC picked the generating stated-rate hypothesis in 24 of 24 synthetic configurations (12 each way).
+- **Convergence:** six of 30 recovery datasets had R-hat between 1.05 and 1.18. Restricted to the 24 converged ones, θ has correlation 0.99, MAE 0.09 and coverage 0.92.
+- **All-levels specification:** φ recovered with correlation 0.97 and MAE 0.06.
+
+**Estimates** (shared threshold; mixture for stated rates):
+
+| | Astra | Sol |
+| --- | --- | --- |
+| θ, inclusion threshold | 0.47 [0.17, 0.73] | 0.74 [0.28, 1.08] |
+| w, cue-driven inclusion | 0.22 [0.08, 0.38] | 0.26 [0.12, 0.41] |
+| σ, session drift | 0.39 [0.09, 0.81] | 0.74 [0.46, 1.09] |
+| φ, stated–applied fidelity | 0.97 [0.91, 1.00] | 0.87 [0.75, 0.96] |
+| Inclusion for an uninformative description, rungs 0 → 3 | 0.17, 0.85, 0.99, 1.00 | 0.18, 0.62, 0.94, 0.99 |
+| Default d, relay and disclosure | 0.43, 0.41 | 0.40, 0.32 |
+| Description sensitivity κ, relay and disclosure | 5.8, 2.1 | 6.2, 2.7 |
+| φ with the stated channel at all five levels | 0.91 [0.81, 0.98] | 0.57 [0.41, 0.73] |
+
+**Model comparisons** (paired WAIC differences on the deviance scale; negative favours the first model):
+
+| Comparison | Astra | Sol |
+| --- | --- | --- |
+| Applied minus considered | −457 ± 66 | +117 ± 113 |
+| Mixture minus applied | −3 ± 5 | −197 ± 77 |
+| Mixture minus considered | −460 ± 65 | −80 ± 55 |
+| Threshold by family minus shared (mixture's stated model: applied for Astra, considered for Sol) | −6 ± 5 | +2 ± 5 |
+
+**Sessions the fidelity mixture marks as incoherent** (posterior probability below 0.5):
+- **Astra:** none of 25.
+- **Sol:** three of 28, all from the default-induction study.
+  - Two relay sessions, both at probability 0.00. These are the two with wide stated–applied gaps.
+  - One disclosure session, at 0.43.
+
+**What the joint fit adds.**
+- **Astra's stated rates are its working priors.** Stated-rate noise is τ = 0.02 on the log-odds scale, φ is near 1, and the pure "applied" model is as good as the mixture.
+- **Sol's stated rates are usually its working priors, not always.** The mixture beats both pure hypotheses (by 197 ± 77 and 80 ± 55), and it locates the exceptions in the sessions already known to have wide gaps.
+- **Sol also varies more between sessions** in whether it considers a named structure (σ 0.74 against 0.39), and needs slightly more prompting (θ 0.74 against 0.47; the intervals overlap).
+- **Copying against selective silence:** a separate threshold for each still gets at most weak support (Astra −6 ± 5; Sol +2 ± 5).
+
 ## What it would add to the passport
 
 The candidate readings are more general than the current task-level ones:
 - "It does not consider hidden structure (copying, selective silence) unless the situation names it."
 - "Once a structure is named, it considers it in about three of four sessions (Astra) or one in two (Sol)."
-- "Asked about the structure, it states a rate, but in some sessions its forecasts do not use it."
+- "Asked about the structure, it states a rate, but in some sessions its forecasts do not use it" (Sol: φ = 0.87; Astra: φ = 0.97).
 
 These become passport readings only if they transfer.
 
 ## Next
 
-1. **Joint fit.** Fit the mapping jointly and add stated rates as their own channel, so that w's uncertainty is right. That also tests the assumption that stated rates reflect μ whatever is included.
+1. **Joint fit.** Done (above). It fixes w's coverage and estimates stated–applied fidelity directly.
 2. **Abstract transfer task (confirmatory).** Build contentless urn versions of copying (some draws are copies of earlier draws) and selection (a sampler shows only some draws). Add a third hidden structure, such as a common cause or survivorship. Each runs on the same four rungs, cued by structure alone. Preregister that the dossier θ predicts inclusion rates in the abstract tasks.
    - **The shared-trait claim** predicts that the configurations' ordering and rung profiles carry over.
    - **The family-specific alternative** predicts that the relay-like structure needs more prompting in every format.
@@ -149,4 +217,22 @@ uv run python -m epistemics.ledger inclusion
 uv run python -m epistemics.ledger inclusion-validate --output output/inclusion-recovery-20260928.json
 ```
 
-Recovery file SHA-256: `18df6002a962ac6e664fa9beba29e10abbcfb585f2765515568399e65a77016e`.
+```bash
+uv run python -m epistemics.ledger inclusion-joint
+```
+
+```bash
+uv run python -m epistemics.ledger inclusion-joint-validate --output output/inclusion-joint-recovery-20260928.json
+```
+
+```bash
+uv run python -m epistemics.ledger fidelity-validate --output output/inclusion-fidelity-recovery-20260928.json
+```
+
+| File | SHA-256 |
+| --- | --- |
+| Two-stage recovery | `18df6002a962ac6e664fa9beba29e10abbcfb585f2765515568399e65a77016e` |
+| Joint fits | `eddcf0e00d564a535b52ac1ecdcd23f10db06200521e3d3e179d410bd05e9901` |
+| Joint recovery | `8454492a1937a2f45cbec7713e7326862d6743a86ccd398d70cf408901a81673` |
+| Fidelity recovery | `4ab83b87000e51d0f7f8b0f400d029a5e4547a5caa36ab4353b0792c5a2fa7bb` |
+| Fidelity recovery, all-levels specification | `f6c469406047a2f56764ac677f8c3d47412706810064f36f9c44f24528dd8f4c` |

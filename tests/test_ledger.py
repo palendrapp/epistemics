@@ -397,3 +397,38 @@ def test_inclusion_layer_orders_thresholds_and_reports_rungs():
         inclusion.simulate(rng, {"theta": 0.5, "w": 0.3, "sigma": 0.3}), "theta_by_family"
     )
     assert {"theta_relay", "theta_disclosure", "w", "sigma"} == set(split["parameters"])
+
+
+def test_joint_inclusion_fit_samples_and_compares_stated_models():
+    from epistemics.ledger import inclusion
+    from epistemics.ledger import inclusion_joint as joint
+
+    rng = np.random.default_rng(4)
+    data = inclusion.simulate(
+        rng, {"theta": 0.8, "w": 0.3, "sigma": 0.4}, stated=True, stated_source="applied"
+    )
+    fits = {
+        m: joint.sample(data, "shared", m, chains=2, iterations=1500, burn=500, seed=1)
+        for m in ("considered", "applied")
+    }
+    for f in fits.values():
+        assert {"theta", "w", "sigma", "tau"} <= set(f["parameters"])
+        assert set(f["mapping"]) == {"relay", "disclosure"}
+        assert len(f["waic"]["elpd_pointwise"]) == 40
+    diff = joint.compare(fits["applied"], fits["considered"])
+    assert diff["difference"] < 0  # The generating hypothesis is preferred.
+    split = joint.sample(data, "theta_by_family", "applied", chains=2, iterations=800, burn=300)
+    assert {"theta_relay", "theta_disclosure"} <= set(split["parameters"])
+
+
+def test_fidelity_mixture_estimates_the_share_of_coherent_sessions():
+    from epistemics.ledger import inclusion
+    from epistemics.ledger import inclusion_joint as joint
+
+    rng = np.random.default_rng(6)
+    truth = {"theta": 0.8, "w": 0.3, "sigma": 0.4, "phi": 0.9}
+    data = inclusion.simulate(rng, truth, stated=True, stated_source="mixture")
+    fit = joint.sample(data, "shared", "mixture", chains=2, iterations=2000, burn=700, seed=2)
+    assert fit["parameters"]["phi"]["mean"] > 0.5
+    probabilities = [p for ps in fit["session_fidelity"].values() for p in ps if p is not None]
+    assert len(probabilities) >= 20 and all(0 <= p <= 1 for p in probabilities)

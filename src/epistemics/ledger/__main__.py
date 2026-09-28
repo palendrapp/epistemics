@@ -8,6 +8,8 @@ uv run python -m epistemics.ledger transfer <roots...>
 uv run python -m epistemics.ledger noticing <roots...>
 uv run python -m epistemics.ledger inclusion [--configuration astra --configuration sol]
 uv run python -m epistemics.ledger inclusion-validate --output <file>
+uv run python -m epistemics.ledger inclusion-joint [--configuration astra --configuration sol]
+uv run python -m epistemics.ledger inclusion-joint-validate --output <file>
 """
 
 import argparse
@@ -86,6 +88,16 @@ def main():
     inc = sub.add_parser("inclusion")
     inc.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
     inc.add_argument("--configuration", action="append", default=None)
+    ij = sub.add_parser("inclusion-joint")
+    ij.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
+    ij.add_argument("--configuration", action="append", default=None)
+    ijv = sub.add_parser("inclusion-joint-validate")
+    ijv.add_argument("--output", type=Path, required=True)
+    ijv.add_argument("--datasets", type=int, default=30)
+    ijv.add_argument("--models", type=int, default=12)
+    fv = sub.add_parser("fidelity-validate")
+    fv.add_argument("--output", type=Path, required=True)
+    fv.add_argument("--datasets", type=int, default=20)
     iv = sub.add_parser("inclusion-validate")
     iv.add_argument("--output", type=Path, required=True)
     iv.add_argument("--datasets", type=int, default=40)
@@ -136,6 +148,74 @@ def main():
             rows = inclusion.ledger_sessions(models, config)
             result[config] = {v: inclusion.fit(rows, v) for v in inclusion.VARIANTS}
         print(json.dumps(result, indent=2))
+    elif a.command == "inclusion-joint":
+        from epistemics.ledger import inclusion
+        from epistemics.ledger import inclusion_joint as joint
+
+        models = json.loads(a.ledger.read_text())["models"]
+        result = {}
+        for config in a.configuration or ["astra", "sol"]:
+            rows, ids = inclusion.ledger_sessions(models, config, with_ids=True)
+            fits = {
+                f"{variant}/{stated}": joint.sample(rows, variant, stated, 4, 20000, 8000)
+                for variant in ("shared", "theta_by_family")
+                for stated in ("considered", "applied", "mixture")
+            }
+            comparisons = {
+                "applied minus considered (shared)": joint.compare(
+                    fits["shared/applied"], fits["shared/considered"]
+                ),
+                "applied minus considered (theta by family)": joint.compare(
+                    fits["theta_by_family/applied"], fits["theta_by_family/considered"]
+                ),
+                "theta by family minus shared (considered)": joint.compare(
+                    fits["theta_by_family/considered"], fits["shared/considered"]
+                ),
+                "theta by family minus shared (applied)": joint.compare(
+                    fits["theta_by_family/applied"], fits["shared/applied"]
+                ),
+                "mixture minus considered (shared)": joint.compare(
+                    fits["shared/mixture"], fits["shared/considered"]
+                ),
+                "mixture minus applied (shared)": joint.compare(
+                    fits["shared/mixture"], fits["shared/applied"]
+                ),
+            }
+            # Robustness: the stated channel at all five levels.
+            fits["shared/mixture (all levels)"] = joint.sample(
+                rows, "shared", "mixture", 4, 20000, 8000, stated_levels=(0, 1, 2, 3, 4)
+            )
+            fits["shared/mixture (all levels)"]["waic"].pop("elpd_pointwise")
+            fits["shared/mixture (all levels)"].pop("session_fidelity")
+            fidelity = fits["shared/mixture"]["session_fidelity"]
+            fits["shared/mixture"]["session_fidelity"] = {
+                fam: {
+                    sid: p for sid, p in zip(ids[fam], probabilities, strict=True) if p is not None
+                }
+                for fam, probabilities in fidelity.items()
+            }
+            for fit_ in fits.values():
+                fit_["waic"].pop("elpd_pointwise", None)
+            result[config] = {"fits": fits, "comparisons": comparisons}
+        print(json.dumps(result, indent=2))
+    elif a.command == "inclusion-joint-validate":
+        from epistemics.ledger import inclusion_joint as joint
+
+        run = joint.validate(datasets=a.datasets, models=a.models)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True) + "\n")
+        summary = {
+            k: run[k]
+            for k in ("metrics", "converged_only", "converged_datasets", "stated_model_recovery")
+        }
+        print(json.dumps(summary, indent=2))
+    elif a.command == "fidelity-validate":
+        from epistemics.ledger import inclusion_joint as joint
+
+        run = joint.validate_fidelity(datasets=a.datasets)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True) + "\n")
+        print(json.dumps({"phi": run["phi"], "rhat_max": max(run["rhat_by_dataset"])}, indent=2))
     elif a.command == "inclusion-validate":
         from epistemics.ledger import inclusion
 

@@ -251,9 +251,12 @@ def check(terms, means):
     }
 
 
-def ledger_sessions(models, configuration):
-    """This configuration's description sessions on the ladder, from the ledger's model block."""
-    rows = {}
+def ledger_sessions(models, configuration, with_ids=False):
+    """This configuration's description sessions on the ladder, from the ledger's model block.
+
+    With with_ids, also returns each family's session ids in the same order.
+    """
+    rows, ids = {}, {}
     for s in models["sessions"]:
         if s["configuration"] != configuration or not s.get("slots"):
             continue
@@ -264,7 +267,8 @@ def ledger_sessions(models, configuration):
             continue
         stated = [v[0] for v in s["stated"]] if all(s["stated"]) else None
         rows.setdefault(family(s["module"]), []).append((salience, np.array(s["slots"]), stated))
-    return rows
+        ids.setdefault(family(s["module"]), []).append(s["id"])
+    return (rows, ids) if with_ids else rows
 
 
 # Recovery: synthetic configurations with known θ, w, σ, run through the real item designs and
@@ -301,7 +305,11 @@ def designs():
     }
 
 
-def simulate(rng, truth, omega=0.4, report_sd=(0.05, 0.3)):
+def simulate(
+    rng, truth, omega=0.4, report_sd=(0.05, 0.3), stated=False, stated_source="considered"
+):
+    """Synthetic sessions per family. Stated rates, when asked, report the mapping ("considered")
+    or the session's applied prior ("applied")."""
     from epistemics.dispositions import observers
     from epistemics.dispositions.response import sample_reports
 
@@ -325,13 +333,26 @@ def simulate(rng, truth, omega=0.4, report_sd=(0.05, 0.3)):
                     0.0,
                 )
                 latent = observers.cue_observer(observer[fam], items, applied, 1.0)
-                # Stated rates, when asked, report the included mapping whatever is applied.
+                source_here = stated_source
+                if stated_source == "mixture":
+                    source_here = "applied" if rng.random() < truth["phi"] else "considered"
+                source = (
+                    logit(mu)
+                    if source_here == "considered"
+                    else logit(np.clip(applied, 0.005, 0.995))
+                )
                 latent = np.where(
-                    items["kind"] == "rate", logit(mu)[np.maximum(items["slot"], 0)], latent
+                    items["kind"] == "rate", source[np.maximum(items["slot"], 0)], latent
                 )
                 reports = sample_reports(latent, rng.uniform(*report_sd), rng)
+                rates = items["kind"] == "rate"
+                answers = (
+                    [float(reports[rates & (items["slot"] == level)][0]) for level in range(5)]
+                    if stated and rates.any()
+                    else None
+                )
                 rows.setdefault(fam, []).append(
-                    (salience, slot_likelihoods(model[fam], items, reports), None)
+                    (salience, slot_likelihoods(model[fam], items, reports), answers)
                 )
     return rows
 
