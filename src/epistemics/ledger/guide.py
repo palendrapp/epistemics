@@ -462,6 +462,12 @@ CONDITIONS = {
     "disclosure-asked": "disclosure dossiers that name selective silence and ask for its rate",
     "corroboration-probed": "relay dossiers that name copying, ask for its rate and ask whether "
     "each report was copied",
+    "copying-urn-asked": "abstract copying cases that name copying and ask for its rate",
+    "copying-urn-probed": "abstract copying cases that also ask whether each reading was copied",
+    "selection-urn-asked": "abstract selection cases that name it and ask for its rate",
+    "selection-urn-probed": "abstract selection cases that also ask whether each reporter selects",
+    "mismatch-urn-asked": "abstract mismatch cases that name it and ask for its rate",
+    "mismatch-urn-probed": "abstract mismatch cases that also ask whether each reading was misfiled",
 }
 
 

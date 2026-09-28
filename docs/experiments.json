@@ -422,6 +422,20 @@
       "status": "complete",
       "prediction": "Draft; built after the data, so the fits are exploratory. Confirmatory test proposed: abstract urn tasks on the same ladder.",
       "outcome": "Threshold recovers well (correlation 0.98, MAE 0.16-0.21 on a 0.3-2.7 range); session drift moderately; cue weight under-covers (0.75) with a plug-in mapping. Exploratory fits: Astra theta 0.65, Sol 0.96; inclusion for an uninformative description at rungs 0-3: Astra 0.12/0.74/0.99/1.00, Sol 0.12/0.52/0.90/0.99. Shared vs family-specific thresholds indistinguishable (<=1.1 nats); shared model misfits unprompted inclusion (relays over, disclosure under). Joint fit (MCMC, stated-rate channel at the ambiguous levels): recovery theta r=0.98, w coverage 0.90, fidelity phi r=0.94; Astra theta 0.47, sigma 0.39, phi 0.97; Sol theta 0.74, sigma 0.74, phi 0.87 (mixture beats pure hypotheses; marks exactly Sol's wide-gap sessions)."
+    },
+    {
+      "id": "disposition-abstract",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Abstract transfer of the second layer: urn tasks",
+      "question": "Do the second-layer parameters fitted to dossiers (inclusion threshold, session drift, stated-applied fidelity) transfer to contentless urn tasks, including a new hidden structure (mismatch)?",
+      "doc": "docs/disposition-abstract-2026-09-28.md",
+      "roots": [
+        "output/disposition-abstract-20260928"
+      ],
+      "status": "planned",
+      "prediction": "P1: urn theta within 0.5 of dossier theta per configuration. P2: inclusion for an uninformative level at most 0.35 at rung 0 and at least 0.80 at rung 2. P3: Astra phi at least 0.85. P4: structure-specific thresholds do not beat a shared threshold by more than 2 SE."
     }
   ],
   "next": [

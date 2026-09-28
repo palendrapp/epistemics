@@ -82,10 +82,15 @@ CUE_MODULES = {
     "disclosure-asked": ("disclosure", design.disclosure_asked, observers.disclosure),
     # The asked relay design with each level's structure probe.
     "corroboration-probed": ("dependence", design.corroboration_probed, observers.corroboration),
+    # Abstract urn tasks: the third structure (a reading filed under the wrong urn).
+    "mismatch-urn": ("mismatch", design.mismatch_urn, observers.mismatch),
+    "mismatch-urn-asked": ("mismatch", design.mismatch_urn_asked, observers.mismatch),
+    "mismatch-urn-probed": ("mismatch", design.mismatch_urn_probed, observers.mismatch),
 }
 UNPROMPTED = ("corroboration-unprompted", "disclosure-unprompted")
 ASKED = ("corroboration-asked", "disclosure-asked")
 PROBED = ("corroboration-probed",)
+MISMATCH = ("mismatch-urn", "mismatch-urn-asked", "mismatch-urn-probed")
 REPORT_GRIDS = {
     "disposition": fit.DISPOSITION,
     "gamma": fit.GAMMA,
@@ -444,6 +449,13 @@ def validate(seed, respondents=200, model_datasets=100, boundary_repetitions=25)
         )
         for offset, module in enumerate(PROBED)
     }
+    results["mismatch"] = {
+        module: cue_metrics(
+            cue_recovery(module, respondents, np.random.default_rng(seed + 800 + offset)),
+            GATES["agent_noise_band"]["report_sd"],
+        )
+        for offset, module in enumerate(MISMATCH)
+    }
     rng = np.random.default_rng(seed + 100)
     items = design.checks()
     checks = {"parameter_recovery": {}}
@@ -513,8 +525,9 @@ def check_gates(results):
         and cues["mae"] <= GATES["maximum_cue_mae"]
         and cues["coverage_90"] >= GATES["minimum_interval_coverage"]
     )
-    for module in UNPROMPTED + ASKED + PROBED:
-        group = "unprompted" if module in UNPROMPTED else "asked" if module in ASKED else "probed"
+    groups = {"unprompted": UNPROMPTED, "asked": ASKED, "probed": PROBED, "mismatch": MISMATCH}
+    for module in UNPROMPTED + ASKED + PROBED + MISMATCH:
+        group = next(g for g, modules in groups.items() if module in modules)
         cues = results[group][module]["implied"]
         checks[f"{module.replace('-', '_')}_cue_recovery"] = (
             cues["correlation"] >= GATES["minimum_cue_correlation"]
@@ -567,6 +580,9 @@ def plan(seed, respondents, model_datasets, boundary_repetitions):
             "corroboration_asked": listed(design.corroboration_asked()),
             "disclosure_asked": listed(design.disclosure_asked()),
             "corroboration_probed": listed(design.corroboration_probed()),
+            "mismatch_urn": listed(design.mismatch_urn()),
+            "mismatch_urn_asked": listed(design.mismatch_urn_asked()),
+            "mismatch_urn_probed": listed(design.mismatch_urn_probed()),
         },
         "gates": GATES,
     }

@@ -24,20 +24,9 @@ def responses(module, truth, rng, order=None, revealed=None):
         means = truth["certainty_value"] * gain + truth["decision_weight"] * decision
         return sample_wtp(means, truth["wtp_sd"], rng)
     if "slots" in truth:
-        observer = fit.REPORT_MODELS[
-            {
-                "corroboration-cues": "dependence",
-                "disclosure-cues": "disclosure",
-                "corroboration-range": "dependence",
-                "corroboration-dossier": "dependence",
-                "disclosure-dossier": "disclosure",
-                "corroboration-unprompted": "dependence",
-                "disclosure-unprompted": "disclosure",
-                "corroboration-asked": "dependence",
-                "disclosure-asked": "disclosure",
-                "corroboration-probed": "dependence",
-            }[module]
-        ]
+        from epistemics.disposition_tasks.analysis import CUE_MODELS
+
+        observer = fit.REPORT_MODELS[CUE_MODELS[module]]
         latent = observers.cue_observer(observer, items, truth["slots"], truth["gamma"])
         forecast = ~np.isin(items["kind"], ("probe", "rate"))
         return sample_reports(latent + truth["bias"] * forecast, truth["report_sd"], rng)

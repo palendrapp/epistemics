@@ -30,6 +30,7 @@ REPORT_MODELS = {
     "fixed_discount": observers.fixed_discount,
     "disclosure": observers.disclosure,
     "linear_skepticism": observers.linear_skepticism,
+    "mismatch": observers.mismatch,
 }
 
 

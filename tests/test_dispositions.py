@@ -154,6 +154,9 @@ def test_small_validation_run_is_immutable(tmp_path):
         "corroboration_asked_cue_recovery",
         "disclosure_asked_cue_recovery",
         "corroboration_probed_cue_recovery",
+        "mismatch_urn_cue_recovery",
+        "mismatch_urn_asked_cue_recovery",
+        "mismatch_urn_probed_cue_recovery",
         "certainty_value_recovery_linear",
         "certainty_value_recovery_entropy",
     }
@@ -228,3 +231,22 @@ def test_cue_modules_recover_a_disposition_per_description(build, observer, mode
     assert np.allclose(implied, truth, atol=0.05)
     stated = [s["stated"][0] for s in result["slots"]]
     assert np.allclose(stated, truth, atol=0.02)
+
+
+def test_mismatch_observer_discounts_readings_that_may_be_misfiled():
+    from epistemics.dispositions import design, observers
+
+    items = design.mismatch_urn()
+    sensor = items["kind"] == "single"
+    own = items["kind"] == "own"
+    trusted = observers.mismatch(items, 0.0, 1.0)
+    doubtful = observers.mismatch(items, 0.9, 1.0)
+    prior = np.log(items["prior"] / (1 - items["prior"]))
+    # Misfiling pulls sensor readings towards the prior; own draws are unaffected.
+    assert np.all(
+        np.abs(doubtful[sensor] - prior[sensor]) < np.abs(trusted[sensor] - prior[sensor])
+    )
+    assert np.allclose(doubtful[own], trusted[own])
+    probe = design.mismatch_urn_probed()
+    p = observers.mismatch(probe, 0.4, 1.0)[probe["kind"] == "probe"]
+    assert np.all(np.isfinite(p))

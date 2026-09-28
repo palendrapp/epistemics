@@ -91,6 +91,26 @@ def disclosure(items, sigma, gamma):
     return np.where(items["kind"] == "probe", probe, forecast)
 
 
+def mismatch(items, rho, gamma):
+    """Abstract third structure: Bayesian observer with prior `rho` that a reading comes from a
+    different urn than the one it is filed under.
+
+    A reading from another urn is red or blue with equal chance whatever this urn's state (half of
+    all urns are red-majority), so it carries no evidence. Own draws ("own") cannot be misfiled.
+    Probes ask for the probability that the reading came from a different urn.
+    """
+    r = np.clip(rho, EDGE, 1 - EDGE)
+    q = perceived(items["accuracy_a"], gamma)
+    a1 = _given_high(q, items["report_a"])
+    a0 = 1 - a1
+    prior = items["prior"]
+    forecast = logit(prior) + np.log((1 - r) * a1 + r * 0.5) - np.log((1 - r) * a0 + r * 0.5)
+    own = logit(prior) + np.log(a1) - np.log(a0)
+    probe = np.log(r * 0.5) - np.log((1 - r) * (prior * a1 + (1 - prior) * a0))
+    kind = items["kind"]
+    return np.where(kind == "own", own, np.where(kind == "probe", probe, forecast))
+
+
 def linear_skepticism(items, weight, gamma):
     """T3 rival: each withheld item counts as `weight` of a bad item, whatever else is shared."""
     count = items["shared_good"] - items["shared_bad"] - weight * items["withheld"]

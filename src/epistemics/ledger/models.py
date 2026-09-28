@@ -40,6 +40,15 @@ CUE_MODELS = {
     "corroboration-asked": "dependence",
     "disclosure-asked": "disclosure",
     "corroboration-probed": "dependence",
+    **{
+        f"{family}-urn{suffix}": model
+        for family, model in (
+            ("copying", "dependence"),
+            ("selection", "disclosure"),
+            ("mismatch", "mismatch"),
+        )
+        for suffix in ("", "-asked", "-probed")
+    },
 }
 CUE_NAMES = {round(v, 12): k for k, v in design.CUES.items()}
 REPORT_RECOVERY = {"disposition": fit.DISPOSITION, "gamma": fit.GAMMA, "report_sd": fit.REPORT_SD}

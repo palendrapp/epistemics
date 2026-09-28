@@ -390,3 +390,56 @@ def corroboration_probed():
     )
     table["cue"] = np.array([CUES[c] for c in table["cue"]])
     return table
+
+
+# Abstract urn tasks. Copying and selection reuse the relay and disclosure designs above; the third
+# structure, mismatch (a reading filed under the wrong urn), has its own. Each description level
+# has sensor readings whose weight depends on the mismatch prior; the anchors are the respondent's
+# own draws, which cannot be misfiled.
+# kind, prior, accuracy_a, report_a, slot
+_MISMATCH_FORECASTS = [
+    ("single", 0.3, 0.9, 1),
+    ("single", 0.7, 0.9, -1),
+    ("single", 0.25, 0.95, 1),
+    ("single", 0.75, 0.95, -1),
+]
+_MISMATCH_ANCHORS = [
+    ("own", 0.5, 0.65, 1, -1),
+    ("own", 0.3, 0.7, 1, -1),
+    ("own", 0.5, 0.8, -1, -1),
+    ("own", 0.6, 0.7, 1, -1),
+]
+MISMATCH_COLUMNS = ("kind", "prior", "accuracy_a", "report_a", "slot")
+
+
+def _mismatch(rows):
+    return columns(rows, MISMATCH_COLUMNS)
+
+
+def mismatch_urn():
+    """Forecast-only: four sensor readings per level and four own-draw anchors."""
+    rows = [(*row, s) for s in range(len(CUE_LEVELS)) for row in _MISMATCH_FORECASTS]
+    return _mismatch(rows + _MISMATCH_ANCHORS)
+
+
+def mismatch_urn_asked():
+    """Each level's stated base-rate question and three readings."""
+    rows = [
+        row
+        for s in range(len(CUE_LEVELS))
+        for row in [("rate", 0.5, 0.9, 1, s), *[(*f, s) for f in _MISMATCH_FORECASTS[1:]]]
+    ]
+    return _mismatch(rows + _MISMATCH_ANCHORS)
+
+
+def mismatch_urn_probed():
+    """Each level's base-rate question, structure probe and two readings."""
+    rows = []
+    for s in range(len(CUE_LEVELS)):
+        r = 1 if s % 2 == 0 else -1
+        rows += [
+            ("rate", 0.5, 0.9, 1, s),
+            ("probe", 0.5, 0.9, r, s),
+            *[(*f, s) for f in _MISMATCH_FORECASTS[2:]],
+        ]
+    return _mismatch(rows + _MISMATCH_ANCHORS)

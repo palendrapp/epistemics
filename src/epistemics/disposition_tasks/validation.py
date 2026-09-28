@@ -30,14 +30,29 @@ from epistemics.disposition_tasks.render import (
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
+    URN_ASKED_MODULES,
+    URN_MODULES,
+    URN_PROBED_MODULES,
+    URN_VARIANTS,
     VARIANTS,
     items_for,
     render,
     stated_percentages,
+    urn_family,
 )
 from epistemics.disposition_tasks.simulation import simulate
 
-TOLERANCE = {"disposition": 0.15, "certainty_value": 15.0, "start": 0.15, "cue": 0.15}
+# Description-level priors: the mean level error must meet the recovery gate (0.10) and no level
+# may miss by more than 0.20. Until tasks 0.10 the criterion was the largest level error at most
+# 0.15; at report noise 0.15 the forecast-only relay designs miss that by chance (their recovery
+# MAE is 0.08), which the urn contexts showed (docs/disposition-abstract-2026-09-28.md).
+TOLERANCE = {
+    "disposition": 0.15,
+    "certainty_value": 15.0,
+    "start": 0.15,
+    "cue_mean": 0.10,
+    "cue_largest": 0.20,
+}
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -112,6 +127,10 @@ def variants_of(module):
         return UNPROMPTED_VARIANTS
     if module in ASKED_MODULES + PROBED_MODULES:
         return ASKED_VARIANTS
+    if module in URN_MODULES:
+        return URN_VARIANTS
+    if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
+        return ("urn-named",)
     return ("paired",) if module == "checks" else VARIANTS
 
 
@@ -125,6 +144,9 @@ def covers_of(module):
         + UNPROMPTED_MODULES
         + ASKED_MODULES
         + PROBED_MODULES
+        + URN_MODULES
+        + URN_ASKED_MODULES
+        + URN_PROBED_MODULES
         else COVERS
     )
 
@@ -141,6 +163,29 @@ def states_only_the_named(module, variant, case):
         text = text.replace(sentence, "")
     shown = json.dumps({**case, "case": text}).lower()
     return not any(word in shown for word in MECHANISM)
+
+
+# Urn cases in the plain variant must not name or describe their structure.
+URN_MECHANISM = {
+    "copying": ("copy", "copies", "copied", "relay", "repeats"),
+    "selection": ("hold back", "holds back", "withh", "selective", "every red"),
+    "mismatch": ("different urn", "another urn", "wrong urn"),
+}
+
+
+def urn_states_only_the_named(module, variant, case):
+    """Plain cases never state the structure; named cases state its one sentence exactly once.
+    Only the question of a base-rate or probe case may mention it again."""
+    from epistemics.disposition_tasks.urn import NAMED
+
+    family = urn_family(module)
+    text = case["case"]
+    if variant == "urn-named":
+        if text.count(NAMED[family]) != 1:
+            return False
+        text = text.replace(NAMED[family], "")
+    words = URN_MECHANISM[family] + MECHANISM
+    return not any(word in text.lower() for word in words)
 
 
 def audit():
@@ -166,6 +211,9 @@ def audit():
                         raise ValueError(f"{where} states the mechanism beyond its variant")
                     # Asked cases: the case text names the mechanism once; only a base-rate
                     # question mentions it again.
+                    urn = module in URN_MODULES + URN_ASKED_MODULES + URN_PROBED_MODULES
+                    if urn and not urn_states_only_the_named(module, variant, case):
+                        raise ValueError(f"{where} states the mechanism beyond its variant")
                     if module in ASKED_MODULES + PROBED_MODULES and not states_only_the_named(
                         module, variant, {"case": case["case"]}
                     ):
@@ -208,6 +256,11 @@ def contexts_to_validate():
             yield module, "markets", variant, CUE_RESPONDENT
     for module in PROBED_MODULES:
         yield module, "markets", "named-a", CUE_RESPONDENT
+    for module in URN_MODULES:
+        for variant in URN_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for module in URN_ASKED_MODULES + URN_PROBED_MODULES:
+        yield module, "markets", "urn-named", CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):
@@ -221,8 +274,9 @@ def estimate(module, analysis, truth):
             implied = summary["targets_implied"] + summary["comparisons_implied"]
         else:
             implied = analysis["cues"]["implied"]
-        error = max(abs(a - b) for a, b in zip(implied, truth["slots"], strict=True))
-        return error, error <= TOLERANCE["cue"]
+        errors = [abs(a - b) for a, b in zip(implied, truth["slots"], strict=True)]
+        largest, mean = max(errors), sum(errors) / len(errors)
+        return largest, mean <= TOLERANCE["cue_mean"] and largest <= TOLERANCE["cue_largest"]
     if "strength" in truth:
         learning = analysis["learning"]
         row = learning["parameters"]["start"]

@@ -27,6 +27,15 @@ CUE_MODELS = {
     "corroboration-asked": "dependence",
     "disclosure-asked": "disclosure",
     "corroboration-probed": "dependence",
+    **{
+        f"{family}-urn{suffix}": model
+        for family, model in (
+            ("copying", "dependence"),
+            ("selection", "disclosure"),
+            ("mismatch", "mismatch"),
+        )
+        for suffix in ("", "-asked", "-probed")
+    },
 }
 RANGE_TARGETS = 5
 

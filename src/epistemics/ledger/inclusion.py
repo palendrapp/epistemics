@@ -33,7 +33,13 @@ LADDER = {
     ("probed", "named-a"): 3,
     ("dossier", "dossier-a"): 3,
     ("cues", "cues-a"): 3,
+    # Abstract urn tasks.
+    ("urn", "urn-plain"): 0,
+    ("urn", "urn-named"): 1,
+    ("urn-asked", "urn-named"): 2,
+    ("urn-probed", "urn-named"): 3,
 }
+FORMATS = {"dossier": ("relay", "disclosure"), "urn": ("copying", "selection", "mismatch")}
 THETA = np.round(np.arange(-1.0, 4.001, 0.1), 2)
 W = np.round(np.arange(0.0, 1.501, 0.1), 2)
 SIGMA = np.array([0.05, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0])
@@ -61,7 +67,11 @@ def rung(module, variant):
 
 
 def family(module):
-    return "relay" if module.startswith("corroboration") else "disclosure"
+    if module.startswith("corroboration"):
+        return "relay"
+    if module.startswith("disclosure"):
+        return "disclosure"
+    return module.split("-", 1)[0]
 
 
 def cell_masses(mu, omega):
@@ -251,14 +261,17 @@ def check(terms, means):
     }
 
 
-def ledger_sessions(models, configuration, with_ids=False):
-    """This configuration's description sessions on the ladder, from the ledger's model block.
+def ledger_sessions(models, configuration, with_ids=False, fmt="dossier"):
+    """This configuration's description sessions on the ladder, from the ledger's model block,
+    for one format ("dossier": relay and disclosure; "urn": copying, selection and mismatch).
 
     With with_ids, also returns each family's session ids in the same order.
     """
     rows, ids = {}, {}
     for s in models["sessions"]:
         if s["configuration"] != configuration or not s.get("slots"):
+            continue
+        if family(s["module"]) not in FORMATS[fmt]:
             continue
         if s["module"].endswith("-cues") and s.get("order_policy") != "random":
             continue
@@ -276,8 +289,13 @@ def ledger_sessions(models, configuration, with_ids=False):
 TRUE_MAPPING = {
     "relay": np.array([0.05, 0.45, 0.5, 0.5, 0.93]),
     "disclosure": np.array([0.25, 0.2, 0.5, 0.65, 0.75]),
+    "copying": np.array([0.05, 0.45, 0.5, 0.5, 0.93]),
+    "selection": np.array([0.25, 0.2, 0.5, 0.65, 0.75]),
+    "mismatch": np.array([0.03, 0.3, 0.45, 0.6, 0.85]),
 }
 COUNTS = {"relay": {0: 3, 1: 3, 2: 6, 3: 14}, "disclosure": {0: 3, 1: 3, 2: 3, 3: 5}}
+# The abstract preset: per configuration and structure, 3 plain, 3 named, 3 asked, 2 probed.
+URN_COUNTS = {f: {0: 3, 1: 3, 2: 3, 3: 2} for f in FORMATS["urn"]}
 PRIOR = {"theta": (0.3, 2.7), "w": (0.0, 1.0), "sigma": (0.2, 1.2)}
 PRIORS = {
     "shared": PRIOR,
@@ -294,6 +312,18 @@ def designs():
     from epistemics.dispositions import design
 
     return {
+        ("copying", 0): design.corroboration_unprompted(),
+        ("copying", 1): design.corroboration_unprompted(),
+        ("copying", 2): design.corroboration_asked(),
+        ("copying", 3): design.corroboration_probed(),
+        ("selection", 0): design.disclosure_unprompted(),
+        ("selection", 1): design.disclosure_unprompted(),
+        ("selection", 2): design.disclosure_asked(),
+        ("selection", 3): design.disclosure_cues(),
+        ("mismatch", 0): design.mismatch_urn(),
+        ("mismatch", 1): design.mismatch_urn(),
+        ("mismatch", 2): design.mismatch_urn_asked(),
+        ("mismatch", 3): design.mismatch_urn_probed(),
         ("relay", 0): design.corroboration_unprompted(),
         ("relay", 1): design.corroboration_unprompted(),
         ("relay", 2): design.corroboration_asked(),
@@ -306,7 +336,13 @@ def designs():
 
 
 def simulate(
-    rng, truth, omega=0.4, report_sd=(0.05, 0.3), stated=False, stated_source="considered"
+    rng,
+    truth,
+    omega=0.4,
+    report_sd=(0.05, 0.3),
+    stated=False,
+    stated_source="considered",
+    fmt="dossier",
 ):
     """Synthetic sessions per family. Stated rates, when asked, report the mapping ("considered")
     or the session's applied prior ("applied")."""
@@ -314,10 +350,22 @@ def simulate(
     from epistemics.dispositions.response import sample_reports
 
     items_for = designs()
-    observer = {"relay": observers.corroboration, "disclosure": observers.disclosure}
-    model = {"relay": "dependence", "disclosure": "disclosure"}
+    observer = {
+        "relay": observers.corroboration,
+        "disclosure": observers.disclosure,
+        "copying": observers.corroboration,
+        "selection": observers.disclosure,
+        "mismatch": observers.mismatch,
+    }
+    model = {
+        "relay": "dependence",
+        "disclosure": "disclosure",
+        "copying": "dependence",
+        "selection": "disclosure",
+        "mismatch": "mismatch",
+    }
     rows = {}
-    for fam, counts in COUNTS.items():
+    for fam, counts in (COUNTS if fmt == "dossier" else URN_COUNTS).items():
         mu = TRUE_MAPPING[fam]
         cue = logit(mu) - logit(mu[IRRELEVANT])
         for salience, n in counts.items():

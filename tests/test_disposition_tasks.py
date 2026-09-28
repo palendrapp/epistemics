@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 984
+    assert audit()["cases"] == 1272
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 43
+    assert result["passed"] and len(result["contexts"]) == 55
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -642,3 +642,36 @@ def test_probed_dossiers_add_the_structure_probe_to_the_asked_design(tmp_path):
         variant="named-a",
     )
     assert np.allclose(report.analysis["cues"]["implied"], truth["slots"], atol=0.06)
+
+
+def test_urn_tasks_keep_the_structure_unnamed_unless_named(tmp_path):
+    from epistemics.disposition_tasks.urn import NAMED
+    from epistemics.disposition_tasks.validation import URN_MECHANISM
+
+    for family in ("copying", "selection", "mismatch"):
+        module = f"{family}-urn"
+        for i in range(24):
+            plain = render(module, "markets", i, "urn-plain")["case"].lower()
+            assert not any(w in plain for w in URN_MECHANISM[family])
+            named = render(module, "markets", i, "urn-named")["case"]
+            assert named.count(NAMED[family]) == 1
+        for suffix in ("-asked", "-probed"):
+            kinds = items_for(module + suffix)["kind"]
+            assert "rate" in set(kinds)
+            with pytest.raises(ValueError, match="variant"):
+                render(module + suffix, "markets", 0, "urn-plain")
+    assert (
+        "matched sensor A27's in 198" in render("copying-urn", "markets", 16, "urn-plain")["case"]
+    )
+    truth = {"slots": [0.05, 0.3, 0.5, 0.6, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+    for module in ("copying-urn-probed", "selection-urn-asked", "mismatch-urn"):
+        report = simulate(
+            tmp_path / module,
+            module=module,
+            cover="markets",
+            order=ORDER,
+            truth=truth,
+            seed=14,
+            variant="urn-named",
+        )
+        assert np.allclose(report.analysis["cues"]["implied"], truth["slots"], atol=0.08), module

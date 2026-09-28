@@ -24,6 +24,15 @@ MODULES = (
     "corroboration-asked",
     "disclosure-asked",
     "corroboration-probed",
+    "copying-urn",
+    "selection-urn",
+    "mismatch-urn",
+    "copying-urn-asked",
+    "selection-urn-asked",
+    "mismatch-urn-asked",
+    "copying-urn-probed",
+    "selection-urn-probed",
+    "mismatch-urn-probed",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -38,6 +47,29 @@ ASKED_MODULES = ("corroboration-asked", "disclosure-asked")
 ASKED_VARIANTS = ("named-a",)
 # The asked relay dossiers with each description's structure probe.
 PROBED_MODULES = ("corroboration-probed",)
+# Abstract urn tasks (transfer of the second layer): three structures on the salience ladder.
+# Base modules take "urn-plain" (never named) or "urn-named"; asked and probed take "urn-named".
+URN_MODULES = ("copying-urn", "selection-urn", "mismatch-urn")
+URN_ASKED_MODULES = ("copying-urn-asked", "selection-urn-asked", "mismatch-urn-asked")
+URN_PROBED_MODULES = ("copying-urn-probed", "selection-urn-probed", "mismatch-urn-probed")
+URN_VARIANTS = ("urn-plain", "urn-named")
+URN_DESIGNS = {
+    "copying-urn": design.corroboration_unprompted,
+    "copying-urn-asked": design.corroboration_asked,
+    "copying-urn-probed": design.corroboration_probed,
+    "selection-urn": design.disclosure_unprompted,
+    "selection-urn-asked": design.disclosure_asked,
+    "selection-urn-probed": design.disclosure_cues,
+    "mismatch-urn": design.mismatch_urn,
+    "mismatch-urn-asked": design.mismatch_urn_asked,
+    "mismatch-urn-probed": design.mismatch_urn_probed,
+}
+
+
+def urn_family(module):
+    return module.split("-", 1)[0]
+
+
 RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
@@ -312,6 +344,8 @@ def items_for(module):
         return design.disclosure_asked()
     if module == "corroboration-probed":
         return design.corroboration_probed()
+    if module in URN_DESIGNS:
+        return URN_DESIGNS[module]()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -609,7 +643,14 @@ RENDERERS = {
     "corroboration-asked": lambda *a: _dossier("relay_asked", *a),
     "disclosure-asked": lambda *a: _dossier("disclosure_asked", *a),
     "corroboration-probed": lambda *a: _dossier("relay_probed", *a),
+    **{m: (lambda family: lambda *a: _urn(family, *a))(m.split("-", 1)[0]) for m in URN_DESIGNS},
 }
+
+
+def _urn(family, items, i, cover, variant):
+    from epistemics.disposition_tasks import urn
+
+    return getattr(urn, family)(items, i, cover, variant)
 
 
 def _dossier(kind, items, i, cover, variant):
@@ -629,6 +670,10 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in UNPROMPTED_VARIANTS
     if module in ASKED_MODULES + PROBED_MODULES:
         return cover == "markets" and variant in ASKED_VARIANTS
+    if module in URN_MODULES:
+        return cover == "markets" and variant in URN_VARIANTS
+    if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
+        return cover == "markets" and variant == "urn-named"
     if module == "checks":
         return variant == "paired"
     return variant in VARIANTS
@@ -653,6 +698,8 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
+    if module in URN_DESIGNS:
+        return urn_percentages(urn_family(module), items, index)
     described = CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + ASKED_MODULES + PROBED_MODULES
     if module in described and items["kind"][index] == "rate":
         disclosure = module in ("disclosure-cues", "disclosure-dossier", "disclosure-asked")
@@ -675,6 +722,26 @@ def stated_percentages(module, index):
     else:
         g = items["good"][index]
         values = [items["prior"][index], g, 1 - g, items["omission"][index]]
+    return sorted({percent(v) for v in np.asarray(values, dtype=float)})
+
+
+def urn_percentages(family, items, index):
+    kind = items["kind"][index]
+    if family == "selection":
+        g = items["good"][index]
+        values = [items["omission"][index]]
+        if kind != "rate":
+            values += [items["prior"][index], g, 1 - g]
+    elif kind == "rate":
+        values = []
+    elif family == "copying":
+        values = [items["prior"][index], items["accuracy_a"][index]]
+        if kind != "single":
+            values.append(items["accuracy_b"][index])
+    else:
+        values = [items["prior"][index], items["accuracy_a"][index]]
+        if kind == "own":
+            values.append(1 - items["accuracy_a"][index])
     return sorted({percent(v) for v in np.asarray(values, dtype=float)})
 
 

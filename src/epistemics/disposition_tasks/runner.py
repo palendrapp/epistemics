@@ -38,6 +38,10 @@ from epistemics.disposition_tasks.render import (
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
+    URN_ASKED_MODULES,
+    URN_MODULES,
+    URN_PROBED_MODULES,
+    URN_VARIANTS,
     VARIANTS,
     allowed,
     items_for,
@@ -112,6 +116,8 @@ AUDITED_CASES = (
     + 24 * len(UNPROMPTED_MODULES) * len(UNPROMPTED_VARIANTS)
     + 24 * len(ASKED_MODULES) * len(ASKED_VARIANTS)
     + 24 * len(PROBED_MODULES) * len(ASKED_VARIANTS)
+    + 24 * len(URN_MODULES) * len(URN_VARIANTS)
+    + 24 * len(URN_ASKED_MODULES + URN_PROBED_MODULES)
 )
 PRESETS["transfer"] = (
     {
@@ -129,6 +135,25 @@ PRESETS["asked"] = (
         "configurations": ("astra", "sol"),
         "modules": ASKED_MODULES,
         "contexts": tuple(("named-a", "markets", r) for r in (1, 2, 3)),
+    },
+)
+# Abstract transfer: the frontier pair on the urn tasks, every structure on every rung of the
+# salience ladder (plain, named, named and asked, named, asked and probed).
+PRESETS["abstract"] = (
+    {
+        "configurations": ("astra", "sol"),
+        "modules": URN_MODULES,
+        "contexts": tuple((v, "markets", r) for v in URN_VARIANTS for r in (1, 2, 3)),
+    },
+    {
+        "configurations": ("astra", "sol"),
+        "modules": URN_ASKED_MODULES,
+        "contexts": tuple(("urn-named", "markets", r) for r in (1, 2, 3)),
+    },
+    {
+        "configurations": ("astra", "sol"),
+        "modules": URN_PROBED_MODULES,
+        "contexts": tuple(("urn-named", "markets", r) for r in (1, 2)),
     },
 )
 # Retest of Sol's stated-applied gap on the asked relay dossiers, and the probed variant for both.
@@ -220,7 +245,12 @@ def check_groups(groups):
             raise ValueError("Unknown module")
         if not contexts or any(
             variant
-            not in VARIANTS + CUE_VARIANTS + RANGE_VARIANTS + DOSSIER_VARIANTS + UNPROMPTED_VARIANTS
+            not in VARIANTS
+            + CUE_VARIANTS
+            + RANGE_VARIANTS
+            + DOSSIER_VARIANTS
+            + UNPROMPTED_VARIANTS
+            + URN_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -508,7 +538,14 @@ async def collect(root, entry, config, timeout):
 def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
     if analysis["module"] in (
-        CUE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES + ASKED_MODULES + PROBED_MODULES
+        CUE_MODULES
+        + DOSSIER_MODULES
+        + UNPROMPTED_MODULES
+        + ASKED_MODULES
+        + PROBED_MODULES
+        + URN_MODULES
+        + URN_ASKED_MODULES
+        + URN_PROBED_MODULES
     ):
         return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] in RANGE_MODULES:

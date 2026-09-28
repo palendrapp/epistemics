@@ -338,7 +338,15 @@ def summarise(layout, draws, chains, pointwise, variant, stated_model, data=None
     }
 
 
-def validate(seed=20260928, datasets=30, chains=4, iterations=10000, burn=4000, models=12):
+# Chain lengths per format: the urn format fits three structures (23 parameters), and its extreme
+# mapping levels mix slowly, so it needs longer chains to converge.
+CHAINS = {"dossier": {"fit": (20000, 8000), "recovery": (10000, 4000)}}
+CHAINS["urn"] = {"fit": (40000, 15000), "recovery": (30000, 12000)}
+
+
+def validate(
+    seed=20260928, datasets=30, chains=4, iterations=None, burn=None, models=12, fmt="dossier"
+):
     """Parameter recovery (θ, w, σ, mapping) and stated-model recovery, through the real designs.
 
     Parameter recovery simulates the "considered" hypothesis and fits it. Model recovery simulates
@@ -346,11 +354,14 @@ def validate(seed=20260928, datasets=30, chains=4, iterations=10000, burn=4000, 
     """
     from epistemics.ledger.inclusion import PRIOR, TRUE_MAPPING, simulate
 
+    default_iterations, default_burn = CHAINS[fmt]["recovery"]
+    iterations = iterations or default_iterations
+    burn = burn or default_burn
     rng = np.random.default_rng(seed)
     rows = []
     for k in range(datasets):
         truth = {name: float(rng.uniform(*limits)) for name, limits in PRIOR.items()}
-        rows_by_family = simulate(rng, truth, stated=True)
+        rows_by_family = simulate(rng, truth, stated=True, fmt=fmt)
         result = sample(
             rows_by_family, chains=chains, iterations=iterations, burn=burn, seed=seed + k
         )
@@ -359,7 +370,7 @@ def validate(seed=20260928, datasets=30, chains=4, iterations=10000, burn=4000, 
     for k in range(models):
         for source in ("considered", "applied"):
             truth = {name: float(rng.uniform(*limits)) for name, limits in PRIOR.items()}
-            data = simulate(rng, truth, stated=True, stated_source=source)
+            data = simulate(rng, truth, stated=True, stated_source=source, fmt=fmt)
             fits = {
                 m: sample(data, "shared", m, chains, iterations, burn, seed + 1000 + k)
                 for m in ("considered", "applied")
@@ -375,9 +386,11 @@ def validate(seed=20260928, datasets=30, chains=4, iterations=10000, burn=4000, 
                 }
             )
     converged = [r for r in rows if r["result"]["rhat_max"] <= RHAT_LIMIT]
+    families = ("relay", "disclosure") if fmt == "dossier" else ("copying", "selection", "mismatch")
+    mapping = {f: TRUE_MAPPING[f] for f in families}
     return {
-        **recovery_metrics(rows, model_rows, PRIOR, TRUE_MAPPING),
-        "converged_only": recovery_metrics(converged, [], PRIOR, TRUE_MAPPING)["metrics"]
+        **recovery_metrics(rows, model_rows, PRIOR, mapping),
+        "converged_only": recovery_metrics(converged, [], PRIOR, mapping)["metrics"]
         if len(converged) > 2
         else None,
         "converged_datasets": len(converged),
@@ -396,6 +409,7 @@ def validate(seed=20260928, datasets=30, chains=4, iterations=10000, burn=4000, 
             "counts; joint fit by adaptive Metropolis."
         ),
         "schema_version": "epistemics.inclusion-joint-recovery.v2",
+        "format": fmt,
     }
 
 

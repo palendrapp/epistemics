@@ -91,10 +91,12 @@ def main():
     ij = sub.add_parser("inclusion-joint")
     ij.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
     ij.add_argument("--configuration", action="append", default=None)
+    ij.add_argument("--format", choices=("dossier", "urn"), default="dossier")
     ijv = sub.add_parser("inclusion-joint-validate")
     ijv.add_argument("--output", type=Path, required=True)
     ijv.add_argument("--datasets", type=int, default=30)
     ijv.add_argument("--models", type=int, default=12)
+    ijv.add_argument("--format", choices=("dossier", "urn"), default="dossier")
     fv = sub.add_parser("fidelity-validate")
     fv.add_argument("--output", type=Path, required=True)
     fv.add_argument("--datasets", type=int, default=20)
@@ -155,9 +157,12 @@ def main():
         models = json.loads(a.ledger.read_text())["models"]
         result = {}
         for config in a.configuration or ["astra", "sol"]:
-            rows, ids = inclusion.ledger_sessions(models, config, with_ids=True)
+            rows, ids = inclusion.ledger_sessions(models, config, with_ids=True, fmt=a.format)
+            if not rows:
+                continue
+            iterations, burn = joint.CHAINS[a.format]["fit"]
             fits = {
-                f"{variant}/{stated}": joint.sample(rows, variant, stated, 4, 20000, 8000)
+                f"{variant}/{stated}": joint.sample(rows, variant, stated, 4, iterations, burn)
                 for variant in ("shared", "theta_by_family")
                 for stated in ("considered", "applied", "mixture")
             }
@@ -183,7 +188,7 @@ def main():
             }
             # Robustness: the stated channel at all five levels.
             fits["shared/mixture (all levels)"] = joint.sample(
-                rows, "shared", "mixture", 4, 20000, 8000, stated_levels=(0, 1, 2, 3, 4)
+                rows, "shared", "mixture", 4, iterations, burn, stated_levels=(0, 1, 2, 3, 4)
             )
             fits["shared/mixture (all levels)"]["waic"].pop("elpd_pointwise")
             fits["shared/mixture (all levels)"].pop("session_fidelity")
@@ -201,7 +206,7 @@ def main():
     elif a.command == "inclusion-joint-validate":
         from epistemics.ledger import inclusion_joint as joint
 
-        run = joint.validate(datasets=a.datasets, models=a.models)
+        run = joint.validate(datasets=a.datasets, models=a.models, fmt=a.format)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True) + "\n")
         summary = {
@@ -242,7 +247,9 @@ def main():
         groups = {}
         for root in a.roots:
             for record, s in verified_pairs(root):
-                if s["module"].endswith(("-cues", "-dossier", "-unprompted", "-asked", "-probed")):
+                if s["module"].endswith(
+                    ("-cues", "-dossier", "-unprompted", "-asked", "-probed", "-urn")
+                ):
                     groups.setdefault(
                         (record["configuration"], s["module"], s["variant"]), []
                     ).append(s)
