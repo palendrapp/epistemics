@@ -255,6 +255,21 @@
       "outcome": "P1 supported: between-session SD of ambiguous description priors 0.07 (Astra, moderate) and 0.11 (Sol, unstable by point estimate). P2 not supported: variation mostly level-specific. Astra's uninformative default fixed at 50%; Sol's ranged 22-52%, with one stated-implied divergence."
     },
     {
+      "id": "disposition-weaker-cues",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Weaker configurations on description modules",
+      "question": "Do GPT-5.6 Luna and Terra map source descriptions to priors like the GPT-6 configurations?",
+      "doc": "docs/disposition-weaker-cues-2026-09-28.md",
+      "roots": [
+        "output/disposition-weaker-cues-20260928"
+      ],
+      "status": "running",
+      "prediction": "W1: strongly suggestive above strongly reassuring by at least 0.30 in both modules. W2: median report noise above 0.05. W3: stated and implied within 0.10 at every level in at least 4 of 6 sessions per configuration.",
+      "outcome": null
+    },
+    {
       "id": "source-learning-acceptance",
       "date": "2026-09-26",
       "track": "archive",
@@ -322,7 +337,7 @@
     }
   ],
   "next": [
-    "Weaker configurations (Luna, Terra) on the description modules, with three or more sessions each.",
+    "Report the weaker-configuration description study against its preregistration.",
     "Transfer: dossiers without background facts, starting with descriptions from the fixed extremes.",
     "HGF volatility module (T4) offline.",
     "Human references for the descriptions when human collection resumes."
