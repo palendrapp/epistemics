@@ -59,3 +59,10 @@ Papers cited in conversation or design notes without full treatment, each with t
 | --- | --- | --- | --- |
 | [Wilson & Collins 2019](https://elifesciences.org/articles/49547) | Distinguishes parameter recovery from model recovery and asks for both before fitting data. The recovery protocol in model §4. | 27 Sep, model §4 | [R] |
 | [Mkrtchian, Valton & Roiser 2023](https://cpsyjournal.org/articles/10.5334/cpsy.86) | Reliability of computational parameters; joint hierarchical fitting across sessions improves test–retest. Basis for reporting retest beside recovery. | 27 Sep, model §4 | [S] |
+
+## Relative judgement
+
+| Paper | Why it came up | Mentioned | Read |
+| --- | --- | --- | --- |
+| [Parducci 1965](https://doi.org/10.1037/h0022602) | Range–frequency theory: category judgements depend on an item's position within the range and rank of the context's stimuli. It is the classic account of why the mild relay descriptions shifted with the other outlets in view while the extremes stayed fixed. | 28 Sep, [relay baseline](disposition-baseline-2026-09-28.md) | [M], DOI checked |
+| [Stewart, Chater & Brown 2006](https://doi.org/10.1016/j.cogpsych.2005.10.003) | Decision by sampling: judged magnitudes come from comparisons with a sample of items in memory and context. A candidate mechanism for the relative component of the description-to-prior mapping. | 28 Sep, [relay baseline](disposition-baseline-2026-09-28.md) | [M], DOI checked |
