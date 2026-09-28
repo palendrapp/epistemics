@@ -67,6 +67,17 @@ def main():
     t.add_argument("second", type=Path)
     c = sub.add_parser("contrast")
     c.add_argument("root", type=Path)
+    v = sub.add_parser("variance")
+    v.add_argument("roots", type=Path, nargs="+")
+    v.add_argument("--configuration", required=True)
+    v.add_argument("--module", default="corroboration-cues")
+    v.add_argument("--variant", default="cues-a")
+    v.add_argument("--levels", type=int, nargs="+", default=[1, 2, 3])
+    v.add_argument("--order-policy", default="random", help="'any' to pool every order policy")
+    val = sub.add_parser("variance-validate")
+    val.add_argument("--output", type=Path, required=True)
+    val.add_argument("--seed", type=int, default=20260928)
+    val.add_argument("--repetitions", type=int, default=30)
     a = parser.parse_args()
     if a.command == "build":
         ledger = build(a.registry)
@@ -85,9 +96,37 @@ def main():
             print(
                 f"| {x['configuration']} | {x['module']} | {x['variant']} | {fmt(x['first'])} | {fmt(x['second'])} | {x['mean_absolute_difference']:.2f} | {fmt(x['rank_agreement'])} |"
             )
-    else:
+    elif a.command == "contrast":
         contrast = dispositions.range_contrast(verified_pairs(a.root))
         print(json.dumps(contrast, indent=2))
+    elif a.command == "variance":
+        from epistemics.ledger import variance
+
+        y, s, used = [], [], []
+        for root in a.roots:
+            for record in dispositions.extract(root):
+                if not (
+                    record.get("verified")
+                    and record["configuration"] == a.configuration
+                    and record["module"] == a.module
+                    and record["variant"] == a.variant
+                    and (a.order_policy == "any" or record["order_policy"] == a.order_policy)
+                ):
+                    continue
+                chosen = [record["slot_fits"][level]["implied"] for level in a.levels]
+                y.append([c["mean"] for c in chosen])
+                s.append(variance.standard_errors([c["interval_90"] for c in chosen]))
+                used.append(record["run_id"])
+        result = variance.estimate(y, s)
+        print(json.dumps({"configuration": a.configuration, "runs": used, **result}, indent=2))
+    else:
+        from epistemics.ledger import variance
+
+        result = variance.validate(a.seed, repetitions=a.repetitions)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+        for cell in result["cells"]:
+            print(json.dumps({k: round(v, 3) for k, v in cell.items()}))
 
 
 if __name__ == "__main__":
