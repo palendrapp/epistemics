@@ -20,6 +20,13 @@ Every number in a results doc should be reproducible from frozen artifacts by a 
   - **Recovery sample.** 100 simulated respondents per module (relay and disclosure probe designs; checks under the linear certainty function), drawn from the validation study's generating ranges with seed 20260928 and fitted by the real fits. Intervals are widened to grid-cell edges, as in the validation study. The sample is cached under `output/ledger-recovery-v2-<model fingerprint>-…json`.
   - **Designs.** Each distinct item design, with case labels and reference observer values. The page's JavaScript port of the relay and disclosure observers is checked against these on load, and the page reports the largest difference.
 
+- **Analyses:** the formal-to-dossier transfer and the noticing comparison (unprompted against prompted dossiers), computed over every verified record in the registry.
+- **Reading guide** (`epistemics.ledger.guide`, reading-guide/0.1.0; written to `output/guide.json` by `build`): the passport in plain language, per configuration.
+  - **Readings.** Fixed rules turn each measured parameter into a reading. Each reading has a claim, a detail line, the evidence behind it (module and number of sessions), a short fact for the label, and a caution where a behaviour could mislead a reader. Examples: "treats a missing base rate as 50/50"; "its probabilities carry about ±10 points of noise"; "states sensible base rates, but its forecasts often use different ones".
+  - **Thresholds.** They live in the code, so the guide changes only when the evidence does.
+  - **Scope.** Readings describe behaviour in these tasks; they are not claims about internal beliefs.
+  - **Page.** [`src/epistemics/ledger/assets/guide.html`](../src/epistemics/ledger/assets/guide.html) renders the guide as its own private artifact, separate from the dashboard, with `guide.json` published alongside.
+
 ## Commands
 
 ```bash
@@ -38,6 +45,10 @@ uv run python -m epistemics.ledger retest output/disposition-cues-20260928 outpu
 
 ```bash
 uv run python -m epistemics.ledger contrast output/disposition-range-20260928
+```
+
+```bash
+uv run python -m epistemics.ledger noticing output/disposition-transfer-20260928 output/disposition-unprompted-20260928
 ```
 
 ## Dashboard

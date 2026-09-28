@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from epistemics.ledger import VERSION, dispositions, models, roots, variance
+from epistemics.ledger import VERSION, dispositions, guide, models, roots, transfer, variance
 
 CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
 
@@ -48,18 +48,28 @@ def session_variance(pairs, config):
     return {"sessions": result["sessions"], **result["total_sd"]}
 
 
+PRESENTATIONS = {
+    "cues-a": ("cues", ("cues-a",)),
+    "cues-b": ("cues", ("cues-b",)),
+    "dossier": ("dossier", None),
+    "unprompted": ("unprompted", None),
+}
+
+
 def mappings(select, base):
     """Mean implied prior per description level, by presentation."""
-    presentations = {
-        "cues-a": (f"{base}-cues", ("cues-a",)),
-        "cues-b": (f"{base}-cues", ("cues-b",)),
-        "dossier": (f"{base}-dossier", None),
-        "unprompted": (f"{base}-unprompted", None),
-    }
     return {
         name: np.mean([s["implied"] for s in rows], axis=0).tolist()
-        for name, (module, variants) in presentations.items()
-        if (rows := select(module, variants))
+        for name, (suffix, variants) in PRESENTATIONS.items()
+        if (rows := select(f"{base}-{suffix}", variants))
+    }
+
+
+def mapping_sessions(select, base):
+    return {
+        name: len(rows)
+        for name, (suffix, variants) in PRESENTATIONS.items()
+        if (rows := select(f"{base}-{suffix}", variants))
     }
 
 
@@ -114,10 +124,16 @@ def passport(pairs, retests, contrasts):
             # Per presentation: formal sets A and B, the prompted dossier and the unprompted one.
             "relay_description_mapping": mappings(select, "corroboration") or None,
             "disclosure_description_mapping": mappings(select, "disclosure") or None,
+            "relay_description_sessions": mapping_sessions(select, "corroboration") or None,
+            "disclosure_description_sessions": mapping_sessions(select, "disclosure") or None,
             "description_retest_difference": mean_of(
                 [r["mean_absolute_difference"] for r in retests if r["configuration"] == config]
             ),
             "relative_judgement_contrast": contrasts.get(config, {}).get("mean"),
+            "relative_judgement_sessions": sum(
+                contrasts.get(config, {}).get("contexts", {}).values()
+            )
+            or None,
             "ambiguous_description_session_sd": session_variance(pairs, config),
             # Sessions whose forecasts use the base rates they state (every level within 0.10).
             "description_coherence": [
@@ -200,7 +216,9 @@ def build(registry_path="docs/experiments.json"):
         "usage": {k: sum(d[k] for d in usage_by_day.values()) for k in roots.USAGE},
         "usage_by_day": dict(sorted(usage_by_day.items())),
     }
-    return {
+    records = [r for rs in extracted.values() for r in rs]
+    analyses = {"transfer": transfer.analyse(records), "noticing": transfer.noticing(records)}
+    result = {
         "schema_version": "epistemics.ledger.v1",
         "ledger_version": VERSION,
         "repository_commit": commit(),
@@ -212,5 +230,8 @@ def build(registry_path="docs/experiments.json"):
         "models": models.build(
             {r: records for r, records in extracted.items() if is_disposition(r)}, experiment_for
         ),
+        "analyses": analyses,
         "scope": "Recomputed from frozen plans, executions and verified reports; model revisions are requested aliases and execution is operator-asserted.",
     }
+    result["guide"] = guide.guide(result, models.descriptors())
+    return result

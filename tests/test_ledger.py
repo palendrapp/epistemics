@@ -248,3 +248,64 @@ def test_noticing_compares_unprompted_with_prompted_dossiers(tmp_path):
     assert errors["neglect"] < errors["indifference"] and errors["neglect"] < errors["prompted"]
     # Unprompted sessions do not enter the formal-to-dossier transfer.
     assert transfer.analyse(records) == {}
+
+
+def test_reading_guide_turns_the_passport_into_scoped_readings():
+    from epistemics.ledger import guide, models
+
+    exact = {
+        "relay_default": {"mean": 0.5, "contexts": 4},
+        "silence_default": {"mean": 0.5, "contexts": 4},
+        "evidence_sensitivity": {"mean": 1.0, "contexts": 16},
+        "report_noise_median": 0.05,
+        "checks_priced_at_decision_value": [72, 72],
+        "relay_description_mapping": {"cues-a": [0.05, 0.49, 0.49, 0.47, 0.93]},
+        "relay_description_sessions": {"cues-a": 12},
+        "ambiguous_description_session_sd": {
+            "estimate": 0.09,
+            "interval_95": [0.07, 0.14],
+            "sessions": 8,
+        },
+        "description_coherence": [18, 18],
+        "contexts": 47,
+    }
+    noisy = {
+        "evidence_sensitivity": {"mean": 0.8, "contexts": 2},
+        "report_noise_median": 0.4,
+        "ambiguous_description_session_sd": {
+            "estimate": 0.01,
+            "interval_95": [0.0, 0.16],
+            "sessions": 3,
+        },
+        "description_coherence": [1, 6],
+        "contexts": 9,
+    }
+    analyses = {
+        "noticing": {
+            "exact/relay": {
+                "unprompted_mapping": [0.0, 0.02, 0.03, 0.05, 0.08],
+                "unprompted_sessions": 3,
+            }
+        }
+    }
+    result = guide.guide(
+        {"passport": {"exact": exact, "noisy": noisy}, "analyses": analyses}, models.descriptors()
+    )
+    exact_readings = {r["key"]: r for r in result["configurations"]["exact"]["readings"]}
+    assert exact_readings["defaults"]["claim"].endswith("treats it as 50/50.")
+    assert exact_readings["descriptions-relay"]["fact"]["value"] == "5% → 93%"
+    assert "treats every report as independent" in exact_readings["noticing-relay"]["claim"]
+    assert exact_readings["precision"]["fact"]["value"] == "±1 point"
+    assert exact_readings["coherence"]["caution"] is None
+    noisy_readings = {r["key"]: r for r in result["configurations"]["noisy"]["readings"]}
+    assert "counts as about 75%" in noisy_readings["reliability"]["claim"]
+    assert noisy_readings["precision"]["fact"]["value"] == "±10 points"
+    assert "not yet pinned down" in noisy_readings["sessions"]["claim"]
+    assert (
+        noisy_readings["coherence"]["caution"]
+        and noisy_readings["coherence"]["strength"] == "several sessions"
+    )
+    assert (
+        "how fast it learns base rates from experience"
+        in result["configurations"]["noisy"]["not_yet_measured"]
+    )

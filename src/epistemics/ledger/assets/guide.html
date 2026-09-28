@@ -1,0 +1,317 @@
+<title>Epistemic Reading Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root {
+  --ground: #f3f5f2;
+  --surface: #ffffff;
+  --ink: #121518;
+  --ink-2: #353b41;
+  --muted: #62696f;
+  --rule: #d6dad4;
+  --figure: #2b5d8c;
+  --figure-soft: #dbe7f2;
+  --caution: #a4540b;
+  --caution-soft: #fbecd9;
+  --label-bg: #ffffff;
+  --label-ink: #111111;
+  --sans: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #111315;
+    --surface: #181b1e;
+    --ink: #eceee9;
+    --ink-2: #c8ccc6;
+    --muted: #979ea4;
+    --rule: #2e3338;
+    --figure: #86b6e3;
+    --figure-soft: #1f3346;
+    --caution: #f0a54e;
+    --caution-soft: #3a2812;
+    --label-bg: #181b1e;
+    --label-ink: #f2f2ee;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #111315;
+  --surface: #181b1e;
+  --ink: #eceee9;
+  --ink-2: #c8ccc6;
+  --muted: #979ea4;
+  --rule: #2e3338;
+  --figure: #86b6e3;
+  --figure-soft: #1f3346;
+  --caution: #f0a54e;
+  --caution-soft: #3a2812;
+  --label-bg: #181b1e;
+  --label-ink: #f2f2ee;
+}
+body { background: var(--ground); color: var(--ink); font: 16px/1.5 var(--sans); }
+.page { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 64px; display: grid; gap: 40px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--figure); outline-offset: 2px; }
+.masthead { display: grid; gap: 10px; max-width: 70ch; }
+.kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(34px, 5vw, 52px); font-weight: 900; letter-spacing: -0.02em; line-height: 1.02; }
+.lede { font-family: var(--serif); font-size: 19px; line-height: 1.5; color: var(--ink-2); }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.picker button { font: 600 14px var(--sans); color: var(--ink); background: var(--surface); border: 1.5px solid var(--rule); border-radius: 999px; padding: 7px 15px; cursor: pointer; }
+.picker button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--ground); }
+.layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 48px; align-items: start; }
+/* The label */
+.label { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); background: var(--label-bg); color: var(--label-ink); border: 2px solid var(--label-ink); padding: 6px 10px 10px; font-family: var(--sans); }
+.label .title { font-size: 34px; font-weight: 900; letter-spacing: -0.01em; line-height: 1.05; }
+.label .who { font-size: 16px; font-weight: 700; margin-top: 2px; }
+.label .per { font-size: 13px; }
+.label hr { border: 0; border-top: 1px solid var(--label-ink); margin: 0; }
+.label hr.thick { border-top-width: 11px; margin-top: 6px; }
+.label hr.mid { border-top-width: 5px; }
+.label .group { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; padding-block: 5px 3px; text-transform: uppercase; }
+.label .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-block: 4px; font-size: 14px; line-height: 1.3; }
+.label .row .value { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.label .row.caution .value::before { content: "! "; color: var(--caution); }
+.label .small { font-size: 11.5px; line-height: 1.4; padding-top: 6px; }
+/* Readings */
+.readings { display: grid; gap: 40px; min-width: 0; }
+.topic { display: grid; gap: 0; }
+.topic h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+.reading { display: grid; gap: 10px; padding-block: 20px; border-bottom: 1px solid var(--rule); }
+.reading .claim { font-size: 19px; font-weight: 600; line-height: 1.35; max-width: 62ch; }
+.reading .detail { font-family: var(--serif); font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 66ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; padding: 2px 9px; border: 1.5px solid var(--figure); color: var(--figure); }
+.pill.few { border-style: dashed; color: var(--muted); border-color: var(--muted); }
+.flag { font-size: 12px; font-weight: 700; color: var(--caution); background: var(--caution-soft); border-radius: 4px; padding: 3px 8px; justify-self: start; }
+/* Figures */
+.ladder { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr); gap: 6px 14px; align-items: center; font-size: 13.5px; max-width: 640px; }
+.ladder .name { color: var(--ink-2); }
+.track { position: relative; height: 18px; }
+.track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--rule); }
+.track .mid { position: absolute; top: 2px; bottom: 2px; left: 50%; border-left: 1px dashed var(--rule); }
+.dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--figure); }
+.dot.ghost { background: transparent; border: 2px solid var(--muted); }
+.dot-value { position: absolute; top: -1px; font: 600 12px var(--sans); color: var(--figure); font-variant-numeric: tabular-nums; }
+.axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: var(--figure); }
+.legend i.ghost { background: transparent; border: 2px solid var(--muted); width: 8px; height: 8px; }
+.spread { max-width: 460px; display: grid; gap: 4px; }
+.spread .band { position: absolute; top: 3px; bottom: 3px; background: var(--figure-soft); border-left: 2px solid var(--figure); border-right: 2px solid var(--figure); }
+.spread .band.wide { background: transparent; border-style: dashed; border-color: var(--muted); border-width: 0 1.5px; }
+.pips { display: flex; flex-wrap: wrap; gap: 5px; }
+.pips i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--figure); }
+.pips i.on { background: var(--figure); }
+.missing { display: grid; gap: 8px; }
+.missing h2 { font-size: 18px; font-weight: 800; }
+.missing ul { margin: 0; padding-left: 20px; font-family: var(--serif); color: var(--ink-2); display: grid; gap: 4px; }
+/* Compare and about */
+section.block { display: grid; gap: 14px; }
+section.block h2 { font-size: 24px; font-weight: 800; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+td.value { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.none { color: var(--muted); }
+tbody tr:hover td { background: var(--surface); }
+.about ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-family: var(--serif); color: var(--ink-2); max-width: 70ch; }
+.about p { font-family: var(--serif); color: var(--ink-2); max-width: 70ch; }
+.error { background: var(--caution-soft); color: var(--caution); border-radius: 6px; padding: 14px 16px; }
+@media (max-width: 880px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .label { position: static; max-width: 420px; }
+}
+@media (max-width: 520px) {
+  .ladder { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .ladder .name { padding-top: 6px; }
+  .lede { font-size: 17px; }
+}
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <p class="kicker" id="kicker">Draft</p>
+    <h1>Epistemic Reading Guide</h1>
+    <p class="lede">How to read the probabilities an AI model gives you: what it assumes when information is missing, how it weighs evidence, and how far to trust its numbers. Every reading comes from controlled forecasting tasks and says how much evidence is behind it.</p>
+  </header>
+
+  <nav class="picker" id="picker" aria-label="Model"></nav>
+
+  <main class="layout">
+    <aside class="label" id="label" aria-label="Reading facts"></aside>
+    <div class="readings" id="readings"></div>
+  </main>
+
+  <section class="block">
+    <h2>All models at a glance</h2>
+    <div class="scroll"><table id="compare"></table></div>
+  </section>
+
+  <section class="block about">
+    <h2>How to read this guide</h2>
+    <ul id="cautions"></ul>
+    <p id="measured"></p>
+  </section>
+</div>
+
+<script>
+const ORDER = ["astra", "sol", "luna", "terra", "astra-low", "sol-low"];
+const KEYS = ["defaults", "descriptions-relay", "descriptions-disclosure", "noticing-relay", "noticing-disclosure",
+  "learning", "relative", "reliability", "documents", "information", "precision", "sessions", "coherence"];
+
+const el = (tag, attrs = {}, ...children) => {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") node.className = v;
+    else if (k === "style") node.setAttribute("style", v);
+    else node.setAttribute(k, v);
+  }
+  for (const c of children.flat(Infinity)) {
+    if (c === null || c === undefined || c === false) continue;
+    node.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+  return node;
+};
+const pct = (p) => `${Math.round(p * 100)}%`;
+const at = (p) => `left:${(Math.min(1, Math.max(0, p)) * 100).toFixed(1)}%`;
+
+function track(children) {
+  return el("div", { class: "track" }, el("span", { class: "mid" }), children);
+}
+
+function figure(f) {
+  if (!f) return null;
+  if (f.kind === "ladder") {
+    const rows = f.values.map((v, i) => [
+      el("span", { class: "name", title: f.sentences ? f.sentences[i] : null }, f.labels[i]),
+      track([
+        f.compare ? el("span", { class: "dot ghost", style: at(f.compare[i]), title: `when told: ${pct(f.compare[i])}` }) : null,
+        el("span", { class: "dot", style: at(v), title: pct(v) }),
+        el("span", { class: "dot-value", style: `left:calc(${(Math.min(0.9, v) * 100).toFixed(1)}% + 10px)` }, pct(v))
+      ])
+    ]);
+    const box = el("div", { class: "ladder" }, rows, el("span"), el("div", { class: "axis" }, el("span", {}, "0%"), el("span", {}, "50%"), el("span", {}, "100%")));
+    if (!f.compare) return box;
+    return el("div", { style: "display:grid;gap:8px" }, box,
+      el("div", { class: "legend" }, el("span", {}, el("i"), "not told the mechanism"), el("span", {}, el("i", { class: "ghost" }), "told the mechanism")));
+  }
+  if (f.kind === "values") {
+    return el("div", { class: "ladder" }, f.values.map((v, i) => [
+      el("span", { class: "name" }, f.labels[i]),
+      track([el("span", { class: "dot", style: at(v) }), el("span", { class: "dot-value", style: `left:calc(${(Math.min(0.9, v) * 100).toFixed(1)}% + 10px)` }, pct(v))])
+    ]), el("span"), el("div", { class: "axis" }, el("span", {}, "0%"), el("span", {}, "50%"), el("span", {}, "100%")));
+  }
+  if (f.kind === "spread") {
+    const band = (p, cls) => el("span", { class: `band${cls ? " " + cls : ""}`, style: `left:${50 - p}%;width:${2 * p}%` });
+    const wide = f.range && f.range[1] > f.points ? band(Math.min(50, f.range[1]), "wide") : null;
+    return el("div", { class: "spread" },
+      track([wide, band(Math.min(50, f.points))]),
+      el("div", { class: "axis" }, el("span", {}, "0%"), el("span", {}, `50% ± ${f.points}`), el("span", {}, "100%")));
+  }
+  if (f.kind === "count") {
+    return el("div", { class: "pips", role: "img", "aria-label": `${f.k} of ${f.n}` },
+      Array.from({ length: f.n }, (_, i) => el("i", { class: i < f.k ? "on" : null })));
+  }
+  return null;
+}
+
+function renderLabel(config, data, topics) {
+  const box = document.getElementById("label");
+  const parts = [
+    el("div", { class: "title" }, "Reading Facts"),
+    el("div", { class: "who" }, config.name),
+    el("div", { class: "per" }, `Measured in ${config.sessions} fresh sessions`),
+    el("hr", { class: "thick" })
+  ];
+  topics.forEach((t, i) => {
+    const rows = config.readings.filter(r => r.topic === t.key && r.fact);
+    if (!rows.length) return;
+    if (i && parts.length > 4) parts.push(el("hr", { class: "mid" }));
+    parts.push(el("div", { class: "group" }, t.title));
+    rows.forEach((r, j) => {
+      if (j) parts.push(el("hr"));
+      parts.push(el("div", { class: `row${r.caution ? " caution" : ""}` }, el("span", {}, r.fact.label), el("span", { class: "value" }, r.fact.value)));
+    });
+  });
+  parts.push(el("hr", { class: "thick" }));
+  parts.push(el("p", { class: "small" }, data.measured_in));
+  box.replaceChildren(...parts);
+}
+
+function renderReadings(config, topics) {
+  const box = document.getElementById("readings");
+  const sections = topics.map(t => {
+    const rows = config.readings.filter(r => r.topic === t.key);
+    if (!rows.length) return null;
+    return el("section", { class: "topic" }, el("h2", {}, t.title), rows.map(r => el("article", { class: "reading", id: `reading-${r.key}` },
+      el("p", { class: "claim" }, r.claim),
+      r.caution ? el("span", { class: "flag" }, `Caution: ${r.caution}`) : null,
+      figure(r.figure),
+      el("p", { class: "detail" }, r.detail),
+      el("div", { class: "meta" }, el("span", { class: `pill${r.sessions >= 3 ? "" : " few"}` }, r.strength), el("span", {}, r.evidence))
+    )));
+  });
+  if (config.not_yet_measured.length) {
+    sections.push(el("section", { class: "missing" }, el("h2", {}, "Not yet measured for this model"),
+      el("ul", {}, config.not_yet_measured.map(m => el("li", {}, m[0].toUpperCase() + m.slice(1) + ".")))));
+  }
+  box.replaceChildren(...sections.filter(Boolean));
+}
+
+function renderCompare(data, configs) {
+  const table = document.getElementById("compare");
+  const labels = {};
+  for (const c of configs) for (const r of data.configurations[c].readings) if (r.fact && !labels[r.key]) labels[r.key] = r.fact.label;
+  const head = el("tr", {}, el("th", {}, "Reading"), configs.map(c => el("th", {}, data.configurations[c].name)));
+  const body = KEYS.filter(k => labels[k]).map(k => el("tr", {}, el("td", {}, labels[k]), configs.map(c => {
+    const r = data.configurations[c].readings.find(x => x.key === k);
+    return r ? el("td", { class: "value", title: r.claim }, (r.caution ? "! " : "") + r.fact.value, r.sessions < 3 ? el("sup", { title: "one or two sessions" }, " †") : null) : el("td", { class: "none" }, "not measured");
+  })));
+  table.replaceChildren(el("thead", {}, head), el("tbody", {}, body));
+}
+
+function render(data) {
+  const configs = ORDER.filter(c => data.configurations[c]);
+  document.getElementById("kicker").textContent =
+    `Draft ${data.guide_version.split("/")[1]} · generated from the experiment ledger at commit ${(data.repository_commit || "unknown").slice(0, 7)}`;
+  let current = (location.hash || "").slice(1);
+  if (!configs.includes(current)) {
+    try { current = localStorage.getItem("guide-model") || configs[0]; } catch (e) { current = configs[0]; }
+  }
+  if (!configs.includes(current)) current = configs[0];
+  const picker = document.getElementById("picker");
+  const buttons = configs.map(c => {
+    const b = el("button", { type: "button", id: `model-${c}`, "aria-pressed": "false" }, data.configurations[c].name);
+    b.addEventListener("click", () => show(c));
+    return b;
+  });
+  picker.replaceChildren(...buttons);
+  function show(c) {
+    current = c;
+    buttons.forEach((b, i) => b.setAttribute("aria-pressed", String(configs[i] === c)));
+    try { localStorage.setItem("guide-model", c); } catch (e) {}
+    try { history.replaceState(null, "", `#${c}`); } catch (e) {}
+    renderLabel(data.configurations[c], data, data.topics);
+    renderReadings(data.configurations[c], data.topics);
+  }
+  show(current);
+  renderCompare(data, configs);
+  document.getElementById("cautions").replaceChildren(...data.cautions.map(c => el("li", {}, c)));
+  document.getElementById("measured").textContent = `Measured in: ${data.measured_in} † marks readings from one or two sessions.`;
+}
+
+fetch("guide.json")
+  .then(r => { if (!r.ok) throw new Error(`guide.json returned ${r.status}`); return r.json(); })
+  .then(render)
+  .catch(err => {
+    document.getElementById("readings").replaceChildren(el("div", { class: "error" },
+      `The guide data did not load (${err.message}). Rebuild it with “uv run python -m epistemics.ledger build” and republish.`));
+  });
+</script>

@@ -62,6 +62,7 @@ def main():
     b = sub.add_parser("build")
     b.add_argument("--registry", type=Path, default=Path("docs/experiments.json"))
     b.add_argument("--output", type=Path, default=Path("output/ledger.json"))
+    b.add_argument("--guide", type=Path, default=Path("output/guide.json"))
     r = sub.add_parser("runs")
     r.add_argument("root", type=Path)
     t = sub.add_parser("retest")
@@ -91,6 +92,7 @@ def main():
         ledger = build(a.registry)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(ledger, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        a.guide.write_text(json.dumps(ledger["guide"], indent=2, allow_nan=False) + "\n")
         print(json.dumps({"output": str(a.output), **ledger["totals"]}, indent=2))
     elif a.command == "runs":
         print(runs_table(a.root))
