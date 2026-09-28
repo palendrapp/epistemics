@@ -153,6 +153,7 @@ def test_small_validation_run_is_immutable(tmp_path):
         "disclosure_unprompted_cue_recovery",
         "corroboration_asked_cue_recovery",
         "disclosure_asked_cue_recovery",
+        "corroboration_probed_cue_recovery",
         "certainty_value_recovery_linear",
         "certainty_value_recovery_entropy",
     }

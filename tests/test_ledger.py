@@ -236,6 +236,18 @@ def test_noticing_compares_unprompted_with_prompted_dossiers(tmp_path):
         ]
         + [
             (
+                "astra-probed",
+                "astra",
+                dict(
+                    module="corroboration-probed",
+                    cover="markets",
+                    order=ORDER,
+                    truth=prompted,
+                    seed=13,
+                    variant="named-a",
+                ),
+            ),
+            (
                 "astra-asked",
                 "astra",
                 dict(
@@ -276,6 +288,11 @@ def test_noticing_compares_unprompted_with_prompted_dossiers(tmp_path):
     assert asked["sessions"] == 1 and asked["coherent_sessions"] == 1
     assert asked["irrelevant"] == pytest.approx(0.5, abs=0.08) and asked["to_prompted_mae"] < 0.1
     assert asked["prediction_mae"]["prompted"] < asked["prediction_mae"]["neglect"]
+    probed = row["probed"]
+    assert probed["sessions"] == 1 and "asked" in probed["prediction_mae"]
+    session = probed["per_session"][0]
+    assert np.allclose(session["probe_implied"], prompted["slots"], atol=0.08)
+    assert np.allclose(session["forecast_only"], prompted["slots"], atol=0.15)
     # Named sessions are reported apart from the unprompted ones.
     assert row["unprompted_sessions"] == 1 and row["named"]["sessions"] == 1
     assert row["named"]["to_prompted_mae"] < 0.1 and row["named"]["irrelevant"] > 0.4

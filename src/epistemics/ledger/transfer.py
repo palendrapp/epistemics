@@ -9,7 +9,7 @@ own formal mapping, the mapping pooled over configurations, and 50% at every lev
 
 import numpy as np
 
-from epistemics.dispositions import design, observers
+from epistemics.dispositions import design, fit, observers
 from epistemics.dispositions.response import sigmoid
 from epistemics.ledger.dispositions import spearman
 
@@ -25,6 +25,9 @@ UNPROMPTED_ITEMS = {
 }
 ASKED = {"relay": "corroboration-asked", "disclosure": "disclosure-asked"}
 ASKED_ITEMS = {"relay": design.corroboration_asked, "disclosure": design.disclosure_asked}
+PROBED = {"relay": "corroboration-probed"}
+PROBED_ITEMS = {"relay": design.corroboration_probed}
+MODELS = {"relay": "dependence", "disclosure": "disclosure"}
 OBSERVERS = {"relay": observers.corroboration, "disclosure": observers.disclosure}
 
 
@@ -109,7 +112,7 @@ def noticing(records):
     its rate) are reported beside them under "named", with the unprompted mapping as a further
     candidate prior.
     """
-    prompted, unprompted, named, asked = {}, {}, {}, {}
+    prompted, unprompted, named, asked, probed = {}, {}, {}, {}, {}
     for r in records:
         if not r.get("verified") or r.get("slot_fits") is None:
             continue
@@ -122,9 +125,10 @@ def noticing(records):
                 lower = [s["implied"]["interval_90"][0] for s in r["slot_fits"]]
                 target = named if r.get("variant") == "named-a" else unprompted
                 target.setdefault(key, []).append((implied, lower, r))
-            elif r["module"] == ASKED[module]:
+            elif r["module"] in (ASKED[module], PROBED.get(module)):
                 stated = [s["stated"][0] for s in r["slot_fits"]]
-                asked.setdefault(key, []).append((implied, stated, r))
+                target = asked if r["module"] == ASKED[module] else probed
+                target.setdefault(key, []).append((implied, stated, r))
     result = {}
     for (config, module), sessions in sorted(unprompted.items()):
         mapping = np.mean([i for i, _, _ in sessions], axis=0)
@@ -181,18 +185,53 @@ def noticing(records):
             }
         if (config, module) in asked:
             row["asked"] = asked_row(module, asked[(config, module)], candidates, row)
+        if (config, module) in probed:
+            row["probed"] = asked_row(
+                module, probed[(config, module)], candidates, row, PROBED_ITEMS[module]()
+            )
         result[f"{config}/{module}"] = row
     return result
 
 
-def asked_row(module, sessions, candidates, row):
-    """Asked sessions: the named dossiers plus each description's base-rate question."""
+def probe_implied(record, items):
+    """Per level: the relay prior at which an exact observer gives the session's probe answer."""
+    grid = np.linspace(0, 1, 1001)
+    responses = np.asarray(record["responses"], dtype=float)
+    result = []
+    for slot in range(5):
+        (index,) = np.where((items["slot"] == slot) & (items["kind"] == "probe"))[0][:1]
+        one = {k: v[[index]] for k, v in items.items()}
+        answer = sigmoid(OBSERVERS["relay"](one, grid[:, None], 1.0))[:, 0]
+        result.append(float(grid[np.argmin(np.abs(answer - responses[index]))]))
+    return result
+
+
+def forecast_only(module, record, items):
+    """Per level: the implied prior refitted from the session's forecasts alone."""
+    keep = ~np.isin(items["kind"], ("probe",))
+    part = {k: v[keep] for k, v in items.items()}
+    responses = np.asarray(record["responses"], dtype=float)[keep]
+    result = fit.fit_cues(MODELS[module], part, responses)
+    return [s["implied"]["mean"] for s in result["slots"]]
+
+
+def asked_row(module, sessions, candidates, row, items=None):
+    """Asked sessions: the named dossiers plus each description's base-rate question.
+
+    Probed sessions (asked plus structure probes) use the same summary, with the asked mapping as
+    a further candidate prior and, per session, the probe-implied and forecast-only priors.
+    """
+    from epistemics.ledger.models import arrays
+
     mapping = np.mean([i for i, _, _ in sessions], axis=0)
     stated = np.mean([s for _, s, _ in sessions], axis=0)
-    items = ASKED_ITEMS[module]()
+    probes = items is not None
+    items = ASKED_ITEMS[module]() if items is None else items
     priors = dict(candidates)
     if row.get("named"):
         priors["named"] = np.array(row["named"]["mapping"])
+    if probes and row.get("asked"):
+        priors["asked"] = np.array(row["asked"]["mapping"])
     gaps = [float(np.max(np.abs(np.subtract(s, i)))) for i, s, _ in sessions]
     return {
         "sessions": len(sessions),
@@ -207,7 +246,18 @@ def asked_row(module, sessions, candidates, row):
         "to_named_mae": float(np.mean(np.abs(mapping - priors["named"])))
         if "named" in priors
         else None,
-        "per_session": [{"run_id": r["run_id"], "implied": i, "stated": s} for i, s, r in sessions],
+        "per_session": [
+            {"run_id": r["run_id"], "implied": i, "stated": s}
+            | (
+                {
+                    "probe_implied": probe_implied(r, arrays(r["items"])),
+                    "forecast_only": forecast_only(module, r, arrays(r["items"])),
+                }
+                if probes
+                else {}
+            )
+            for i, s, r in sessions
+        ],
         "prediction_mae": {
             name: float(np.mean([mean_absolute_error(module, p, r, items) for _, _, r in sessions]))
             for name, p in priors.items()

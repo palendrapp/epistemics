@@ -358,3 +358,18 @@ def disclosure_asked(items, i, cover, variant):
         "withhold every off-target one, rather than leaving indicators out at random?"
     )
     return lines, question
+
+
+# Probed dossiers: the asked relay dossiers with each description's structure probe.
+def relay_probed(items, i, cover, variant):
+    kind = items["kind"][i]
+    if kind == "rate":
+        return relay_asked(items, i, cover, variant)
+    lines, question = relay_unprompted(items, i, cover, variant)
+    if kind == "probe":
+        a, b = base.OUTLETS_A[i], base.OUTLETS_B[i]
+        question = (
+            f"What is the probability that {b} relayed {base.own(a)} call rather than checking "
+            "for itself?"
+        )
+    return lines, question

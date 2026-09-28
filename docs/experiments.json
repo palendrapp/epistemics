@@ -330,6 +330,20 @@
       "outcome": "Split by configuration. Astra: asking restores the 50% default and the prompted mapping (irrelevant 0.38 and 0.48; within 0.04-0.08 of prompted; coherent 5/6) - A1-A3 hold. Sol: relay stated rates return to about 40% for ambiguous outlets but its forecasts act on 9-17% (coherent 0/3 relay, 3/3 disclosure; default 0.09 and 0.29) - A1-A3 fail. First stated-applied gap in a frontier configuration; Sol's forecasts follow its named mapping."
     },
     {
+      "id": "disposition-probed",
+      "date": "2026-09-28",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Sol's stated-applied gap: retest and structure probes",
+      "question": "Does Sol's gap between stated and applied relay base rates replicate, and do structure probes make its forecasts use the rates it states?",
+      "doc": "docs/disposition-probed-2026-09-28.md",
+      "roots": [
+        "output/disposition-probed-20260928"
+      ],
+      "status": "running",
+      "prediction": "R1: in 3 fresh asked sessions Sol's stated rates exceed its implied priors at the ambiguous levels by at least 0.15, at most 1 of 3 coherent. R2: with probes, Sol's forecast-only priors lie within 0.15 of its stated rates in at least 2 of 3 sessions. R3: Sol's probed mapping within 0.10 of prompted. R4: Astra's probed mapping within 0.10 of its asked mapping, coherent in at least 2 of 3. R5 exploratory."
+    },
+    {
       "id": "source-learning-acceptance",
       "date": "2026-09-26",
       "track": "archive",

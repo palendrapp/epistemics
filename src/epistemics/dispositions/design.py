@@ -371,3 +371,22 @@ def disclosure_asked():
         rows + _DISCLOSURE_ANCHORS,
         ("kind", "prior", "good", "omission", "shared_good", "shared_bad", "withheld", "slot"),
     )
+
+
+# Probed dossiers: the asked relay design with each level's structure probe added, which leaves
+# two forecasts per level. The probe asks whether the second outlet relayed the first.
+def corroboration_probed():
+    rows = []
+    for s in range(len(CUE_LEVELS)):
+        r = 1 if s % 2 == 0 else -1
+        rows += [
+            ("rate", 0.5, 0.75, 1, 0.85, 1, "none", s),
+            ("probe", 0.5, 0.75, r, 0.9, r, "none", s),
+            *_relay_unprompted_slot(s)[2:],
+        ]
+    table = columns(
+        rows + _RELAY_UNPROMPTED_ANCHORS,
+        ("kind", "prior", "accuracy_a", "report_a", "accuracy_b", "report_b", "cue", "slot"),
+    )
+    table["cue"] = np.array([CUES[c] for c in table["cue"]])
+    return table

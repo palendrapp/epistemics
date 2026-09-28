@@ -25,6 +25,7 @@ from epistemics.disposition_tasks.render import (
     DOSSIER_VARIANTS,
     LEARNING_RATES,
     MODULES,
+    PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
@@ -109,7 +110,7 @@ def variants_of(module):
         return DOSSIER_VARIANTS
     if module in UNPROMPTED_MODULES:
         return UNPROMPTED_VARIANTS
-    if module in ASKED_MODULES:
+    if module in ASKED_MODULES + PROBED_MODULES:
         return ASKED_VARIANTS
     return ("paired",) if module == "checks" else VARIANTS
 
@@ -118,7 +119,12 @@ def covers_of(module):
     return (
         ("markets",)
         if module
-        in CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES + ASKED_MODULES
+        in CUE_MODULES
+        + RANGE_MODULES
+        + DOSSIER_MODULES
+        + UNPROMPTED_MODULES
+        + ASKED_MODULES
+        + PROBED_MODULES
         else COVERS
     )
 
@@ -160,7 +166,7 @@ def audit():
                         raise ValueError(f"{where} states the mechanism beyond its variant")
                     # Asked cases: the case text names the mechanism once; only a base-rate
                     # question mentions it again.
-                    if module in ASKED_MODULES and not states_only_the_named(
+                    if module in ASKED_MODULES + PROBED_MODULES and not states_only_the_named(
                         module, variant, {"case": case["case"]}
                     ):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
@@ -200,6 +206,8 @@ def contexts_to_validate():
     for variant in ASKED_VARIANTS:
         for module in ASKED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT
+    for module in PROBED_MODULES:
+        yield module, "markets", "named-a", CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):

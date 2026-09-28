@@ -460,6 +460,8 @@ CONDITIONS = {
     "disclosure-dossier": "disclosure dossiers",
     "corroboration-asked": "relay dossiers that name copying and ask for its rate",
     "disclosure-asked": "disclosure dossiers that name selective silence and ask for its rate",
+    "corroboration-probed": "relay dossiers that name copying, ask for its rate and ask whether "
+    "each report was copied",
 }
 
 

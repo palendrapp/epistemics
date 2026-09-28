@@ -125,7 +125,7 @@ def main():
         groups = {}
         for root in a.roots:
             for record, s in verified_pairs(root):
-                if s["module"].endswith(("-cues", "-dossier", "-unprompted", "-asked")):
+                if s["module"].endswith(("-cues", "-dossier", "-unprompted", "-asked", "-probed")):
                     groups.setdefault(
                         (record["configuration"], s["module"], s["variant"]), []
                     ).append(s)

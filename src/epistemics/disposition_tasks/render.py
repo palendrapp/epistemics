@@ -23,6 +23,7 @@ MODULES = (
     "disclosure-unprompted",
     "corroboration-asked",
     "disclosure-asked",
+    "corroboration-probed",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -35,6 +36,8 @@ UNPROMPTED_VARIANTS = ("dossier-a", "named-a")
 # Default induction: the named dossiers plus each description's base-rate question.
 ASKED_MODULES = ("corroboration-asked", "disclosure-asked")
 ASKED_VARIANTS = ("named-a",)
+# The asked relay dossiers with each description's structure probe.
+PROBED_MODULES = ("corroboration-probed",)
 RANGE_MODULES = ("corroboration-range",)
 COVERS = ("markets", "ecology")
 # paired: the unknown is posed as an explicit two-way possibility (0.1 wording). open: that
@@ -307,6 +310,8 @@ def items_for(module):
         return design.corroboration_asked()
     if module == "disclosure-asked":
         return design.disclosure_asked()
+    if module == "corroboration-probed":
+        return design.corroboration_probed()
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -603,6 +608,7 @@ RENDERERS = {
     "disclosure-unprompted": lambda *a: _dossier("disclosure_unprompted", *a),
     "corroboration-asked": lambda *a: _dossier("relay_asked", *a),
     "disclosure-asked": lambda *a: _dossier("disclosure_asked", *a),
+    "corroboration-probed": lambda *a: _dossier("relay_probed", *a),
 }
 
 
@@ -621,7 +627,7 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in DOSSIER_VARIANTS
     if module in UNPROMPTED_MODULES:
         return cover == "markets" and variant in UNPROMPTED_VARIANTS
-    if module in ASKED_MODULES:
+    if module in ASKED_MODULES + PROBED_MODULES:
         return cover == "markets" and variant in ASKED_VARIANTS
     if module == "checks":
         return variant == "paired"
@@ -647,7 +653,7 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
-    described = CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + ASKED_MODULES
+    described = CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + ASKED_MODULES + PROBED_MODULES
     if module in described and items["kind"][index] == "rate":
         disclosure = module in ("disclosure-cues", "disclosure-dossier", "disclosure-asked")
         return [percent(items["omission"][index])] if disclosure else []
@@ -661,6 +667,7 @@ def stated_percentages(module, index):
         "corroboration-dossier",
         "corroboration-unprompted",
         "corroboration-asked",
+        "corroboration-probed",
     ):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":

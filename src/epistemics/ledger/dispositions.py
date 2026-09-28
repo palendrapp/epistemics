@@ -167,7 +167,7 @@ def summary(record):
         else None,
         "report_sd": record["shared"]["report_sd"]["mean"],
     }
-    if module.endswith(("-cues", "-dossier", "-unprompted", "-asked")):
+    if module.endswith(("-cues", "-dossier", "-unprompted", "-asked", "-probed")):
         result["designed_order_spearman"] = spearman(range(len(implied)), implied)
         result["range"] = float(max(implied) - min(implied))
     return result

@@ -33,6 +33,7 @@ from epistemics.disposition_tasks.render import (
     DOSSIER_VARIANTS,
     LEARNING_RATES,
     MODULES,
+    PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
@@ -110,6 +111,7 @@ AUDITED_CASES = (
     + 24 * len(DOSSIER_MODULES) * len(DOSSIER_VARIANTS)
     + 24 * len(UNPROMPTED_MODULES) * len(UNPROMPTED_VARIANTS)
     + 24 * len(ASKED_MODULES) * len(ASKED_VARIANTS)
+    + 24 * len(PROBED_MODULES) * len(ASKED_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -126,6 +128,19 @@ PRESETS["asked"] = (
     {
         "configurations": ("astra", "sol"),
         "modules": ASKED_MODULES,
+        "contexts": tuple(("named-a", "markets", r) for r in (1, 2, 3)),
+    },
+)
+# Retest of Sol's stated-applied gap on the asked relay dossiers, and the probed variant for both.
+PRESETS["probed"] = (
+    {
+        "configurations": ("sol",),
+        "modules": ("corroboration-asked",),
+        "contexts": tuple(("named-a", "markets", r) for r in (1, 2, 3)),
+    },
+    {
+        "configurations": ("astra", "sol"),
+        "modules": PROBED_MODULES,
         "contexts": tuple(("named-a", "markets", r) for r in (1, 2, 3)),
     },
 )
@@ -492,7 +507,9 @@ async def collect(root, entry, config, timeout):
 
 def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
-    if analysis["module"] in CUE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES + ASKED_MODULES:
+    if analysis["module"] in (
+        CUE_MODULES + DOSSIER_MODULES + UNPROMPTED_MODULES + ASKED_MODULES + PROBED_MODULES
+    ):
         return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] in RANGE_MODULES:
         summary = analysis["range"]

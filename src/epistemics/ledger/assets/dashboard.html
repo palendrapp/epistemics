@@ -39,6 +39,7 @@
   --p-unprompted: #7a4fa0;
   --p-named: #1f8a7a;
   --p-asked: #9a6b12;
+  --p-probed: #b0306a;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -80,6 +81,7 @@
     --p-unprompted: #c29be6;
     --p-named: #5fd1bd;
     --p-asked: #e3b457;
+    --p-probed: #ee7fb0;
   }
 }
 :root[data-theme="dark"] {
@@ -119,6 +121,7 @@
   --p-unprompted: #c29be6;
   --p-named: #5fd1bd;
   --p-asked: #e3b457;
+  --p-probed: #ee7fb0;
 }
 body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; display: grid; gap: 36px; }
@@ -636,7 +639,8 @@ const MODULE_SHORT = {
   "corroboration-cues": "relay descriptions", "disclosure-cues": "disclosure descriptions",
   "corroboration-dossier": "relay dossier", "disclosure-dossier": "disclosure dossier",
   "corroboration-unprompted": "relay unprompted", "disclosure-unprompted": "disclosure unprompted",
-  "corroboration-asked": "relay named and asked", "disclosure-asked": "disclosure named and asked"
+  "corroboration-asked": "relay named and asked", "disclosure-asked": "disclosure named and asked",
+  "corroboration-probed": "relay named, asked and probed"
 };
 const cfgName = (c) => CONFIG_NAMES[c] || c;
 const cfgColor = (c) => `var(--c-${c})`;
@@ -1308,7 +1312,9 @@ function descriptionSection(models) {
     { key: "named", label: "Named, no rate · set A", color: "var(--p-named)", short: "N",
       match: s => s.module.endsWith("-unprompted") && s.variant === "named-a" },
     { key: "asked", label: "Named and asked · set A", color: "var(--p-asked)", short: "Q",
-      match: s => s.module.endsWith("-asked") }
+      match: s => s.module.endsWith("-asked") },
+    { key: "probed", label: "Named, asked and probed · set A", color: "var(--p-probed)", short: "P",
+      match: s => s.module.endsWith("-probed") }
   ];
   const FAMILIES = [
     { key: "relay", prefix: "corroboration-", title: "Relay: how often does an outlet like this relay instead of checking?", axis: "implied prior of relaying" },

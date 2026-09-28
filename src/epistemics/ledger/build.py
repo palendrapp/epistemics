@@ -55,6 +55,7 @@ PRESENTATIONS = {
     "unprompted": ("unprompted", ("dossier-a",)),
     "named": ("unprompted", ("named-a",)),
     "asked": ("asked", None),
+    "probed": ("probed", None),
 }
 
 
@@ -79,7 +80,7 @@ def coherence_by_condition(mine):
     """Largest stated-minus-implied gap per session, grouped by module and variant."""
     result = {}
     for _, s in mine:
-        if s["module"].endswith(("-cues", "-dossier", "-asked")) and (
+        if s["module"].endswith(("-cues", "-dossier", "-asked", "-probed")) and (
             s.get("stated_minus_implied_max") is not None
         ):
             key = f"{s['module']}/{s['variant']}"
@@ -159,7 +160,7 @@ def passport(pairs, retests, contrasts):
                 cue_rows := [
                     s
                     for _, s in mine
-                    if s["module"].endswith(("-cues", "-dossier", "-asked"))
+                    if s["module"].endswith(("-cues", "-dossier", "-asked", "-probed"))
                     and s.get("stated_minus_implied_max") is not None
                 ]
             )
