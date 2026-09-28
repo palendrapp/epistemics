@@ -310,16 +310,30 @@ def documents(config, analyses):
     if not rows:
         return None
     worst = max(r["prediction_mae"]["own_formal"] for _, r in rows)
-    better = all(r["gain_over_neutral"] > 0 for _, r in rows)
+    carried = [f for f, r in rows if r["gain_over_neutral"] > 0]
     sessions = sum(r["dossier_sessions"] for _, r in rows)
+    kinds = {"relay": "news outlets", "disclosure": "company updates"}
+    better = len(carried) == len(rows)
     if better:
         claim = (
             "It reads realistic document bundles the way it reads formal cases: what it does "
             f"with formal cases predicts its answers on realistic dossiers to within about "
             f"{max(1, round(100 * worst))} points."
         )
+        value = f"within {max(1, round(100 * worst))} points"
+    elif carried:
+        kept = " and ".join(kinds[f] for f in carried)
+        lost = " and ".join(kinds[f] for f, _ in rows if f not in carried)
+        claim = (
+            f"What it does with formal cases carries over to realistic documents for {kept}, "
+            f"but not for {lost}."
+        )
+        value = f"{kinds[carried[0]]} only" if len(carried) == 1 else "partly"
     else:
-        claim = "Its answers on realistic dossiers depart from its formal cases."
+        claim = (
+            "What it does with formal cases does not predict its answers on realistic documents."
+        )
+        value = "does not carry over"
     return reading(
         "documents",
         "evidence",
@@ -328,10 +342,7 @@ def documents(config, analyses):
         "unrelated documents mixed in.",
         f"Dossier transfer, {count(sessions)}.",
         sessions,
-        fact=(
-            "Realistic documents vs formal cases",
-            f"within {max(1, round(100 * worst))} points" if better else "differ",
-        ),
+        fact=("Formal readings carry to real documents", value),
     )
 
 
@@ -442,7 +453,7 @@ def coherence(p):
         claim,
         f"In {k} of {n} sessions every stated base rate was within 10 points of the one its "
         "forecasts implied.",
-        f"Description modules, {count(n)}.",
+        f"Description modules and prompted dossiers, {count(n)}.",
         n,
         {"kind": "count", "k": k, "n": n},
         caution,

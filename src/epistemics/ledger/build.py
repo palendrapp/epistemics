@@ -135,7 +135,8 @@ def passport(pairs, retests, contrasts):
             )
             or None,
             "ambiguous_description_session_sd": session_variance(pairs, config),
-            # Sessions whose forecasts use the base rates they state (every level within 0.10).
+            # Sessions whose forecasts use the base rates they state (every level within 0.10),
+            # over formal description modules and prompted dossiers.
             "description_coherence": [
                 sum(s["stated_minus_implied_max"] <= 0.10 for s in cue_rows),
                 len(cue_rows),
@@ -144,7 +145,8 @@ def passport(pairs, retests, contrasts):
                 cue_rows := [
                     s
                     for _, s in mine
-                    if s["module"].endswith("-cues") and "stated_minus_implied_max" in s
+                    if s["module"].endswith(("-cues", "-dossier"))
+                    and s.get("stated_minus_implied_max") is not None
                 ]
             )
             else None,
