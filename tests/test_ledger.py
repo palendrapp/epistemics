@@ -370,13 +370,15 @@ def test_reading_guide_flags_a_coherence_gap_confined_to_one_condition():
     p = {
         "description_coherence": [25, 30],
         "description_coherence_by_condition": {
-            "corroboration-cues/cues-a": [11, 12],
-            "corroboration-asked/named-a": [0, 3],
-            "disclosure-asked/named-a": [3, 3],
+            "corroboration-cues/cues-a": [11, 12, 0],
+            "corroboration-asked/named-a": [1, 6, 2],
+            "disclosure-asked/named-a": [3, 3, 0],
         },
     }
     r = guide.coherence(p)
     assert r["caution"] and "ask for its rate" in r["claim"]
-    assert "0 of 3" in r["detail"]
+    assert "2 of 6" in r["claim"] and "2 of 6" in r["detail"]
+    p["description_coherence_by_condition"]["corroboration-asked/named-a"] = [1, 6, 1]
+    assert guide.coherence(p)["caution"] is None
     del p["description_coherence_by_condition"]["corroboration-asked/named-a"]
     assert guide.coherence(p)["caution"] is None

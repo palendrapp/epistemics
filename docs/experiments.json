@@ -327,7 +327,7 @@
       ],
       "status": "complete",
       "prediction": "A1: irrelevant level between 0.35 and 0.65 in all four cells. A2: asked mapping within 0.10 of the prompted-dossier mapping on average. A3: stated within 0.10 of implied at every level in at least 5 of 6 sessions per configuration. A4 (best predictor) exploratory.",
-      "outcome": "Split by configuration. Astra: asking restores the 50% default and the prompted mapping (irrelevant 0.38 and 0.48; within 0.04-0.08 of prompted; coherent 5/6) - A1-A3 hold. Sol: relay stated rates return to about 40% for ambiguous outlets but its forecasts act on 9-17% (coherent 0/3 relay, 3/3 disclosure; default 0.09 and 0.29) - A1-A3 fail. First stated-applied gap in a frontier configuration; Sol's forecasts follow its named mapping."
+      "outcome": "Split by configuration. Astra: asking restores the 50% default and the prompted mapping (irrelevant 0.38 and 0.48; within 0.04-0.08 of prompted; coherent 5/6) - A1-A3 hold. Sol: relay stated rates return to about 40% for ambiguous outlets but its forecasts act on 9-17% (coherent 0/3 relay, 3/3 disclosure; default 0.09 and 0.29) - A1-A3 fail. First stated-applied gap in a frontier configuration; Sol's forecasts follow its named mapping. Retest: Sol's gap is intermittent (wide in 2 of 6 sessions)."
     },
     {
       "id": "disposition-probed",
@@ -340,8 +340,9 @@
       "roots": [
         "output/disposition-probed-20260928"
       ],
-      "status": "running",
-      "prediction": "R1: in 3 fresh asked sessions Sol's stated rates exceed its implied priors at the ambiguous levels by at least 0.15, at most 1 of 3 coherent. R2: with probes, Sol's forecast-only priors lie within 0.15 of its stated rates in at least 2 of 3 sessions. R3: Sol's probed mapping within 0.10 of prompted. R4: Astra's probed mapping within 0.10 of its asked mapping, coherent in at least 2 of 3. R5 exploratory."
+      "status": "complete",
+      "prediction": "R1: in 3 fresh asked sessions Sol's stated rates exceed its implied priors at the ambiguous levels by at least 0.15, at most 1 of 3 coherent. R2: with probes, Sol's forecast-only priors lie within 0.15 of its stated rates in at least 2 of 3 sessions. R3: Sol's probed mapping within 0.10 of prompted. R4: Astra's probed mapping within 0.10 of its asked mapping, coherent in at least 2 of 3. R5 exploratory.",
+      "outcome": "Sol's gap did not replicate at size: fresh asked sessions +0.04 at the ambiguous levels (R1 fails); across six sessions the gap is wide in two (0.48, 0.27) and small in four - intermittent, not a trait. With probes, both configurations coherent (Astra 3/3, Sol 2/3), forecast-only priors within 0.04 of stated (R2 supported but not causal), Sol within 0.080 of prompted (R3), Astra unchanged (R4). Sol's session-to-session variation (ambiguous priors 0.09-0.17 vs 0.19-0.35) motivates a per-session discrete state."
     },
     {
       "id": "source-learning-acceptance",
@@ -411,9 +412,9 @@
     }
   ],
   "next": [
-    "Retest Sol's relay gap: three fresh asked sessions plus a variant adding the structure probes (the remaining difference from the prompted dossiers).",
-    "Reading guide: review the draft wording and thresholds; decide which readings go into a first passport.",
-    "HGF volatility module (T4) offline.",
-    "Human references for the descriptions when human collection resumes."
+    "Second-layer model: structure inclusion, closed-world default, description sensitivity and stated-applied fidelity, fitted hierarchically across the ladder; recovery first (docs/structure-inclusion-model.md).",
+    "Abstract transfer task: contentless urn versions of copying and selection, plus a third hidden structure, to test whether the second-layer parameters transfer.",
+    "Reading guide: review the draft wording and thresholds.",
+    "HGF volatility module (T4) offline."
   ]
 }

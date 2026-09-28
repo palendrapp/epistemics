@@ -76,6 +76,9 @@ def mapping_sessions(select, base):
     }
 
 
+WIDE_GAP = 0.15
+
+
 def coherence_by_condition(mine):
     """Largest stated-minus-implied gap per session, grouped by module and variant."""
     result = {}
@@ -84,7 +87,9 @@ def coherence_by_condition(mine):
             s.get("stated_minus_implied_max") is not None
         ):
             key = f"{s['module']}/{s['variant']}"
-            result.setdefault(key, []).append(s["stated_minus_implied_max"])
+            result.setdefault(key, []).append(
+                (s["stated_minus_implied_max"], s["stated_minus_implied_mean"])
+            )
     return result
 
 
@@ -165,8 +170,14 @@ def passport(pairs, retests, contrasts):
                 ]
             )
             else None,
+            # Per condition: sessions coherent at every level, sessions, and sessions whose
+            # forecasts depart widely from their stated rates (mean gap at least 0.15).
             "description_coherence_by_condition": {
-                condition: [sum(g <= 0.10 for g in gaps), len(gaps)]
+                condition: [
+                    sum(g <= 0.10 for g, _ in gaps),
+                    len(gaps),
+                    sum(m >= WIDE_GAP for _, m in gaps),
+                ]
                 for condition, gaps in coherence_by_condition(mine).items()
             }
             or None,

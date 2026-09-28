@@ -8,6 +8,8 @@ Preregistration, written and committed before collection; the results follow bel
 
 A1–A3 hold for Astra and fail for Sol.
 
+**Update after the retest.** Three fresh Sol sessions did not reproduce the gap's size: +0.04 at the ambiguous levels, against +0.25 here ([retest with probes](disposition-probed-2026-09-28.md)). Across six sessions, the gap is wide in two and small in four. The claims below about Sol's gap describe these three sessions; the gap is intermittent, not a stable trait.
+
 The [salience test](disposition-salience-2026-09-28.md) found that one sentence naming the mechanism restores Astra's and Sol's discount for clear cases. It did not restore the 50% default for ambiguous and irrelevant sources: those stayed at 0.17–0.33, and per session they were usually near 0 or at 0.50.
 
 The earlier designs that produced a 50% default, the formal description modules and the prompted dossiers, also asked directly for each description's base rate: "Among outlets like X, what proportion relay …?" This test adds that question to the named dossiers. It asks whether being asked for an unstated rate is what produces the 50/50 default.

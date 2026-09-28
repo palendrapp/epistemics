@@ -165,6 +165,9 @@ def summary(record):
         "stated_minus_implied_max": float(np.max(np.abs(np.subtract(stated, implied))))
         if stated
         else None,
+        "stated_minus_implied_mean": float(np.mean(np.abs(np.subtract(stated, implied))))
+        if stated
+        else None,
         "report_sd": record["shared"]["report_sd"]["mean"],
     }
     if module.endswith(("-cues", "-dossier", "-unprompted", "-asked", "-probed")):

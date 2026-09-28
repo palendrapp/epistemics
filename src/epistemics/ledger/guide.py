@@ -470,18 +470,23 @@ def coherence(p):
     if not x:
         return None
     k, n = x
+    # A condition is an exception when forecasts departed widely from the stated rates (mean gap
+    # of at least 0.15) in at least two of three or more sessions.
     exceptions = [
-        (CONDITIONS.get(key.split("/")[0], key), kc, nc)
-        for key, (kc, nc) in sorted((p.get("description_coherence_by_condition") or {}).items())
-        if nc >= 3 and kc <= nc / 3
+        (CONDITIONS.get(key.split("/")[0], key), wide, nc)
+        for key, (_, nc, wide) in sorted(
+            (p.get("description_coherence_by_condition") or {}).items()
+        )
+        if nc >= 3 and wide >= 2
     ]
     if k >= 0.8 * n and exceptions:
-        label, kc, nc = exceptions[0]
+        label, wide, nc = exceptions[0]
         claim = (
-            "The base rates it states are usually the ones its forecasts use, but not in every "
-            f"condition: in {label}, its forecasts did not follow the rates it stated."
+            "The base rates it states are usually the ones its forecasts use. In "
+            f"{label}, its forecasts departed widely from the rates it stated in {wide} of "
+            f"{nc} sessions."
         )
-        caution = "Stated and applied base rates disagree in one condition"
+        caution = "Stated and applied base rates sometimes come apart"
     elif k >= 0.8 * n:
         claim = "The base rates it states are the ones its forecasts use."
         caution = None
@@ -500,7 +505,11 @@ def coherence(p):
         claim,
         f"In {k} of {n} sessions every stated base rate was within 10 points of the one its "
         "forecasts implied."
-        + "".join(f" In {label}: {kc} of {nc}." for label, kc, nc in exceptions),
+        + "".join(
+            f" In {label}, forecasts departed widely (by 15 points or more on average) in "
+            f"{wide} of {nc} sessions."
+            for label, wide, nc in exceptions
+        ),
         f"Description modules and prompted dossiers, {count(n)}.",
         n,
         {"kind": "count", "k": k, "n": n},
