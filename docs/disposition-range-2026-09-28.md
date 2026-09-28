@@ -5,7 +5,9 @@ Build and validation record. The [relay baseline experiment](disposition-baselin
 - disposition-design/0.4.0;
 - disposition-tasks/0.4.0.
 
-It has not been run yet. The predictions below were written before any collection.
+The predictions below were written before any collection.
+
+**Result.** A fixed mapping. The mean contrast was −0.003 for Astra and +0.016 for Sol, within the preregistered ±0.05. Relative judgement is not supported. Ambiguous descriptions vary between contexts, most for Sol, independently of the comparison set.
 
 ## Design
 
@@ -68,3 +70,43 @@ The baseline experiment's repeat differences (0.00–0.07) set the noise floor f
 | Task validation, seed 20261027 | `a0073f5dbc45201c506b85a50e54dee042a5dd7443e9059313e469818e38ba34` |
 
 Validation outputs remain in the ignored `output/` directory.
+
+## Results
+
+**Collection.** All 8 contexts completed with the minimum 27 calls and no tool errors, in 98–308 seconds. They used 4,089,347 input tokens (3,853,440 cached), and the run summary completed. Tables regenerate with `uv run python -m epistemics.ledger runs output/disposition-range-20260928` and `… contrast …`.
+
+Target priors, implied, averaged over the two contexts of each variant. Targets in order: surveys, a few analysts, coast (irrelevant), two-analyst newsletter, publishes after larger outlets.
+
+| Configuration | Among reassuring outlets | Among suggestive outlets | Contrast per target | Mean contrast |
+| --- | --- | --- | --- | --- |
+| GPT-6 Astra | 0.45, 0.50, 0.50, 0.55, 0.67 | 0.49, 0.49, 0.49, 0.49, 0.72 | −0.04, +0.01, +0.01, +0.06, −0.05 | −0.003 |
+| GPT-6 Sol | 0.36, 0.43, 0.29, 0.53, 0.64 | 0.28, 0.40, 0.40, 0.43, 0.64 | +0.08, +0.02, −0.11, +0.10, −0.01 | +0.016 |
+
+The comparison outlets themselves were read at their extremes: 0.00–0.10 when reassuring, 0.70–0.95 when suggestive. Stated and implied priors again agreed.
+
+**Against the predictions.** The fixed-mapping prediction holds for both configurations: mean contrasts of −0.003 and +0.016, within ±0.05. The relative-judgement prediction (at least +0.10 in both) is not supported. No single target shows a consistent contrast across both configurations.
+
+**The variation is between contexts.** It does not track the comparison set. Sol's targets differ by up to 0.20 between the two contexts of the same variant: the coastal outlet was 0.50 in one suggestive context and 0.30 in the other, and the newsletter 0.36 and 0.50. Astra's targets stayed within 0.40–0.73, with the coastal outlet at 0.49–0.50 in all four contexts. Sol placed the uninformative coastal outlet near 30% in three of four contexts, consistent with its cold default (35–40%) in the baseline experiment.
+
+## Interpretation
+
+1. **Ambiguous descriptions are not judged relative to the comparison set.** A three-outlet comparison set at either extreme left the targets' priors unchanged on average. The relative-judgement account suggested by the baseline experiment is not supported by its confirmatory test.
+2. **What moves the ambiguous descriptions is variation between contexts.** The comparison set does not drive it. It is largest for Sol, where the same sentence can be read 0.1–0.2 apart in two fresh contexts with the same design. This matches the relay retest. It is a reliability property of how a configuration interprets ambiguous evidence, not a context effect that a model term can predict.
+3. **Consequences for the model and the reading guide.**
+   - **The mapping:** a fixed description-to-prior mapping, with a per-configuration, per-description context-level variance.
+   - **Default prior:** Astra's default for an uninformative source is a stable 50%. Sol's is lower, about 30–40%, and less stable.
+   - **Reading-guide entry:** "Sol's priors from ambiguous source descriptions vary between sessions by up to 0.2; prefer explicit base rates."
+
+## Next
+
+- Estimate the context-level variance directly: several fresh contexts of the same design per configuration, fitted hierarchically.
+- Weaker configurations on the description modules.
+- Dossier transfer, starting with descriptions at the fixed extremes.
+
+## Commitments (run)
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `01bc1cde484602b9c5e2d90776cf8666064fe1e8e498c4d4b8ed064a70f5a295` |
+| execution.json | `347376c495a98c351120bc6af4f6d16a1541a8e04be45ad889f8f3b933c2a444` |
+| summary.json | `011776f2f918c269b8de76a87ca807810ca7230ee46f190915b4fc9dfa0f1fe5` |
