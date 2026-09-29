@@ -589,14 +589,15 @@
         "output/traits-stage1-20260929",
         "output/traits-stage2-20260929"
       ],
-      "status": "running",
-      "prediction": "H1 precision: leave-one-task-out gain > 0 and within-task permutation p < 0.05 (6 configurations x 6 tasks). Secondary: H2 fidelity, H3 noticing, H4 leave-one-core-out; near vs far descriptive."
+      "status": "complete",
+      "prediction": "H1 precision: leave-one-task-out gain > 0 and within-task permutation p < 0.05 (6 configurations x 6 tasks). Secondary: H2 fidelity, H3 noticing, H4 leave-one-core-out; near vs far descriptive.",
+      "outcome": "150 contexts, 76.8M tokens, 0 failures (runner summary step failed after Stage 2 on a module list; fixed in tasks 0.14.1; data unaffected). H1 precision NOT supported (G -0.16, p 0.33): abstract tasks set the level for everyone; the reanalysis trait came from older formats. H2 fidelity supported as secondary (G 0.39, p 0.0002, 36/36 directions; far transfer G 0.11, p 0.0004): Luna and Terra (GPT-5.6) state rates their forecasts do not use, in every task. H3 noticing not supported (G 0.00, p 0.08). Within the four GPT-6 configurations nothing transfers (exploratory)."
     }
   ],
   "next": [
-    "Battery v2 Stage 2 (running): echo, hub and stale for all six configurations; then the preregistered analysis.",
-    "Structure checks stay as a product fallback (offer for named structures; Luna and Terra).",
-    "Reading guide: review wording and thresholds.",
+    "Reading guide: add stated-applied fidelity as a family-level trait (GPT-5.6) and report precision and noticing per task.",
+    "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
+    "Structure checks stay as a product fallback (offer for named structures).",
     "HGF volatility module (T4) offline."
   ]
 }

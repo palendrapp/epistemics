@@ -775,3 +775,13 @@ def test_stage_presets_cross_configurations_with_five_sessions_per_task():
         cells = Counter((run[0], run[1].split("-")[0]) for run in planned)
         assert len(planned) == configs * len(tasks) * 5
         assert set(cells.values()) == {5} and {t for _, t in cells} == set(tasks)
+
+
+def test_runner_summary_reads_every_cue_module_as_a_mapping():
+    from epistemics.disposition_tasks import runner
+    from epistemics.disposition_tasks.render import MODULES
+
+    cues = {"implied": [0.1, 0.3, 0.5, 0.7, 0.9]}
+    for module in MODULES:
+        if "-urn" in module:
+            assert runner.headline({"module": module, "cues": cues})["parameter"] == "cue_mapping"

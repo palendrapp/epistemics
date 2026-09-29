@@ -631,6 +631,9 @@ def headline(analysis):
         + URN_MODULES
         + URN_ASKED_MODULES
         + URN_PROBED_MODULES
+        + V2_MODULES
+        + V2_ASKED_MODULES
+        + V2_PROBED_MODULES
     ):
         return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] in RANGE_MODULES:

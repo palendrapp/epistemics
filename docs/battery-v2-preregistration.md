@@ -145,3 +145,109 @@ With no trait, the test passes 5.75% of the time.
 | Stage 1 execution.json | `dd1c72506b1f51371affe5599f961e64e9a864e6c6399ffd6769b530ebcf560b` |
 | Stage 1 summary.json | `bafb61df9e04f220d944182dbc3ff1b07523ba57d19071fa576f7181687259b6` |
 | Structure checks, six configurations | `0a4625130808a3e25d7e133ece3bdee07198f69ece67c3ba1e1332be95787e44` |
+
+## Results (29 September)
+
+**Collection.**
+- **Stage 2:** all 90 contexts completed and verified, with no failed attempts: 46.4 million input tokens (43.0 million cached), 87 minutes.
+- **Both stages:** 150 contexts, 76.8 million input tokens, within the 78 million budget.
+- **A runner bug:** after the last context, the runner's own summary step failed (`KeyError: 'disposition'`). Its list of mapping modules did not include the three new surfaces, so `summary.json` was not written for Stage 2.
+  - **What it did not affect:** collection, the verified reports or the ledger, which recomputes every fit from the responses.
+  - **The fix:** tasks 0.14.1 (fingerprint `a14c760d…`; task validation passed on both seeds).
+
+```bash
+uv run python -m epistemics.ledger build
+```
+
+```bash
+uv run python -m epistemics.structure_check check --validation output/structure-check-validation-20260929.json --output output/structure-checks-20260929-6.json --configuration astra --configuration sol --configuration astra-low --configuration sol-low --configuration luna --configuration terra
+```
+
+```bash
+uv run python -m epistemics.ledger build
+```
+
+```bash
+uv run python -m epistemics.ledger battery-v2 --output output/battery-v2-20260929.json
+```
+
+**Tests** (5,000 within-task shuffles; 6 configurations × 6 tasks):
+
+| | Trait | Leave one task out: gain, p | Direction right | Leave one core out: gain, p | Twin only: gain | Consistency ρ | Verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| H1 (primary) | Precision | −0.16, p 0.33 (Holm 0.33) | 19 of 36 | −0.46, p 0.87 | −0.12 | 0.55 [0.01, 1.00] | **Not supported** |
+| H2 | Stated–applied fidelity | 0.39, p 0.0002 | 36 of 36 | 0.11, p 0.0004 | 0.78 | 0.72 [0.31, 0.99] | **Supported (secondary)** |
+| H3 | Noticing threshold | −0.00, p 0.08 | 22 of 34 | −0.27, p 0.49 | −0.01 | — | Not supported |
+
+H4 (far transfer): supported for fidelity only.
+
+The noticing cells number 34 of 36. Luna on copying and Astra-low on echo did not converge (R-hat above 1.05), so the validity rule excludes them.
+
+**Cells.**
+
+Precision (log τ):
+
+| | copying | echo | hub | mismatch | selection | stale |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra | −1.65 | −1.73 | −2.41 | −3.53 | −2.46 | −3.91 |
+| Sol | −1.55 | −1.23 | −2.09 | −3.73 | −2.00 | −4.35 |
+| Astra-low | −1.49 | −1.58 | −2.47 | −4.13 | −2.36 | −3.65 |
+| Sol-low | −1.39 | −1.77 | −1.46 | −3.90 | −2.05 | −3.98 |
+| Luna | −1.18 | −1.70 | −2.43 | −2.36 | −1.93 | −2.91 |
+| Terra | −1.60 | −1.49 | −1.85 | −2.40 | −3.11 | −3.29 |
+
+Stated–applied gap:
+
+| | copying | echo | hub | mismatch | selection | stale |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra | 0.10 | 0.07 | 0.01 | 0.01 | 0.02 | 0.00 |
+| Sol | 0.08 | 0.07 | 0.00 | 0.00 | 0.01 | 0.00 |
+| Astra-low | 0.02 | 0.09 | 0.00 | 0.00 | 0.01 | 0.01 |
+| Sol-low | 0.06 | 0.18 | 0.01 | 0.00 | 0.01 | 0.00 |
+| Luna | 0.39 | 0.43 | 0.05 | 0.08 | 0.07 | 0.06 |
+| Terra | 0.18 | 0.27 | 0.09 | 0.09 | 0.06 | 0.03 |
+
+Noticing threshold (rungs; — not converged):
+
+| | copying | echo | hub | mismatch | selection | stale |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra | −0.76 | 0.16 | −0.26 | 1.03 | −0.25 | 0.95 |
+| Sol | 0.05 | −0.66 | −0.23 | 1.17 | −0.26 | 0.81 |
+| Astra-low | 0.07 | — | −0.24 | 0.99 | −0.25 | 0.45 |
+| Sol-low | −0.21 | 0.19 | −0.25 | 1.06 | −0.26 | 0.91 |
+| Luna | — | 2.28 | 1.32 | 0.10 | 1.08 | 0.97 |
+| Terra | 0.54 | 0.03 | 0.78 | 1.19 | 1.19 | 0.78 |
+
+**Exploratory, not preregistered:** the same test within the four GPT-6 configurations alone.
+
+| Trait | Gain | p |
+| --- | --- | --- |
+| Precision | −0.28 | 0.62 |
+| Fidelity | −0.27 | 0.68 |
+| Noticing | −0.40 | 0.94 |
+
+## Interpretation
+
+1. **Precision is not a general trait on abstract tasks.**
+   - **The task sets the level:** every configuration answers the uninformative-evidence tasks almost exactly (log τ about −3.5 to −4.3), and the dependence tasks less precisely (about −1.5).
+   - **Configuration differences are small and change direction between tasks.**
+   - **Why the reanalysis differed:** its apparent trait came from Luna's large noise on the older formal, dossier and paired tasks. It is a property of those formats, not of the configuration across tasks. The confirmatory test is the stronger evidence, and it replaces the exploratory claim.
+2. **Stated–applied fidelity is general, at the level of model family.**
+   - **The pattern:** Luna and Terra (GPT-5.6) state base rates their forecasts do not use, more than every GPT-6 configuration, in all six tasks (direction right in 36 of 36 held-out cells).
+   - **Near and far:** the gap carries to a task's twin surface (gain 0.78) and across formal cores (gain 0.11).
+   - **Within GPT-6:** nothing transfers, and effort level does not matter.
+   - **Status:** the recovery study expected this test to be underpowered at the reanalysis's effect size, but the observed gap was larger. It remains a secondary result under the preregistration.
+3. **Noticing does not transfer as preregistered.** GPT-5.6 needs more prompting on average (row means 1.15 and 0.75 rungs, against 0.15–0.24), but the order changes between tasks. Luna notices misfiled readings unusually early, and Astra and Sol swap places between copying and echo.
+4. **What this means for the passport.**
+   - **General trait (tested):** "states rates its forecasts do not use" is a general trait of the GPT-5.6 configurations, confirmed on six abstract tasks.
+   - **Task-specific:** precision and noticing must be reported per task, not as traits.
+   - **Among the GPT-6 configurations:** no trait separates them on this battery.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Stage 2 plan.json | `a5986273c3038753bd4cc7414ccf45ca81fa0cc4d0be1ddc4fc58778c4016d89` |
+| Stage 2 execution.json | `2e0a09c2f26f3eb23ee42c04f978ed74f8c2e01efffa005a1e99957e97ac8198` |
+| Structure checks, all cells | `fe0c1db50385dab0efde9c9c63af9f24cabef48408de0f866e6332426543c881` |
+| Battery v2 analysis | `27f474a26df1229fb3ec084c2e07472ec494dd32c08c653c8854597d573d92e7` |
+| Task validation 0.14.1, seed 20260927 | `8255df133791c002536578d9e906bf9b858a51a5451dbd6eb8d89d9649920884` |
+| Task validation 0.14.1, seed 20261027 | `dcf769c31a46c1412af25de4576fe445c09d0f4c94c8e86128fa4aad83f96577` |

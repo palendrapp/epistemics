@@ -1,6 +1,6 @@
 # Abstract battery v2: a design for showing general traits
 
-Design, 29 September 2026. Nothing here is built or collected yet. The decisions for you are listed at the end.
+Design, 29 September 2026. Since built, preregistered and run: see [the preregistration and results](battery-v2-preregistration.md). The decisions below were taken as recommended (a 78 million token budget, noticing secondary, 24-case sessions).
 
 ## Aim
 

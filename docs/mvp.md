@@ -149,7 +149,14 @@ A rate-stating rung then settled it. Told how common misfiling is for each kind 
 - **Power:** precision 0.99, fidelity 0.91, noticing 0.62–0.79.
 - **Cost:** about 78 million tokens in two stages.
 
-Structure checks remain as a product fallback. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+Structure checks remain as a product fallback.
+
+**Battery v2 reported (29 September):**
+- **Size:** 150 new contexts, 76.8 million tokens.
+- **Precision is not a general trait** on abstract tasks. The task sets the level for every configuration, which overturns the exploratory reanalysis.
+- **Stated–applied fidelity is** a general trait, at the level of model family: the GPT-5.6 configurations state base rates their forecasts do not use, in all six tasks, near and far.
+- **Noticing does not transfer.**
+- **Within the GPT-6 configurations,** nothing separates them. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

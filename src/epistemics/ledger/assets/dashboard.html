@@ -340,7 +340,7 @@ td.num-cell { font-family: var(--mono); font-size: 12px; }
             <div class="eq">gain <i>G</i> = 1 − Σ(<i>d</i> − <i>d̂</i>)<sup>2</sup> / Σ<i>d</i><sup>2</sup>; &nbsp; <i>p</i> = <i>P</i>(<i>G</i><sub>shuffled</sub> ≥ <i>G</i>)</div>
           </div>
           <div class="fig-row" id="fig-transfer"></div>
-          <p class="fig-cap" id="fig-transfer-cap">Left: each configuration's precision relative to the others, per task (blue more precise, orange noisier). A trait is a row of one colour. Right: each held-out cell's deviation against its prediction from the configuration's other tasks.</p>
+          <p class="fig-cap" id="fig-transfer-cap">Each configuration's value relative to the other configurations, per task (battery v2). A trait is a row of one colour; a pattern that follows the columns is a task effect.</p>
           <p class="gloss"><i>c</i>: configuration, <i>t</i>: task. Shuffles permute configurations within each task, which keeps task effects and removes consistency. A trait transfers if <i>G</i> &gt; 0 and <i>p</i> &lt; 0.05.</p>
         </div>
       </div>
@@ -372,14 +372,13 @@ td.num-cell { font-family: var(--mono); font-size: 12px; }
           <tr><td>Formal cases → realistic dossiers (same structure)</td><td><span class="verdict yes">Yes</span> (priors)</td><td class="num-cell">error 1.4–4.0 points against 7.7–9.2</td></tr>
           <tr><td>Unnamed → named (same structure)</td><td><span class="verdict part">Partly</span> (clear cases only)</td><td class="num-cell">aggregator 0–3% → 86–92%; default stays below 50%</td></tr>
           <tr><td>One structure → another, absolute threshold <i>θ</i></td><td><span class="verdict no">No</span> (tasks differ for everyone)</td><td class="num-cell">Sol: τ<sub>θ</sub> 0.84 [0.33, 1.65] rungs</td></tr>
-          <tr><td>One task → another: precision (relative)</td><td><span class="verdict yes">Yes</span></td><td class="num-cell">ρ 0.91 [0.71, 1.00]; G 0.59; sign 85% (6 configurations, 9 tasks)</td></tr>
-          <tr><td>One task → another: stated–applied fidelity</td><td><span class="verdict part">Between model families</span></td><td class="num-cell">ρ 0.75; G 0.40 (driven by Luna)</td></tr>
-          <tr><td>One task → another: noticing (relative)</td><td><span class="verdict open">Lead</span></td><td class="num-cell">Astra needs less prompting than Sol in 3 of 4 structures; G 0.22</td></tr>
-          <tr><td>One task → another: unstated-rate default, cue sensitivity</td><td><span class="verdict no">No</span></td><td class="num-cell">no variation between configurations; G &lt; 0</td></tr>
-          <tr><td>Confirmatory test (battery v2)</td><td><span class="verdict open" id="summary-v2-status">—</span></td><td class="num-cell">6 configurations × 6 tasks (3 cores × 2 stories); precision primary (recovery: 100% passes, 0% false)</td></tr>
+          <tr><td>Mixed older tasks → each other: precision (exploratory)</td><td><span class="verdict part">Only in older formats</span></td><td class="num-cell">G 0.59 in the reanalysis, driven by Luna's noise on formal, dossier and paired tasks; not confirmed on abstract tasks</td></tr>
+          <tr><td>Mixed older tasks → each other: unstated-rate default, cue sensitivity (exploratory)</td><td><span class="verdict no">No</span></td><td class="num-cell">no variation between configurations; G &lt; 0</td></tr>
+          <tr><td>Confirmatory test (battery v2): six abstract tasks, six configurations</td><td><span class="verdict open" id="summary-v2-status">—</span></td><td class="num-cell">3 formal cores × 2 stories; precision primary; fidelity and noticing secondary</td></tr>
         </tbody>
       </table></div>
-      <p class="note">G: leave-one-task-out transfer gain; ρ: share of a configuration's deviation that it carries to every task. Relative transfer is exploratory until battery v2 reports.</p>
+      <div class="scroll"><table id="summary-v2"></table></div>
+      <p class="note">G: leave-one-task-out transfer gain; p: within-task shuffle test; ρ: share of a configuration's deviation that it carries to every task.</p>
     </section>
   </div>
 
@@ -713,6 +712,25 @@ function renderSummary(ledger) {
     .sort(([a], [b]) => byConfig(a, b))
     .map(([c, p]) => `${cfgName(c)} ${p.description_coherence[0]} of ${p.description_coherence[1]}`);
   document.getElementById("summary-coherence").textContent = coherent.length ? coherent.join("; ") + " sessions" : "—";
+  const result = ledger.models && ledger.models.battery_v2;
+  const v2table = document.getElementById("summary-v2");
+  if (result && result.traits) {
+    const NAMES = { precision: "Precision (log τ)", stated_applied_gap: "Stated–applied fidelity", noticing_threshold: "Noticing threshold" };
+    const fmtP = (p) => p === null || p === undefined ? "—" : p < 0.001 ? "< 0.001" : p.toFixed(3);
+    v2table.append(el("thead", {}, el("tr", {}, ["Trait (battery v2)", "Role", "Leave one task out: G, p", "Directions right", "Leave one core out: G, p", "Verdict"].map(h => el("th", {}, h)))));
+    v2table.append(el("tbody", {}, Object.entries(result.traits).map(([k, r]) => {
+      const tests = r.tests || {};
+      const task = tests.task || {}, core = tests.core || {};
+      const passed = task.gain > 0 && (r.role === "primary" ? (task.p_holm ?? 1) : (task.p ?? 1)) < 0.05;
+      return el("tr", {}, el("td", {}, NAMES[k] || k), el("td", {}, r.role),
+        el("td", { class: "num-cell" }, task.gain === undefined ? "—" : `${f2(task.gain)}, ${fmtP(task.p)}`),
+        el("td", { class: "num-cell" }, task.cells ? `${Math.round(task.sign_agreement * task.cells)} of ${task.cells}` : "—"),
+        el("td", { class: "num-cell" }, core.gain === undefined ? "—" : `${f2(core.gain)}, ${fmtP(core.p)}`),
+        el("td", {}, el("span", { class: `verdict ${passed ? "yes" : "no"}` }, passed ? "Transfers" : "Does not transfer")));
+    })));
+  } else {
+    v2table.replaceWith(el("p", { class: "note" }, "Battery v2 has not reported yet."));
+  }
   const v2 = (ledger.experiments || []).find(e => e.id === "battery-v2");
   const status = document.getElementById("summary-v2-status");
   status.textContent = v2 ? (v2.status === "complete" ? "Reported" : v2.status === "running" ? "Running" : v2.status) : "Planned";
@@ -876,7 +894,53 @@ function taskShort(task) {
     echo: "echo", hub: "hub", stale: "stale" }[structure] || structure;
   return `${s} ${{ paired: "P", formal: "F", dossier: "D", urn: "U" }[format] || format}`;
 }
+function figTransferV2(row, cap, result) {
+  const tasks = Object.keys(result.tasks);
+  const configs = result.configurations;
+  const TRAITS = [["stated_applied_gap", "Stated–applied fidelity", "larger gap", "smaller gap"],
+    ["precision", "Precision", "noisier", "more precise"], ["noticing_threshold", "Noticing", "needs more prompting", "needs less"]];
+  for (const [key, title] of TRAITS) {
+    const r = result.traits[key];
+    if (!r) continue;
+    const box = el("div", { class: "mini" });
+    row.append(box);
+    const y = configs.map(c => tasks.map(t => r.cells[`${c}/${t}`]));
+    const dev = y.map((rowv, i) => rowv.map((v, j) => {
+      if (v === null || v === undefined) return null;
+      const others = y.map((rr, ii) => ii === i ? null : rr[j]).filter(x => x !== null && x !== undefined);
+      return others.length ? v - others.reduce((a, b) => a + b, 0) / others.length : null;
+    }));
+    const maxAbs = Math.max(...dev.flat().filter(v => v !== null).map(Math.abs)) || 1;
+    const task = (r.tests && r.tests.task) || {};
+    mount(box, () => {
+      const cellH = 16, m = { t: 20, b: 40, l: 52, r: 4 };
+      const H = m.t + configs.length * cellH + m.b;
+      const { svg, width } = makeSvg(box, H, `${title}: deviation by configuration and task`);
+      svg.append("text").attr("class", "t-node").attr("x", 2).attr("y", 12)
+        .text(`${title} · G ${f2(task.gain)}, p ${task.p < 0.001 ? "< 0.001" : f2(task.p)}`);
+      const cw = (width - m.l - m.r) / tasks.length;
+      configs.forEach((c, i) => {
+        svg.append("text").attr("class", "t-lab").attr("x", m.l - 4).attr("y", m.t + i * cellH + cellH * 0.7).attr("text-anchor", "end")
+          .text(cfgName(c).replace("GPT-6 ", "").replace("GPT-5.6 ", ""));
+        tasks.forEach((t, j) => {
+          const d = dev[i][j];
+          svg.append("rect").attr("x", m.l + j * cw + 1).attr("y", m.t + i * cellH + 1).attr("width", Math.max(1, cw - 2)).attr("height", cellH - 2)
+            .attr("rx", 2).attr("fill", d === null ? "var(--rule)" : d < 0 ? "var(--accent)" : "var(--warn)")
+            .attr("fill-opacity", d === null ? 0.4 : 0.15 + 0.85 * Math.min(1, Math.abs(d) / maxAbs))
+            .append("title").text(d === null ? `${cfgName(c)} · ${t}: no valid cell` : `${cfgName(c)} · ${t}: ${f2(d)} from the other configurations`);
+        });
+      });
+      tasks.forEach((t, j) => svg.append("text").attr("class", "t-lab")
+        .attr("transform", `translate(${m.l + j * cw + cw / 2},${m.t + configs.length * cellH + 8}) rotate(-40)`)
+        .attr("text-anchor", "end").text(t));
+    });
+  }
+  cap.textContent = "Each configuration's value minus the other configurations' mean, per task (battery v2; blue below, orange above). " +
+    "A trait is a row of one colour: stated–applied fidelity separates Luna and Terra in every task, while precision and noticing follow the tasks.";
+}
 function figTransfer(row, cap, ledger) {
+  const v2 = ledger.models && ledger.models.battery_v2;
+  if (v2 && v2.traits) { figTransferV2(row, cap, v2); return; }
   const tt = ledger.models && ledger.models.trait_transfer;
   const precision = tt && tt.traits && tt.traits.precision;
   if (!precision || !precision.transfer) { row.append(el("p", { class: "note" }, "No trait reanalysis recorded yet.")); return; }
