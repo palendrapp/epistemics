@@ -629,7 +629,7 @@ def structure_checks(config, checks):
                 "told how common it is, its forecasts use the rate it is given "
                 f"({rated['followed']} of {count(rated['sessions'])})."
             )
-            caution = f"Needs to be told how common {name} is"
+            caution = f"Needs to be told the rate of {name}"
         elif rung is None:
             # When asked, it may state a low rate and apply it: considered, but judged rare.
             claim = (

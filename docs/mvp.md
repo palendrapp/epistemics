@@ -135,7 +135,9 @@ The misfiled-readings wording has been fixed and validated (tasks 0.12). Its old
 
 The reworded check was then collected (6 contexts). The misreading is gone, but both configurations switch by session between applying misfiling and judging it rare, so with one session per rung neither gets a reliable prompt ("not reliable").
 
-**Next: decide between topping up the misfiled-readings check or adding a rung that states the rate; then offer structure checks and run them for Luna and Terra.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+A rate-stating rung then settled it. Told how common misfiling is for each kind of sensor, both configurations forecast with exactly the stated rates in every session. The rate is what varies when it is not stated, so the advice for misfiled readings is "state how common it is".
+
+**Next: offer structure checks for named structures (with the rated rung where it exists), and run them for Luna and Terra.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

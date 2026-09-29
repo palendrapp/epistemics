@@ -321,3 +321,39 @@ uv run python -m epistemics.structure_check collect output/structure-check-misma
 - **Why it stopped:** "Admission budget exhausted". The runner admits a batch only if known usage plus 0.8 million tokens per run in the batch fits the cap. The cap I set (2.5 million) left no room for the second batch (1.07 + 1.6 million).
 - **The fix:** `collect` now sets its default cap from the expected usage plus that reserve.
 - **The top-up:** the two missing sessions are collected in a second, identical rated collection with one session per configuration (`output/structure-check-mismatch-rated-20260929-2`). Each configuration then has the two preregistered rated sessions. The criteria are unchanged.
+
+### Results: the rate-stating sessions (29 September)
+
+**Collection.** Four contexts across the two collections, no failed attempts.
+- **First collection:** 1.07 million input tokens; it stopped before its second batch (see the deviation above).
+- **Top-up:** 1.06 million input tokens.
+
+**Every session forecast with exactly the stated rates.**
+
+| | Sessions | Implied priors (fixed → shared by 50 and moving) | Largest gap from the stated rates |
+| --- | --- | --- | --- |
+| Astra | 2 | 0.05, 0.20, 0.30, 0.40, 0.60 in both | 0.001 |
+| Sol | 2 | 0.05, 0.20, 0.30, 0.40, 0.60 in both | 0.001 |
+
+**Against the preregistration:**
+- **F1:** met for both configurations (2 of 2 sessions each).
+- **E1:** holds.
+- **E2:** holds. The misfiled-readings advice for both is now **"state how common it is"** (`output/structure-checks-20260929-4.json`).
+
+**Interpretation.**
+- **Two tasks:** misfiled readings splits into a judgment task and a calculation task.
+  - **Rate unstated:** both configurations sometimes judge misfiling rare, and no prompt tested makes them reliably take it into account.
+  - **Rate stated for each kind of sensor:** they compute with it exactly, as in the earlier tasks where every rate was given.
+- **What varied:** the judged rate, not the arithmetic.
+- **The consumer action is to supply the rate.** Mentioning misfiling or asking about it is not enough.
+
+**For the guide.** Misfiled readings now reads: prompting alone does not make it reliably take misfiled readings into account, but when told how common it is, its forecasts use the rate it is given (2 of 2 sessions). The caution is "needs to be told the rate of misfiled readings".
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json (first collection) | `c8d327872554476195416d1490c9d583892a89b9d5cc5d8122a779fcde82c4cf` |
+| execution.json (first collection) | `501d8906c3e2ff1d28e8072a67987321e32aee67ad2c2955886556016b9e62a4` |
+| plan.json (top-up) | `777a226dead5c6b1d09ff06cd597a59d0889630d93b12cd328c1535303df474a` |
+| execution.json (top-up) | `2107fac599d2740c0be5f24d3a086078f0ddf995f8e969e413f4d4b9b93c67c2` |
+| summary.json (top-up) | `5c98e54781a0b723ae685deb2c4362f0caea47f3ae9033fedb24e1ca47e0deb5` |
+| Structure checks with the rated rung | `b10c33597706969499f36add35b9ff0651a56ab87c599835a44ea9ccde73b62e` |

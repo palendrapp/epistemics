@@ -547,13 +547,14 @@
         "output/structure-check-mismatch-rated-20260929",
         "output/structure-check-mismatch-rated-20260929-2"
       ],
-      "status": "running",
-      "prediction": "F1: rated rung reliable if both sessions follow (mean gap <=0.10, largest <=0.20). E1: both configurations follow in both sessions. E2: both get the advice 'state how common it is'."
+      "status": "complete",
+      "prediction": "F1: rated rung reliable if both sessions follow (mean gap <=0.10, largest <=0.20). E1: both configurations follow in both sessions. E2: both get the advice 'state how common it is'.",
+      "outcome": "4 contexts (first collection stopped after 2 on the runner's admission reserve; 2 topped up in a second identical collection, disclosed), 2.13M input tokens. Every session forecast with exactly the stated rates (largest gap 0.001) for both configurations: F1, E1, E2 hold. Misfiled-readings advice for both is now 'state how common it is': unstated, the rate is judged and sometimes judged rare; stated, it is computed exactly."
     }
   ],
   "next": [
-    "Collect the rate-stating misfiled-readings sessions (4 contexts, about 2.1M tokens).",
-    "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol, publish the reading.",
+    "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol (plus the rated rung where it exists), publish the reading.",
+    "Consider rate-stating rungs for the other structures where prompting alone is not reliable (Sol's relayed sources needs per-case questions).",
     "Luna and Terra structure checks (minimal protocol) so the guide covers the weaker configurations.",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."
