@@ -606,3 +606,37 @@ def test_reading_guide_advises_stating_the_rate_when_prompting_is_not_enough():
     )[0]
     assert r["fact"]["value"] == "Not reliable" and "did not fix this" in r["claim"]
     assert "followed the stated rates in 0 of 2 sessions" in r["detail"]
+
+
+def test_reading_guide_reads_battery_v2_traits():
+    from epistemics.ledger import guide
+
+    tasks = ("copying", "echo", "hub", "mismatch", "selection", "stale")
+
+    def trait(values, gain, p):
+        return {
+            "cells": {f"{c}/{t}": v for c, v in values.items() for t in tasks},
+            "tests": {"task": {"gain": gain, "p": p, "p_holm": p}},
+        }
+
+    v2 = {
+        "traits": {
+            "stated_applied_gap": trait({"luna": 0.18, "sol": 0.02}, 0.39, 0.0002),
+            "precision": trait({"luna": -2.0, "sol": -3.0}, -0.16, 0.33),
+            "noticing_threshold": trait({"luna": 1.2, "sol": 0.1}, -0.0, 0.08),
+        }
+    }
+    luna = guide.fidelity_trait("luna", v2)
+    assert luna["fact"]["value"] == "off by about 18 points" and luna["caution"]
+    assert guide.fidelity_trait("sol", v2)["caution"] is None
+    failed = {
+        **v2,
+        "traits": {**v2["traits"], "stated_applied_gap": trait({"luna": 0.18}, -0.1, 0.5)},
+    }
+    assert guide.fidelity_trait("luna", failed) is None
+    precise = guide.precision({}, "sol", v2)
+    assert (
+        "depends mostly on the task" in precise["claim"] and "by task" in precise["fact"]["value"]
+    )
+    carry = guide.carry_over("luna", None, v2)
+    assert carry["fact"]["value"] == "No" and "a question about how common it is" in carry["claim"]

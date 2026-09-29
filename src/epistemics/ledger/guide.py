@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.3.0"
+VERSION = "reading-guide/0.4.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -43,8 +43,9 @@ SHORT = {
     ),
 }
 MEASURED_IN = (
-    "Fictional forecasting cases about company demand, with the numbers stated in the case; "
-    "one fresh session per context, medium reasoning effort unless named otherwise."
+    "Fictional forecasting cases about company demand, and abstract cases about urns and "
+    "sensors, with the numbers stated in the case; one fresh session per context, medium "
+    "reasoning effort unless named otherwise."
 )
 
 
@@ -395,7 +396,82 @@ def information(p):
     )
 
 
-def precision(p):
+def v2_cells(v2, trait, config):
+    """A configuration's battery v2 cells for one trait, in task order (missing cells dropped)."""
+    cells = (((v2 or {}).get("traits") or {}).get(trait) or {}).get("cells") or {}
+    return [v for key, v in cells.items() if key.split("/")[0] == config and v is not None]
+
+
+def v2_transfers(v2, trait):
+    """Whether the preregistered leave-one-task-out test found the trait to transfer."""
+    r = (((v2 or {}).get("traits") or {}).get(trait) or {}).get("tests") or {}
+    task = r.get("task") or {}
+    p = task.get("p_holm", task.get("p"))
+    return None if task.get("gain") is None else bool(task["gain"] > 0 and p < 0.05)
+
+
+V2_EVIDENCE = "Battery v2 (preregistered): six abstract tasks, six configurations"
+
+
+def fidelity_trait(config, v2):
+    """Stated-applied fidelity as a tested general trait, when battery v2 found it to transfer."""
+    gaps = v2_cells(v2, "stated_applied_gap", config)
+    if not gaps or not v2_transfers(v2, "stated_applied_gap"):
+        return None
+    points = round(100 * float(sum(gaps) / len(gaps)))
+    if points >= 10:
+        claim = (
+            "In every abstract task tested, its forecasts depart from the base rates it states, "
+            f"by about {points} points on average. This held from task to task, so expect it in "
+            "tasks not tested."
+        )
+        caution, value = (
+            "The base rates it states are not the ones it uses",
+            f"off by about {points} points",
+        )
+    elif points <= 5:
+        claim = (
+            "In every abstract task tested, its forecasts use the base rates it states (within "
+            f"about {max(points, 1)} points). This held from task to task."
+        )
+        caution, value = None, f"within about {max(points, 1)} points"
+    else:
+        claim = (
+            f"Its forecasts depart somewhat from the base rates it states (about {points} points "
+            "on average across the abstract tasks tested)."
+        )
+        caution, value = None, f"about {points} points apart"
+    return reading(
+        "fidelity-trait",
+        "reliability",
+        claim,
+        f"Mean gap between stated and applied base rates at the ambiguous levels, over {len(gaps)} "
+        "tasks. The preregistered test found that each configuration keeps its position relative "
+        "to the others from task to task, including across tasks with different structures.",
+        f"{V2_EVIDENCE}.",
+        2 * len(gaps),
+        caution=caution,
+        fact=("Uses the base rates it states (six abstract tasks)", value),
+    )
+
+
+def precision(p, config=None, v2=None):
+    taus = [math.exp(x) for x in v2_cells(v2, "precision", config)]
+    if taus and v2_transfers(v2, "precision") is False:
+        lo, hi = spread_points(min(taus)), spread_points(max(taus))
+        span = f"±{lo}" if lo == hi else f"±{lo} to ±{hi}"
+        return reading(
+            "precision",
+            "reliability",
+            "How noisy its probabilities are depends mostly on the task, not on the configuration: "
+            f"across the abstract tasks tested its noise ranged from {span} points at mid-range.",
+            "A preregistered test found no stable ordering of configurations by precision from task "
+            "to task, so precision is reported per task, not as a trait.",
+            f"{V2_EVIDENCE}; {count(5 * len(taus))}.",
+            5 * len(taus),
+            {"kind": "spread", "points": hi},
+            fact=("Noise in its probabilities", f"{span} points, by task"),
+        )
     tau = p.get("report_noise_median")
     if tau is None:
         return None
@@ -551,6 +627,21 @@ STRUCTURE_NAMES = (
 )
 
 
+def prompting_range(theta):
+    """Prompting described for a threshold, as a phrase: "no prompting", "a mention", ..."""
+    return (
+        "no prompting"
+        if theta <= 0
+        else "a mention"
+        if theta <= 1
+        else "a question about how common it is"
+        if theta <= 2
+        else "a question about each case"
+        if theta <= 3
+        else "more than every prompt tested"
+    )
+
+
 def prompting(theta):
     for limit, text in PROMPTING:
         if theta <= limit:
@@ -558,9 +649,42 @@ def prompting(theta):
     return "not even when asked about each case"
 
 
-def carry_over(config, hierarchy):
-    """Whether noticing one hidden structure predicts noticing another, from the hierarchical
-    second-layer fit; only a fit that meets its validity rule is read."""
+def carry_over(config, hierarchy, v2=None):
+    """Whether noticing one hidden structure predicts noticing another: from battery v2's
+    preregistered test when it covers this configuration, otherwise from the hierarchical
+    second-layer fit (only a fit that meets its validity rule is read)."""
+    thetas = v2_cells(v2, "noticing_threshold", config)
+    transfers = v2_transfers(v2, "noticing_threshold")
+    if thetas and transfers is not None:
+        lo, hi = min(thetas), max(thetas)
+        if transfers:
+            claim = (
+                "How much prompting it needs before it considers a hidden structure keeps its "
+                "place relative to other configurations from one structure to another."
+            )
+            caution, value = None, "Yes"
+        else:
+            claim = (
+                "Whether it considers one hidden structure does not tell you whether it will "
+                "consider another: across the abstract tasks tested, it needed anything from "
+                f"{prompting_range(lo)} to {prompting_range(hi)}."
+            )
+            caution, value = (
+                "Check each hidden structure that matters for your use on its own",
+                "No",
+            )
+        return reading(
+            "noticing-carry-over",
+            "structures",
+            claim,
+            f"Noticing thresholds for {len(thetas)} structures ({lo:.1f} to {hi:.1f} rungs of "
+            "prompting). The preregistered test found no stable ordering of configurations from "
+            "structure to structure.",
+            f"{V2_EVIDENCE}.",
+            5 * len(thetas),
+            caution=caution,
+            fact=("Noticing carries over between structures", value),
+        )
     fit = ((hierarchy or {}).get("fits") or {}).get(config)
     if not fit or not fit.get("valid"):
         return None
@@ -714,14 +838,19 @@ def guide(ledger, descriptors):
             descriptions(p, "relay", descriptors),
             descriptions(p, "disclosure", descriptors),
             *noticing(config, analyses),
-            carry_over(config, (ledger.get("models") or {}).get("hierarchy")),
+            carry_over(
+                config,
+                (ledger.get("models") or {}).get("hierarchy"),
+                (ledger.get("models") or {}).get("battery_v2"),
+            ),
             *structure_checks(config, (ledger.get("models") or {}).get("structure_checks")),
             learning(p),
             relative(p),
             reliability(p),
             documents(config, analyses),
             information(p),
-            precision(p),
+            precision(p, config, (ledger.get("models") or {}).get("battery_v2")),
+            fidelity_trait(config, (ledger.get("models") or {}).get("battery_v2")),
             sessions_vary(p),
             coherence(p),
         ]
@@ -766,6 +895,8 @@ def guide(ledger, descriptors):
             "the name is not verified and can change.",
             "Numbers come from small numbers of fresh sessions. The evidence line on each reading "
             "says how many.",
+            "The only general trait confirmed so far, stated-applied fidelity, separates model "
+            "families (GPT-5.6 against GPT-6), not settings within a family.",
             "Draft: the wording and thresholds are under review.",
         ],
         "configurations": configurations,

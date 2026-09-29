@@ -595,7 +595,8 @@
     }
   ],
   "next": [
-    "Reading guide: add stated-applied fidelity as a family-level trait (GPT-5.6) and report precision and noticing per task.",
+    "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
+    "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
     "HGF volatility module (T4) offline."
