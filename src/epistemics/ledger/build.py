@@ -77,12 +77,19 @@ def mapping_sessions(select, base):
 
 
 WIDE_GAP = 0.15
+# Conditions whose stated rates are confounded by the design, kept out of coherence: in the urn
+# selection tasks the named mechanism ("hold back every blue ball") makes any record with a blue
+# ball logically disqualifying, so stated and applied rates diverge by construction
+# (docs/disposition-abstract-2026-09-28.md).
+CONFOUNDED = ("selection-urn-asked", "selection-urn-probed")
 
 
 def coherence_by_condition(mine):
     """Largest stated-minus-implied gap per session, grouped by module and variant."""
     result = {}
     for _, s in mine:
+        if s["module"] in CONFOUNDED:
+            continue
         if s["module"].endswith(("-cues", "-dossier", "-asked", "-probed")) and (
             s.get("stated_minus_implied_max") is not None
         ):
@@ -166,6 +173,7 @@ def passport(pairs, retests, contrasts):
                     s
                     for _, s in mine
                     if s["module"].endswith(("-cues", "-dossier", "-asked", "-probed"))
+                    and s["module"] not in CONFOUNDED
                     and s.get("stated_minus_implied_max") is not None
                 ]
             )
