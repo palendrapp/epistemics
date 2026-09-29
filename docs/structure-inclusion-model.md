@@ -197,7 +197,7 @@ The candidate readings are more general than the current task-level ones:
 - "Once a structure is named, it considers it in about three of four sessions (Astra) or one in two (Sol)."
 - "Asked about the structure, it states a rate, but in some sessions its forecasts do not use it" (Sol: φ = 0.87; Astra: φ = 0.97).
 
-These become passport readings only if they transfer.
+These become passport readings only if they transfer. In the corrected abstract run they did not transfer as configuration-level readings: thresholds differed by structure. Noticing readings therefore stay per structure.
 
 ## Next
 
@@ -205,7 +205,17 @@ These become passport readings only if they transfer.
 2. **Abstract transfer task (confirmatory).** Run on 28–29 September ([record](disposition-abstract-2026-09-28.md)). The preregistered fit did not converge because of two design flaws in the urn cues. Exploratory fits on the mismatch structure alone reproduced the dossier thresholds (θ 0.69 for both configurations). The parameters above stay dossier-specific until a corrected task is run. The original plan follows. Build contentless urn versions of copying (some draws are copies of earlier draws) and selection (a sampler shows only some draws). Add a third hidden structure, such as a common cause or survivorship. Each runs on the same four rungs, cued by structure alone. Preregister that the dossier θ predicts inclusion rates in the abstract tasks.
    - **The shared-trait claim** predicts that the configurations' ordering and rung profiles carry over.
    - **The family-specific alternative** predicts that the relay-like structure needs more prompting in every format.
-3. **Luna and Terra.** Collect rungs 0–2, so their θ is identified.
+3. **Corrected abstract transfer.** Run on 29 September ([record](disposition-abstract2-2026-09-29.md)).
+   - **Preregistered fit:** did not converge (R-hat 1.96 and 1.15), so P1–P4 are not assessable.
+   - **Per structure:** every fit converged, and θ differs by structure.
+     - Selection: about −0.25 for both configurations; the records make it self-evident.
+     - Copying: −0.77 for Astra and 0.07 for Sol.
+     - Mismatch: 2.42 for Astra, whose reading was affected by the wording, and 0.86 for Sol.
+   - **Against the dossiers:** only Sol's mismatch threshold is within 0.5 of its dossier value.
+   - **Shared against structure-specific:** where both fits converged (Sol), structure-specific thresholds fit better by 3.5 SE.
+   - **Conclusion:** the family-specific alternative is favoured. θ is a property of a structure, a cue format and a configuration together.
+4. **Hierarchical thresholds.** Give each structure and format its own θ, partially pooled toward a configuration mean. The between-structure spread measures how far noticing generalises. Validate by recovery, then fit jointly to the dossier and urn sessions.
+5. **Luna and Terra.** Collect rungs 0–2, so their θ is identified.
 
 ## Commands
 
@@ -236,3 +246,4 @@ uv run python -m epistemics.ledger fidelity-validate --output output/inclusion-f
 | Joint recovery | `8454492a1937a2f45cbec7713e7326862d6743a86ccd398d70cf408901a81673` |
 | Fidelity recovery | `4ab83b87000e51d0f7f8b0f400d029a5e4547a5caa36ab4353b0792c5a2fa7bb` |
 | Fidelity recovery, all-levels specification | `f6c469406047a2f56764ac677f8c3d47412706810064f36f9c44f24528dd8f4c` |
+| Corrected urn fit (preregistered) | `514b71f280484d931f08d5b91674085abd9d07518a2456186bca04731d39d9ee` |

@@ -92,6 +92,12 @@ def main():
     ij.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
     ij.add_argument("--configuration", action="append", default=None)
     ij.add_argument("--format", choices=("dossier", "urn", "urn2"), default="dossier")
+    ij.add_argument(
+        "--family",
+        action="append",
+        default=None,
+        help="Fit only these structures (the per-structure analysis); mixture model only",
+    )
     ijv = sub.add_parser("inclusion-joint-validate")
     ijv.add_argument("--output", type=Path, required=True)
     ijv.add_argument("--datasets", type=int, default=30)
@@ -159,6 +165,17 @@ def main():
         for config in a.configuration or ["astra", "sol"]:
             rows, ids = inclusion.ledger_sessions(models, config, with_ids=True, fmt=a.format)
             if not rows:
+                continue
+            if a.family:
+                rows = {f: r for f, r in rows.items() if f in a.family}
+                iterations, burn = joint.CHAINS[a.format]["fit"]
+                fit_ = joint.sample(rows, "shared", "mixture", 4, iterations, burn)
+                fit_["waic"].pop("elpd_pointwise", None)
+                fit_["session_fidelity"] = {
+                    fam: dict(zip(ids[fam], ps, strict=True))
+                    for fam, ps in fit_["session_fidelity"].items()
+                }
+                result[config] = {"fits": {"shared/mixture": fit_}, "families": sorted(rows)}
                 continue
             iterations, burn = joint.CHAINS[a.format]["fit"]
             fits = {

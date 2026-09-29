@@ -384,6 +384,15 @@ def test_reading_guide_flags_a_coherence_gap_confined_to_one_condition():
     assert guide.coherence(p)["caution"] is None
 
 
+def test_only_the_first_urn_selection_wording_is_kept_out_of_coherence():
+    from epistemics.ledger import build
+
+    assert build.confounded({"module": "selection-urn-asked", "variant": "urn-named"})
+    assert build.confounded({"module": "selection-urn-probed", "variant": "urn-named"})
+    assert not build.confounded({"module": "selection-urn-asked", "variant": "urn2-named"})
+    assert not build.confounded({"module": "copying-urn-asked", "variant": "urn-named"})
+
+
 def test_inclusion_layer_orders_thresholds_and_reports_rungs():
     from epistemics.ledger import inclusion
 
