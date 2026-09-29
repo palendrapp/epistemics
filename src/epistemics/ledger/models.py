@@ -449,7 +449,7 @@ def descriptors():
 def hierarchy(cache_dir="output"):
     """The latest hierarchical threshold fit (`inclusion-hier --output`), with its file hash, and
     the sensitivity fit of the same date if one was recorded."""
-    files = sorted(Path(cache_dir).glob("inclusion-hier-fit-*.json"))
+    files = sorted(Path(cache_dir).glob("inclusion-hier-fit-*.json"), key=lambda p: p.stem)
     if not files:
         return None
 
@@ -468,7 +468,8 @@ def hierarchy(cache_dir="output"):
 
 def structure_checks(cache_dir="output"):
     """The latest structure checks (`structure_check check --output`), with the file's hash."""
-    files = sorted(Path(cache_dir).glob("structure-checks-*.json"))
+    # By stem, so a second run on the same day ("...-20260929-2") comes after the first.
+    files = sorted(Path(cache_dir).glob("structure-checks-*.json"), key=lambda p: p.stem)
     if not files:
         return None
     data = files[-1].read_bytes()

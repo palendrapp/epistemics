@@ -39,6 +39,8 @@ from epistemics.disposition_tasks.render import (
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
     URN2_VARIANTS,
+    URN3_MODULES,
+    URN3_VARIANTS,
     URN_ASKED_MODULES,
     URN_MODULES,
     URN_PROBED_MODULES,
@@ -119,6 +121,7 @@ AUDITED_CASES = (
     + 24 * len(PROBED_MODULES) * len(ASKED_VARIANTS)
     + 24 * len(URN_MODULES) * len(URN_VARIANTS + URN2_VARIANTS)
     + 24 * len(URN_ASKED_MODULES + URN_PROBED_MODULES) * 2
+    + 24 * len(URN3_MODULES) * len(URN3_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -271,6 +274,7 @@ def check_groups(groups):
             + UNPROMPTED_VARIANTS
             + URN_VARIANTS
             + URN2_VARIANTS
+            + URN3_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts

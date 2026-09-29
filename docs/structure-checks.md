@@ -21,7 +21,7 @@ A structure is a hidden structure in one task format. Each rung of the ladder is
 | disclosure | Selective silence | Document dossiers | disclosure-unprompted, dossier-a | disclosure-unprompted, named-a | disclosure-asked | disclosure-dossier (full mechanism; no probed version exists) |
 | copying | Copied readings | Abstract urn tasks | copying-urn, urn2-plain | copying-urn, urn2-named | copying-urn-asked | copying-urn-probed |
 | selection | Selective reporting | Abstract urn tasks | selection-urn, urn2-plain | selection-urn, urn2-named | selection-urn-asked | selection-urn-probed |
-| mismatch | Misfiled readings | Abstract urn tasks | mismatch-urn, urn2-plain | mismatch-urn, urn2-named | mismatch-urn-asked | mismatch-urn-probed |
+| mismatch | Misfiled readings | Abstract urn tasks | mismatch-urn, urn2-plain | mismatch-urn, urn3-named | mismatch-urn-asked, urn3-named | mismatch-urn-probed, urn3-named |
 
 A structure outside the catalogue needs a new task: its texts, a validation, and an entry here.
 
@@ -140,3 +140,37 @@ All valid checks had R-hat of 1.011 or less.
 | --- | --- |
 | Protocol validation | `cb10e22f7ab194b0198c3350d0ab6c28ba2bde33f7ff07c4f37ac27d7a2a06b8` |
 | Structure checks | `c7a928c922d34274fff388ad206cc90d3f6104ac9b175373c7e9e83362b01d5c` |
+
+## Misfiled readings reworded (tasks 0.12.0)
+
+**The problem.** The misfiled-readings check used the corrected urn wording (urn2): "a sensor's stated accuracy applies to readings of the urn it is filed under". That can be read as saying accuracy already covers misfiled readings. Astra read it that way in 6 of its 8 named sessions ([abstract transfer](disposition-abstract2-2026-09-29.md)), which is why its check said "not reliable".
+
+**The new variant** (`urn3-named`, mismatch modules only) replaces that one sentence with:
+
+> In any round, a reading on file may come from a different urn than the one it is filed under; a sensor's stated accuracy applies only when the reading does come from that urn, and a reading from a different urn says nothing about this one.
+
+**What stays the same.**
+- **The rest of the text:** everything else is byte-identical to urn2-named, including the questions (checked for all 72 cases).
+- **Plain cases:** unchanged, so the existing urn2-plain sessions stay the check's rung 0.
+- **Other structures:** copying and selection do not take the new variant.
+
+**Validation.**
+- **Battery:** disposition-tasks/0.12.0, implementation fingerprint `704367d40d6dc3fdf6505d79c7eb3a0f42b8a8b2aba74eaeca45988e2c94fe11`.
+- **Task validation 0.12:** passed on both seeds, with 1,632 rendered cases and all 70 contexts.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.12, seed 20260927 | `b07735902e7bc4a0b55eb8f49f1096669afd40031346aa17968b4afdd0402150` |
+| Task validation 0.12, seed 20261027 | `1ae0d3fd3e74a83ee92ce4f470c477f6933faa31523a9a130a6d53a2b9b20a0d` |
+| Structure checks rerun (misfiled readings withdrawn) | `15a6f7e7a9977bd57d53e2cda42fa89f26342b64c3e8f96857f73bcee9d1b750` |
+
+**The old results are withdrawn.**
+- **Catalogue:** the misfiled-readings entry now points at the new wording.
+- **Checks:** a check records the format it was fitted to, and the guide reads only checks that match the catalogue.
+- **Rerun:** the checks were rerun (`output/structure-checks-20260929-2.json`). The other eight are unchanged, and the guide lists misfiled readings as "not yet checked" for both configurations.
+
+**Collecting the reworded check.** The minimal protocol at rungs 1–3 only, since rung 0 already has three plain sessions per configuration. That is 6 contexts, about 3.2 million tokens:
+
+```bash
+uv run python -m epistemics.structure_check collect output/structure-check-mismatch3-<date> --configuration astra --configuration sol --structure mismatch --protocol minimal --rung 1 --rung 2 --rung 3 --validation output/disposition-tasks-v0.12-validation-20260927.json --validation output/disposition-tasks-v0.12-validation-20261027.json
+```

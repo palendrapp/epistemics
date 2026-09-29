@@ -611,9 +611,10 @@ def structure_checks(config, checks):
 
     result = []
     for key, check in sorted(((checks or {}).get("checks") or {}).get(config, {}).items()):
-        if not check.get("valid"):
+        entry = CATALOGUE.get(key)
+        # A check fitted to an older wording of the structure is not read.
+        if not entry or not check.get("valid") or check.get("format") != entry["format"]:
             continue
-        entry = CATALOGUE[key]
         name, rung = entry["name"], check["recommended_rung"]
         means = [check["inclusion_by_rung"][str(r)]["mean"] for r in range(4)]
         short, sentence = ACTIONS[rung]
@@ -659,14 +660,23 @@ def structure_checks(config, checks):
 
 
 def undetermined_checks(config, checks):
-    """Structure checks that ran but did not converge, as not-yet-measured lines."""
+    """Catalogued structures without a current check, for a configuration that has some: checks
+    that did not converge, and structures not yet checked in their current wording."""
     from epistemics.structure_check import CATALOGUE
 
-    return [
-        f"whether it considers {CATALOGUE[key]['name']} unprompted (its check did not converge)"
-        for key, check in sorted(((checks or {}).get("checks") or {}).get(config, {}).items())
-        if not check.get("valid")
-    ]
+    mine = ((checks or {}).get("checks") or {}).get(config, {})
+    if not mine:
+        return []
+    lines = []
+    for key, entry in CATALOGUE.items():
+        check = mine.get(key)
+        if check is None or check.get("format") != entry["format"]:
+            lines.append(f"whether it considers {entry['name']} unprompted (not yet checked)")
+        elif not check.get("valid"):
+            lines.append(
+                f"whether it considers {entry['name']} unprompted (its check did not converge)"
+            )
+    return lines
 
 
 def guide(ledger, descriptors):

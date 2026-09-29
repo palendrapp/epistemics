@@ -524,9 +524,11 @@ def test_reading_guide_reads_carry_over_only_from_a_valid_hierarchical_fit():
 
 def test_reading_guide_turns_structure_checks_into_prompting_advice():
     from epistemics.ledger import guide
+    from epistemics.structure_check import CATALOGUE
 
-    def check(rung, means, valid=True):
+    def check(rung, means, valid=True, key="mismatch"):
         return {
+            "format": CATALOGUE[key]["format"],
             "valid": valid,
             "recommended_rung": rung,
             "sessions": 11,
@@ -537,23 +539,34 @@ def test_reading_guide_turns_structure_checks_into_prompting_advice():
         "checks": {
             "sol": {
                 "mismatch": check(2, (0.06, 0.6, 0.97, 0.99)),
-                "selection": check(0, (0.9, 1.0, 1.0, 1.0)),
-                "copying": check(1, (0.4, 0.95, 1.0, 1.0), valid=False),
+                "selection": check(0, (0.9, 1.0, 1.0, 1.0), key="selection"),
+                "copying": check(1, (0.4, 0.95, 1.0, 1.0), valid=False, key="copying"),
+                "relay": {**check(2, (0.1, 0.5, 0.9, 1.0), key="relay"), "format": "older"},
             }
         }
     }
     readings = {r["key"]: r for r in guide.structure_checks("sol", checks)}
-    assert set(readings) == {"check-mismatch", "check-selection"}
+    assert set(readings) == {"check-mismatch", "check-selection"}  # relay: older wording
     mismatch = readings["check-mismatch"]
     assert mismatch["topic"] == "structures" and mismatch["caution"]
     assert "about 6% of cases" in mismatch["claim"] and "ask how common it is" in mismatch["claim"]
     assert mismatch["fact"]["value"] == "Mention it and ask how common it is"
     assert readings["check-selection"]["caution"] is None
-    assert "Known issue" in mismatch["detail"] and "ambiguous" in mismatch["caution"]
+    CATALOGUE["mismatch"]["known_issue"] = "The wording was ambiguous."
+    try:
+        flagged = guide.structure_checks("sol", checks)[0]
+    finally:
+        del CATALOGUE["mismatch"]["known_issue"]
+    assert "Known issue" in flagged["detail"] and "ambiguous" in flagged["caution"]
     assert guide.structure_checks("astra", checks) == []
-    high = guide.structure_checks("sol", {"checks": {"sol": {"copying": check(1, (0.9, 1, 1, 1))}}})
+    high = guide.structure_checks(
+        "sol", {"checks": {"sol": {"copying": check(1, (0.9, 1, 1, 1), key="copying")}}}
+    )
     assert "about 90% of cases, but not reliably" in high[0]["claim"]
     assert high[0]["caution"].startswith("Sometimes misses")
     assert guide.undetermined_checks("sol", checks) == [
-        "whether it considers copied readings unprompted (its check did not converge)"
+        "whether it considers sources repeating another source unprompted (not yet checked)",
+        "whether it considers selective silence unprompted (not yet checked)",
+        "whether it considers copied readings unprompted (its check did not converge)",
     ]
+    assert guide.undetermined_checks("astra", checks) == []

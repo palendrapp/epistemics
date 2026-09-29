@@ -195,7 +195,7 @@ Astra's copying interval reaches −0.98, 0.02 inside the prior's lower bound. T
 - **A hierarchical second layer.** Thresholds per structure and format (dossier relay, dossier disclosure, copying, selection, mismatch), partially pooled toward a configuration mean and fitted jointly to the existing dossier and urn sessions.
   - **Quantity of interest:** the spread between structures, which measures how far noticing generalises.
   - **Requirements:** recovery validation before any estimate is reported. No new collection is needed for a first fit.
-- **Optional: a third mismatch wording, checked for its reading first.** For example: "When a reading does come from the urn it is filed under, it is correct 90% of the time; a reading from a different urn says nothing about this one."
+- **Done (tasks 0.12, [structure checks](structure-checks.md)): a third mismatch wording.** For example: "When a reading does come from the urn it is filed under, it is correct 90% of the time; a reading from a different urn says nothing about this one."
 
 ## Commitments (run)
 

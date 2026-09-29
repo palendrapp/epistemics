@@ -17,6 +17,12 @@ has them, name it in the question only.
 assume, so a record showing a few blue balls is compatible with a mostly selective reporter. And
 the named sentence says what the stated accuracies cover, so accuracy cannot be read as already
 including copying or misfiling. The plain texts of the two versions are identical.
+
+"urn3-named" (tasks 0.12, mismatch only) rewords that clause. "Applies to readings of the urn it
+is filed under" was read as covering misfiled readings (docs/disposition-abstract2-2026-09-29.md);
+the new sentence says accuracy applies only when a reading does come from the urn it is filed
+under, and that a reading from a different urn says nothing about this one. Its plain cases are
+urn2-plain's.
 """
 
 from epistemics.disposition_tasks import render as base
@@ -74,6 +80,13 @@ NAMED2 = {
         "under; a sensor's stated accuracy applies to readings of the urn it is filed under."
     ),
 }
+NAMED3 = {
+    "mismatch": (
+        "In any round, a reading on file may come from a different urn than the one it is filed "
+        "under; a sensor's stated accuracy applies only when the reading does come from that "
+        "urn, and a reading from a different urn says nothing about this one."
+    ),
+}
 LAB = "Half of all urns in the lab are red-majority."
 
 
@@ -81,11 +94,14 @@ def background(family, variant):
     """The variant's one named sentence, or None in a plain variant."""
     if not variant.endswith("named"):
         return None
+    if variant.startswith("urn3"):
+        return NAMED3[family]
     return (NAMED2 if variant.startswith("urn2") else NAMED)[family]
 
 
 def corrected(variant):
-    return variant.startswith("urn2")
+    """Per-round wording (tasks 0.11 onwards)."""
+    return variant.startswith(("urn2", "urn3"))
 
 
 def names(i):

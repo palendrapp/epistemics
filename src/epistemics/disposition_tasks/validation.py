@@ -31,6 +31,8 @@ from epistemics.disposition_tasks.render import (
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
     URN2_VARIANTS,
+    URN3_MODULES,
+    URN3_VARIANTS,
     URN_ASKED_MODULES,
     URN_MODULES,
     URN_PROBED_MODULES,
@@ -132,10 +134,11 @@ def variants_of(module):
         return UNPROMPTED_VARIANTS
     if module in ASKED_MODULES + PROBED_MODULES:
         return ASKED_VARIANTS
+    extra = URN3_VARIANTS if module in URN3_MODULES else ()
     if module in URN_MODULES:
-        return URN_VARIANTS + URN2_VARIANTS
+        return URN_VARIANTS + URN2_VARIANTS + extra
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
-        return ("urn-named", "urn2-named")
+        return ("urn-named", "urn2-named") + extra
     return ("paired",) if module == "checks" else VARIANTS
 
 
@@ -272,6 +275,9 @@ def contexts_to_validate():
             yield module, "markets", variant, CUE_RESPONDENT
     for module in URN_ASKED_MODULES + URN_PROBED_MODULES:
         yield module, "markets", "urn2-named", CUE_RESPONDENT
+    for module in URN3_MODULES:
+        for variant in URN3_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):

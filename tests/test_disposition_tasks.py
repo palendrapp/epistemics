@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 1560
+    assert audit()["cases"] == 1632
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 67
+    assert result["passed"] and len(result["contexts"]) == 70
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -695,3 +695,22 @@ def test_corrected_urn_texts_state_structures_per_round():
     )
     probe = render("selection-urn-probed", "markets", 1, "urn2-named")["question"]
     assert probe.startswith("What is the probability that in this round")
+
+
+def test_reworded_mismatch_conditions_accuracy_on_the_right_urn():
+    from epistemics.disposition_tasks.render import allowed
+    from epistemics.disposition_tasks.urn import NAMED2, NAMED3
+
+    sentence = NAMED3["mismatch"]
+    assert "applies only when the reading does come from that urn" in sentence
+    assert "says nothing about this one" in sentence and sentence != NAMED2["mismatch"]
+    for module in ("mismatch-urn", "mismatch-urn-asked", "mismatch-urn-probed"):
+        for i in range(24):
+            new = render(module, "markets", i, "urn3-named")
+            old = render(module, "markets", i, "urn2-named")
+            assert new["case"].count(sentence) == 1
+            # Only the named sentence changes.
+            assert new["case"].replace(sentence, NAMED2["mismatch"]) == old["case"]
+            assert new["question"] == old["question"]
+    for module in ("copying-urn", "selection-urn-asked"):
+        assert not allowed(module, "markets", "urn3-named")

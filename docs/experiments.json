@@ -493,11 +493,24 @@
       "status": "complete",
       "prediction": "Specified before running: recommendation = lowest rung whose inclusion 90% interval starts at 0.8+ (uninformative description). Gates per protocol (40 synthetic configurations each): unsafe at most 10%, within one rung at least 80%, converged at least 90%; the cheapest passing protocol is adopted.",
       "outcome": "All four protocols pass (unsafe 0-2%, within one rung 85-95%, all converged); minimal (1 session per rung, ~2.1M tokens per structure and configuration) adopted as the cheapest, at the cost of more cautious advice (two rungs too many in 15%). Checks on existing sessions, 9 of 10 valid: neither configuration reliably considers any structure unprompted; mentioning suffices for selective reporting (both) and copied readings (Astra); asking how common is needed for most others; Sol needs per-case questions for relayed sources. Astra selective silence not determined (R-hat 1.43); Astra misfiled readings not reliable, flagged as a wording issue. Guide 0.3.0 reports each check."
+    },
+    {
+      "id": "mismatch-rewording",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "validation",
+      "title": "Misfiled readings reworded (tasks 0.12.0)",
+      "question": "Can the mismatch named sentence say unambiguously that stated accuracy applies only to readings that do come from the urn they are filed under?",
+      "doc": "docs/structure-checks.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Variant urn3-named changes only the named sentence (mismatch modules); plain text and questions unchanged; task validation must pass on two seeds.",
+      "outcome": "Built and validated (1,632 cases, 70 contexts, both seeds; fingerprint 704367d4). Old misfiled-readings checks withdrawn from the guide; collection pending (6 contexts, about 3.2M tokens: minimal protocol at rungs 1-3, reusing plain sessions)."
     }
   ],
   "next": [
-    "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol (`structure_check collect`), and publish the reading.",
-    "Fix the misfiled-readings wording before offering that check.",
+    "Collect the reworded misfiled-readings check (6 contexts, about 3.2M tokens).",
+    "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol, publish the reading.",
     "Luna and Terra structure checks (minimal protocol) so the guide covers the weaker configurations.",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."

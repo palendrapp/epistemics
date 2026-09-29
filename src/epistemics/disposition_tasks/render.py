@@ -55,6 +55,10 @@ URN_PROBED_MODULES = ("copying-urn-probed", "selection-urn-probed", "mismatch-ur
 URN_VARIANTS = ("urn-plain", "urn-named")
 # Corrected urn texts (tasks 0.11): per-round structures and what stated accuracies cover.
 URN2_VARIANTS = ("urn2-plain", "urn2-named")
+# Mismatch reworded (tasks 0.12): the corrected accuracy clause was read as already covering
+# misfiling. Named only; its plain text is urn2-plain's.
+URN3_VARIANTS = ("urn3-named",)
+URN3_MODULES = ("mismatch-urn", "mismatch-urn-asked", "mismatch-urn-probed")
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,
@@ -672,6 +676,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in UNPROMPTED_VARIANTS
     if module in ASKED_MODULES + PROBED_MODULES:
         return cover == "markets" and variant in ASKED_VARIANTS
+    if module in URN3_MODULES and variant in URN3_VARIANTS:
+        return cover == "markets"
     if module in URN_MODULES:
         return cover == "markets" and variant in URN_VARIANTS + URN2_VARIANTS
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:

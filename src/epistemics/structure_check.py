@@ -83,18 +83,14 @@ CATALOGUE = {
         "phrase": "that some readings on file come from a different item than the one they are "
         "filed under",
         "setting": "abstract urn tasks",
-        "format": "urn2",
-        # docs/disposition-abstract2-2026-09-29.md
-        "known_issue": (
-            "The tested prompt also said that a sensor's stated accuracy applies to readings of "
-            "the urn they are filed under, which can be read as already covering misfiling; one "
-            "configuration read it that way."
-        ),
+        # Reworded in tasks 0.12: the urn2 accuracy clause was read as covering misfiling
+        # (docs/disposition-abstract2-2026-09-29.md). Plain sessions are unchanged.
+        "format": "urn3",
         "ladder": {
             0: ("mismatch-urn", "urn2-plain"),
-            1: ("mismatch-urn", "urn2-named"),
-            2: ("mismatch-urn-asked", "urn2-named"),
-            3: ("mismatch-urn-probed", "urn2-named"),
+            1: ("mismatch-urn", "urn3-named"),
+            2: ("mismatch-urn-asked", "urn3-named"),
+            3: ("mismatch-urn-probed", "urn3-named"),
         },
     },
 }
@@ -290,17 +286,22 @@ def check(models, configurations, structures):
             short, _ = ACTIONS[fit["recommended_rung"]]
             result.setdefault(config, {})[structure] = {
                 **fit,
+                "format": fmt,
+                "variants": list(inclusion.FORMAT_VARIANTS.get(fmt, ())),
                 "action": short if fit["valid"] else None,
                 "sessions": len(rows[structure]),
             }
     return result
 
 
-def plan(configurations, structures, protocol="full"):
-    """Runner groups that collect the named structures on the salience ladder."""
+def plan(configurations, structures, protocol="full", rungs=(0, 1, 2, 3)):
+    """Runner groups that collect the named structures on the salience ladder (the given rungs;
+    leave out a rung whose sessions already exist with the same text)."""
     groups = []
     for structure in structures:
         for rung, count in PROTOCOLS[protocol].items():
+            if rung not in rungs:
+                continue
             module, variant = CATALOGUE[structure]["ladder"][rung]
             groups.append(
                 {
@@ -331,6 +332,7 @@ def main():
     k.add_argument("--structure", action="append", choices=sorted(CATALOGUE), required=True)
     k.add_argument("--protocol", choices=sorted(PROTOCOLS), required=True)
     k.add_argument("--validation", action="append", type=Path, required=True)
+    k.add_argument("--rung", action="append", type=int, choices=range(4), default=None)
     k.add_argument("--max-tokens", type=int, default=None)
     a = p.parse_args()
     if a.command == "validate":
@@ -365,7 +367,7 @@ def main():
     else:
         from epistemics.disposition_tasks import runner
 
-        groups = plan(a.configuration, a.structure, a.protocol)
+        groups = plan(a.configuration, a.structure, a.protocol, tuple(a.rung or range(4)))
         sessions = sum(len(g["contexts"]) * len(g["configurations"]) for g in groups)
         budget = a.max_tokens or int(sessions * TOKENS_PER_SESSION * 1.2)
         root = a.directory.resolve()
