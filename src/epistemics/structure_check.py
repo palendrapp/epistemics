@@ -84,6 +84,12 @@ CATALOGUE = {
         "filed under",
         "setting": "abstract urn tasks",
         "format": "urn2",
+        # docs/disposition-abstract2-2026-09-29.md
+        "known_issue": (
+            "The tested prompt also said that a sensor's stated accuracy applies to readings of "
+            "the urn they are filed under, which can be read as already covering misfiling; one "
+            "configuration read it that way."
+        ),
         "ladder": {
             0: ("mismatch-urn", "urn2-plain"),
             1: ("mismatch-urn", "urn2-named"),

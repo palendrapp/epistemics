@@ -466,6 +466,15 @@ def hierarchy(cache_dir="output"):
     return result
 
 
+def structure_checks(cache_dir="output"):
+    """The latest structure checks (`structure_check check --output`), with the file's hash."""
+    files = sorted(Path(cache_dir).glob("structure-checks-*.json"))
+    if not files:
+        return None
+    data = files[-1].read_bytes()
+    return {"file": files[-1].name, "sha256": hashlib.sha256(data).hexdigest(), **json.loads(data)}
+
+
 def build(sessions_by_root, experiment_for, cache_dir="output"):
     """The dashboard's model block from verified extraction records, keyed by root."""
     designs = Designs()
@@ -494,6 +503,7 @@ def build(sessions_by_root, experiment_for, cache_dir="output"):
         "sessions": sessions,
         "recovery": recovery_sample(cache_dir),
         "hierarchy": hierarchy(cache_dir),
+        "structure_checks": structure_checks(cache_dir),
         "scope": (
             "Grid posteriors recomputed with the current model from each session's responses and "
             "its collected design; recorded_difference is the largest gap to the verified "

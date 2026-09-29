@@ -129,7 +129,9 @@ A [hierarchical version](structure-inclusion-model.md) then pooled the threshold
 
 A power study found that showing noticing does carry over would take about 10–15 structures per configuration if it truly does, about 115 million tokens beyond the current data for two configurations. The reading guide now says, for configurations with a valid fit, that noticing one hidden structure does not predict noticing another, and tells the reader to test the structures that matter.
 
-**Next: decide whether carry-over is worth that collection, or whether the guide should test only the structures a consumer names.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+The cheaper route was chosen: [structure checks](structure-checks.md) test only the hidden structures a consumer names, and turn each into prompting advice. Validation adopted a minimal protocol, one session per rung, about 2.1 million tokens per structure and configuration. Its advice is sometimes over-cautious but was never unsafe in validation. On existing sessions, neither Astra nor Sol reliably considers any catalogued structure unprompted. Mentioning the structure is enough for some structures; others need a question about how common it is.
+
+**Next: offer structure checks for named structures (fixing the misfiled-readings wording first), and run them for Luna and Terra.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

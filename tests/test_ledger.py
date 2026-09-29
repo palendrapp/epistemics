@@ -520,3 +520,40 @@ def test_reading_guide_reads_carry_over_only_from_a_valid_hierarchical_fit():
     assert guide.carry_over("astra", {"fits": {"sol": fit}}) is None
     agrees = guide.carry_over("sol", {"fits": {"sol": {**fit, "spread_reading": "generalises"}}})
     assert agrees["caution"] is None and agrees["fact"]["value"] == "Yes"
+
+
+def test_reading_guide_turns_structure_checks_into_prompting_advice():
+    from epistemics.ledger import guide
+
+    def check(rung, means, valid=True):
+        return {
+            "valid": valid,
+            "recommended_rung": rung,
+            "sessions": 11,
+            "inclusion_by_rung": {str(r): {"mean": m} for r, m in enumerate(means)},
+        }
+
+    checks = {
+        "checks": {
+            "sol": {
+                "mismatch": check(2, (0.06, 0.6, 0.97, 0.99)),
+                "selection": check(0, (0.9, 1.0, 1.0, 1.0)),
+                "copying": check(1, (0.4, 0.95, 1.0, 1.0), valid=False),
+            }
+        }
+    }
+    readings = {r["key"]: r for r in guide.structure_checks("sol", checks)}
+    assert set(readings) == {"check-mismatch", "check-selection"}
+    mismatch = readings["check-mismatch"]
+    assert mismatch["topic"] == "structures" and mismatch["caution"]
+    assert "about 6% of cases" in mismatch["claim"] and "ask how common it is" in mismatch["claim"]
+    assert mismatch["fact"]["value"] == "Mention it and ask how common it is"
+    assert readings["check-selection"]["caution"] is None
+    assert "Known issue" in mismatch["detail"] and "ambiguous" in mismatch["caution"]
+    assert guide.structure_checks("astra", checks) == []
+    high = guide.structure_checks("sol", {"checks": {"sol": {"copying": check(1, (0.9, 1, 1, 1))}}})
+    assert "about 90% of cases, but not reliably" in high[0]["claim"]
+    assert high[0]["caution"].startswith("Sometimes misses")
+    assert guide.undetermined_checks("sol", checks) == [
+        "whether it considers copied readings unprompted (its check did not converge)"
+    ]

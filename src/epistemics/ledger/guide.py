@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.2.0"
+VERSION = "reading-guide/0.3.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -20,6 +20,7 @@ NAMES = {
 }
 TOPICS = (
     ("base-rates", "What it assumes"),
+    ("structures", "Which hidden structures it considers"),
     ("evidence", "How it weighs evidence"),
     ("decisions", "How it values information"),
     ("reliability", "How far to trust its numbers"),
@@ -232,7 +233,7 @@ def noticing(config, analyses):
         result.append(
             reading(
                 f"noticing-{family}",
-                "base-rates",
+                "structures",
                 claim,
                 detail,
                 f"Unprompted dossiers, {count(row['unprompted_sessions'])}.",
@@ -577,7 +578,7 @@ def carry_over(config, hierarchy):
             f"consider another. A structure not tested here might be considered {prompting(lo)}, "
             f"or only {prompting(hi)}."
         )
-        caution = "Test each hidden structure that matters for your use directly"
+        caution = "Check each hidden structure that matters for your use on its own"
         value = "No" if reading_ == "structure-specific" else "Not shown"
     detail = (
         f"Across {n} hidden structures ({STRUCTURE_NAMES}), the prompting it needed varied by "
@@ -586,7 +587,7 @@ def carry_over(config, hierarchy):
     )
     return reading(
         "noticing-carry-over",
-        "base-rates",
+        "structures",
         claim,
         detail,
         f"Hierarchical fit over {n} structures, {count(sessions)}.",
@@ -594,6 +595,78 @@ def carry_over(config, hierarchy):
         caution=caution,
         fact=("Noticing carries over between structures", value),
     )
+
+
+RUNG_PHRASES = (
+    "unprompted",
+    "once it was mentioned",
+    "once also asked how common it is",
+    "once also asked about each case",
+)
+
+
+def structure_checks(config, checks):
+    """One reading per valid structure check: the prompt that makes it consider the structure."""
+    from epistemics.structure_check import ACTIONS, CATALOGUE
+
+    result = []
+    for key, check in sorted(((checks or {}).get("checks") or {}).get(config, {}).items()):
+        if not check.get("valid"):
+            continue
+        entry = CATALOGUE[key]
+        name, rung = entry["name"], check["recommended_rung"]
+        means = [check["inclusion_by_rung"][str(r)]["mean"] for r in range(4)]
+        short, sentence = ACTIONS[rung]
+        action = sentence.format(name=name, phrase=entry["phrase"])
+        if rung == 0:
+            claim = f"It considers {name} without being prompted."
+            caution = None
+        elif rung is None:
+            claim = f"It does not reliably consider {name}, even when prompted in every way tested."
+            caution = f"Does not reliably consider {name}"
+        else:
+            how_often = (
+                f"in only about {pct(means[0])} of cases"
+                if means[0] < 0.5
+                else f"in about {pct(means[0])} of cases, but not reliably"
+            )
+            claim = (
+                f"Unprompted, it considers {name} {how_often}. "
+                f"To make sure it does: {action[0].lower()}{action[1:]}"
+            )
+            caution = f"{'Misses' if means[0] < 0.5 else 'Sometimes misses'} {name} unless prompted"
+        steps = ", ".join(f"{pct(m)} {p}" for m, p in zip(means, RUNG_PHRASES, strict=True))
+        detail = (
+            f"In {entry['setting']}, when nothing in a case hinted at {name}, it considered it in "
+            f"about {steps}. The prompts tested were short sentences naming the structure."
+        )
+        if entry.get("known_issue"):
+            detail += f" Known issue: {entry['known_issue']}"
+            caution = (caution + "; " if caution else "") + "the tested wording was ambiguous"
+        result.append(
+            reading(
+                f"check-{key}",
+                "structures",
+                claim,
+                detail,
+                f"Structure check, {count(check['sessions'])} on the salience ladder.",
+                check["sessions"],
+                caution=caution,
+                fact=(f"To make it consider {name}", short),
+            )
+        )
+    return result
+
+
+def undetermined_checks(config, checks):
+    """Structure checks that ran but did not converge, as not-yet-measured lines."""
+    from epistemics.structure_check import CATALOGUE
+
+    return [
+        f"whether it considers {CATALOGUE[key]['name']} unprompted (its check did not converge)"
+        for key, check in sorted(((checks or {}).get("checks") or {}).get(config, {}).items())
+        if not check.get("valid")
+    ]
 
 
 def guide(ledger, descriptors):
@@ -607,6 +680,7 @@ def guide(ledger, descriptors):
             descriptions(p, "disclosure", descriptors),
             *noticing(config, analyses),
             carry_over(config, (ledger.get("models") or {}).get("hierarchy")),
+            *structure_checks(config, (ledger.get("models") or {}).get("structure_checks")),
             learning(p),
             relative(p),
             reliability(p),
@@ -630,13 +704,14 @@ def guide(ledger, descriptors):
                     "noticing-carry-over",
                     "whether noticing one hidden structure predicts noticing another",
                 ),
+                ("check-", "which hidden structures it considers, and what prompt makes it"),
                 ("learning", "how fast it learns base rates from experience"),
                 ("relative", "whether it judges sources relative to each other"),
                 ("documents", "whether it behaves the same in realistic documents"),
                 ("sessions", "how much its judgements vary between sessions"),
             )
-            if key not in measured
-        ]
+            if not any(m.startswith(key) if key.endswith("-") else m == key for m in measured)
+        ] + undetermined_checks(config, (ledger.get("models") or {}).get("structure_checks"))
         configurations[config] = {
             "name": NAMES.get(config, config),
             "sessions": p["contexts"],

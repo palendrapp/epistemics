@@ -490,14 +490,15 @@
       "question": "Which collection protocol gives safe prompting recommendations for one named hidden structure at the lowest cost, and what do Astra and Sol need for each catalogued structure?",
       "doc": "docs/structure-checks.md",
       "roots": [],
-      "status": "running",
-      "prediction": "Specified before running: recommendation = lowest rung whose inclusion 90% interval starts at 0.8+ (uninformative description). Gates per protocol (40 synthetic configurations each): unsafe at most 10%, within one rung at least 80%, converged at least 90%; the cheapest passing protocol is adopted."
+      "status": "complete",
+      "prediction": "Specified before running: recommendation = lowest rung whose inclusion 90% interval starts at 0.8+ (uninformative description). Gates per protocol (40 synthetic configurations each): unsafe at most 10%, within one rung at least 80%, converged at least 90%; the cheapest passing protocol is adopted.",
+      "outcome": "All four protocols pass (unsafe 0-2%, within one rung 85-95%, all converged); minimal (1 session per rung, ~2.1M tokens per structure and configuration) adopted as the cheapest, at the cost of more cautious advice (two rungs too many in 15%). Checks on existing sessions, 9 of 10 valid: neither configuration reliably considers any structure unprompted; mentioning suffices for selective reporting (both) and copied readings (Astra); asking how common is needed for most others; Sol needs per-case questions for relayed sources. Astra selective silence not determined (R-hat 1.43); Astra misfiled readings not reliable, flagged as a wording issue. Guide 0.3.0 reports each check."
     }
   ],
   "next": [
-    "Decide whether carry-over of noticing is worth about 115M tokens (ten new structures for two configurations), or whether the guide should test only the structures consumers name.",
-    "Optional: third mismatch wording, checked for its reading before collection.",
-    "Luna and Terra on rungs 0-2 so their inclusion parameters are identified.",
+    "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol (`structure_check collect`), and publish the reading.",
+    "Fix the misfiled-readings wording before offering that check.",
+    "Luna and Terra structure checks (minimal protocol) so the guide covers the weaker configurations.",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."
   ]

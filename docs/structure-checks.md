@@ -84,3 +84,59 @@ For a named structure on a configuration, collection uses the existing validated
 ```bash
 uv run python -m epistemics.structure_check collect output/<directory> --configuration sol --structure copying --protocol <chosen> --validation <task validation 1> --validation <task validation 2>
 ```
+
+## Results (29 September)
+
+### Validation: the minimal protocol is adopted
+
+All four protocols passed every gate (40 synthetic configurations each; largest R-hat 1.026).
+
+| Protocol | Sessions | Exact | One rung more | Two rungs more | Unsafe | Converged | Unprompted inclusion, MAE |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| full | 11 | 62% | 32% | 2% | 2% (1 of 40) | 100% | 0.05 |
+| reduced | 7 | 50% | 45% | 5% | 0% | 100% | 0.06 |
+| lean | 6 | 45% | 48% | 8% | 0% | 100% | 0.09 |
+| minimal | 4 | 40% | 45% | 15% | 0% | 100% | 0.08 |
+
+**Adopted: minimal.** This is the rule set in advance: the cheapest protocol that passes. It uses one session per rung, 4 sessions, about 2.1 million tokens per structure and configuration.
+- **What fewer sessions cost:** more cautious advice, not unsafe advice. The minimal protocol recommends two rungs more prompting than needed in 15% of cases, against 2% for the full protocol.
+- **When to prefer the reduced protocol:** a consumer who wants the lightest prompt that works can pay about 1.6 million tokens more for it (7 sessions).
+
+### Checks on existing sessions
+
+Astra and Sol already had ladder sessions for all five structures, so no collection was needed. The dossier structures have more sessions than any protocol, including formal-case sessions at rung 3. The urn structures follow the full protocol.
+
+**Inclusion at each rung** (unprompted → mentioned → asked how common → asked per case), for a case in which nothing hints at the structure, **and the resulting advice:**
+
+| Structure | Configuration | Sessions | Inclusion (mean) | Advice |
+| --- | --- | --- | --- | --- |
+| Sources repeating another source (dossiers) | Astra | 23 | 0.06, 0.72, 0.99, 1.00 | Mention it and ask how common it is |
+| | Sol | 26 | 0.07, 0.41, 0.90, 0.99 | Mention it, ask how common it is and ask about each case |
+| Selective silence (dossiers) | Astra | 14 | 0.39, 0.96, 1.00, 1.00 | not determined (R-hat 1.43; the two-mode disclosure mapping seen in the hierarchical fit) |
+| | Sol | 14 | 0.26, 0.91, 0.99, 1.00 | Mention it and ask how common it is |
+| Copied readings (urns) | Astra | 11 | 0.94, 0.99, 1.00, 1.00 | Mention it |
+| | Sol | 11 | 0.44, 0.95, 1.00, 1.00 | Mention it and ask how common it is |
+| Selective reporting (urns) | Astra | 11 | 0.75, 1.00, 1.00, 1.00 | Mention it |
+| | Sol | 11 | 0.76, 1.00, 1.00, 1.00 | Mention it |
+| Misfiled readings (urns) | Astra | 11 | 0.02, 0.06, 0.32, 0.76 | Not reliable (known wording issue) |
+| | Sol | 11 | 0.05, 0.62, 0.97, 1.00 | Mention it and ask how common it is |
+
+All valid checks had R-hat of 1.011 or less.
+
+**What the table says.**
+- **Unprompted:** neither configuration reliably considers any of these structures. The highest unprompted inclusion is Astra's 0.94 for copied readings, and its 90% interval starts at 0.74, below the 0.8 bar.
+- **Mentioning is enough for** selective reporting (both), and for copied readings (Astra).
+- **Asking how common it is:** needed for most other structures.
+- **Asking about each case:** needed for Sol with sources repeating another source.
+- **Across configurations:** the advice differs by configuration for the same structure, so it cannot be carried from one configuration to another.
+
+**Cautions.**
+- **Behaviour on these tasks:** these recommendations describe behaviour on these tasks, with prompts like the ones tested. A consumer's own wording may work better or worse.
+- **Misfiled readings:** the tested prompt contained an ambiguous accuracy sentence. Astra read it as covering misfiling, so its "not reliable" may reflect the wording rather than the configuration. The guide shows this as a known issue.
+
+**For the guide** (reading-guide/0.3.0): each valid check becomes a reading under "Which hidden structures it considers". It gives how often the configuration considers the structure unprompted, and the prompt that makes it reliable. The noticing and carry-over readings moved to the same topic.
+
+| File | SHA-256 |
+| --- | --- |
+| Protocol validation | `cb10e22f7ab194b0198c3350d0ab6c28ba2bde33f7ff07c4f37ac27d7a2a06b8` |
+| Structure checks | `c7a928c922d34274fff388ad206cc90d3f6104ac9b175373c7e9e83362b01d5c` |
