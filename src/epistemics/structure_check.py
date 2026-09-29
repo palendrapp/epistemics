@@ -144,6 +144,16 @@ IGNORED = {
 }
 
 
+# The runner admits a batch only if known usage plus this reserve per run in the batch fits the
+# cap, so the cap needs room for the last batch's reserve on top of the expected usage.
+RUNNER_RESERVE, RUNNER_CONCURRENCY = 800000, 2
+
+
+def budget_for(sessions):
+    """A token cap that lets the runner admit every batch at the expected usage."""
+    return int(sessions * TOKENS_PER_SESSION * 1.1 + RUNNER_CONCURRENCY * RUNNER_RESERVE)
+
+
 def stated_rates(structure):
     from epistemics.disposition_tasks.urn import RATES
 
@@ -534,7 +544,7 @@ def main():
         rungs = () if a.rated_only else tuple(range(4)) if a.rung is None else tuple(a.rung)
         groups = plan(a.configuration, a.structure, a.protocol, rungs, a.rated or a.rated_only)
         sessions = sum(len(g["contexts"]) * len(g["configurations"]) for g in groups)
-        budget = a.max_tokens or int(sessions * TOKENS_PER_SESSION * 1.2)
+        budget = a.max_tokens or budget_for(sessions)
         root = a.directory.resolve()
         planned = runner.prepare(
             root, a.validation, phase="structure-check", groups=groups, max_tokens=budget

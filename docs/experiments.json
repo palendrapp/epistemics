@@ -544,7 +544,8 @@
       "question": "When told how common misfiled readings are for each kind of sensor, do Astra and Sol forecast with the stated rates?",
       "doc": "docs/structure-checks.md",
       "roots": [
-        "output/structure-check-mismatch-rated-20260929"
+        "output/structure-check-mismatch-rated-20260929",
+        "output/structure-check-mismatch-rated-20260929-2"
       ],
       "status": "running",
       "prediction": "F1: rated rung reliable if both sessions follow (mean gap <=0.10, largest <=0.20). E1: both configurations follow in both sessions. E2: both get the advice 'state how common it is'."

@@ -107,3 +107,14 @@ def test_a_check_recommends_prompting_for_a_structure_it_misses():
         sc.CHAINS = saved
     assert result["inclusion_by_rung"]["0"]["mean"] < 0.3
     assert result["sessions_by_rung"] == {"0": 3, "1": 3, "2": 3, "3": 2}
+
+
+def test_default_budget_leaves_room_for_the_runners_admission_reserve():
+    from epistemics.disposition_tasks import runner
+
+    assert sc.RUNNER_RESERVE == 800000 and sc.RUNNER_CONCURRENCY == 2
+    source = runner.prepare.__code__.co_consts
+    assert 800000 in source and 2 in source
+    for sessions in (2, 4, 6, 11):
+        before_last = (sessions - sc.RUNNER_CONCURRENCY) * 0.55e6
+        assert before_last + sc.RUNNER_CONCURRENCY * sc.RUNNER_RESERVE <= sc.budget_for(sessions)

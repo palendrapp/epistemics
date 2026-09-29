@@ -315,3 +315,9 @@ uv run python -m epistemics.structure_check collect output/structure-check-misma
 **Expectations.**
 - **E1.** Both configurations follow the stated rates in both sessions. When asked, they stated and applied the same rates, and earlier tasks with stated rates were computed exactly.
 - **E2.** Both configurations' misfiled-readings advice becomes "state how common it is".
+
+**Deviation (written before the top-up).** The first collection (`output/structure-check-mismatch-rated-20260929`) stopped after two of its four contexts.
+- **What was collected:** Sol repeat 1 and Astra repeat 2.
+- **Why it stopped:** "Admission budget exhausted". The runner admits a batch only if known usage plus 0.8 million tokens per run in the batch fits the cap. The cap I set (2.5 million) left no room for the second batch (1.07 + 1.6 million).
+- **The fix:** `collect` now sets its default cap from the expected usage plus that reserve.
+- **The top-up:** the two missing sessions are collected in a second, identical rated collection with one session per configuration (`output/structure-check-mismatch-rated-20260929-2`). Each configuration then has the two preregistered rated sessions. The criteria are unchanged.
