@@ -570,3 +570,11 @@ def test_reading_guide_turns_structure_checks_into_prompting_advice():
         "whether it considers copied readings unprompted (its check did not converge)",
     ]
     assert guide.undetermined_checks("astra", checks) == []
+
+
+def test_structure_check_collections_count_as_disposition_runs():
+    from epistemics.ledger import build
+
+    assert build.is_disposition("output/disposition-abstract2-20260929")
+    assert build.is_disposition("output/structure-check-mismatch3-20260929")
+    assert not build.is_disposition("output/research-world3-acceptance")

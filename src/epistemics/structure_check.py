@@ -103,7 +103,10 @@ ACTIONS = {
         "Mention it, ask how common it is and ask about each case",
         "Say {phrase}, ask how common it is, and ask about it for each case.",
     ),
-    None: ("Not reliable", "Even with every prompt tested, it does not reliably consider {name}."),
+    None: (
+        "Not reliable",
+        "Even with every prompt tested, it does not reliably take {name} into account.",
+    ),
 }
 # Inclusion is read for a case in which nothing hints at the structure (the uninformative
 # description). A rung is reliable when the 90% interval of inclusion there starts at 0.8 or above.

@@ -189,3 +189,55 @@ uv run python -m epistemics.structure_check collect output/structure-check-misma
 - **E3.** Sol's advice is unchanged ("mention it and ask how common it is"), within one rung. Sol's sessions were not affected by the old ambiguity in the same way.
 
 With one session per rung, the mapping at a single rung is noisy, so R1 is read on that one session.
+
+### Results: the reworded check (29 September)
+
+**Collection.** All 6 contexts completed with no errors: 3.16 million input tokens (2.93 million cached), 6 minutes in all.
+
+```bash
+uv run python -m epistemics.ledger cues-summary output/structure-check-mismatch3-20260929
+```
+
+**Implied priors per level** (strongly reassuring → strongly suggestive, the last being "shared by 50 urns and moves between them"). One session per cell; stated rates agreed with these within 0.05 in every asked and probed session.
+
+| | Named (rung 1) | Named and asked (2) | Named, asked and probed (3) |
+| --- | --- | --- | --- |
+| Astra, reworded | 0.00, 0.10, 0.10, 0.20, 0.40 | 0.00, 0.50, 0.13, 0.90, 0.97 | 0.05, 0.05, 0.06, 0.12, 0.22 |
+| Astra, old wording (mean of 3, 3, 2) | 0.00 at every level | 0.00–0.03 | 0.03–0.17 |
+| Sol, reworded | 0.00, 0.50, 0.25, 0.90, 0.96 | 0.00, 0.00, 0.05, 0.05, 0.10 | 0.00, 0.50, 0.50, 0.90, 0.95 |
+
+**Checks** (`output/structure-checks-20260929-3.json`; both converged, R-hat 1.011 or less):
+
+| | θ [90%] | Inclusion, rung 0 → 3 (mean) | Lower end at rung 3 | Advice |
+| --- | --- | --- | --- | --- |
+| Astra | 1.02 [0.38, 1.93] | 0.08, 0.54, 0.90, 0.97 | 0.79 | Not reliable |
+| Sol | 1.22 [0.33, 2.45] | 0.09, 0.46, 0.80, 0.93 | 0.66 | Not reliable |
+
+Under the old wording, Astra's per-structure fit gave θ 2.42 and inclusion when asked of 0.32.
+
+**Against the preregistration:**
+- **R1:**
+  - **Sol** meets it (0.96 at rung 1).
+  - **Astra** does not (0.40, up from 0.00).
+- **R2:** both converged, but neither recommends a rung.
+- **E1:** not supported.
+- **E2:** not supported as stated. Astra's advice is still "not reliable", although the rewording moved it a long way.
+- **E3:** not supported. Sol's advice moved from "mention it and ask how common it is" to "not reliable".
+
+**What happened.**
+1. **The rewording removed the misreading.** No completion answer (descriptive only) called the accuracy sentence ambiguous. Astra's instead said "the unstated rate of readings filed under the wrong urn" was the main ambiguity, as Sol's had before. Astra applied misfiling fully in its asked session (0.97), which it never did under the old wording.
+2. **Both configurations now switch by session between applying misfiling and judging it rare.** In the low sessions they stated a low rate for the 50-urn sensor (Astra 0.20, Sol 0.10) and forecast with it. They considered the structure and judged it uncommon for the sensors described. The case never states how often misfiling happens. Sol did the same in 2 of 5 asked and probed sessions under the old wording.
+3. **With one session per rung, one low session keeps the interval below the bar.** This is the minimal protocol's known cost: in validation it recommended more prompting than needed in 60% of cases, and two rungs more in 15%. Here the result is honest but coarse. It does not show whether inclusion when asked is about 0.7 or about 0.95.
+
+**For the guide.** "Not reliable" is accurate for what a consumer controls: none of the prompts tested makes either configuration reliably take misfiled readings into account. The reading now says "does not reliably take it into account", not "does not consider it", because when asked it did consider misfiling and judged it rare.
+
+**Options.**
+- **Top up to the full protocol at rungs 1–3:** 5 more contexts per configuration, about 5.3 million tokens. This would say whether asking is enough most of the time.
+- **Add a rung that states the rate** ("about one reading in five on file comes from a different urn"). If the variation is a judged rate, stating the rate is the consumer action that would fix it. It needs a new variant and validation.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `ae546bedf7986f83e09559ac53d4ee32eb8e21f2d7f59fb1013d967910ffb553` |
+| execution.json | `0da4bf982b7da07bf93cbe7f378868d4bfcf6ee6494e09d123c35b7be66a83c9` |
+| summary.json | `b373d051bdfd995f8eb584fa2e3153482279296f3f31347b3ba9733f68857282` |
+| Structure checks with the reworded mismatch | `86609ff759267d0058b1667fcd2eb775752e95bd0ac3a0039a2dfc9d3af31fe2` |

@@ -623,8 +623,12 @@ def structure_checks(config, checks):
             claim = f"It considers {name} without being prompted."
             caution = None
         elif rung is None:
-            claim = f"It does not reliably consider {name}, even when prompted in every way tested."
-            caution = f"Does not reliably consider {name}"
+            # When asked, it may state a low rate and apply it: considered, but judged rare.
+            claim = (
+                f"Even when prompted in every way tested, it does not reliably take {name} into "
+                "account in its forecasts."
+            )
+            caution = f"Does not reliably take {name} into account"
         else:
             how_often = (
                 f"in only about {pct(means[0])} of cases"
