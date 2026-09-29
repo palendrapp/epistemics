@@ -248,6 +248,8 @@ At high effort, the arithmetic load of these ladders does not bind.
 
 The rise is faint and monotone. Statistical audits up to LR 16 barely register. Records of astronomical strength ("1 of 200 blue") were noticed by every configuration in the earlier runs, so the thresholds lie between the two.
 
+> **Correction (after pilot 2).** "At floor" was a misreading. The implied value is the rate at which the structure acts, not the probability that it is present, so full uptake is not 1. It is the rate an ideal observer would infer from the same audit record. Under a prior with half its weight on no structure and the rest uniform over the rate, that rate is 0.03–0.19 across LR 1–16 (selection) and 0.04–0.15 (misfiling). Against it, both high-effort configurations took up about half the audit evidence (slopes 0.42–0.57) at every level. The corrected reading is under [pilot 2 results](#pilot-2-results-29-september).
+
 **What the pilot changes.**
 1. **Part B: widen the likelihood-ratio range.** Use 1, 16, 256, 4,096 and 65,536 (steps of 16), with 200 audited rounds so that every structure can reach the top ratio. This is within what the pilot may change.
 2. **Part A: find out whether the ladder binds for any configuration before escalating it.** The pilot tested only the configurations least likely to hit a limit.
@@ -277,3 +279,65 @@ The rise is faint and monotone. Statistical audits up to LR 16 barely register. 
 | --- | --- |
 | Task validation 0.16, seed 20260927 | `71381bc14d6e2ff999c5a1fa3bfb5e4e23050301858d33242c4017a390641662` |
 | Task validation 0.16, seed 20261027 | `8f0c8fa4c26ce3e3eaecac71a59595f84d61db5ca0423fac564ab55a91b33c62` |
+
+**Deviation (written before the top-up).**
+- **The interruption:** the pilot 2 collection (`output/capacity-pilot2-20260929`) was interrupted when the operator's session closed. Ten of 16 contexts completed and verified. Two were cut off partway (Astra-low and Sol-low on copying-load) and four never started. The two partial contexts have no reports and are not used.
+- **The top-up:** the six missing contexts are collected in a second collection (`output/capacity-pilot2-20260929-2`) with the same validated battery (tasks 0.16.0, the same two validations). Its plan lists exactly those six runs.
+- **What is unchanged:** nothing else.
+
+### Pilot 2 results (29 September)
+
+All 16 contexts completed and verified across the two collections (10 + 6): 8.3 million input tokens recorded (0.46–0.57 million per context). The two contexts cut off in the first collection used an unrecorded amount.
+
+```bash
+uv run python -m epistemics.ledger capacity-pilot output/capacity-pilot2-20260929 output/capacity-pilot2-20260929-2 --output output/capacity-pilot2-summary-20260929.json
+```
+
+**Part A: the ladder binds for GPT-5.6 on copying, not for GPT-6 at low effort.** Share of answers within 1.5 points of exact, by load level (8 cases per level, one session each):
+
+| | Copying, 2 / 4 / 8 readings | Neglect weight η at 8 | Misfiling, 1 / 3 / 6 readings |
+| --- | --- | --- | --- |
+| Astra-low | 100 / 100 / 88% | 0.01 | 100 / 88 / 100% |
+| Sol-low | 100 / 88 / 100% | 0.00 | 100 / 75 / 88% |
+| Terra | 100 / 88 / 62% | 0.23 | 100 / 75 / 88% |
+| Luna | 100 / 62 / 25% | 0.29 | 100 / 25 / 62% |
+
+- **Copying (dependence) under load.** In both GPT-5.6 configurations, exactness falls with the number of readings and the weight on the dependence-neglecting answer rises (η 0 → 0.23–0.29). Under load they partly count copies as independent. This is the predicted capacity signature: neglect grows with the number of sources to track.
+- **GPT-6 at low effort.** Both configurations stay at or near ceiling, as the high-effort configurations did. Within GPT-6 the ladder does not separate effort levels.
+- **Misfiling is not ordered by load.** The middle level is the hardest for every configuration. One item causes it: the most accurate reading (95%) is also the most often misfiled (50%), and its repeat falls at the same level, so it counts twice. Most configurations answer it between the exact and neglect answers. Hardness here comes from how per-reading quantities combine, not from how many readings there are.
+- **Repeat noise** is 0 almost everywhere: answers to an identical case are identical. The one exception is Astra-low on misfiling (0.07).
+
+**Part B: vigilance is partial uptake, and it separates configurations.** Implied rate of the never-named structure, beside the ideal observer's rate from the same records (the correction under pilot 1 gives its prior):
+
+| | LR 1 | LR 16 | LR 256 | LR 4,096 | LR 65,536 | Uptake slope |
+| --- | --- | --- | --- | --- | --- | --- |
+| *Ideal observer, selection* | *0.03* | *0.13* | *0.23* | *0.31* | *0.37* | *1* |
+| Astra-high | 0.05 | 0.07 | 0.12 | 0.17 | 0.22 | 0.50 |
+| Sol-high | 0.05 | 0.08 | 0.12 | 0.17 | 0.22 | 0.50 |
+| Terra | 0.07 | 0.11 | 0.20 | 0.21 | 0.27 | 0.60 |
+| Luna | 0.07 | 0.07 | 0.07 | 0.07 | 0.07 | 0.00 |
+| *Ideal observer, misfiling* | *0.05* | *0.11* | *0.17* | *0.22* | *0.25* | *1* |
+| Astra-high | 0.06 | 0.10 | 0.12 | 0.16 | 0.20 | 0.68 |
+| Sol-high | 0.05 | 0.10 | 0.10 | 0.15 | 0.20 | 0.67 |
+| Terra | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| Luna | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+
+The ideal rate rises with the likelihood ratio for two reasons: the structure is more certainly present, and the counts that reach higher ratios also imply a higher rate. The uptake slope is the least-squares slope of the implied rate on the ideal rate across the five levels (1 = ideal, 0 = the audit is ignored).
+
+- **No threshold.** No configuration switches from ignoring to including the structure somewhere on the scale. They either scale with the evidence at a roughly constant fraction, or ignore it at every strength.
+- **GPT-6 at high effort** takes up 0.50 (selection) and 0.67–0.68 (misfiling) of what the audit warrants. The pilot 1 slopes, recomputed, agree: 0.42 and 0.55–0.57 over LR 1–16. This is conservatism in the classical sense (Phillips & Edwards 1966; Edwards 1968): the direction is right but the revision is too small. Astra-high and Sol-high are indistinguishable.
+- **GPT-5.6 ignores audits entirely in three of four cells.** Luna and Terra gave identical answers at every strength on misfiling, and Luna did on selection too: the audit line did not change a single answer. Terra takes up selection audits (0.60), close to GPT-6.
+- **Range.** LR 1–65,536 spans full neglect to near-ideal uptake. Nothing needs a wider range.
+
+**What pilot 2 changes.**
+1. **Part B's model.** The psychometric threshold (B.3) does not describe these data. The natural parameter is the uptake slope β in implied(LR) = α + β·ideal(LR): the fraction of warranted revision made, with α as baseline suspicion. It varies between configurations (0 to 0.68) and is stable across both pilots for GPT-6. Whether it transfers across tasks is the open question: GPT-6 looks consistent across the two tasks, Terra does not.
+2. **Part A's design.** The copying ladder works as a capacity manipulation but only binds for GPT-5.6. The misfiling ladder's levels are confounded with one item. A confirmatory Part A would need (a) a harder top level to reach GPT-6, and (b) misfiling levels balanced for per-reading difficulty, with repeats drawn from typical items.
+
+Both are design changes, not pilot adjustments, so they come back as decisions before any confirmatory collection.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json (first collection) | `c78ac11357edacf1a5519654d06a27ba5940f0b2f528dd38efee385433c9ff04` |
+| plan.json (top-up) | `2f72e83c34243046fa084b41b41802f90bdd83e7f4c8c489d4b2ce78d361e943` |
+| execution.json (top-up) | `704fc729386eecade0605a5cc170b5dfb6ddca1e1e2d7ef2f76b27ca9d88ca7f` |
+| Pilot 2 summary | `27f3689f0e25d7b38cfdb3812b70a5ed01f528840f740b04970d6d21bb2552e6` |

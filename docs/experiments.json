@@ -619,7 +619,7 @@
       ],
       "status": "complete",
       "prediction": "Range-finding only: may change load levels and likelihood-ratio values, nothing else.",
-      "outcome": "8 contexts, 4.3M tokens, 0 errors (about 0.55M per high-effort session). Part A at ceiling: both high-effort configurations exact at every load level (tau at floor, neglect 0, repeat noise 0). Part B at floor: implied prior 0.03-0.12 across LR 1-16 (faint monotone rise). Next: widen LR to 1-65,536 (N=200); test whether the load ladder binds for low effort and GPT-5.6 before escalating it."
+      "outcome": "8 contexts, 4.3M tokens, 0 errors (about 0.55M per high-effort session). Part A at ceiling: both high-effort configurations exact at every load level (tau at floor, neglect 0, repeat noise 0). Part B at floor: implied prior 0.03-0.12 across LR 1-16 (faint monotone rise). Next: widen LR to 1-65,536 (N=200); test whether the load ladder binds for low effort and GPT-5.6 before escalating it. Corrected after pilot 2: Part B was not at floor. The implied value is the structure's rate, whose ideal is 0.03-0.19 over LR 1-16; both configurations took up about half the audit evidence (uptake slopes 0.42-0.57)."
     },
     {
       "id": "capacity-pilot2",
@@ -630,14 +630,16 @@
       "question": "Does the load ladder bind for low effort and GPT-5.6, and does the widened audit range (likelihood ratios 1 to 65,536) bracket the configurations' vigilance thresholds?",
       "doc": "docs/capacity-battery-design.md",
       "roots": [
-        "output/capacity-pilot2-20260929"
+        "output/capacity-pilot2-20260929",
+        "output/capacity-pilot2-20260929-2"
       ],
-      "status": "running",
-      "prediction": "Range-finding only."
+      "status": "complete",
+      "prediction": "Range-finding only.",
+      "outcome": "16 contexts over two collections (10 + a 6-context top-up after an interruption), 8.3M recorded tokens, 0 errors. Part A: copying ladder binds for GPT-5.6 (exact within 1.5 points at 8 readings: Terra 62%, Luna 25%; neglect weight 0.23-0.29), not for GPT-6 at low effort (88-100%); the misfiling ladder is not ordered by load (the middle level is hardest for every configuration because of one item and its repeat). Part B: no thresholds; implied rates scale with the ideal observer's at a constant fraction. Uptake slope: Astra-high and Sol-high 0.50 (selection), 0.67-0.68 (misfiling); Terra 0.60 and 0; Luna 0 and 0. LR 1-65,536 spans full neglect to near-ideal uptake."
     }
   ],
   "next": [
-    "Capacity pilot 2: Part A load modules on astra-low, sol-low, luna, terra (8 contexts); Part B with LR 1-65,536 on all eight configurations or a subset.",
+    "Capacity battery decisions: Part B model as uptake slope against the ideal observer (replacing the threshold); Part A with a harder top level for GPT-6 and misfiling levels balanced for per-reading difficulty; which configurations and tasks; budget.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
