@@ -14,6 +14,7 @@ uv run python -m epistemics.ledger inclusion-hier [--family relay ...] [--output
 uv run python -m epistemics.ledger inclusion-hier-validate --output <file>
 uv run python -m epistemics.ledger inclusion-hier-power --output <file> [--spot-structures 10]
 uv run python -m epistemics.ledger traits --output <file> [--configuration astra ...]
+uv run python -m epistemics.ledger traits-power --output <file>
 """
 
 import argparse
@@ -125,6 +126,8 @@ def main():
     tr.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
     tr.add_argument("--output", type=Path, required=True)
     tr.add_argument("--configuration", action="append", default=None)
+    tp = sub.add_parser("traits-power")
+    tp.add_argument("--output", type=Path, required=True)
     ihp = sub.add_parser("inclusion-hier-power")
     ihp.add_argument("--output", type=Path, required=True)
     ihp.add_argument(
@@ -324,6 +327,14 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(traits.table(run))
+    elif a.command == "traits-power":
+        from epistemics.ledger import traits
+
+        run = traits.power_table()
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for r in run["rows"]:
+            print(r)
     elif a.command == "inclusion-hier-power":
         import hashlib
 

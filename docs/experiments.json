@@ -563,10 +563,23 @@
       "status": "complete",
       "prediction": "Exploratory; no predictions. Planning input for an abstract battery built to show transfer.",
       "outcome": "Precision (log report noise) is trait-like: consistency 0.91 [0.71, 1.00], leave-one-task-out gain 0.59, sign 0.85 (6 configurations, 9 tasks); within Astra/Sol weaker (0.62, gain 0.29). Stated-applied fidelity a between-family candidate (0.75, gain 0.40; driven by Luna). Noticing threshold: Astra needs less prompting than Sol in 3 of 4 structures (selection at ceiling); consistency 0.55, gain 0.22 — earlier 'noticing does not generalise' mixed task effects with interaction. Unstated-rate default and evidence weight have no configuration variance (all ~50%, gamma ~1). Cue sensitivity does not transfer. Design: cross all configurations with all tasks, avoid ceilings, finer noise grid, preregister leave-one-task-out transfer."
+    },
+    {
+      "id": "battery-v2-design",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Abstract battery v2: design for showing general traits",
+      "question": "What abstract design can show whether precision, stated-applied fidelity and noticing carry over to tasks they were not measured on?",
+      "doc": "docs/battery-v2-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Design: 6 configurations x 6 tasks (3 formal cores x 2 surfaces), 5 sessions per cell; primary test leave-one-task-out gain > 0 with within-task permutation p < 0.05 (Holm), secondary leave-one-core-out. Power: precision 0.99 (0.92 frontier-like), fidelity 0.91, noticing 0.62-0.79.",
+      "outcome": "Awaiting decisions: budget (78M recommended; 31M without noticing), noticing's role, session length."
     }
   ],
   "next": [
-    "Design the abstract battery v2 for general traits: all six configurations crossed with every task, precision, stated-applied fidelity and noticing as targets, structures kept off ceiling, finer report-noise grid, preregistered leave-one-task-out transfer.",
+    "Battery v2: decide budget and noticing's role; then build (noise grid 0.6.0, surface-B renderers 0.14.0, analysis and recovery at the design size, presets) and run Stage 1 (existing tasks for the four other configurations, ~31M tokens).",
     "Structure checks stay as a product fallback (offer for named structures; Luna and Terra).",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."

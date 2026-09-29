@@ -60,3 +60,10 @@ def test_session_values_read_priors_only_where_the_structure_is_named():
     assert np.isclose(values["stated_applied_gap"], 0.1 / 3)
     plain = {**named, "module": "copying-urn", "variant": "urn2-plain"}
     assert set(traits.session_values(plain)[1]) == {"precision", "evidence_weight"}
+
+
+def test_transfer_test_rejects_rarely_without_a_trait_and_detects_a_strong_one():
+    assert traits.power(0.0, 0.3, 0.2, reps=150) <= 0.12
+    assert traits.power(1.0, 0.1, 0.1, reps=60) >= 0.9
+    y = np.array([[0.0, 1.0, 2.0], [1.0, 2.0, 3.0], [2.0, 3.0, 4.0]])
+    assert np.isclose(traits.loto_matrix(y), 1.0)

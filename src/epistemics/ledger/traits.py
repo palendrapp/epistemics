@@ -315,3 +315,83 @@ if __name__ == "__main__":
     ledger = json.load(open(sys.argv[1] if len(sys.argv) > 1 else "output/ledger.json"))
     models = ledger["models"]
     print(table(analyse(models, models.get("structure_checks"))))
+
+
+def loto_matrix(y):
+    """Leave-one-task-out gain for a full configurations × tasks matrix of cell means (vectorized
+    over leading axes)."""
+    c, t = y.shape[-2:]
+    others = (y.sum(axis=-2, keepdims=True) - y) / (c - 1)
+    d = y - others
+    predicted = (d.sum(axis=-1, keepdims=True) - d) / (t - 1)
+    return 1 - ((d - predicted) ** 2).sum(axis=(-2, -1)) / (d**2).sum(axis=(-2, -1))
+
+
+def permutation_p(y, rng, permutations=200):
+    """Share of within-task shuffles of the configurations whose gain reaches the observed one."""
+    observed = loto_matrix(y)
+    idx = np.argsort(rng.random((permutations, *y.shape)), axis=-2)
+    shuffled = np.take_along_axis(np.broadcast_to(y, idx.shape), idx, axis=-2)
+    null = loto_matrix(shuffled)
+    return observed, float((1 + np.sum(null >= observed)) / (1 + permutations))
+
+
+def power(sigma_config, sigma_interaction, cell_se, configs=6, tasks=6, reps=1000, seed=20260930):
+    """Share of synthetic full-crossing studies in which the preregistered transfer test passes:
+    leave-one-task-out gain above 0 and permutation p below 0.05."""
+    rng = np.random.default_rng(seed)
+    passed = 0
+    for _ in range(reps):
+        y = (
+            rng.normal(0, sigma_config, (configs, 1))
+            + rng.normal(0, 1.0, (1, tasks))
+            + rng.normal(0, sigma_interaction, (configs, tasks))
+            + rng.normal(0, cell_se, (configs, tasks))
+        )
+        gain, p = permutation_p(y, rng)
+        passed += gain > 0 and p < 0.05
+    return passed / reps
+
+
+# Variance components from the reanalysis (docs/traits-2026-09-29.md), for sizing battery v2:
+# (σ config, σ config × task, per-session SD or cell SE, and how the cell SE is formed).
+POWER_SCENARIOS = {
+    "precision, all configurations": (0.82, 0.20, 0.73, "per session"),
+    "precision, frontier-like spread": (0.49, 0.26, 0.73, "per session"),
+    "stated-applied fidelity": (0.06, 0.03, 0.06, "two asked sessions"),
+    "noticing, sigma config 0.37": (0.37, 0.29, None, "cell"),
+    "noticing, sigma config 0.5": (0.5, 0.29, None, "cell"),
+}
+
+
+def power_table(reps=400, tasks=(3, 4, 6), sessions=(3, 5), cell_se=(0.3, 0.5)):
+    rows = [{"scenario": "no trait", "tasks": 6, "power": power(0.0, 0.3, 0.2, reps=reps)}]
+    for name, (sa, sab, sd, kind) in POWER_SCENARIOS.items():
+        for t in tasks:
+            if kind == "cell":
+                for se in cell_se:
+                    rows.append(
+                        {
+                            "scenario": name,
+                            "tasks": t,
+                            "cell_se": se,
+                            "power": power(sa, sab, se, tasks=t, reps=reps),
+                        }
+                    )
+            else:
+                for s in sessions:
+                    se = sd / np.sqrt(2 if kind == "two asked sessions" else s)
+                    rows.append(
+                        {
+                            "scenario": name,
+                            "tasks": t,
+                            "sessions": s,
+                            "power": power(sa, sab, se, tasks=t, reps=reps),
+                        }
+                    )
+    return {
+        "schema_version": "epistemics.traits-power.v1",
+        "configurations": 6,
+        "test": "leave-one-task-out gain above 0 and within-task permutation p below 0.05",
+        "rows": rows,
+    }

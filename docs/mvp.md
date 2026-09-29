@@ -143,7 +143,13 @@ A rate-stating rung then settled it. Told how common misfiling is for each kind 
 - **Noticing** is more consistent than it first looked: Astra needs less prompting than Sol in three of four structures.
 - **No variance:** the unstated-rate default and evidence weight do not vary between configurations.
 
-**Next: an abstract battery built for transfer.** Every configuration crossed with every task, structures kept off ceiling, and a preregistered leave-one-task-out test. Structure checks remain as a product fallback. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+**Next: [abstract battery v2](battery-v2-design.md).**
+- **Design:** six configurations × six tasks (three formal cores, each in two surface stories), five sessions per cell.
+- **Test:** a preregistered leave-one-task-out transfer test.
+- **Power:** precision 0.99, fidelity 0.91, noticing 0.62–0.79.
+- **Cost:** about 78 million tokens in two stages.
+
+Structure checks remain as a product fallback. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.
