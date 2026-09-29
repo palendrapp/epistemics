@@ -617,12 +617,13 @@
       "roots": [
         "output/capacity-pilot-20260929"
       ],
-      "status": "running",
-      "prediction": "Range-finding only: may change load levels and likelihood-ratio values, nothing else."
+      "status": "complete",
+      "prediction": "Range-finding only: may change load levels and likelihood-ratio values, nothing else.",
+      "outcome": "8 contexts, 4.3M tokens, 0 errors (about 0.55M per high-effort session). Part A at ceiling: both high-effort configurations exact at every load level (tau at floor, neglect 0, repeat noise 0). Part B at floor: implied prior 0.03-0.12 across LR 1-16 (faint monotone rise). Next: widen LR to 1-65,536 (N=200); test whether the load ladder binds for low effort and GPT-5.6 before escalating it."
     }
   ],
   "next": [
-    "Capacity battery (docs/capacity-battery-design.md): decide configurations and budget; then pilot, Part A (load curves), Part B (vigilance).",
+    "Capacity pilot 2: Part A load modules on astra-low, sol-low, luna, terra (8 contexts); Part B with LR 1-65,536 on all eight configurations or a subset.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

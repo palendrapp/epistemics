@@ -220,3 +220,43 @@ The per-level criterion failed by chance in 8–20% of contexts. With eight case
 | --- | --- |
 | Task validation 0.15, seed 20260927 | `5a5083ffaa27662634183cdc375d110ce2a15ce2d4e2f0641b440e0506155768` |
 | Task validation 0.15, seed 20261027 | `0202e1e86275bd2182fbaef8abdfc856942f72f323906249992682acde3270b3` |
+
+### Pilot results (29 September)
+
+All 8 contexts completed with no errors: 4.3 million input tokens (0.51–0.57 million per context at high effort, about the same as medium effort), 9 minutes.
+
+```bash
+uv run python -m epistemics.ledger capacity-pilot output/capacity-pilot-20260929 --output output/capacity-pilot-summary-20260929.json
+```
+
+**Part A is at ceiling for high effort.** Both configurations answered exactly at every load level, including 8 readings with 3 copy relations:
+- **Exactness:** 100% within 1.5 points of the exact answer, except Astra-high with 6 misfiling readings (88%).
+- **Noise:** at the floor of the grid (τ ≈ 0.014).
+- **Neglect weight:** 0.
+- **Repeat noise:** 0.
+
+At high effort, the arithmetic load of these ladders does not bind.
+
+**Part B is at floor.** Implied prior for the never-named structure at likelihood ratios 1, 2, 4, 8 and 16:
+
+| | LR 1 | LR 2 | LR 4 | LR 8 | LR 16 |
+| --- | --- | --- | --- | --- | --- |
+| Astra-high, selection | 0.05 | 0.06 | 0.06 | 0.10 | 0.11 |
+| Sol-high, selection | 0.05 | 0.06 | 0.06 | 0.10 | 0.11 |
+| Astra-high, misfiling | 0.06 | 0.06 | 0.10 | 0.11 | 0.12 |
+| Sol-high, misfiling | 0.03 | 0.04 | 0.08 | 0.08 | 0.09 |
+
+The rise is faint and monotone. Statistical audits up to LR 16 barely register. Records of astronomical strength ("1 of 200 blue") were noticed by every configuration in the earlier runs, so the thresholds lie between the two.
+
+**What the pilot changes.**
+1. **Part B: widen the likelihood-ratio range.** Use 1, 16, 256, 4,096 and 65,536 (steps of 16), with 200 audited rounds so that every structure can reach the top ratio. This is within what the pilot may change.
+2. **Part A: find out whether the ladder binds for any configuration before escalating it.** The pilot tested only the configurations least likely to hit a limit.
+   - **If the ladder binds** for low effort or GPT-5.6, the current ladder already produces variation between configurations, and high effort at ceiling is itself the effort effect.
+   - **If nothing binds,** the load must change kind: longer ladders (16–64 readings), sequential updating, or context load. That is a design change, not a pilot adjustment.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `c8a209f23498f44288a65adc9da5f6949c3360bb22c39279e674c888f13e77dd` |
+| execution.json | `6ec1262dc96b517dba69cb847b93d4db4c715b88c57a6d076a17191fb135e226` |
+| summary.json | `4e593c88f0bebf17b8dc5867af6484a98fe9cf343da6e998fff278c568c6c1d1` |
+| Pilot summary | `9e66cabce563aadceb33b00cdffb7c3d124846e4890e9c985f930887e7288714` |
