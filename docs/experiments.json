@@ -437,10 +437,24 @@
       "status": "complete",
       "prediction": "P1: urn theta within 0.5 of dossier theta per configuration. P2: inclusion for an uninformative level at most 0.35 at rung 0 and at least 0.80 at rung 2. P3: Astra phi at least 0.85. P4: structure-specific thresholds do not beat a shared threshold by more than 2 SE.",
       "outcome": "Preregistered second-layer fit did not converge (R-hat 1.4-13); P1-P4 not assessable. Two design flaws: selection records contradict the deterministic mechanism once named (agents correctly excluded), and mismatch accuracy wording is ambiguous about filing errors. Exploratory: unprompted neglect transfers fully to mismatch (all 0.00) and partly to copying (198/200 record 0.20 vs 0.95 named), not to selection (1/200 blue 0.96); mismatch-only fit converges with theta 0.69 for both (dossier 0.47/0.74); Sol's stated-applied gap recurs in copying asked (+0.15 in 2 of 3)."
+    },
+    {
+      "id": "disposition-abstract2",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Abstract transfer, corrected urn tasks",
+      "question": "With the urn design flaws corrected (per-round structures; stated accuracies clarified), do the dossier-fitted second-layer parameters transfer?",
+      "doc": "docs/disposition-abstract2-2026-09-29.md",
+      "roots": [
+        "output/disposition-abstract2-20260929"
+      ],
+      "status": "planned",
+      "prediction": "P1-P4 as in the first run, assessed only if the primary fit converges (R-hat <= 1.05); S1 per structure. C1: selection's strongest level at least 0.50 at rungs 2 and 3. C2: mismatch's strongest level at rung 3 within 0.20 of rung 1."
     }
   ],
   "next": [
-    "Corrected urn task: selection records compatible with the mechanism, mismatch accuracy stated conditional on the right urn, a neutral irrelevant level for copying; preregister again with the analysis unchanged.",
+    "Run the corrected abstract transfer (preset abstract2, about 35M tokens).",
     "Luna and Terra on rungs 0-2 so their inclusion parameters are identified.",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."

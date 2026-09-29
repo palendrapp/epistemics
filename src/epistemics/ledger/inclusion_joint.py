@@ -342,6 +342,7 @@ def summarise(layout, draws, chains, pointwise, variant, stated_model, data=None
 # mapping levels mix slowly, so it needs longer chains to converge.
 CHAINS = {"dossier": {"fit": (20000, 8000), "recovery": (10000, 4000)}}
 CHAINS["urn"] = {"fit": (40000, 15000), "recovery": (30000, 12000)}
+CHAINS["urn2"] = CHAINS["urn"]
 
 
 def validate(

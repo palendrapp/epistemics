@@ -11,6 +11,12 @@ descriptions are records, not descriptions:
 The "urn-plain" variant never names the hidden structure. "urn-named" adds one background
 sentence naming it, without a rate. Base-rate questions and structure probes, where the design
 has them, name it in the question only.
+
+"urn2-plain" and "urn2-named" (tasks 0.11) correct two flaws found in the first run
+(docs/disposition-abstract-2026-09-28.md). The structures are stated per round, as the observers
+assume, so a record showing a few blue balls is compatible with a mostly selective reporter. And
+the named sentence says what the stated accuracies cover, so accuracy cannot be read as already
+including copying or misfiling. The plain texts of the two versions are identical.
 """
 
 from epistemics.disposition_tasks import render as base
@@ -52,7 +58,34 @@ RECORDS = {
         "Record for {x}: it is shared by 50 urns and moves between them during the session.",
     ),
 }
+# Corrected versions: per round, with what the stated accuracies cover.
+NAMED2 = {
+    "copying": (
+        "In any round, a sensor may copy another sensor's logged reading instead of reading the "
+        "urn; a copied reading repeats the original, and a sensor's stated accuracy applies when "
+        "it reads the urn itself."
+    ),
+    "selection": (
+        "In any round, a reporter may report every red ball it drew and hold back every blue one; "
+        "in other rounds it leaves balls unreported at random."
+    ),
+    "mismatch": (
+        "In any round, a reading on file may come from a different urn than the one it is filed "
+        "under; a sensor's stated accuracy applies to readings of the urn it is filed under."
+    ),
+}
 LAB = "Half of all urns in the lab are red-majority."
+
+
+def background(family, variant):
+    """The variant's one named sentence, or None in a plain variant."""
+    if not variant.endswith("named"):
+        return None
+    return (NAMED2 if variant.startswith("urn2") else NAMED)[family]
+
+
+def corrected(variant):
+    return variant.startswith("urn2")
 
 
 def names(i):
@@ -78,31 +111,34 @@ def record(family, slot, x, a=""):
     return RECORDS[family][slot].format(x=x, a=a)
 
 
-def brief(n, prior, named, family, before="any readings"):
+def brief(n, prior, sentence, before="any readings"):
     text = (
         f"{cap(n['urn'])} is either red-majority or blue-majority. Before {before}, the "
         f"probability that it is red-majority is {base.percent(prior)}. {LAB}"
     )
-    if named:
-        text += f" Background: {NAMED[family]}"
+    if sentence:
+        text += f" Background: {sentence}"
     return text
 
 
 def copying(items, i, cover, variant):
     n, kind, slot = names(i), items["kind"][i], int(items["slot"][i])
-    named = variant == "urn-named"
+    sentence = background("copying", variant)
     if kind == "rate":
         lines = [
             f"This case concerns {n['b']}, which reads urns alongside other sensors. {LAB}"
-            + (f" Background: {NAMED['copying']}" if named else ""),
+            + (f" Background: {sentence}" if sentence else ""),
             record("copying", slot, n["b"], n["a"]),
         ]
         question = (
-            f"Among sensors with a record like {n['b']}'s, what proportion copy another sensor's "
-            "reading instead of reading the urn?"
+            f"Among the rounds of sensors with a record like {n['b']}'s, in what proportion do "
+            "they copy another sensor's reading instead of reading the urn?"
+            if corrected(variant)
+            else f"Among sensors with a record like {n['b']}'s, what proportion copy another "
+            "sensor's reading instead of reading the urn?"
         )
         return lines, question
-    lines = [brief(n, items["prior"][i], named, "copying")]
+    lines = [brief(n, items["prior"][i], sentence)]
     rates = [
         f"{cap(n['a'])}'s readings are correct {base.percent(items['accuracy_a'][i])} of the time."
     ]
@@ -118,8 +154,11 @@ def copying(items, i, cover, variant):
         lines.append(record("copying", slot, n["b"], n["a"]))
     if kind == "probe":
         question = (
-            f"What is the probability that {n['b']} copied {n['a']}'s reading instead of reading "
-            "the urn?"
+            f"What is the probability that in this round {n['b']} copied {n['a']}'s reading "
+            "instead of reading the urn?"
+            if corrected(variant)
+            else f"What is the probability that {n['b']} copied {n['a']}'s reading instead of "
+            "reading the urn?"
         )
     else:
         question = f"What is the probability that {n['urn']} is red-majority?"
@@ -128,24 +167,29 @@ def copying(items, i, cover, variant):
 
 def selection(items, i, cover, variant):
     n, kind, slot = names(i), items["kind"][i], int(items["slot"][i])
-    named = variant == "urn-named"
+    sentence = background("selection", variant)
     omission = base.percent(items["omission"][i])
     if kind == "rate":
         lines = [
             f"This case concerns {n['r']}, which draws balls from urns and reports some of them. "
             f"Across the lab, a drawn ball goes unreported {omission} of the time. {LAB}"
-            + (f" Background: {NAMED['selection']}" if named else ""),
+            + (f" Background: {sentence}" if sentence else ""),
             record("selection", slot, n["r"]),
         ]
         question = (
-            f"Among reporters with a record like {n['r']}'s, what proportion report every red ball "
-            "they draw and hold back every blue one, rather than leaving balls unreported at random?"
+            f"Among the rounds of reporters with a record like {n['r']}'s, in what proportion do "
+            "they report every red ball they drew and hold back every blue one, rather than "
+            "leaving balls unreported at random?"
+            if corrected(variant)
+            else f"Among reporters with a record like {n['r']}'s, what proportion report every "
+            "red ball they draw and hold back every blue one, rather than leaving balls "
+            "unreported at random?"
         )
         return lines, question
     good, bad = base.percent(items["good"][i]), base.percent(1 - items["good"][i])
     m, j, k = (int(items[f][i]) for f in ("shared_good", "shared_bad", "withheld"))
     lines = [
-        brief(n, items["prior"][i], named, "selection", "the report"),
+        brief(n, items["prior"][i], sentence, "the report"),
         f"A ball drawn from a red-majority urn is red with probability {good}; from a "
         f"blue-majority urn, with probability {bad}. Across the lab, a drawn ball goes unreported "
         f"{omission} of the time.",
@@ -157,8 +201,11 @@ def selection(items, i, cover, variant):
         lines.append(record("selection", slot, n["r"]))
     if kind == "probe":
         question = (
-            f"What is the probability that {n['r']} is a reporter that reports every red ball it "
-            "draws and holds back every blue one?"
+            f"What is the probability that in this round {n['r']} reported every red ball it drew "
+            "and held back every blue one?"
+            if corrected(variant)
+            else f"What is the probability that {n['r']} is a reporter that reports every red "
+            "ball it draws and holds back every blue one?"
         )
     else:
         question = f"What is the probability that {n['urn']} is red-majority?"
@@ -167,11 +214,11 @@ def selection(items, i, cover, variant):
 
 def mismatch(items, i, cover, variant):
     n, kind, slot = names(i), items["kind"][i], int(items["slot"][i])
-    named = variant == "urn-named"
+    sentence = background("mismatch", variant)
     if kind == "rate":
         lines = [
             f"This case concerns {n['s']}, which files readings for urns. {LAB}"
-            + (f" Background: {NAMED['mismatch']}" if named else ""),
+            + (f" Background: {sentence}" if sentence else ""),
             record("mismatch", slot, n["s"]),
         ]
         question = (
@@ -180,7 +227,7 @@ def mismatch(items, i, cover, variant):
         )
         return lines, question
     accuracy = base.percent(items["accuracy_a"][i])
-    lines = [brief(n, items["prior"][i], named, "mismatch", "any evidence")]
+    lines = [brief(n, items["prior"][i], sentence, "any evidence")]
     if kind == "own":
         miss = base.percent(1 - items["accuracy_a"][i])
         lines.append(

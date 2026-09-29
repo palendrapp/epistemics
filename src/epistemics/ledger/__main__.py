@@ -91,7 +91,7 @@ def main():
     ij = sub.add_parser("inclusion-joint")
     ij.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
     ij.add_argument("--configuration", action="append", default=None)
-    ij.add_argument("--format", choices=("dossier", "urn"), default="dossier")
+    ij.add_argument("--format", choices=("dossier", "urn", "urn2"), default="dossier")
     ijv = sub.add_parser("inclusion-joint-validate")
     ijv.add_argument("--output", type=Path, required=True)
     ijv.add_argument("--datasets", type=int, default=30)

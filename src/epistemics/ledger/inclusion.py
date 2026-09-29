@@ -38,8 +38,17 @@ LADDER = {
     ("urn", "urn-named"): 1,
     ("urn-asked", "urn-named"): 2,
     ("urn-probed", "urn-named"): 3,
+    # Corrected urn texts.
+    ("urn", "urn2-plain"): 0,
+    ("urn", "urn2-named"): 1,
+    ("urn-asked", "urn2-named"): 2,
+    ("urn-probed", "urn2-named"): 3,
 }
-FORMATS = {"dossier": ("relay", "disclosure"), "urn": ("copying", "selection", "mismatch")}
+FORMATS = {
+    "dossier": ("relay", "disclosure"),
+    "urn": ("copying", "selection", "mismatch"),
+    "urn2": ("copying", "selection", "mismatch"),
+}
 THETA = np.round(np.arange(-1.0, 4.001, 0.1), 2)
 W = np.round(np.arange(0.0, 1.501, 0.1), 2)
 SIGMA = np.array([0.05, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0])
@@ -272,6 +281,9 @@ def ledger_sessions(models, configuration, with_ids=False, fmt="dossier"):
         if s["configuration"] != configuration or not s.get("slots"):
             continue
         if family(s["module"]) not in FORMATS[fmt]:
+            continue
+        # The two urn versions share modules; the variant tells them apart.
+        if fmt.startswith("urn") and s["variant"].startswith("urn2") != (fmt == "urn2"):
             continue
         if s["module"].endswith("-cues") and s.get("order_policy") != "random":
             continue

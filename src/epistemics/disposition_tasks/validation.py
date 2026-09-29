@@ -30,6 +30,7 @@ from epistemics.disposition_tasks.render import (
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
+    URN2_VARIANTS,
     URN_ASKED_MODULES,
     URN_MODULES,
     URN_PROBED_MODULES,
@@ -66,7 +67,11 @@ CHECK_TRUTHS = [
 # A learner starting at indifference. Strength 8 keeps the start identifiable (the recovery
 # study scores the start only from strength 8) while learning remains detectable.
 LEARNER = {"start": 0.5, "strength": 8.0, "gamma": 1.0, "bias": 0.0, "report_sd": 0.1}
-CUE_RESPONDENT = {"slots": [0.1, 0.3, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.15}
+# Low report noise, as the validation's scope states: this is a pipeline check, and design
+# precision is established by the recovery study. Until tasks 0.11 this respondent had noise 0.15,
+# at which the forecast-only relay designs miss single-context tolerances by sampling error alone
+# (docs/disposition-abstract2-2026-09-29.md).
+CUE_RESPONDENT = {"slots": [0.1, 0.3, 0.5, 0.7, 0.9], "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
 # A relative judge: targets sit higher among well-staffed outlets than among aggregators.
 RANGE_RESPONDENTS = {
     "range-reassuring": {
@@ -128,9 +133,9 @@ def variants_of(module):
     if module in ASKED_MODULES + PROBED_MODULES:
         return ASKED_VARIANTS
     if module in URN_MODULES:
-        return URN_VARIANTS
+        return URN_VARIANTS + URN2_VARIANTS
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
-        return ("urn-named",)
+        return ("urn-named", "urn2-named")
     return ("paired",) if module == "checks" else VARIANTS
 
 
@@ -176,14 +181,15 @@ URN_MECHANISM = {
 def urn_states_only_the_named(module, variant, case):
     """Plain cases never state the structure; named cases state its one sentence exactly once.
     Only the question of a base-rate or probe case may mention it again."""
-    from epistemics.disposition_tasks.urn import NAMED
+    from epistemics.disposition_tasks.urn import background
 
     family = urn_family(module)
     text = case["case"]
-    if variant == "urn-named":
-        if text.count(NAMED[family]) != 1:
+    sentence = background(family, variant)
+    if sentence:
+        if text.count(sentence) != 1:
             return False
-        text = text.replace(NAMED[family], "")
+        text = text.replace(sentence, "")
     words = URN_MECHANISM[family] + MECHANISM
     return not any(word in text.lower() for word in words)
 
@@ -261,6 +267,11 @@ def contexts_to_validate():
             yield module, "markets", variant, CUE_RESPONDENT
     for module in URN_ASKED_MODULES + URN_PROBED_MODULES:
         yield module, "markets", "urn-named", CUE_RESPONDENT
+    for module in URN_MODULES:
+        for variant in URN2_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for module in URN_ASKED_MODULES + URN_PROBED_MODULES:
+        yield module, "markets", "urn2-named", CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):

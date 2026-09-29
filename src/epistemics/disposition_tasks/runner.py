@@ -38,6 +38,7 @@ from epistemics.disposition_tasks.render import (
     RANGE_VARIANTS,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
+    URN2_VARIANTS,
     URN_ASKED_MODULES,
     URN_MODULES,
     URN_PROBED_MODULES,
@@ -116,8 +117,8 @@ AUDITED_CASES = (
     + 24 * len(UNPROMPTED_MODULES) * len(UNPROMPTED_VARIANTS)
     + 24 * len(ASKED_MODULES) * len(ASKED_VARIANTS)
     + 24 * len(PROBED_MODULES) * len(ASKED_VARIANTS)
-    + 24 * len(URN_MODULES) * len(URN_VARIANTS)
-    + 24 * len(URN_ASKED_MODULES + URN_PROBED_MODULES)
+    + 24 * len(URN_MODULES) * len(URN_VARIANTS + URN2_VARIANTS)
+    + 24 * len(URN_ASKED_MODULES + URN_PROBED_MODULES) * 2
 )
 PRESETS["transfer"] = (
     {
@@ -154,6 +155,24 @@ PRESETS["abstract"] = (
         "configurations": ("astra", "sol"),
         "modules": URN_PROBED_MODULES,
         "contexts": tuple(("urn-named", "markets", r) for r in (1, 2)),
+    },
+)
+# The corrected abstract transfer: the same design on the corrected urn texts.
+PRESETS["abstract2"] = (
+    {
+        "configurations": ("astra", "sol"),
+        "modules": URN_MODULES,
+        "contexts": tuple((v, "markets", r) for v in URN2_VARIANTS for r in (1, 2, 3)),
+    },
+    {
+        "configurations": ("astra", "sol"),
+        "modules": URN_ASKED_MODULES,
+        "contexts": tuple(("urn2-named", "markets", r) for r in (1, 2, 3)),
+    },
+    {
+        "configurations": ("astra", "sol"),
+        "modules": URN_PROBED_MODULES,
+        "contexts": tuple(("urn2-named", "markets", r) for r in (1, 2)),
     },
 )
 # Retest of Sol's stated-applied gap on the asked relay dossiers, and the probed variant for both.
@@ -251,6 +270,7 @@ def check_groups(groups):
             + DOSSIER_VARIANTS
             + UNPROMPTED_VARIANTS
             + URN_VARIANTS
+            + URN2_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts

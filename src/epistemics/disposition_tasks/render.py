@@ -53,6 +53,8 @@ URN_MODULES = ("copying-urn", "selection-urn", "mismatch-urn")
 URN_ASKED_MODULES = ("copying-urn-asked", "selection-urn-asked", "mismatch-urn-asked")
 URN_PROBED_MODULES = ("copying-urn-probed", "selection-urn-probed", "mismatch-urn-probed")
 URN_VARIANTS = ("urn-plain", "urn-named")
+# Corrected urn texts (tasks 0.11): per-round structures and what stated accuracies cover.
+URN2_VARIANTS = ("urn2-plain", "urn2-named")
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,
@@ -671,9 +673,9 @@ def allowed(module, cover, variant):
     if module in ASKED_MODULES + PROBED_MODULES:
         return cover == "markets" and variant in ASKED_VARIANTS
     if module in URN_MODULES:
-        return cover == "markets" and variant in URN_VARIANTS
+        return cover == "markets" and variant in URN_VARIANTS + URN2_VARIANTS
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
-        return cover == "markets" and variant == "urn-named"
+        return cover == "markets" and variant in ("urn-named", "urn2-named")
     if module == "checks":
         return variant == "paired"
     return variant in VARIANTS

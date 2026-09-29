@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 1272
+    assert audit()["cases"] == 1560
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 55
+    assert result["passed"] and len(result["contexts"]) == 67
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -675,3 +675,23 @@ def test_urn_tasks_keep_the_structure_unnamed_unless_named(tmp_path):
             variant="urn-named",
         )
         assert np.allclose(report.analysis["cues"]["implied"], truth["slots"], atol=0.08), module
+
+
+def test_corrected_urn_texts_state_structures_per_round():
+    from epistemics.disposition_tasks.urn import NAMED2
+
+    for family in ("copying", "selection", "mismatch"):
+        module = f"{family}-urn"
+        for i in range(24):
+            # Plain texts are unchanged; only the named sentence differs.
+            assert render(module, "markets", i, "urn2-plain") == render(
+                module, "markets", i, "urn-plain"
+            )
+            named = render(module, "markets", i, "urn2-named")["case"]
+            assert named.count(NAMED2[family]) == 1 and "In any round" in named
+    assert (
+        "stated accuracy applies" in NAMED2["mismatch"]
+        and "stated accuracy applies" in NAMED2["copying"]
+    )
+    probe = render("selection-urn-probed", "markets", 1, "urn2-named")["question"]
+    assert probe.startswith("What is the probability that in this round")
