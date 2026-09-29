@@ -197,3 +197,32 @@ def cue_observer(model, items, dispositions, gamma):
     latent = model(items, delta, gamma)
     stated = logit(np.clip(delta, EDGE, 1 - EDGE))
     return np.where(items["kind"] == "rate", stated, latent)
+
+
+def load_answers(model, items):
+    """Capacity battery, Part A: the exact posterior log-odds of a fully specified case, and the
+    answer that neglects the structure (every reading independent and from this urn)."""
+    prior = logit(np.asarray(items["prior"], dtype=float))
+    exact, neglect = prior.copy(), prior.copy()
+    width = sum(1 for key in items if key.startswith("acc_"))
+    for k in range(width):
+        acc = np.asarray(items[f"acc_{k}"], dtype=float)
+        present = k < np.asarray(items["n"])
+        rep = np.asarray(items[f"rep_{k}"])
+        p1 = np.where(rep > 0, acc, 1 - acc)
+        p1 = np.clip(p1, EDGE, 1 - EDGE)
+        p0 = 1 - p1
+        independent = np.log(p1) - np.log(p0)
+        neglect = neglect + np.where(present, independent, 0.0)
+        if model == "dependence":
+            src = np.asarray(items[f"src_{k}"])
+            rate = np.asarray(items[f"rate_{k}"], dtype=float)
+            original = np.array([items[f"rep_{s}"][i] if s >= 0 else 0 for i, s in enumerate(src)])
+            match = (rep == original).astype(float)
+            term = np.log(rate * match + (1 - rate) * p1) - np.log(rate * match + (1 - rate) * p0)
+            step = np.where(src >= 0, term, independent)
+        else:
+            mis = np.asarray(items[f"mis_{k}"], dtype=float)
+            step = np.log((1 - mis) * p1 + mis / 2) - np.log((1 - mis) * p0 + mis / 2)
+        exact = exact + np.where(present, step, 0.0)
+    return exact, neglect

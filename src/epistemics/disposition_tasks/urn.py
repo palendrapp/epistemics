@@ -235,7 +235,10 @@ def copying(items, i, cover, variant):
         log.append(f"{n['b']}: {colour(items['report_b'][i])}")
     lines += [" ".join(rates), "Readings in the order they were logged: " + "; ".join(log) + "."]
     if slot >= 0 and kind != "single":
-        lines.append(record("copying", slot, n["b"], n["a"]))
+        if vigilance(variant):
+            lines.append(vig_record("copying", items, i, slot, n))
+        else:
+            lines.append(record("copying", slot, n["b"], n["a"]))
     if kind == "probe":
         question = (
             f"What is the probability that in this round {n['b']} copied {n['a']}'s reading "
@@ -282,7 +285,10 @@ def selection(items, i, cover, variant):
     shown = f"{len(reported)}: " + ", ".join(reported) if reported else "none of them"
     lines.append(f"{cap(n['r'])} drew 4 balls from {n['urn']} and reported {shown}.")
     if slot >= 0:
-        lines.append(record("selection", slot, n["r"]))
+        if vigilance(variant):
+            lines.append(vig_record("selection", items, i, slot, n))
+        else:
+            lines.append(record("selection", slot, n["r"]))
     if kind == "probe":
         question = (
             f"What is the probability that in this round {n['r']} reported every red ball it drew "
@@ -324,7 +330,9 @@ def mismatch(items, i, cover, variant):
             f"{cap(n['s'])}'s readings are correct {accuracy} of the time. Reading on file "
             f"for {n['urn']}, from {n['s']}: {colour(items['report_a'][i])}."
         )
-        if slot >= 0:
+        if slot >= 0 and vigilance(variant):
+            lines.append(vig_record("mismatch", items, i, slot, n))
+        elif slot >= 0:
             lines.append(record("mismatch", slot, n["s"]))
             if rated(variant):
                 lines.append(rate_line("mismatch", slot, n["s"]))
@@ -477,3 +485,130 @@ def stale(items, i, cover, variant):
     else:
         question = f"What is the probability that {n['urn']} is red-majority?"
     return lines, question
+
+
+# Capacity battery, Part B (tasks 0.15): "urn2-vig" is urn2-plain with each record replaced by an
+# audit whose likelihood ratio for the (never named) structure is matched across structures: 1,
+# 2, 4, 8 and 16 at levels 0-4, for a reference rate of 0.2 of rounds with the structure. K is
+# solved per case from the case's own accuracies or omission rate.
+VIG_LR = (1, 2, 4, 8, 16)
+VIG_N = 100
+VIG_RATE = 0.2
+
+
+def vigilance(variant):
+    return variant.endswith("vig")
+
+
+def vig_rates(family, items, i):
+    """Signature frequency without and with the structure, for this case."""
+    r = VIG_RATE
+    if family == "copying":
+        a, b = float(items["accuracy_a"][i]), float(items["accuracy_b"][i])
+        f0 = a * b + (1 - a) * (1 - b)
+        return f0, (1 - r) * f0 + r
+    if family == "selection":
+        w = float(items["omission"][i])
+        return 0.5, (1 - r) * 0.5 * (1 - w) / ((1 - r) * (1 - w) + 0.5 * r)
+    a = float(items["accuracy_a"][i])
+    return a, (1 - r) * a + r / 2
+
+
+def vig_count(family, items, i, slot):
+    """The count K of VIG_N whose likelihood ratio is closest to the level's target."""
+    import math
+
+    f0, f1 = vig_rates(family, items, i)
+    per_hit = math.log(f1 / f0)
+    per_miss = math.log((1 - f1) / (1 - f0))
+    target = math.log(VIG_LR[slot])
+    best = min(
+        range(VIG_N + 1),
+        key=lambda k: abs(k * per_hit + (VIG_N - k) * per_miss - target),
+    )
+    return best
+
+
+def vig_ratio(family, items, i, slot):
+    import math
+
+    f0, f1 = vig_rates(family, items, i)
+    k = vig_count(family, items, i, slot)
+    return math.exp(k * math.log(f1 / f0) + (VIG_N - k) * math.log((1 - f1) / (1 - f0)))
+
+
+def vig_record(family, items, i, slot, n):
+    k = vig_count(family, items, i, slot)
+    if family == "copying":
+        return (
+            f"Audit of {n['b']}: in the last {VIG_N} rounds in which {n['b']} and {n['a']} read the "
+            f"same urn, {n['b']}'s reading matched {n['a']}'s in {k}."
+        )
+    if family == "selection":
+        return f"Audit of {n['r']}: of the last {VIG_N} balls it reported, {k} were blue."
+    return (
+        f"Audit of {n['s']}: of the last {VIG_N} of its filed readings that were checked, {k} "
+        "agreed with the later-verified majority of the urn they were filed under."
+    )
+
+
+# Capacity battery, Part A (tasks 0.15): fully specified load cases.
+def load_names(i, count):
+    return [f"sensor {chr(65 + k)}{i + 11}" for k in range(count)]
+
+
+def copying_load(items, i, cover, variant):
+    n = names(i)
+    count = int(items["n"][i])
+    sensors = load_names(i, count)
+    lines = [
+        brief(n, items["prior"][i], None, "any readings"),
+        "Some sensors copy another sensor's logged reading instead of reading the urn; a copied "
+        "reading repeats the original, and a sensor's stated accuracy applies when it reads the urn "
+        "itself.",
+        "Stated accuracies: "
+        + "; ".join(f"{s} {base.percent(items[f'acc_{k}'][i])}" for k, s in enumerate(sensors))
+        + ".",
+    ]
+    copies = [
+        f"{cap(sensors[k])} copies {sensors[int(items[f'src_{k}'][i])]}'s logged reading in "
+        f"{base.percent(items[f'rate_{k}'][i])} of rounds."
+        for k in range(count)
+        if int(items[f"src_{k}"][i]) >= 0
+    ]
+    lines.append(" ".join(copies) + " Every other sensor always reads the urn itself.")
+    log = [f"{s}: {colour(items[f'rep_{k}'][i])}" for k, s in enumerate(sensors)]
+    lines.append("Readings in the order they were logged: " + "; ".join(log) + ".")
+    return lines, f"What is the probability that {n['urn']} is red-majority?"
+
+
+def mismatch_load(items, i, cover, variant):
+    n = names(i)
+    count = int(items["n"][i])
+    sensors = load_names(i, count)
+    lines = [
+        brief(n, items["prior"][i], None, "any evidence"),
+        "A reading on file may come from a different urn than the one it is filed under; a "
+        "reading from a different urn says nothing about this one, and a sensor's stated accuracy "
+        "applies only when the reading does come from this urn.",
+    ]
+    entries = [
+        f"{s} (correct {base.percent(items[f'acc_{k}'][i])} of the time; "
+        f"{base.percent(items[f'mis_{k}'][i])} of its filed readings come from a different urn): "
+        f"{colour(items[f'rep_{k}'][i])}"
+        for k, s in enumerate(sensors)
+    ]
+    lines.append(f"Readings on file for {n['urn']}: " + "; ".join(entries) + ".")
+    return lines, f"What is the probability that {n['urn']} is red-majority?"
+
+
+def load_percentages(family, items, i):
+    count = int(items["n"][i])
+    values = [items["prior"][i]]
+    for k in range(count):
+        values.append(items[f"acc_{k}"][i])
+        if family == "copying" and int(items[f"src_{k}"][i]) >= 0:
+            values.append(items[f"rate_{k}"][i])
+        if family == "mismatch":
+            values.append(items[f"mis_{k}"][i])
+    return sorted({base.percent(v) for v in values})

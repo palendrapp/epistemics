@@ -15,6 +15,8 @@ NAMES = {
     "sol": "GPT-6 Sol",
     "astra-low": "GPT-6 Astra, low effort",
     "sol-low": "GPT-6 Sol, low effort",
+    "astra-high": "GPT-6 Astra, high effort",
+    "sol-high": "GPT-6 Sol, high effort",
     "luna": "GPT-5.6 Luna",
     "terra": "GPT-5.6 Terra",
 }

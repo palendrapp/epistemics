@@ -42,6 +42,8 @@ MODULES = (
     "echo-urn-probed",
     "hub-urn-probed",
     "stale-urn-probed",
+    "copying-load",
+    "mismatch-load",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -77,6 +79,12 @@ V2_MODULES = ("echo-urn", "hub-urn", "stale-urn")
 V2_ASKED_MODULES = ("echo-urn-asked", "hub-urn-asked", "stale-urn-asked")
 V2_PROBED_MODULES = ("echo-urn-probed", "hub-urn-probed", "stale-urn-probed")
 V2_TWINS = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
+# Capacity battery (tasks 0.15). Part A: fully specified load cases. Part B: the unprompted urn
+# tasks with audit records of matched likelihood ratio ("urn2-vig").
+LOAD_MODULES = ("copying-load", "mismatch-load")
+LOAD_VARIANTS = ("load-a",)
+LOAD_DESIGNS = {"copying-load": "dependence", "mismatch-load": "mismatch"}
+VIG_VARIANTS = ("urn2-vig",)
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,
@@ -376,6 +384,8 @@ def items_for(module):
         return design.corroboration_probed()
     if module in URN_DESIGNS:
         return URN_DESIGNS[module]()
+    if module in LOAD_DESIGNS:
+        return design.load_design(LOAD_DESIGNS[module])
     raise ValueError(f"Unknown module: {module}")
 
 
@@ -674,6 +684,8 @@ RENDERERS = {
     "disclosure-asked": lambda *a: _dossier("disclosure_asked", *a),
     "corroboration-probed": lambda *a: _dossier("relay_probed", *a),
     **{m: (lambda family: lambda *a: _urn(family, *a))(m.split("-", 1)[0]) for m in URN_DESIGNS},
+    "copying-load": lambda *a: _urn("copying_load", *a),
+    "mismatch-load": lambda *a: _urn("mismatch_load", *a),
 }
 
 
@@ -703,6 +715,10 @@ def allowed(module, cover, variant):
     if module in URN3_MODULES and variant in URN3_VARIANTS:
         return cover == "markets"
     if module in URN3_RATED_MODULES and variant in URN3_RATED_VARIANTS:
+        return cover == "markets"
+    if module in LOAD_MODULES:
+        return cover == "markets" and variant in LOAD_VARIANTS
+    if module in URN_MODULES and variant in VIG_VARIANTS:
         return cover == "markets"
     if module in V2_MODULES:
         return cover == "markets" and variant in URN2_VARIANTS
@@ -736,6 +752,10 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
+    if module in LOAD_DESIGNS:
+        from epistemics.disposition_tasks.urn import load_percentages
+
+        return load_percentages(urn_family(module), items, index)
     if module in URN_DESIGNS:
         return urn_percentages(urn_family(module), items, index)
     described = CUE_MODULES + RANGE_MODULES + DOSSIER_MODULES + ASKED_MODULES + PROBED_MODULES

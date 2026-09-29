@@ -187,3 +187,53 @@ def fit_cues(model, items, reports):
             )
         },
     }
+
+
+# Capacity battery, Part A: at each load level, the share of weight on the structure-neglecting
+# answer (eta), forecast bias and report noise, on grids under uniform priors.
+LOAD_ETA = np.round(np.linspace(0, 1, 11), 2)
+REPEAT_EDGE = 0.01
+
+
+def fit_load(model, items, reports):
+    """Per load level: eta, bias and report noise; the slopes of log noise and of eta over load;
+    and the model-free noise between repeated cases."""
+    reports = np.asarray(reports, dtype=float)
+    exact, neglect = observers.load_answers(model, items)
+    loads = np.asarray(items["load"])
+    levels = []
+    for level in sorted(set(loads.tolist())):
+        mask = loads == level
+        means = (1 - LOAD_ETA)[:, None, None] * exact[mask] + LOAD_ETA[:, None, None] * neglect[
+            mask
+        ]
+        means = means + BIAS[None, :, None]
+        ll = np.stack(
+            [report_log_likelihood(means, reports[mask], sd) for sd in REPORT_SD], axis=-1
+        )
+        fitted = summarize(ll, {"eta": LOAD_ETA, "bias": BIAS, "report_sd": REPORT_SD})
+        truth = 1 / (1 + np.exp(-exact[mask]))
+        levels.append(
+            {
+                "load": int(level),
+                "readings": int(np.asarray(items["n"])[mask][0]),
+                "cases": int(mask.sum()),
+                **fitted["parameters"],
+                "exact_share": float(np.mean(np.abs(reports[mask] - truth) <= 0.015)),
+            }
+        )
+    x = np.array([lv["load"] for lv in levels], dtype=float)
+    log_tau = np.log([lv["report_sd"]["mean"] for lv in levels])
+    eta = np.array([lv["eta"]["mean"] for lv in levels])
+    repeat_of = np.asarray(items["repeat_of"])
+    pairs = [(i, int(j)) for i, j in enumerate(repeat_of) if j >= 0]
+    clipped = np.clip(reports, REPEAT_EDGE, 1 - REPEAT_EDGE)
+    logits = np.log(clipped) - np.log1p(-clipped)
+    return {
+        "levels": levels,
+        "load_slope": float(np.polyfit(x, log_tau, 1)[0]) if len(x) > 1 else None,
+        "eta_slope": float(np.polyfit(x, eta, 1)[0]) if len(x) > 1 else None,
+        "repeat_noise": float(np.mean([abs(logits[i] - logits[j]) for i, j in pairs]))
+        if pairs
+        else None,
+    }

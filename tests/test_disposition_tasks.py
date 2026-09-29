@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 1944
+    assert audit()["cases"] == 2064
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 83
+    assert result["passed"] and len(result["contexts"]) == 88
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -785,3 +785,65 @@ def test_runner_summary_reads_every_cue_module_as_a_mapping():
     for module in MODULES:
         if "-urn" in module:
             assert runner.headline({"module": module, "cues": cues})["parameter"] == "cue_mapping"
+
+
+def test_capacity_load_cases_state_every_number_and_scale_the_readings():
+    import numpy as np
+
+    from epistemics.disposition_tasks.render import items_for
+    from epistemics.dispositions import observers
+
+    for module, model, readings in (
+        ("copying-load", "dependence", (2, 4, 8)),
+        ("mismatch-load", "mismatch", (1, 3, 6)),
+    ):
+        items = items_for(module)
+        assert np.bincount(items["load"]).tolist() == [8, 8, 8]
+        assert [int(items["n"][items["load"] == k][0]) for k in range(3)] == list(readings)
+        repeats = [(i, int(j)) for i, j in enumerate(items["repeat_of"]) if j >= 0]
+        assert len(repeats) == 3
+        exact, neglect = observers.load_answers(model, items)
+        assert np.all(np.abs(exact - neglect) >= 0.25) and np.all(np.abs(exact) <= 2.95)
+        for i, j in repeats:
+            assert exact[i] == exact[j]
+            a, b = render(module, "markets", i, "load-a"), render(module, "markets", j, "load-a")
+            assert a["case"] != b["case"]  # new names, same numbers
+        case = render(module, "markets", 20, "load-a")["case"]
+        assert "Readings" in case and "%" in case
+
+
+def test_capacity_audit_records_match_likelihood_ratios_and_never_name_the_structure():
+    from epistemics.disposition_tasks.render import allowed, items_for
+    from epistemics.disposition_tasks.urn import VIG_LR, vig_ratio
+    from epistemics.disposition_tasks.validation import URN_MECHANISM
+
+    for family in ("copying", "selection", "mismatch"):
+        module = f"{family}-urn"
+        items = items_for(module)
+        for i in range(24):
+            slot = int(items["slot"][i])
+            case = render(module, "markets", i, "urn2-vig")["case"]
+            plain = render(module, "markets", i, "urn2-plain")["case"]
+            assert not any(w in case.lower() for w in URN_MECHANISM[family])
+            if slot < 0 or items["kind"][i] == "single" and family == "copying":
+                continue
+            assert "Audit of" in case and "Record for" not in case
+            assert case.split("Audit of")[0] == plain.split("Record for")[0]
+            ratio = vig_ratio(family, items, i, slot)
+            assert VIG_LR[slot] / 2.1 <= ratio <= VIG_LR[slot] * 2.1, (family, i, ratio)
+        assert allowed(module, "markets", "urn2-vig")
+    assert not allowed("hub-urn", "markets", "urn2-vig")
+
+
+def test_capacity_pilot_preset_uses_the_high_effort_configurations():
+    from collections import Counter
+
+    from epistemics.disposition_tasks import runner
+
+    planned = runner.check_groups(runner.PRESETS["capacity-pilot"])
+    assert len(planned) == 8
+    assert Counter(run[0] for run in planned) == {"astra-high": 4, "sol-high": 4}
+    load = runner.headline(
+        {"module": "copying-load", "load": {"load_slope": 1.0, "eta_slope": 0.2}}
+    )
+    assert load["parameter"] == "load_slope"

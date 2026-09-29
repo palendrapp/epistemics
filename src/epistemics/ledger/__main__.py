@@ -17,6 +17,7 @@ uv run python -m epistemics.ledger traits --output <file> [--configuration astra
 uv run python -m epistemics.ledger traits-power --output <file>
 uv run python -m epistemics.ledger battery-v2 --output <file>
 uv run python -m epistemics.ledger battery-v2-recovery --output <file>
+uv run python -m epistemics.ledger capacity-pilot <roots...> --output <file>
 """
 
 import argparse
@@ -134,6 +135,9 @@ def main():
     bvr = sub.add_parser("battery-v2-recovery")
     bvr.add_argument("--output", type=Path, required=True)
     bvr.add_argument("--datasets", type=int, default=24)
+    cp = sub.add_parser("capacity-pilot")
+    cp.add_argument("roots", type=Path, nargs="+")
+    cp.add_argument("--output", type=Path, required=True)
     tp = sub.add_parser("traits-power")
     tp.add_argument("--output", type=Path, required=True)
     ihp = sub.add_parser("inclusion-hier-power")
@@ -357,6 +361,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps(run["pass_rates"], indent=2))
+    elif a.command == "capacity-pilot":
+        from epistemics.ledger import capacity
+
+        run = capacity.pilot(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(capacity.tables(run))
     elif a.command == "traits-power":
         from epistemics.ledger import traits
 

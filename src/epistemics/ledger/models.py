@@ -319,6 +319,8 @@ class Designs:
 def session(record, experiment, designs):
     """One verified session's posteriors, predictive check and agreement with its report."""
     module = record["module"]
+    if module.endswith("-load"):
+        return None  # Capacity load modules have their own analysis (ledger.capacity).
     items = arrays(record["items"])
     responses = np.asarray(record["responses"], dtype=float)
     base = {

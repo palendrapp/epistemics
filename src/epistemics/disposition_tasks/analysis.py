@@ -40,6 +40,8 @@ CUE_MODELS = {
         for suffix in ("", "-asked", "-probed")
     },
 }
+# Capacity battery, Part A: fully specified load modules (docs/capacity-battery-design.md).
+LOAD_MODELS = {"copying-load": "dependence", "mismatch-load": "mismatch"}
 RANGE_TARGETS = 5
 
 
@@ -150,6 +152,13 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in LOAD_MODELS:
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "load": fit.fit_load(LOAD_MODELS[manifest.module], items, responses),
+            "rows": rows,
+        }
     if manifest.module in CUE_MODELS:
         result = fit.fit_cues(CUE_MODELS[manifest.module], items, responses)
         if manifest.module.endswith("-range"):

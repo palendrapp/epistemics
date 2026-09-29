@@ -605,6 +605,20 @@
       "status": "planned",
       "prediction": "Design only. Primary: load slope (Part A) and vigilance threshold (Part B), leave-one-task-out over six tasks. Construct checks: higher effort flattens the load slope and lowers the vigilance threshold within a model.",
       "outcome": "Awaiting decisions: high-effort configurations, order and budget (pilot ~4M, Part A ~51M, Part B ~76M), context dimension, stakes."
+    },
+    {
+      "id": "capacity-pilot",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Capacity battery pilot (range-finding)",
+      "question": "On the high-effort GPT-6 configurations: is the top load level answered exactly, do the matched-strength audit records bracket the configurations' thresholds, and how many tokens does a session use?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [
+        "output/capacity-pilot-20260929"
+      ],
+      "status": "running",
+      "prediction": "Range-finding only: may change load levels and likelihood-ratio values, nothing else."
     }
   ],
   "next": [

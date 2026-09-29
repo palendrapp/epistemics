@@ -23,6 +23,8 @@
   --c-sol: #d55e00;
   --c-astra-low: #56b4e9;
   --c-sol-low: #e69f00;
+  --c-astra-high: #003f63;
+  --c-sol-high: #8c3a00;
   --c-luna: #cc79a7;
   --c-terra: #009e73;
   --g-single: #8a94a3;
@@ -66,6 +68,8 @@
     --c-sol: #f0874a;
     --c-astra-low: #9fd0f2;
     --c-sol-low: #f3c25a;
+    --c-astra-high: #b9dcf7;
+    --c-sol-high: #f7b48a;
     --c-luna: #e59cc7;
     --c-terra: #3fc79c;
     --g-single: #7d8898;
@@ -106,6 +110,8 @@
   --c-sol: #f0874a;
   --c-astra-low: #9fd0f2;
   --c-sol-low: #f3c25a;
+  --c-astra-high: #b9dcf7;
+  --c-sol-high: #f7b48a;
   --c-luna: #e59cc7;
   --c-terra: #3fc79c;
   --g-single: #7d8898;
@@ -508,7 +514,8 @@ const REPO = "https://github.com/palendrapp/epistemics/blob/main/";
 const TRACKS = ["all", "dispositions", "naturalistic", "delivery", "archive"];
 const CONFIG_NAMES = {
   "astra": "GPT-6 Astra", "sol": "GPT-6 Sol", "astra-low": "GPT-6 Astra (low)",
-  "sol-low": "GPT-6 Sol (low)", "luna": "GPT-5.6 Luna", "terra": "GPT-5.6 Terra"
+  "sol-low": "GPT-6 Sol (low)", "astra-high": "GPT-6 Astra (high)", "sol-high": "GPT-6 Sol (high)",
+  "luna": "GPT-5.6 Luna", "terra": "GPT-5.6 Terra"
 };
 
 const el = (tag, attrs = {}, ...children) => {
@@ -1072,7 +1079,7 @@ function setupTabs() {
 
 /* ---------- Model views: constants ---------- */
 const LEVEL_NAMES = ["Strongly reassuring", "Mildly reassuring", "Irrelevant", "Mildly suggestive", "Strongly suggestive"];
-const CONFIG_ORDER = ["astra", "sol", "astra-low", "sol-low", "luna", "terra"];
+const CONFIG_ORDER = ["astra", "sol", "astra-low", "sol-low", "astra-high", "sol-high", "luna", "terra"];
 const GROUP_ORDER = ["single", "conflict", "agree", "withheld", "control", "probe", "rate", "check"];
 const GROUP_NAMES = {
   single: "one outlet", conflict: "outlets disagree", agree: "outlets agree", probe: "structure probe",

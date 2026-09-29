@@ -443,3 +443,82 @@ def mismatch_urn_probed():
             *[(*f, s) for f in _MISMATCH_FORECASTS[2:]],
         ]
     return _mismatch(rows + _MISMATCH_ANCHORS)
+
+
+# Capacity battery, Part A (design 0.9): fully specified cases, mechanism and rates stated, whose
+# exact answer needs more computation as the number of readings grows (docs/capacity-battery-
+# design.md). Seven cases at each of three load levels, then one repeat per level: the same
+# numbers under new names, which measures response noise without the model. Each case must
+# separate the exact answer from neglecting the structure by at least 0.25 on the log-odds scale,
+# and keep the exact answer within 5-95%.
+LOAD_READINGS = {"dependence": (2, 4, 8), "mismatch": (1, 3, 6)}
+LOAD_WIDTH = {"dependence": 8, "mismatch": 6}
+_LOAD_SEEDS = {"dependence": 20261003, "mismatch": 20261004}
+_LOAD_COPIERS = {2: 1, 4: 2, 8: 3}
+
+
+def _load_case(model, rng, n):
+    prior = float(rng.choice([0.3, 0.4, 0.5, 0.6, 0.7]))
+    rep = rng.choice([-1, 1], n)
+    if model == "dependence":
+        acc = rng.choice([0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], n)
+        src, rate = np.full(n, -1), np.zeros(n)
+        for idx in sorted(rng.choice(np.arange(1, n), _LOAD_COPIERS[n], replace=False)):
+            src[idx] = int(rng.integers(0, idx))
+            rate[idx] = float(rng.choice([0.2, 0.3, 0.4, 0.5, 0.6]))
+        return {"prior": prior, "acc": acc, "rep": rep, "src": src, "rate": rate}
+    acc = rng.choice([0.7, 0.75, 0.8, 0.85, 0.9, 0.95], n)
+    mis = rng.choice([0.05, 0.1, 0.2, 0.3, 0.4, 0.5], n)
+    return {"prior": prior, "acc": acc, "rep": rep, "mis": mis}
+
+
+def _load_table(model, cases, loads, repeats):
+    width = LOAD_WIDTH[model]
+    fields = ("acc", "rep", "src", "rate") if model == "dependence" else ("acc", "rep", "mis")
+    table = {
+        "kind": np.array(["forecast"] * len(cases)),
+        "prior": np.array([c["prior"] for c in cases], dtype=float),
+        "load": np.array(loads, dtype=int),
+        "n": np.array([len(c["acc"]) for c in cases], dtype=int),
+        "repeat_of": np.array(repeats, dtype=int),
+    }
+    for field in fields:
+        pad = -1 if field == "src" else 0
+        for k in range(width):
+            values = [c[field][k] if k < len(c["acc"]) else pad for c in cases]
+            dtype = int if field in ("rep", "src") else float
+            table[f"{field}_{k}"] = np.array(values, dtype=dtype)
+    return table
+
+
+def load_design(model):
+    """Twenty-four fully specified cases on three load levels, with three repeats."""
+    from epistemics.dispositions import observers
+
+    rng = np.random.default_rng(_LOAD_SEEDS[model])
+    cases, loads = [], []
+    for level, n in enumerate(LOAD_READINGS[model]):
+        found = 0
+        while found < 7:
+            case = _load_case(model, rng, n)
+            probe = _load_table(model, [case], [level], [-1])
+            exact, neglect = observers.load_answers(model, probe)
+            if abs(exact[0]) <= 2.94 and abs(exact[0] - neglect[0]) >= 0.25:
+                cases.append(case)
+                loads.append(level)
+                found += 1
+    repeats = [-1] * len(cases)
+    for level in range(3):
+        first = loads.index(level)
+        cases.append(cases[first])
+        loads.append(level)
+        repeats.append(first)
+    return _load_table(model, cases, loads, repeats)
+
+
+def dependence_load():
+    return load_design("dependence")
+
+
+def mismatch_load():
+    return load_design("mismatch")

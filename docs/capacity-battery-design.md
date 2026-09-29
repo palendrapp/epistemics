@@ -191,3 +191,32 @@ Part C follows Part A, which establishes what capacity is.
    - or both after one pilot.
 3. **The context dimension of Part A:** now, or after the first result?
 4. **The stakes manipulation in Part B:** now, or later?
+
+
+## Pilot (built 29 September; range-finding, not confirmatory)
+
+**Decisions taken.** Astra-high and Sol-high were added (reasoning effort "high"), and the pilot runs on them.
+- **Part A:** copying and misfiled-readings load modules.
+- **Part B:** the selection and misfiling tasks with matched-strength audit records (variant `urn2-vig`).
+- **Size:** eight contexts, one per configuration and task.
+
+The pilot informs only the load levels, the likelihood-ratio range and the token budget.
+
+**Built.**
+- **Model and design:** disposition-model/0.7.0, which adds the load fit (noise, neglect weight and bias per load level, the noise slope, and repeat noise), and disposition-design/0.9.0, which adds the load designs: 24 cases, 7 per level plus one repeat per level, each separating the exact answer from neglect by at least 0.25 log-odds.
+- **Tasks:** disposition-tasks/0.15.0, fingerprint `459ae9008c7e319ac48a16f6623d02111becfd0c7fed52eacb6a98e28a53fc46`.
+- **Analysis:** `ledger capacity-pilot`.
+
+**Task validation 0.15** passed on both seeds: 2,064 cases and 88 contexts. The load pipeline check was changed after it first failed by chance on one seed:
+
+| | Before | After |
+| --- | --- | --- |
+| Synthetic respondent's noise, by load | 0.05, 0.15, 0.4 | 0.1, 0.2, 0.5 |
+| Criterion | noise within a factor of two at every level, and neglect within 0.3 | the noise slope within 0.6 of the truth, and neglect rising by at least 0.1 |
+
+The per-level criterion failed by chance in 8–20% of contexts. With eight cases per level, noise and neglect trade off, and noise below about 0.05 is only partly identified from whole percentages. The slope criterion fails in about 2%.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.15, seed 20260927 | `5a5083ffaa27662634183cdc375d110ce2a15ce2d4e2f0641b440e0506155768` |
+| Task validation 0.15, seed 20261027 | `0202e1e86275bd2182fbaef8abdfc856942f72f323906249992682acde3270b3` |

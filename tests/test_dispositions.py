@@ -250,3 +250,23 @@ def test_mismatch_observer_discounts_readings_that_may_be_misfiled():
     probe = design.mismatch_urn_probed()
     p = observers.mismatch(probe, 0.4, 1.0)[probe["kind"] == "probe"]
     assert np.all(np.isfinite(p))
+
+
+def test_load_fit_recovers_noise_and_neglect_by_level():
+    import numpy as np
+
+    from epistemics.dispositions import design, fit, observers
+    from epistemics.dispositions.response import sample_reports
+
+    items = design.load_design("mismatch")
+    exact, neglect = observers.load_answers("mismatch", items)
+    rng = np.random.default_rng(3)
+    level = items["load"]
+    sd, eta = np.array([0.05, 0.1, 0.5])[level], np.array([0.0, 0.0, 0.6])[level]
+    result = fit.fit_load(
+        "mismatch", items, sample_reports((1 - eta) * exact + eta * neglect, sd, rng)
+    )
+    taus = [lv["report_sd"]["mean"] for lv in result["levels"]]
+    assert taus[0] < taus[2] and result["load_slope"] > 0.5
+    assert result["levels"][2]["eta"]["mean"] > result["levels"][0]["eta"]["mean"] + 0.2
+    assert result["repeat_noise"] is not None

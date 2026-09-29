@@ -66,6 +66,8 @@ for entry in plan["runs"]:
             record["learning"] = {"parameters": a["learning"]["parameters"],
                                   "learning_probability": a["learning"]["learning_probability"],
                                   "revealed_rate": a.get("revealed_rate")}
+    elif m.module.endswith("-load"):
+        record["load"] = a["load"]
     else:
         record["slot_fits"] = [{"slot": s["slot"], "implied": s["implied"], "stated": s["stated"]}
                                for s in a["fit"]["slots"]]
@@ -153,6 +155,8 @@ def summary(record):
                 "revealed_rate": learning["revealed_rate"],
             }
         return result
+    if module.endswith("-load"):
+        return {**base, "load": record["load"]}
     implied = [s["implied"]["mean"] for s in record["slot_fits"]]
     # Unprompted modules ask for no stated base rates.
     fits = record["slot_fits"]

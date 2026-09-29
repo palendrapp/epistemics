@@ -24,6 +24,8 @@ from epistemics.disposition_tasks.render import (
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
     LEARNING_RATES,
+    LOAD_MODULES,
+    LOAD_VARIANTS,
     MODULES,
     PROBED_MODULES,
     RANGE_MODULES,
@@ -43,6 +45,7 @@ from epistemics.disposition_tasks.render import (
     V2_MODULES,
     V2_PROBED_MODULES,
     VARIANTS,
+    VIG_VARIANTS,
     items_for,
     render,
     stated_percentages,
@@ -60,7 +63,15 @@ TOLERANCE = {
     "start": 0.15,
     "cue_mean": 0.10,
     "cue_largest": 0.20,
+    # Load modules, a pipeline check on eight cases per level: the noise slope over load within
+    # 0.6 of the truth, and the neglect weight rising by at least 0.1 from the lowest to the
+    # highest level (true rise 0.5). Per-level tolerances failed by chance in 8-20% of contexts,
+    # because noise and neglect trade off with eight cases, and noise below about 0.05 is only
+    # partly identified from whole percentages; these fail in about 2%.
+    "load_slope": 0.6,
+    "load_eta_rise": 0.1,
 }
+LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -142,8 +153,10 @@ def variants_of(module):
     extra = (URN3_VARIANTS if module in URN3_MODULES else ()) + (
         URN3_RATED_VARIANTS if module in URN3_RATED_MODULES else ()
     )
+    if module in LOAD_MODULES:
+        return LOAD_VARIANTS
     if module in URN_MODULES:
-        return URN_VARIANTS + URN2_VARIANTS + extra
+        return URN_VARIANTS + URN2_VARIANTS + VIG_VARIANTS + extra
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
         return ("urn-named", "urn2-named") + extra
     if module in V2_MODULES:
@@ -169,6 +182,7 @@ def covers_of(module):
         + V2_MODULES
         + V2_ASKED_MODULES
         + V2_PROBED_MODULES
+        + LOAD_MODULES
         else COVERS
     )
 
@@ -319,9 +333,25 @@ def contexts_to_validate():
             yield module, "markets", variant, CUE_RESPONDENT
     for module in V2_ASKED_MODULES + V2_PROBED_MODULES:
         yield module, "markets", "urn2-named", CUE_RESPONDENT
+    for module in URN_MODULES:
+        for variant in VIG_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for module in LOAD_MODULES:
+        for variant in LOAD_VARIANTS:
+            yield module, "markets", variant, LOAD_RESPONDENT
 
 
 def estimate(module, analysis, truth):
+    if "load_sd" in truth:
+        levels = analysis["load"]["levels"]
+        slope = analysis["load"]["load_slope"]
+        true_slope = float(np.polyfit(range(len(truth["load_sd"])), np.log(truth["load_sd"]), 1)[0])
+        rise = levels[-1]["eta"]["mean"] - levels[0]["eta"]["mean"]
+        ok = (
+            abs(slope - true_slope) <= TOLERANCE["load_slope"]
+            and rise >= TOLERANCE["load_eta_rise"]
+        )
+        return slope, bool(ok)
     if module == "checks":
         row = analysis["fits"][truth["function"]]["parameters"]["certainty_value"]
         error = abs(row["mean"] - truth["certainty_value"])

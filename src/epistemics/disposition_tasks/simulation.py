@@ -23,6 +23,14 @@ def responses(module, truth, rng, order=None, revealed=None):
         decision, gain = observers.check_values(items, truth["function"])
         means = truth["certainty_value"] * gain + truth["decision_weight"] * decision
         return sample_wtp(means, truth["wtp_sd"], rng)
+    if "load_sd" in truth:
+        from epistemics.disposition_tasks.analysis import LOAD_MODELS
+
+        exact, neglect = observers.load_answers(LOAD_MODELS[module], items)
+        level = np.asarray(items["load"])
+        eta = np.asarray(truth["load_eta"])[level]
+        sd = np.asarray(truth["load_sd"])[level]
+        return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
     if "slots" in truth:
         from epistemics.disposition_tasks.analysis import CUE_MODELS
 

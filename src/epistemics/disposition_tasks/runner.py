@@ -32,6 +32,8 @@ from epistemics.disposition_tasks.render import (
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
     LEARNING_RATES,
+    LOAD_MODULES,
+    LOAD_VARIANTS,
     MODULES,
     PROBED_MODULES,
     RANGE_MODULES,
@@ -51,6 +53,7 @@ from epistemics.disposition_tasks.render import (
     V2_MODULES,
     V2_PROBED_MODULES,
     VARIANTS,
+    VIG_VARIANTS,
     allowed,
     items_for,
 )
@@ -130,6 +133,8 @@ AUDITED_CASES = (
     + 24 * len(URN3_RATED_MODULES) * len(URN3_RATED_VARIANTS)
     + 24 * len(V2_MODULES) * len(URN2_VARIANTS)
     + 24 * len(V2_ASKED_MODULES + V2_PROBED_MODULES)
+    + 24 * len(URN_MODULES) * len(VIG_VARIANTS)
+    + 24 * len(LOAD_MODULES) * len(LOAD_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -238,6 +243,20 @@ PRESETS["traits-stage2"] = (
         "contexts": (("urn2-named", "markets", 1),),
     },
 )
+# Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
+# load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
+PRESETS["capacity-pilot"] = (
+    {
+        "configurations": ("astra-high", "sol-high"),
+        "modules": LOAD_MODULES,
+        "contexts": (("load-a", "markets", 1),),
+    },
+    {
+        "configurations": ("astra-high", "sol-high"),
+        "modules": ("selection-urn", "mismatch-urn"),
+        "contexts": (("urn2-vig", "markets", 1),),
+    },
+)
 # Retest of Sol's stated-applied gap on the asked relay dossiers, and the probed variant for both.
 PRESETS["probed"] = (
     {
@@ -336,6 +355,8 @@ def check_groups(groups):
             + URN2_VARIANTS
             + URN3_VARIANTS
             + URN3_RATED_VARIANTS
+            + LOAD_VARIANTS
+            + VIG_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -622,6 +643,13 @@ async def collect(root, entry, config, timeout):
 
 def headline(analysis):
     """The disposition estimate a context contributes to comparisons."""
+    if analysis["module"] in LOAD_MODULES:
+        load = analysis["load"]
+        return {
+            "parameter": "load_slope",
+            "slope": load["load_slope"],
+            "eta_slope": load["eta_slope"],
+        }
     if analysis["module"] in (
         CUE_MODULES
         + DOSSIER_MODULES

@@ -49,6 +49,8 @@ CONFIGURATIONS = {
     "sol": ("gpt-6-sol", "medium"),
     "astra-low": ("gpt-6-astra", "low"),
     "sol-low": ("gpt-6-sol", "low"),
+    "astra-high": ("gpt-6-astra", "high"),
+    "sol-high": ("gpt-6-sol", "high"),
     "luna": ("gpt-5.6-luna", "medium"),
     "terra": ("gpt-5.6-terra", "medium"),
 }
