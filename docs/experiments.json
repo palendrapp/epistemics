@@ -506,6 +506,20 @@
       "status": "complete",
       "prediction": "Variant urn3-named changes only the named sentence (mismatch modules); plain text and questions unchanged; task validation must pass on two seeds.",
       "outcome": "Built and validated (1,632 cases, 70 contexts, both seeds; fingerprint 704367d4). Old misfiled-readings checks withdrawn from the guide; collection pending (6 contexts, about 3.2M tokens: minimal protocol at rungs 1-3, reusing plain sessions)."
+    },
+    {
+      "id": "structure-check-mismatch3",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Reworded misfiled-readings check (tasks 0.12)",
+      "question": "With the accuracy clause reworded, do Astra and Sol consider misfiled readings once it is named, and what prompt do they need?",
+      "doc": "docs/structure-checks.md",
+      "roots": [
+        "output/structure-check-mismatch3-20260929"
+      ],
+      "status": "running",
+      "prediction": "R1: strongly suggestive mismatch level at rung 1 at least 0.50 per configuration (Astra 0.00 under urn2). R2: check converges and recommends a rung. E1 both meet R1-R2; E2 Astra no longer 'not reliable'; E3 Sol's advice unchanged within one rung."
     }
   ],
   "next": [

@@ -174,3 +174,18 @@ All valid checks had R-hat of 1.011 or less.
 ```bash
 uv run python -m epistemics.structure_check collect output/structure-check-mismatch3-<date> --configuration astra --configuration sol --structure mismatch --protocol minimal --rung 1 --rung 2 --rung 3 --validation output/disposition-tasks-v0.12-validation-20260927.json --validation output/disposition-tasks-v0.12-validation-20261027.json
 ```
+
+### Preregistration: the reworded check (written before collection)
+
+**Design.** The collection is the minimal protocol at rungs 1–3 for Astra and Sol: 6 contexts, cap 3.8 million tokens. The existing plain sessions stand as rung 0. The check's fit and recommendation rule are unchanged.
+
+**Criteria.** The rewording works for a configuration if:
+- **R1.** Its mean implied prior for the strongly suggestive sensor ("shared by 50 urns and moves between them") is at least 0.50 at rung 1. Astra gave 0.00 under the old wording; Sol gave 0.97.
+- **R2.** Its check converges and recommends a rung. A "not reliable" recommendation counts against the rewording.
+
+**Expectations.**
+- **E1.** Both configurations meet R1 and R2.
+- **E2.** If Astra's old result came from the wording, its advice is no longer "not reliable".
+- **E3.** Sol's advice is unchanged ("mention it and ask how common it is"), within one rung. Sol's sessions were not affected by the old ambiguity in the same way.
+
+With one session per rung, the mapping at a single rung is noisy, so R1 is read on that one session.
