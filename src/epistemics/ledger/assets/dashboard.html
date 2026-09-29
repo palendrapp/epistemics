@@ -235,6 +235,13 @@ label.check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6
 .verdict { font-weight: 600; white-space: nowrap; }
 .verdict.yes { color: var(--ok); } .verdict.part { color: var(--warn); } .verdict.no { color: var(--bad); } .verdict.open { color: var(--accent); }
 td.num-cell { font-family: var(--mono); font-size: 12px; }
+.mini { min-width: 0; }
+.mini svg { display: block; max-width: 100%; }
+.fig-row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); }
+.fig-cap { font-size: 12px; color: var(--muted); }
+.mini .t-lab { font-size: 10.5px; } .mini .t-node { font: 500 11px var(--sans); fill: var(--ink); }
+.key-row { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--muted); }
+.key-row i { display: inline-block; width: 12px; height: 3px; margin-right: 5px; vertical-align: middle; border-radius: 2px; }
 .note.bad { color: var(--bad); }
 .readout { font: 12px var(--mono); color: var(--muted); }
 .readout b { color: var(--ink); font-weight: 500; }
@@ -298,6 +305,8 @@ td.num-cell { font-family: var(--mono); font-size: 12px; }
             <div class="eq">ℓ = logit <i>P</i>(<i>H</i> | <i>E</i>; <i>π</i>, <i>γ</i>) &nbsp;=&nbsp; logit <i>P</i>(<i>H</i>) + log <i>P</i>(<i>E</i>|<i>H</i>) − log <i>P</i>(<i>E</i>|<i>L</i>)</div>
             <div class="eq">stated accuracy <i>q</i> is read as σ(<i>γ</i> · logit <i>q</i>)</div>
           </div>
+          <div class="mini" id="fig-report"></div>
+          <p class="fig-cap">The same Bayesian answer (80%), reported by a precise and a noisy configuration. <i>τ</i> is the spread on the log-odds scale; precision is a trait.</p>
           <p class="gloss"><i>H</i>/<i>L</i>: high/low state (red-/blue-majority, high/low demand). <i>π<sub>l</sub></i>: prior on the hidden structure at description level <i>l</i> = 1…5. Grid posterior, uniform priors: <i>π<sub>l</sub></i> ∈ [0, 1], <i>γ</i> ∈ [0.5, 1.5], <i>b</i> ∈ [−0.6, 0.6], <i>τ</i> ∈ [0.01, 1].</p>
         </div>
         <div class="sum-block">
@@ -307,6 +316,8 @@ td.num-cell { font-family: var(--mono); font-size: 12px; }
             <div class="eq"><b>Withholding</b> &nbsp;(disclosure, selection, hub): &nbsp;<i>π</i>·1{<i>j</i>=0}·<i>g<sup>m</sup></i>(1−<i>g</i>)<sup><i>k</i></sup> + (1−<i>π</i>)·<i>ω<sup>k</sup></i>(1−<i>ω</i>)<sup><i>m</i>+<i>j</i></sup><i>g<sup>m</sup></i>(1−<i>g</i>)<sup><i>j</i></sup></div>
             <div class="eq"><b>Uninformative</b> &nbsp;(misfiled, stale): &nbsp;(1−<i>π</i>)·<i>a</i><sub>1</sub> + <i>π</i>/2</div>
           </div>
+          <div class="fig-row" id="fig-structures"></div>
+          <p class="fig-cap">Top: the causal story; the dashed link is the hidden structure, believed with probability <i>π</i>. Bottom: the forecast for one example case as <i>π</i> goes from 0 (ignored) to 1. The dot at 0.5 is the default when the structure is named but its rate is not given.</p>
           <p class="gloss"><i>a</i><sub>1</sub>, <i>b</i><sub>1</sub>: chance of each report under <i>H</i> (a wording cue, where a case has one, multiplies <i>π</i>'s odds by its likelihood ratio). <i>m</i>, <i>j</i>, <i>k</i>: good shared, bad shared, withheld; <i>g</i>: chance an item is good under <i>H</i>; <i>ω</i>: stated random omission rate.</p>
         </div>
         <div class="sum-block">
@@ -316,6 +327,9 @@ td.num-cell { font-family: var(--mono); font-size: 12px; }
             <div class="eq"><i>π<sub>l</sub></i> ~ logit-N(<i>μ<sub>l</sub></i>, <i>ω</i>) if included, else 0; &nbsp;<i>c<sub>l</sub></i> = logit <i>μ<sub>l</sub></i> − logit <i>μ</i><sub>irrelevant</sub></div>
             <div class="eq">stated rate = applied <i>π<sub>l</sub></i> (prob. <i>φ</i>), else <i>μ<sub>l</sub></i></div>
           </div>
+          <div class="fig-row" id="fig-noticing"></div>
+          <div class="key-row" id="fig-noticing-key"></div>
+          <p class="fig-cap">Fitted inclusion when nothing hints at the structure, by rung (structure checks, from the ledger). A structure is reliably considered where its line crosses the dashed 0.8.</p>
           <p class="gloss">Rung <i>r</i>: 0 plain · 1 named · 2 named and asked for its rate · 3 also asked per case. <i>θ</i>: the rung at which a structure is included half the time when nothing hints at it. Across structures <i>k</i>: <i>θ<sub>k</sub></i> ~ N(<i>θ̄</i>, <i>τ<sub>θ</sub></i><sup>2</sup>).</p>
         </div>
         <div class="sum-block">
@@ -325,6 +339,8 @@ td.num-cell { font-family: var(--mono); font-size: 12px; }
             <div class="eq"><i>d<sub>ct</sub></i> = <i>y<sub>ct</sub></i> − mean<sub><i>c′</i>≠<i>c</i></sub> <i>y<sub>c′t</sub></i>, &nbsp; <i>d̂<sub>ct</sub></i> = mean<sub><i>t′</i>≠<i>t</i></sub> <i>d<sub>ct′</sub></i></div>
             <div class="eq">gain <i>G</i> = 1 − Σ(<i>d</i> − <i>d̂</i>)<sup>2</sup> / Σ<i>d</i><sup>2</sup>; &nbsp; <i>p</i> = <i>P</i>(<i>G</i><sub>shuffled</sub> ≥ <i>G</i>)</div>
           </div>
+          <div class="fig-row" id="fig-transfer"></div>
+          <p class="fig-cap" id="fig-transfer-cap">Left: each configuration's precision relative to the others, per task (blue more precise, orange noisier). A trait is a row of one colour. Right: each held-out cell's deviation against its prediction from the configuration's other tasks.</p>
           <p class="gloss"><i>c</i>: configuration, <i>t</i>: task. Shuffles permute configurations within each task, which keeps task effects and removes consistency. A trait transfers if <i>G</i> &gt; 0 and <i>p</i> &lt; 0.05.</p>
         </div>
       </div>
@@ -702,8 +718,230 @@ function renderSummary(ledger) {
   status.textContent = v2 ? (v2.status === "complete" ? "Reported" : v2.status === "running" ? "Running" : v2.status) : "Planned";
 }
 
+/* ---------- Summary figures ---------- */
+const STRUCTURE_COLOR = {
+  relay: "var(--p-formal)", disclosure: "var(--p-dossier)", copying: "var(--p-named)",
+  selection: "var(--p-asked)", mismatch: "var(--p-probed)", echo: "var(--p-formal-b)",
+  hub: "var(--p-unprompted)", stale: "var(--c-luna)"
+};
+const STRUCTURE_SHORT = {
+  relay: "repeated sources", disclosure: "selective silence", copying: "copied readings",
+  selection: "selective reporting", mismatch: "misfiled readings", echo: "repeated reports",
+  hub: "dropped readings", stale: "stale readings"
+};
+function arrowMarker(svg, id, color) {
+  svg.append("defs").append("marker").attr("id", id).attr("viewBox", "0 0 10 10").attr("refX", 9).attr("refY", 5)
+    .attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto-start-reverse")
+    .append("path").attr("d", "M0,0L10,5L0,10z").attr("fill", color);
+}
+function figReport(box) {
+  const draw = () => {
+    const H = 130, m = { t: 22, b: 26, l: 10, r: 10 };
+    const { svg, width } = makeSvg(box, H, "Reports scattered around a Bayesian answer of 80%, precise and noisy");
+    const x = d3.scaleLinear([0, 1], [m.l, width - m.r]);
+    const ps = d3.range(0.005, 0.996, 0.0025);
+    const curves = [
+      { tau: 0.1, label: "precise · τ 0.1", color: "var(--accent)" },
+      { tau: 0.5, label: "noisy · τ 0.5", color: "var(--warn)" }
+    ];
+    vGrid(svg, x, [0, 0.25, 0.5, 0.75, 1], m.t, H - m.b);
+    curves.forEach((c, i) => {
+      const dens = ps.map(p => Math.exp(-0.5 * ((logit(p) - logit(0.8)) / c.tau) ** 2) / (p * (1 - p)));
+      const peak = d3.max(dens);
+      const y = (v) => (H - m.b) - v / peak * (H - m.b - m.t - 4);
+      const area = d3.area().curve(d3.curveMonotoneX).x((_, j) => x(ps[j])).y0(H - m.b).y1(v => y(v));
+      svg.append("path").attr("d", area(dens)).attr("fill", c.color).attr("fill-opacity", 0.18)
+        .attr("stroke", c.color).attr("stroke-width", 1.4);
+      svg.append("text").attr("class", "t-lab").attr("x", m.l + 2).attr("y", 11 + i * 12).attr("fill", c.color).text(c.label);
+    });
+    svg.append("line").attr("x1", x(0.8)).attr("x2", x(0.8)).attr("y1", m.t - 6).attr("y2", H - m.b)
+      .attr("stroke", "var(--ink)").attr("stroke-dasharray", "3 2");
+    svg.append("text").attr("class", "t-lab").attr("x", x(0.8) - 4).attr("y", m.t - 9).attr("text-anchor", "end").text("Bayesian answer 80%");
+    axisBottom(svg, x, H - m.b, 4, d3.format(".0%"));
+  };
+  mount(box, draw);
+}
+const STRUCTURE_PANELS = [
+  {
+    key: "dependence", title: "Dependence", example: "two 80% sensors both read red",
+    nodes: { H: [0.5, 0.16, "urn"], A: [0.2, 0.82, "A"], B: [0.8, 0.82, "B"] },
+    edges: [["H", "A", false, ""], ["H", "B", false, ""], ["A", "B", true, "copies · π"]],
+    posterior: (pi) => { const h = 0.8 * (pi + (1 - pi) * 0.8), l = 0.2 * (pi + (1 - pi) * 0.2); return h / (h + l); }
+  },
+  {
+    key: "withholding", title: "Withholding", example: "1 red forwarded, 3 dropped",
+    nodes: { H: [0.1, 0.5, "urn"], R: [0.42, 0.5, "4 readings"], F: [0.9, 0.5, "hub"] },
+    edges: [["H", "R", false, ""], ["R", "F", true, "drops blue · π"]],
+    posterior: (pi) => {
+      const g = 0.75, w = 0.5;
+      const h = pi * g * (1 - g) ** 3 + (1 - pi) * w ** 3 * (1 - w) * g;
+      const l = pi * (1 - g) * g ** 3 + (1 - pi) * w ** 3 * (1 - w) * (1 - g);
+      return h / (h + l);
+    }
+  },
+  {
+    key: "uninformative", title: "Uninformative", example: "one 90% reading is red",
+    nodes: { H: [0.2, 0.16, "this urn"], O: [0.8, 0.16, "other urn"], R: [0.5, 0.84, "reading"] },
+    edges: [["H", "R", false, "1 − π"], ["O", "R", true, "π"]],
+    posterior: (pi) => { const h = (1 - pi) * 0.9 + pi / 2, l = (1 - pi) * 0.1 + pi / 2; return h / (h + l); }
+  }
+];
+function figStructures(row) {
+  const boxes = STRUCTURE_PANELS.map(() => { const b = el("div", { class: "mini" }); row.append(b); return b; });
+  STRUCTURE_PANELS.forEach((panel, idx) => {
+    const box = boxes[idx];
+    const draw = () => {
+      const H = 212, G = 78, m = { l: 26, r: 8 };
+      const { svg, width } = makeSvg(box, H, `${panel.title}: causal story and forecast against π`);
+      const id = `arrow-${panel.key}`;
+      arrowMarker(svg, id, "var(--muted)");
+      arrowMarker(svg, id + "-h", "var(--accent)");
+      svg.append("text").attr("class", "t-node").attr("x", 2).attr("y", 11).text(panel.title);
+      const px = (p) => m.l / 2 + p[0] * (width - m.l / 2 - m.r - 8);
+      const py = (p) => 18 + p[1] * (G - 24);
+      for (const [a, b, hidden, label] of panel.edges) {
+        const [x1, y1] = [px(panel.nodes[a]), py(panel.nodes[a])], [x2, y2] = [px(panel.nodes[b]), py(panel.nodes[b])];
+        const len = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / len, uy = (y2 - y1) / len, r = 11;
+        svg.append("line").attr("x1", x1 + ux * r).attr("y1", y1 + uy * r).attr("x2", x2 - ux * r).attr("y2", y2 - uy * r)
+          .attr("stroke", hidden ? "var(--accent)" : "var(--muted)").attr("stroke-width", hidden ? 1.6 : 1.1)
+          .attr("stroke-dasharray", hidden ? "4 3" : null).attr("marker-end", `url(#${hidden ? id + "-h" : id})`);
+        if (label) svg.append("text").attr("class", "t-lab").attr("x", (x1 + x2) / 2 + 4).attr("y", (y1 + y2) / 2 - 4)
+          .attr("fill", hidden ? "var(--accent)" : "var(--muted)").text(label);
+      }
+      for (const [, p] of Object.entries(panel.nodes)) {
+        svg.append("circle").attr("cx", px(p)).attr("cy", py(p)).attr("r", 4).attr("fill", "var(--ink)");
+        svg.append("text").attr("class", "t-lab").attr("x", px(p)).attr("y", py(p) + (p[1] > 0.6 ? 14 : -7))
+          .attr("text-anchor", p[0] > 0.85 ? "end" : p[0] < 0.15 ? "start" : "middle").text(p[2]);
+      }
+      const top = G + 14, bottom = H - 24;
+      const x = d3.scaleLinear([0, 1], [m.l, width - m.r]);
+      const y = d3.scaleLinear([0, 1], [bottom, top]);
+      vGrid(svg, x, [0, 0.5, 1], top, bottom);
+      const pis = d3.range(0, 1.0001, 0.01);
+      svg.append("path").attr("d", d3.line().x(p => x(p)).y(p => y(panel.posterior(p)))(pis))
+        .attr("fill", "none").attr("stroke", "var(--ink)").attr("stroke-width", 1.6);
+      for (const [pi, label] of [[0, "ignored"], [0.5, "50% default"]]) {
+        const v = panel.posterior(pi);
+        svg.append("circle").attr("cx", x(pi)).attr("cy", y(v)).attr("r", 3.2).attr("fill", "var(--accent)");
+        svg.append("text").attr("class", "t-lab").attr("x", x(pi) + (pi === 0 ? 5 : 0)).attr("y", y(v) + (v > 0.5 ? 13 : -6))
+          .attr("text-anchor", pi === 0 ? "start" : "middle").text(`${label} ${pct(v)}`);
+      }
+      svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
+        .call(d3.axisLeft(y).ticks(2).tickFormat(d3.format(".0%")).tickSizeOuter(0));
+      axisBottom(svg, x, bottom, 2);
+      svg.append("text").attr("class", "t-lab").attr("x", width - m.r).attr("y", H - 2).attr("text-anchor", "end").text("π");
+      svg.append("text").attr("class", "t-lab").attr("x", m.l + 2).attr("y", top - 3).text(`P(H) · ${panel.example}`);
+    };
+    mount(box, draw);
+  });
+}
+function figNoticing(row, key, ledger) {
+  const checks = (ledger.models && ledger.models.structure_checks && ledger.models.structure_checks.checks) || {};
+  const configs = Object.keys(checks).filter(c => Object.values(checks[c]).some(x => x.valid)).sort(byConfig);
+  if (!configs.length) { row.append(el("p", { class: "note" }, "No structure checks recorded yet.")); return; }
+  const seen = new Set();
+  for (const config of configs) {
+    const box = el("div", { class: "mini" });
+    row.append(box);
+    const draw = () => {
+      const H = 170, m = { t: 20, b: 30, l: 30, r: 10 };
+      const { svg, width } = makeSvg(box, H, `Inclusion by rung for ${cfgName(config)}`);
+      const x = d3.scalePoint([0, 1, 2, 3], [m.l + 6, width - m.r - 6]);
+      const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
+      svg.append("text").attr("class", "t-node").attr("x", m.l).attr("y", 12).text(cfgName(config));
+      svg.append("line").attr("x1", m.l).attr("x2", width - m.r).attr("y1", y(0.8)).attr("y2", y(0.8))
+        .attr("stroke", "var(--muted)").attr("stroke-dasharray", "3 3");
+      for (const [s, check] of Object.entries(checks[config])) {
+        if (!check.valid || !check.inclusion_by_rung) continue;
+        seen.add(s);
+        const vals = [0, 1, 2, 3].map(r => check.inclusion_by_rung[String(r)].mean);
+        const color = STRUCTURE_COLOR[s] || "var(--muted)";
+        svg.append("path").attr("d", d3.line().x((_, r) => x(r)).y(v => y(v))(vals))
+          .attr("fill", "none").attr("stroke", color).attr("stroke-width", 1.8);
+        vals.forEach((v, r) => svg.append("circle").attr("cx", x(r)).attr("cy", y(v)).attr("r", 2.4).attr("fill", color)
+          .append("title").text(`${STRUCTURE_SHORT[s] || s}, rung ${r}: ${pct(v)}`));
+      }
+      svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
+        .call(d3.axisLeft(y).ticks(2).tickFormat(d3.format(".0%")).tickSizeOuter(0));
+      svg.append("g").attr("class", "axis").attr("transform", `translate(0,${H - m.b})`)
+        .call(d3.axisBottom(x).tickFormat(r => ["plain", "named", "asked", "per case"][r]).tickSizeOuter(0));
+    };
+    mount(box, draw);
+  }
+  key.replaceChildren(...[...seen].map(s => el("span", {}, el("i", { style: `background:${STRUCTURE_COLOR[s]}` }), STRUCTURE_SHORT[s] || s)));
+}
+function taskShort(task) {
+  const [structure, format] = task.split(" · ");
+  const s = { relay: "relay", disclosure: "discl.", copying: "copy", selection: "select", mismatch: "misfile",
+    echo: "echo", hub: "hub", stale: "stale" }[structure] || structure;
+  return `${s} ${{ paired: "P", formal: "F", dossier: "D", urn: "U" }[format] || format}`;
+}
+function figTransfer(row, cap, ledger) {
+  const tt = ledger.models && ledger.models.trait_transfer;
+  const precision = tt && tt.traits && tt.traits.precision;
+  if (!precision || !precision.transfer) { row.append(el("p", { class: "note" }, "No trait reanalysis recorded yet.")); return; }
+  const rows = precision.transfer.rows;
+  const configs = [...new Set(rows.map(r => r.configuration))].sort(byConfig);
+  const tasks = precision.tasks.filter(t => rows.some(r => r.task === t));
+  const heat = el("div", { class: "mini" }), scat = el("div", { class: "mini" });
+  row.append(heat, scat);
+  const maxAbs = d3.max(rows, r => Math.abs(r.observed)) || 1;
+  mount(heat, () => {
+    const cellH = 18, m = { t: 8, b: 44, l: 62, r: 4 };
+    const H = m.t + configs.length * cellH + m.b;
+    const { svg, width } = makeSvg(heat, H, "Precision deviation by configuration and task");
+    const cw = (width - m.l - m.r) / tasks.length;
+    configs.forEach((c, i) => {
+      svg.append("text").attr("class", "t-lab").attr("x", m.l - 4).attr("y", m.t + i * cellH + cellH * 0.68).attr("text-anchor", "end").text(cfgName(c).replace("GPT-6 ", "").replace("GPT-5.6 ", ""));
+      tasks.forEach((t, j) => {
+        const r = rows.find(z => z.configuration === c && z.task === t);
+        svg.append("rect").attr("x", m.l + j * cw + 1).attr("y", m.t + i * cellH + 1).attr("width", Math.max(1, cw - 2)).attr("height", cellH - 2)
+          .attr("rx", 2).attr("fill", r ? (r.observed < 0 ? "var(--accent)" : "var(--warn)") : "var(--rule)")
+          .attr("fill-opacity", r ? 0.15 + 0.85 * Math.min(1, Math.abs(r.observed) / maxAbs) : 0.4)
+          .append("title").text(r ? `${cfgName(c)} · ${t}: ${f2(r.observed)} log τ from the others` : `${cfgName(c)} · ${t}: no data`);
+      });
+    });
+    tasks.forEach((t, j) => svg.append("text").attr("class", "t-lab")
+      .attr("transform", `translate(${m.l + j * cw + cw / 2},${m.t + configs.length * cellH + 8}) rotate(-45)`)
+      .attr("text-anchor", "end").text(taskShort(t)));
+  });
+  mount(scat, () => {
+    const H = 180, m = { t: 12, b: 30, l: 34, r: 8 };
+    const { svg, width } = makeSvg(scat, H, "Observed against predicted precision deviations, leave one task out");
+    const lim = d3.max(rows, r => Math.max(Math.abs(r.observed), Math.abs(r.predicted))) * 1.05 || 1;
+    const x = d3.scaleLinear([-lim, lim], [m.l, width - m.r]);
+    const y = d3.scaleLinear([-lim, lim], [H - m.b, m.t]);
+    svg.append("line").attr("x1", x(-lim)).attr("y1", y(-lim)).attr("x2", x(lim)).attr("y2", y(lim))
+      .attr("stroke", "var(--muted)").attr("stroke-dasharray", "3 3");
+    svg.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "var(--rule)");
+    svg.append("line").attr("x1", m.l).attr("x2", width - m.r).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", "var(--rule)");
+    for (const r of rows) {
+      svg.append("circle").attr("cx", x(r.predicted)).attr("cy", y(r.observed)).attr("r", 3.4)
+        .attr("fill", cfgColor(r.configuration)).attr("fill-opacity", 0.85)
+        .append("title").text(`${cfgName(r.configuration)} · ${r.task}: predicted ${f2(r.predicted)}, observed ${f2(r.observed)}`);
+    }
+    svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(3).tickSizeOuter(0));
+    axisBottom(svg, x, H - m.b, 3);
+    svg.append("text").attr("class", "t-lab").attr("x", width - m.r).attr("y", H - 2).attr("text-anchor", "end").text("predicted from other tasks");
+    svg.append("text").attr("class", "t-lab").attr("x", m.l + 4).attr("y", m.t + 8).text(`observed · G = ${f2(precision.transfer.gain)}`);
+  });
+  const c = precision.consistency;
+  cap.textContent += ` Precision: ρ = ${f2(c.mean)} [${f2(c.interval_90[0])}, ${f2(c.interval_90[1])}], G = ${f2(precision.transfer.gain)} (${precision.transfer.cells} held-out cells). Exploratory reanalysis from before battery v2 (${tt.file}); the confirmatory test replaces it.`;
+}
+function renderSummaryFigures(ledger) {
+  if (typeof d3 === "undefined") return;
+  const parts = [
+    () => figReport(document.getElementById("fig-report")),
+    () => figStructures(document.getElementById("fig-structures")),
+    () => figNoticing(document.getElementById("fig-noticing"), document.getElementById("fig-noticing-key"), ledger),
+    () => figTransfer(document.getElementById("fig-transfer"), document.getElementById("fig-transfer-cap"), ledger)
+  ];
+  for (const part of parts) { try { part(); } catch (err) { console.error(err); } }
+}
+
 function render(ledger) {
   try { renderSummary(ledger); } catch (err) { console.error(err); }
+  try { renderSummaryFigures(ledger); } catch (err) { console.error(err); }
   const t = ledger.totals;
   const running = ledger.experiments.filter(e => e.status === "running").map(e => e.title);
   document.getElementById("meta").textContent =

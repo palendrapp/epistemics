@@ -479,6 +479,29 @@ def structure_checks(cache_dir="output"):
     return {"file": files[-1].name, "sha256": hashlib.sha256(data).hexdigest(), **json.loads(data)}
 
 
+def trait_transfer(cache_dir="output"):
+    """The latest trait reanalysis over all configurations (`ledger traits --output
+    output/traits-<date>.json`): per trait, the leave-one-task-out rows, gain and consistency."""
+    files = sorted(Path(cache_dir).glob("traits-20*.json"), key=lambda p: p.stem)
+    if not files:
+        return None
+    data = files[-1].read_bytes()
+    result = json.loads(data)
+    return {
+        "file": files[-1].name,
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "traits": {
+            name: {
+                "transfer": r.get("transfer"),
+                "consistency": r["gstudy"]["consistency"],
+                "tasks": r["gstudy"]["tasks"],
+                "configurations": r["gstudy"]["configurations"],
+            }
+            for name, r in result.get("traits", {}).items()
+        },
+    }
+
+
 def build(sessions_by_root, experiment_for, cache_dir="output"):
     """The dashboard's model block from verified extraction records, keyed by root."""
     designs = Designs()
@@ -508,6 +531,7 @@ def build(sessions_by_root, experiment_for, cache_dir="output"):
         "recovery": recovery_sample(cache_dir),
         "hierarchy": hierarchy(cache_dir),
         "structure_checks": structure_checks(cache_dir),
+        "trait_transfer": trait_transfer(cache_dir),
         "scope": (
             "Grid posteriors recomputed with the current model from each session's responses and "
             "its collected design; recorded_difference is the largest gap to the verified "
