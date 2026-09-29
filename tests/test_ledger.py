@@ -498,3 +498,25 @@ def test_ledger_loads_the_latest_hierarchical_fit_with_its_hash(tmp_path):
     assert loaded["fits"] == {"astra": {"new": 1}}
     assert loaded["sha256"] == hashlib.sha256(latest.read_bytes()).hexdigest()
     assert loaded["sensitivity"]["file"] == "inclusion-hier-sensitivity-20260929.json"
+
+
+def test_reading_guide_reads_carry_over_only_from_a_valid_hierarchical_fit():
+    from epistemics.ledger import guide
+
+    fit = {
+        "valid": True,
+        "spread_reading": "undetermined",
+        "theta_new_structure": {"mean": 0.5, "interval_90": [-0.7, 1.9]},
+        "tau_theta": {"mean": 0.84, "interval_90": [0.33, 1.65]},
+        "structures": {
+            f: {"session_fidelity": {f: [None, 0.9, 0.8]}} for f in ("relay", "selection")
+        },
+    }
+    r = guide.carry_over("sol", {"fits": {"sol": fit}})
+    assert r["fact"] == {"label": "Noticing carries over between structures", "value": "Not shown"}
+    assert "unprompted" in r["claim"] and "base rate" in r["claim"] and r["caution"]
+    assert r["sessions"] == 6
+    assert guide.carry_over("sol", {"fits": {"sol": {**fit, "valid": False}}}) is None
+    assert guide.carry_over("astra", {"fits": {"sol": fit}}) is None
+    agrees = guide.carry_over("sol", {"fits": {"sol": {**fit, "spread_reading": "generalises"}}})
+    assert agrees["caution"] is None and agrees["fact"]["value"] == "Yes"

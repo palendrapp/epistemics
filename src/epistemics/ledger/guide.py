@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.1.0"
+VERSION = "reading-guide/0.2.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -530,6 +530,72 @@ def coherence(p):
     )
 
 
+# The prompting a threshold θ stands for, on the salience ladder (a structure is considered about
+# half the time at the rung equal to θ).
+PROMPTING = (
+    (0, "unprompted"),
+    (1, "once the structure is named"),
+    (2, "once asked for the structure's base rate"),
+    (3, "once also asked about each case"),
+)
+STRUCTURE_NAMES = (
+    "copying and selective silence in document dossiers, and copying, selective reporting and "
+    "misfiled readings in abstract tasks"
+)
+
+
+def prompting(theta):
+    for limit, text in PROMPTING:
+        if theta <= limit:
+            return text
+    return "not even when asked about each case"
+
+
+def carry_over(config, hierarchy):
+    """Whether noticing one hidden structure predicts noticing another, from the hierarchical
+    second-layer fit; only a fit that meets its validity rule is read."""
+    fit = ((hierarchy or {}).get("fits") or {}).get(config)
+    if not fit or not fit.get("valid"):
+        return None
+    n = len(fit["structures"])
+    sessions = sum(
+        len(v) for x in fit["structures"].values() for v in x["session_fidelity"].values()
+    )
+    lo, hi = fit["theta_new_structure"]["interval_90"]
+    tau = fit["tau_theta"]
+    t_lo, t_hi = tau["interval_90"]
+    reading_ = fit["spread_reading"]
+    if reading_ == "generalises":
+        claim = (
+            f"How much prompting it needs before it considers a hidden structure is about the "
+            f"same for all {n} structures tested, so noticing one predicts noticing another."
+        )
+        caution, value = None, "Yes"
+    else:
+        claim = (
+            "Whether it considers one hidden structure does not tell you whether it will "
+            f"consider another. A structure not tested here might be considered {prompting(lo)}, "
+            f"or only {prompting(hi)}."
+        )
+        caution = "Test each hidden structure that matters for your use directly"
+        value = "No" if reading_ == "structure-specific" else "Not shown"
+    detail = (
+        f"Across {n} hidden structures ({STRUCTURE_NAMES}), the prompting it needed varied by "
+        f"about {tau['mean']:.1f} rungs of a four-rung ladder (90% interval {t_lo:.1f} to "
+        f"{t_hi:.1f}): unprompted, named, asked for the base rate, asked about each case."
+    )
+    return reading(
+        "noticing-carry-over",
+        "base-rates",
+        claim,
+        detail,
+        f"Hierarchical fit over {n} structures, {count(sessions)}.",
+        sessions,
+        caution=caution,
+        fact=("Noticing carries over between structures", value),
+    )
+
+
 def guide(ledger, descriptors):
     """Readings per configuration from a built ledger (passport and analyses)."""
     analyses = ledger.get("analyses", {})
@@ -540,6 +606,7 @@ def guide(ledger, descriptors):
             descriptions(p, "relay", descriptors),
             descriptions(p, "disclosure", descriptors),
             *noticing(config, analyses),
+            carry_over(config, (ledger.get("models") or {}).get("hierarchy")),
             learning(p),
             relative(p),
             reliability(p),
@@ -559,6 +626,10 @@ def guide(ledger, descriptors):
                 ("descriptions-disclosure", "how descriptions of companies set its priors"),
                 ("noticing-relay", "whether it considers copying unprompted"),
                 ("noticing-disclosure", "whether it reads silence as bad news unprompted"),
+                (
+                    "noticing-carry-over",
+                    "whether noticing one hidden structure predicts noticing another",
+                ),
                 ("learning", "how fast it learns base rates from experience"),
                 ("relative", "whether it judges sources relative to each other"),
                 ("documents", "whether it behaves the same in realistic documents"),

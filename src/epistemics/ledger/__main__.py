@@ -12,6 +12,7 @@ uv run python -m epistemics.ledger inclusion-joint [--configuration astra --conf
 uv run python -m epistemics.ledger inclusion-joint-validate --output <file>
 uv run python -m epistemics.ledger inclusion-hier [--family relay ...] [--output <file>]
 uv run python -m epistemics.ledger inclusion-hier-validate --output <file>
+uv run python -m epistemics.ledger inclusion-hier-power --output <file> [--spot-structures 10]
 """
 
 import argparse
@@ -119,6 +120,15 @@ def main():
     ihv.add_argument("--output", type=Path, required=True)
     ihv.add_argument("--datasets", type=int, default=30)
     ihv.add_argument("--workers", type=int, default=8)
+    ihp = sub.add_parser("inclusion-hier-power")
+    ihp.add_argument("--output", type=Path, required=True)
+    ihp.add_argument(
+        "--recovery", type=Path, default=Path("output/inclusion-hier-recovery-20260929.json")
+    )
+    ihp.add_argument("--repetitions", type=int, default=400)
+    ihp.add_argument("--spot-structures", type=int, default=None)
+    ihp.add_argument("--spot-spread", type=float, default=0.1)
+    ihp.add_argument("--spot-datasets", type=int, default=8)
     fv = sub.add_parser("fidelity-validate")
     fv.add_argument("--output", type=Path, required=True)
     fv.add_argument("--datasets", type=int, default=20)
@@ -281,6 +291,34 @@ def main():
             )
         }
         print(json.dumps(summary, indent=2))
+    elif a.command == "inclusion-hier-power":
+        import hashlib
+
+        from epistemics.ledger import inclusion_hier as hier
+
+        recovery_bytes = a.recovery.read_bytes()
+        run = {
+            "schema_version": "epistemics.inclusion-hier-power.v1",
+            "surrogate_se": list(hier.SURROGATE_SE),
+            "recovery": {
+                "file": a.recovery.name,
+                "sha256": hashlib.sha256(recovery_bytes).hexdigest(),
+            },
+            "surrogate_check": hier.surrogate_check(json.loads(recovery_bytes)),
+            "power": hier.power(repetitions=a.repetitions),
+            "spot_check": hier.spot_check(a.spot_structures, a.spot_spread, a.spot_datasets)
+            if a.spot_structures
+            else None,
+            "scope": (
+                "Surrogate: normal per-structure threshold estimates with posterior SDs uniform "
+                "on the stated range, pooled on a grid with the hierarchical model's priors and "
+                "decision rule; checked against the full model's recovery at five structures and, "
+                "when requested, by full-model fits at a larger number of structures."
+            ),
+        }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps({k: run[k] for k in ("surrogate_check", "spot_check")}, indent=2))
     elif a.command == "fidelity-validate":
         from epistemics.ledger import inclusion_joint as joint
 

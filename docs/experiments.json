@@ -467,13 +467,26 @@
       "status": "complete",
       "prediction": "Specified before fitting (not blind: per-structure urn thresholds known). Spread tau_theta read as generalises (90% interval below 0.5 rung), structure-specific (above) or undetermined. E1 Astra structure-specific; E2 Sol undetermined; E3 without mismatch, Astra undetermined. Recovery gates R1-R5 before reporting.",
       "outcome": "Recovery gates R1-R5 pass (theta_k r 0.97, coverage 0.93; tau coverage 0.93; 0 wrong-direction; 30/30 converged), but with five structures a 'generalises' reading was never reached (0/5 true spread <0.25). Sol (valid): tau_theta 0.84 [0.33, 1.65], undetermined (E2 holds); untested structure theta [-0.72, 1.94]. Astra: misses the validity rule (bimodal disclosure mapping, R-hat 1.69; thresholds 1.018) so E1 not assessable; exploratory tau 1.41 [0.79, 2.25], structure-specific, driven by mismatch (2.19). Without mismatch both undetermined (tau ~0.9; E3 holds). Noticing one structure does not predict another; each structure must be tested."
+    },
+    {
+      "id": "inclusion-hierarchical-power",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "validation",
+      "title": "Power: structures needed to show that noticing generalises",
+      "question": "How many hidden structures per configuration would the hierarchical second layer need to read 'generalises' when the true between-structure spread is small?",
+      "doc": "docs/structure-inclusion-model.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Surrogate (normal per-structure estimates, SD 0.15-0.45) checked against the full model at 5 structures and at 10 (spread 0.1, 8 datasets; pass if at least 4 of 8 read generalises, set before the run).",
+      "outcome": "Surrogate agrees with the full model at 5 structures (readings by band; tau correlation 0.94, surrogate 0.2 lower) and at 10 (full model 5/8 generalises vs 6.2 predicted; all converged). Generalises read at spread 0.1: 3% (5 structures), 52% (8), 78% (10), 93% (15), 99% (20); at spread 0.25: 36% (10), 61% (15), 90% (30). About 115M tokens to add ten structures for two configurations. Guide reports carry-over as not shown."
     }
   ],
   "next": [
-    "Power simulation: how many structures per configuration would let the hierarchical model show that noticing generalises (offline).",
-    "Reading guide: a caution that noticing one hidden structure does not predict noticing an untested one.",
+    "Decide whether carry-over of noticing is worth about 115M tokens (ten new structures for two configurations), or whether the guide should test only the structures consumers name.",
     "Optional: third mismatch wording, checked for its reading before collection.",
     "Luna and Terra on rungs 0-2 so their inclusion parameters are identified.",
+    "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."
   ]
 }

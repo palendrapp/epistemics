@@ -20,12 +20,14 @@ Every number in a results doc should be reproducible from frozen artifacts by a 
   - **Recovery sample.** 100 simulated respondents per module (relay and disclosure probe designs; checks under the linear certainty function), drawn from the validation study's generating ranges with seed 20260928 and fitted by the real fits. Intervals are widened to grid-cell edges, as in the validation study. The sample is cached under `output/ledger-recovery-v2-<model fingerprint>-…json`.
   - **Designs.** Each distinct item design, with case labels and reference observer values. The page's JavaScript port of the relay and disclosure observers is checked against these on load, and the page reports the largest difference.
 
+- **Hierarchical fit:** the latest `output/inclusion-hier-fit-*.json`, with its SHA-256, and the sensitivity fit of the same date. The Models tab draws it as section 6.
 - **Analyses:** the formal-to-dossier transfer and the noticing comparison (unprompted against prompted dossiers), computed over every verified record in the registry.
-- **Reading guide** (`epistemics.ledger.guide`, reading-guide/0.1.0; written to `output/guide.json` by `build`): the passport in plain language, per configuration.
+- **Reading guide** (`epistemics.ledger.guide`, reading-guide/0.2.0; written to `output/guide.json` by `build`): the passport in plain language, per configuration.
   - **Readings.** Fixed rules turn each measured parameter into a reading. Each reading has a claim, a detail line, the evidence behind it (module and number of sessions), a short fact for the label, and a caution where a behaviour could mislead a reader. Examples: "treats a missing base rate as 50/50"; "its probabilities carry about ±10 points of noise"; "states sensible base rates, but its forecasts often use different ones".
   - **Thresholds.** They live in the code, so the guide changes only when the evidence does.
   - **Scope.** Readings describe behaviour in these tasks; they are not claims about internal beliefs.
-  - **Coherence exclusions.** The urn selection asked and probed conditions are left out. Their design makes stated and applied rates diverge by construction ([abstract transfer](disposition-abstract-2026-09-28.md)).
+  - **Coherence exclusions.** The first urn run's selection asked and probed conditions (variant `urn-named`) are left out. Their design makes stated and applied rates diverge by construction ([abstract transfer](disposition-abstract-2026-09-28.md)). The corrected variant (`urn2-named`) is included.
+  - **Carry-over of noticing** (0.2.0). This reading comes from the latest hierarchical second-layer fit (`models.hierarchy`), and only when that configuration's fit meets its validity rule (every R-hat of 1.05 or less). It states whether noticing one hidden structure predicts noticing another, and the range of prompting an untested structure might need ([hierarchical thresholds](structure-inclusion-model.md)).
   - **Page.** [`src/epistemics/ledger/assets/guide.html`](../src/epistemics/ledger/assets/guide.html) renders the guide as its own private artifact, separate from the dashboard, with `guide.json` published alongside: https://claude.ai/artifact/FxwAGdpF1ZLYDgxvAPeQXZ. Republish it after each rebuild, as for the dashboard.
 
 ## Commands

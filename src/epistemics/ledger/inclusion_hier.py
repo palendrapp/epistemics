@@ -53,6 +53,14 @@ TAU_EDGES = np.round(np.arange(0.0, 3.001, 0.05), 2)
 ITERATIONS, BURN = 30000, 12000
 
 
+READINGS = ("generalises", "undetermined", "structure-specific")
+
+
+def spread_reading(lo, hi):
+    """The decision rule for τ_θ's 90% interval."""
+    return READINGS[0] if hi < SPREAD_LIMIT else READINGS[2] if lo > SPREAD_LIMIT else READINGS[1]
+
+
 def truncated_logpdf(theta, mean, sd):
     """Normal log density truncated to the θ bounds (θ may be an array)."""
     lo, hi = THETA_BOUNDS
@@ -237,13 +245,7 @@ def summarise(sessions_by_family, results, seed=0):
     return {
         "theta_bar": joint.interval(bar),
         "tau_theta": spread,
-        "spread_reading": (
-            "generalises"
-            if hi < SPREAD_LIMIT
-            else "structure-specific"
-            if lo > SPREAD_LIMIT
-            else "undetermined"
-        ),
+        "spread_reading": spread_reading(lo, hi),
         "tau_theta_above_limit": float(np.mean(tau > SPREAD_LIMIT)),
         "theta_new_structure": joint.interval(new),
         "densities": {
@@ -277,10 +279,13 @@ def recovery_counts():
     }
 
 
-def synthetic(rng, counts):
+def synthetic(rng, counts, spread=None):
+    """A synthetic configuration; spread fixes τ_θ instead of drawing it."""
     from epistemics.ledger.inclusion import simulate
 
     truth = {name: float(rng.uniform(*limits)) for name, limits in HYPER_PRIOR.items()}
+    if spread is not None:
+        truth["tau_theta"] = float(spread)
     for fam in counts:
         truth[f"theta_{fam}"] = float(
             np.clip(rng.normal(truth["theta_bar"], truth["tau_theta"]), -0.9, 3.9)
@@ -380,4 +385,115 @@ def recovery_metrics(rows):
         "wrong_direction_readings": int(wrong),
         "converged_datasets": len(converged),
         "rhat_by_dataset": [r["result"]["rhat_max"] for r in rows],
+    }
+
+
+# Power: how many structures per configuration would let the spread reading reach "generalises"?
+# A surrogate replaces each structure's full model by a normal estimate of its threshold, with a
+# posterior SD in the range the unpooled per-structure fits gave (0.15-0.47 rungs); the pooled part
+# becomes a normal-normal model on a grid, with the same priors and decision rule. It ignores the
+# truncation of θ_k to [−1, 4]. It is checked against the full model at five structures (the
+# recovery study) and, by `spot_check`, at a larger number.
+SURROGATE_SE = (0.15, 0.45)
+BAR_GRID = np.linspace(-1.0, 4.0, 101)
+TAU_GRID = np.linspace(0.02, 3.0, 150)
+
+
+def surrogate(estimates, ses):
+    """Reading and posterior mean of τ_θ given normal threshold estimates and their SDs."""
+    estimates, ses = np.asarray(estimates, dtype=float), np.asarray(ses, dtype=float)
+    var = TAU_GRID[None, :, None] ** 2 + ses[None, None, :] ** 2
+    diff = estimates[None, None, :] - BAR_GRID[:, None, None]
+    loglik = (-0.5 * diff**2 / var - 0.5 * np.log(var)).sum(axis=-1)
+    loglik = loglik - 0.5 * (TAU_GRID[None, :] / TAU_SCALE) ** 2
+    posterior = np.exp(loglik - loglik.max()).sum(axis=0)
+    posterior /= posterior.sum()
+    cdf = np.cumsum(posterior)
+    lo, hi = TAU_GRID[np.minimum(np.searchsorted(cdf, [0.05, 0.95]), len(TAU_GRID) - 1)]
+    return spread_reading(lo, hi), float(posterior @ TAU_GRID)
+
+
+def surrogate_draw(rng, thetas):
+    ses = rng.uniform(*SURROGATE_SE, len(thetas))
+    return surrogate(np.asarray(thetas) + rng.normal(0, ses), ses)
+
+
+def power(
+    seed=20260930,
+    structures=(5, 8, 10, 15, 20, 30),
+    spreads=(0.0, 0.1, 0.25, 0.5, 0.75, 1.0),
+    repetitions=400,
+):
+    """Share of each reading by number of structures and true spread, under the surrogate."""
+    rng = np.random.default_rng(seed)
+    cells = []
+    for k in structures:
+        for spread in spreads:
+            tally = dict.fromkeys(READINGS, 0)
+            for _ in range(repetitions):
+                bar = rng.uniform(*HYPER_PRIOR["theta_bar"])
+                thetas = np.clip(bar + spread * rng.normal(size=k), -0.9, 3.9)
+                tally[surrogate_draw(rng, thetas)[0]] += 1
+            cells.append(
+                {"structures": k, "spread": spread} | {r: n / repetitions for r, n in tally.items()}
+            )
+    return cells
+
+
+def surrogate_check(recovery, seed=20260931, draws=50):
+    """The surrogate on the full-model recovery study's true thresholds, against the full model's
+    readings, by band of the true spread."""
+    rng = np.random.default_rng(seed)
+    bands, means = {}, []
+    for row in recovery["rows"]:
+        truth = row["truth"]
+        thetas = [v for k, v in truth.items() if k.startswith("theta_") and k != "theta_bar"]
+        outcomes = [surrogate_draw(rng, thetas) for _ in range(draws)]
+        spread = truth["tau_theta"]
+        band = "below 0.25" if spread < 0.25 else "above 0.75" if spread > 0.75 else "0.25 to 0.75"
+        cell = bands.setdefault(
+            band, {"datasets": 0, "full": dict.fromkeys(READINGS, 0), "surrogate": {}}
+        )
+        cell["datasets"] += 1
+        cell["full"][row["spread_reading"]] += 1
+        for r in READINGS:
+            share = sum(o[0] == r for o in outcomes) / draws
+            cell["surrogate"][r] = cell["surrogate"].get(r, 0.0) + share
+        means.append((float(np.mean([o[1] for o in outcomes])), row["tau_theta"]["mean"]))
+    s, f = np.array(means).T
+    return {
+        "bands": bands,
+        "tau_mean_correlation": float(np.corrcoef(s, f)[0, 1]),
+        "tau_mean_difference": float(np.mean(s - f)),
+    }
+
+
+def spot_check(structures, spread, datasets=8, seed=20261001, workers=8):
+    """The full model on synthetic configurations with more structures (base designs reused as
+    "relay#2" and so on) and a fixed true spread."""
+    from epistemics.ledger.inclusion import COUNTS, URN_COUNTS
+
+    bases = list(FORMAT)
+    names = [
+        bases[i % len(bases)] + (f"#{i // len(bases) + 1}" if i >= len(bases) else "")
+        for i in range(structures)
+    ]
+    counts = {
+        n: (COUNTS if FORMAT[n.split("#")[0]] == "dossier" else URN_COUNTS)[n.split("#")[0]]
+        for n in names
+    }
+    rng = np.random.default_rng(seed)
+    made = [synthetic(rng, counts, spread) for _ in range(datasets)]
+    jobs = [(rows, 4, ITERATIONS, BURN, seed + 100 * k) for k, (_, rows) in enumerate(made)]
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(_fit_dataset, jobs))
+    readings = [r["spread_reading"] for r in results]
+    return {
+        "structures": structures,
+        "spread": spread,
+        "datasets": datasets,
+        "readings": {r: readings.count(r) for r in READINGS},
+        "tau_theta": [r["tau_theta"] for r in results],
+        "rhat_max": [r["rhat_max"] for r in results],
+        "seed": seed,
     }

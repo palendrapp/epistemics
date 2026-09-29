@@ -305,6 +305,41 @@ uv run python -m epistemics.ledger inclusion-hier --family relay --family disclo
 | Hierarchical fit | `91b57546f3363d8abf30e65b1ace07365854fe1c033b85c88a8fb5b2ac6209aa` |
 | Hierarchical fit without mismatch | `d0a0931d061efcc91077d803b131c39031e78d76d25ca7687c0b19ce562e9d03` |
 
+## How many structures would show that noticing generalises? (29 September)
+
+```bash
+uv run python -m epistemics.ledger inclusion-hier-power --output output/inclusion-hier-power-20260929.json --spot-structures 10 --spot-spread 0.1 --spot-datasets 8
+```
+
+**Method.** Running the full model for each cell of a power grid would take hours, so the grid uses a surrogate.
+- **Per structure:** each structure's full model is replaced by a normal estimate of its threshold. Its posterior SD is uniform on 0.15–0.45 rungs, the range the unpooled per-structure fits gave (0.15–0.47).
+- **Pooled part:** the same priors and decision rule, on a grid. The truncation of θ_k to [−1, 4] is ignored.
+- **Checked against the full model twice:**
+  - **At five structures,** on the recovery study's true thresholds. Reading counts agree band by band: structure-specific 12.3 against 13 of 18 when the true spread is above 0.75; generalises 0.1 against 0 of 5 below 0.25. Spread estimates correlate at 0.94; the surrogate's are 0.2 rung lower on average.
+  - **At ten structures,** true spread 0.1, 8 datasets with full fits. The pass mark, set before the run, was at least 4 of 8 "generalises", the lower end of the surrogate's 90% binomial range. Result: 5 of 8 (surrogate prediction 6.2), all converged (R-hat 1.019 or less). **It passes.** The full model is slightly more conservative than the surrogate.
+
+**Power** (share of 400 synthetic configurations per cell reading "generalises", or "structure-specific" for the last row):
+
+| True spread (rungs) | 5 | 8 | 10 | 15 | 20 | 30 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0.0 | 0.05 | 0.62 | 0.81 | 0.97 | 1.00 | 1.00 |
+| 0.1 | 0.03 | 0.52 | 0.78 | 0.93 | 0.99 | 1.00 |
+| 0.25 | 0.00 | 0.23 | 0.36 | 0.61 | 0.74 | 0.90 |
+| 0.5 (at the limit), any definite reading | 0.04 | 0.07 | 0.07 | 0.11 | 0.06 | 0.07 |
+| 1.0, structure-specific | 0.50 | 0.72 | 0.78 | 0.89 | 0.96 | 0.99 |
+
+**What it means.**
+- **Numbers of structures:**
+  - If noticing truly generalises almost perfectly (spread 0.1 rung or less), about 10 structures per configuration would show it most of the time, and 15 would show it reliably.
+  - A modest spread of 0.25 rung needs about 30.
+  - The current five cannot show it at all.
+- **Cost:** each structure takes 11 sessions per configuration on the ladder, about 5.8 million tokens at the urn run's rate. Ten more structures for two configurations would be about 115 million tokens, plus designing and validating ten new tasks.
+- **For the product,** that is the price of the reading "noticing carries over". Testing only the hidden structures a given consumer cares about is cheaper. For now the guide reports that carry-over is not shown.
+
+| File | SHA-256 |
+| --- | --- |
+| Power study and spot check | `0ebd6a478599ff1dc49fb9b3a0ab0db526e7de5db13cedf24eda8d7a969db0ce` |
+
 ## What it would add to the passport
 
 The candidate readings are more general than the current task-level ones:
@@ -330,7 +365,7 @@ These become passport readings only if they transfer. In the corrected abstract 
    - **Shared against structure-specific:** where both fits converged (Sol), structure-specific thresholds fit better by 3.5 SE.
    - **Conclusion:** the family-specific alternative is favoured. θ is a property of a structure, a cue format and a configuration together.
 4. **Hierarchical thresholds.** Done (above). Recovery passed. Sol's spread is undetermined, and Astra's is exploratory (structure-specific, driven by mismatch). For both, an untested structure's threshold is unpredictable within about −0.8 to 2 rungs.
-5. **How many structures would show generalisation?** A power simulation over the number of structures per configuration, offline.
+5. **How many structures would show generalisation?** Done (above): about 10–15 per configuration if the true spread is 0.1 rung or less, and about 30 for 0.25. The reading guide now says carry-over is not shown.
 6. **Luna and Terra.** Collect rungs 0–2, so their θ is identified.
 
 ## Commands
