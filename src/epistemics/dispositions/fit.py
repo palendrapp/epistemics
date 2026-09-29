@@ -189,15 +189,96 @@ def fit_cues(model, items, reports):
     }
 
 
+# Capacity battery, Part B (model 0.8): the disposition applied to each case is a baseline plus a
+# fixed fraction of the ideal observer's rate for that case's audit record. Uptake 1 is the ideal
+# revision and 0 ignores the record; above 1 over-revises.
+UPTAKE_BASE = np.round(np.arange(0, 0.301, 0.025), 3)
+UPTAKE = np.round(np.arange(0, 1.501, 0.05), 2)
+# Posterior probability that uptake is below this is reported as "ignores".
+IGNORES_BELOW = 0.1
+
+
+def fit_uptake(model, items, reports, ideal):
+    """Baseline, uptake, sensitivity, bias and report noise, from forecasts only.
+
+    `ideal` gives, per item, the ideal observer's rate for its record (0 where the item has none;
+    the observer ignores the disposition on anchors).
+    """
+    reports = np.asarray(reports, dtype=float)
+    keep = np.asarray(items["kind"]) != "rate"
+    part = {k: np.asarray(v)[keep] for k, v in items.items()}
+    target = np.asarray(ideal, dtype=float)[keep]
+    delta = np.clip(
+        UPTAKE_BASE[:, None, None, None] + UPTAKE[None, :, None, None] * target, 0.0, 1.0
+    )
+    latent = REPORT_MODELS[model](part, delta, GAMMA[None, None, :, None])
+    forecast = (part["kind"] != "probe").astype(float)
+    means = latent[..., None, :] + BIAS[None, None, None, :, None] * forecast
+    log_likelihood = np.stack(
+        [report_log_likelihood(means, reports[keep], sd) for sd in REPORT_SD], axis=-1
+    )
+    grids = {
+        "baseline": UPTAKE_BASE,
+        "uptake": UPTAKE,
+        "gamma": GAMMA,
+        "bias": BIAS,
+        "report_sd": REPORT_SD,
+    }
+    result = summarize(log_likelihood, grids)
+    posterior = np.exp(log_likelihood - logsumexp(log_likelihood))
+    marginal = posterior.sum(axis=(0, 2, 3, 4))
+    result["ignores_probability"] = float(marginal[UPTAKE < IGNORES_BELOW].sum())
+    return result
+
+
 # Capacity battery, Part A: at each load level, the share of weight on the structure-neglecting
 # answer (eta), forecast bias and report noise, on grids under uniform priors.
 LOAD_ETA = np.round(np.linspace(0, 1, 11), 2)
 REPEAT_EDGE = 0.01
 
 
-def fit_load(model, items, reports):
+# Model 0.8: the load curve fitted jointly over all levels, for designs with few cases per level.
+# Report noise is log-linear in the level, tau_l = tau_0 * exp(load_slope * l), and the neglect
+# weight linear, eta_l = eta_0 + eta_slope * l (clipped to [0, 1]).
+# The noise and bias grids are finer than the per-level fits': with noise near the floor, a bias
+# between coarse grid points is absorbed as extra noise at the low levels, which flattens the
+# fitted slope (recovery correlation 0.81-0.85 with the coarse grids, 0.87-0.90 with these).
+CURVE_SD0 = np.round(np.exp(np.linspace(np.log(0.01), np.log(1.0), 21)), 4)
+CURVE_SLOPE = np.round(np.arange(-0.5, 2.501, 0.1), 2)
+CURVE_ETA0 = np.round(np.arange(0, 0.501, 0.1), 2)
+CURVE_ETA_SLOPE = np.round(np.arange(0, 0.501, 0.025), 3)
+CURVE_BIAS = np.round(np.arange(-0.4, 0.401, 0.025), 3)
+
+
+def fit_load_curve(model, items, reports):
+    """Grid posterior for the load curve: tau_0, load_slope, eta_0, eta_slope and bias."""
+    reports = np.asarray(reports, dtype=float)
+    exact, neglect = observers.load_answers(model, items)
+    level = np.asarray(items["load"], dtype=float)
+    eta = np.clip(CURVE_ETA0[:, None, None] + CURVE_ETA_SLOPE[None, :, None] * level, 0.0, 1.0)
+    means = (1 - eta) * exact + eta * neglect
+    means = means[:, :, None, :] + CURVE_BIAS[None, None, :, None]
+    log_likelihood = np.empty(
+        (len(CURVE_SD0), len(CURVE_SLOPE), len(CURVE_ETA0), len(CURVE_ETA_SLOPE), len(CURVE_BIAS))
+    )
+    for a, sd0 in enumerate(CURVE_SD0):
+        for b, slope in enumerate(CURVE_SLOPE):
+            log_likelihood[a, b] = report_log_likelihood(
+                means, reports, sd0 * np.exp(slope * level)
+            )
+    grids = {
+        "tau_0": CURVE_SD0,
+        "load_slope": CURVE_SLOPE,
+        "eta_0": CURVE_ETA0,
+        "eta_slope": CURVE_ETA_SLOPE,
+        "bias": CURVE_BIAS,
+    }
+    return summarize(log_likelihood, grids)
+
+
+def fit_load(model, items, reports, curve=True):
     """Per load level: eta, bias and report noise; the slopes of log noise and of eta over load;
-    and the model-free noise between repeated cases."""
+    the model-free noise between repeated cases; and (model 0.8) the joint load curve."""
     reports = np.asarray(reports, dtype=float)
     exact, neglect = observers.load_answers(model, items)
     loads = np.asarray(items["load"])
@@ -236,4 +317,5 @@ def fit_load(model, items, reports):
         "repeat_noise": float(np.mean([abs(logits[i] - logits[j]) for i, j in pairs]))
         if pairs
         else None,
+        "curve": fit_load_curve(model, items, reports) if curve else None,
     }

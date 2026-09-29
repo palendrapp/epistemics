@@ -36,7 +36,7 @@ def logit(p):
 # full mechanism statement) also measure the default, cue sensitivity and stated-applied gap.
 def task_of(module, variant):
     family = module.split("-")[0]
-    if module.endswith("-load") or variant.endswith("vig"):
+    if module.endswith("-load") or "vig" in variant:
         return None, None  # Capacity battery tasks are analysed on their own.
     names = {
         "corroboration": "relay",

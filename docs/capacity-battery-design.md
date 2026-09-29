@@ -1,6 +1,6 @@
 # Capacity battery: a design note (single agent first)
 
-Design, 29 September 2026. Nothing is built or collected. The decisions for you are listed at the end.
+Design, 29 September 2026. Since piloted twice and revised: see [the revised design](#revised-design-built-29-september-after-pilot-2). The original design follows.
 
 ## Why
 
@@ -341,3 +341,140 @@ Both are design changes, not pilot adjustments, so they come back as decisions b
 | plan.json (top-up) | `2f72e83c34243046fa084b41b41802f90bdd83e7f4c8c489d4b2ce78d361e943` |
 | execution.json (top-up) | `704fc729386eecade0605a5cc170b5dfb6ddca1e1e2d7ef2f76b27ca9d88ca7f` |
 | Pilot 2 summary | `27f3689f0e25d7b38cfdb3812b70a5ed01f528840f740b04970d6d21bb2552e6` |
+
+## Revised design (built 29 September, after pilot 2)
+
+Both changes proposed after pilot 2 were built: disposition-model/0.8.0, disposition-design/0.10.0 and disposition-tasks/0.17.0. The pilots' modules and presets are unchanged, and their records are always re-extracted with the code each collection froze.
+
+### Part B: uptake instead of a threshold
+
+**Model** (`fit.fit_uptake`). For an audited case *i*, the disposition the forecast applies is
+
+*d<sub>i</sub>* = *α* + *β*·*r̂<sub>i</sub>*
+
+- ***r̂<sub>i</sub>*** is the ideal observer's rate for case *i*'s audit record (`urn.vig_ideal`). Its prior puts half its weight on no structure and spreads the rest uniformly over the rate.
+- **The forecast** goes through the structure's observer, with sensitivity γ, bias and report noise τ shared across the session.
+- **Anchors** (cases no structure can explain) fix γ, bias and τ, as in the cue fit.
+- **Grids:** *α* from 0 to 0.3 in steps of 0.025; *β* from 0 to 1.5 in steps of 0.05; uniform priors.
+
+**Traits.**
+- **B1, uptake *β* (primary, replacing the threshold *θ<sub>v</sub>*):** the fraction of the warranted revision made. 1 is ideal, 0 ignores the record, and above 1 over-revises.
+- **B3, baseline suspicion *α*:** the rate applied when the record is neutral.
+- **P(ignores):** the posterior probability that *β* < 0.1.
+- **Dropped:** B2, discrimination. With no threshold there is nothing for it to measure.
+
+**Sessions.** Vigilance sessions (tasks 0.17 on) now carry the uptake fit in their analysis, and their runner headline is `audit_uptake`. For earlier sessions, `ledger capacity-pilot` refits it from the stored responses and marks it "reanalysis".
+
+**The pilots, refitted** (uptake with its 90% interval; P(ignores)):
+
+| | Selection, LR 1–16 | Selection, LR 1–65,536 | Misfiling, LR 1–16 | Misfiling, LR 1–65,536 |
+| --- | --- | --- | --- | --- |
+| Astra-high | 0.47 (0.25–0.60); 0 | 0.46 (0.35–0.60); 0 | 0.69 (0.55–0.85); 0 | 0.74 (0.70–0.85); 0 |
+| Sol-high | 0.47 (0.25–0.60); 0 | 0.46 (0.35–0.60); 0 | 0.65 (0.60–0.65); 0 | 0.75 (0.65–0.85); 0 |
+| Terra | | 0.53 (0.30–0.80); 0 | | 0.00 (0–0); 1.00 |
+| Luna | | 0.06 (0–0.15); 0.70 | | 0.00 (0–0); 1.00 |
+
+### Part A: four-level ladders
+
+**Designs** (`design.long_load_design`; modules `copying-long-load` and `mismatch-long-load`).
+
+| | Readings by level | Copy relations | Cases |
+| --- | --- | --- | --- |
+| Copying | 2, 4, 8, 16 | 1, 2, 3, 5 | 5 per level, plus 1 repeat |
+| Misfiling | 1, 3, 6, 12 | — | 5 per level, plus 1 repeat |
+
+- **The top level is twice the pilot's.** GPT-6 was at or near ceiling at 8 readings.
+- **Misfiling is balanced for per-reading difficulty.** A reading's gap is the difference between its log-likelihood ratio if never misfiled and at its stated misfiling rate: the part a neglecting answer gets wrong.
+  - Every reading's gap is at most 1.0; the pilot's hard reading had 1.97.
+  - Every case's mean gap lies between 0.3 and 0.7.
+  - Mean gaps by level come out as 0.38–0.69, 0.34–0.67, 0.34–0.50 and 0.34–0.45, so the levels differ in the number of readings, not in how hard each reading is.
+- **Each repeat is its level's typical case** (median separation of the exact and neglect answers), not its first case. The pilot's misfiling repeat doubled its hardest case.
+- **Unchanged:** the acceptance rules (exact answer within 5–95%, separation at least 0.25) and the renderers.
+
+**Load curve** (`fit.fit_load_curve`, in every load analysis). The load curve is fitted jointly over all levels, because the per-level fits run on only six cases each:
+- **Noise:** log *τ<sub>ℓ</sub>* = log *τ*<sub>0</sub> + *κ*·*ℓ*.
+- **Neglect:** *η<sub>ℓ</sub>* = *η*<sub>0</sub> + *λ*·*ℓ* (clipped to 0–1).
+- **Grids:** *τ*<sub>0</sub> is log-spaced from 0.01 to 1 over 21 values; bias runs from −0.4 to 0.4 in steps of 0.025. Both are finer than the per-level grids. With noise near the floor, a bias between coarse grid points was absorbed as extra noise at the low levels, which flattened the fitted slope.
+- **The trait:** A2, the load slope, is now *κ* from this fit. The pilot's line through the per-level estimates stays as a descriptive check.
+
+**The pilots' copying sessions, refitted** (three-level ladder; *κ* per level with its 90% interval):
+
+| | Astra-high | Sol-high | Astra-low | Sol-low | Terra | Luna |
+| --- | --- | --- | --- | --- | --- | --- |
+| Load slope *κ* | −0.24 (−0.5–0.2) | −0.24 (−0.5–0.2) | 0.89 (0.5–1.2) | 0.06 (−0.5–0.7) | 1.84 (1.4–2.3) | 1.66 (1.0–2.4) |
+| Neglect slope *λ* | 0 | 0 | 0 | 0.01 | 0.04 (0–0.10) | 0.04 (0–0.15) |
+
+- **Astra-low's noise rises with load.** The per-level summary hid it (100 / 100 / 88% exact).
+- **Noise, not neglect, in the joint fit.** It attributes most of GPT-5.6's degradation to noise, with a small neglect slope. The per-level fits put neglect at 0.23–0.29 at the top level. In one session noise and neglect trade off; recovery puts copying at two sessions per cell.
+- **Misfiling pilots are not shown:** the misfiling ladder there was confounded by one item.
+- **Source:** `output/capacity-pilots-reanalysis-20260930.json` (SHA-256 `efaad4034d0c8be8759a831839d03eaaab51303993dc60a6e85c8f710756033b`), covering both parts of all three pilot collections.
+
+### Recovery (gates set before the study ran)
+
+```bash
+uv run python -m epistemics.ledger capacity-recovery --output output/capacity-recovery-20260929.json
+```
+
+**Setup.** Synthetic respondents with known parameters go through the real designs and fits. The same respondents are refitted with one, two and three sessions pooled per cell, which fixes how many sessions the battery needs.
+
+**Gates**, set before the study ran:
+- **Primary parameter** (the house standard): correlation at least 0.9 and 90% interval coverage at least 0.8, for respondents with report noise up to 0.5.
+- **Uptake** also needs a mean absolute error of at most 0.15. It must also tell apart respondents who ignore the records from those who take up at least 0.4 (P(ignores) above or below 0.5) in 85% of cases.
+- **The neglect slope** is secondary, at correlation 0.85.
+
+**Part B: uptake** (100 respondents per task, plus 25 ignoring and 25 taking up at least 0.4):
+
+| Task | 1 session | 2 sessions | 3 sessions | Sessions needed |
+| --- | --- | --- | --- | --- |
+| Copying | r 0.96, coverage 0.92, classified 0.94 | r 0.98, 0.98, 1.00 | r 0.99, 0.93, 1.00 | **1** |
+| Selection | r 0.87, 0.87, 0.82 | r 0.91, 0.89, 0.82 | r 0.91, 0.87, 0.89 | **3** |
+| Misfiling | r 0.81, 0.95, 0.70 | r 0.87, 0.95, 0.76 | r 0.89, 0.90, 0.78 | **not within 3** |
+
+- **What limits it:** report noise. In a diagnostic breakdown at one session, selection and misfiling were recovered at correlation 0.99–1.00 below noise 0.1; the failures are respondents with noise 0.25–0.5.
+- **Why the tasks differ:** they give uptake different leverage. The ideal rates reach 0.67 for copying but only 0.37 for selection and 0.25 for misfiling, so a noisy forecast says less about how much of that small range was applied.
+- **The pilots:** misfiling sessions had noise 0.01–0.05, where uptake is well recovered, but the gate covers the whole agent band.
+
+**Part A: load curve** (100 respondents per design; correlations for the curve fit, with the pilot's line through per-level estimates in brackets):
+
+| Design | Load slope *κ*, 1 / 2 / 3 sessions | Neglect slope *λ*, 1 / 2 / 3 sessions | Sessions needed |
+| --- | --- | --- | --- |
+| Copying, 4 levels (new) | 0.87 (0.68) / 0.91 / 0.94 | 0.95 (0.93) / 0.96 / 0.98 | **2** |
+| Misfiling, 4 levels (new) | 0.92 (0.81) / 0.96 / 0.96 | 0.91 (0.60) / 0.95 / 0.97 | **1** |
+| Copying, 3 levels (pilot) | 0.93 (0.87) / 0.95 / 0.97 | 0.94 (0.78) / 0.95 / 0.97 | 1 |
+| Misfiling, 3 levels (pilot) | 0.90 (0.80) / 0.95 / 0.97 | 0.95 (0.90) / 0.95 / 0.97 | 1 |
+
+- **Coverage** is 0.87–1.00 throughout.
+- **The curve fit is what makes six cases per level workable.** On the new designs the per-level line recovers the load slope at only 0.68–0.81.
+- **The pilot's ladders now recover well too**, with the curve fit. But they cannot reach GPT-6, which is why the ladder was extended.
+- **Comparisons across designs:** each design's slopes are per level of its own ladder, so its correlations are over its own range of true slopes. Compare them within a design, not across.
+
+**What the recovery fixes.**
+- **Part A:** two sessions per cell (copying needs two, misfiling one).
+- **Part B:** three sessions for selection, one for copying. Misfiling does not pass within three.
+- **Options for misfiling:**
+  - give its audits more leverage, with a higher reference rate so the ideal rates span a wider range (a new variant, which needs a pilot);
+  - collect more sessions;
+  - or report misfiling uptake as descriptive only.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Recovery | `fda50d29d152022dff2992e62209b82e712ff8c36e2460c51a05dcc27508df66` |
+
+### Task validation 0.17
+
+It passed on both seeds: 2,184 cases and 96 contexts. The contexts are the 91 from 0.16 plus:
+- the two four-level ladders, with the respondent's noise at 0.1, 0.15, 0.25 and 0.5 and neglect at 0, 0.1, 0.25 and 0.5;
+- an uptake respondent (0.6) on each audit task.
+
+The uptake estimates were 0.58–0.71. The load contexts are checked on the per-level slope, as in 0.16, and came out at 0.45–0.53 against a true 0.53.
+
+Tasks fingerprint `c9dc9247fa4b2543d61d0629b6dbe5c8356fbdc78fcd6a54362e7bbb96c24627`.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.17, seed 20260927 | `41c2a4ac649a81bf9385578a178d06da63f416a19d81bcbb1fe6b79f12fd948d` |
+| Task validation 0.17, seed 20261027 | `daae3c3fd63e634f1f75641f96ceedf791153c23d798ef407a4e97cfd7c1e895` |
+
+### Fixed in passing
+
+`traits.task_of` excluded only variants ending in "vig". Pilot 2's `urn2-vig2` sessions would have entered the next trait reanalysis as ordinary urn sessions. No published analysis was affected: the trait reanalysis predates pilot 2 and the ledger reads its cached file.

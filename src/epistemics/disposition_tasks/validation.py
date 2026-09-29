@@ -26,6 +26,7 @@ from epistemics.disposition_tasks.render import (
     LEARNING_RATES,
     LOAD_MODULES,
     LOAD_VARIANTS,
+    LONG_LOAD_MODULES,
     MODULES,
     PROBED_MODULES,
     RANGE_MODULES,
@@ -70,8 +71,17 @@ TOLERANCE = {
     # partly identified from whole percentages; these fail in about 2%.
     "load_slope": 0.6,
     "load_eta_rise": 0.1,
+    # Audit uptake (tasks 0.17): the fraction of the ideal revision, one context at low noise.
+    "uptake": 0.2,
 }
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
+# The four-level ladders: the same noise and neglect range, over four levels.
+LONG_LOAD_RESPONDENT = {
+    "load_sd": [0.1, 0.15, 0.25, 0.5],
+    "load_eta": [0.0, 0.1, 0.25, 0.5],
+    "bias": 0.0,
+}
+UPTAKE_RESPONDENT = {"baseline": 0.05, "uptake": 0.6, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -338,7 +348,10 @@ def contexts_to_validate():
             yield module, "markets", variant, CUE_RESPONDENT
     for module in LOAD_MODULES:
         for variant in LOAD_VARIANTS:
-            yield module, "markets", variant, LOAD_RESPONDENT
+            long = module in LONG_LOAD_MODULES
+            yield module, "markets", variant, LONG_LOAD_RESPONDENT if long else LOAD_RESPONDENT
+    for module in URN_MODULES:
+        yield module, "markets", "urn2-vig2", UPTAKE_RESPONDENT
 
 
 def estimate(module, analysis, truth):
@@ -352,6 +365,9 @@ def estimate(module, analysis, truth):
             and rise >= TOLERANCE["load_eta_rise"]
         )
         return slope, bool(ok)
+    if "uptake" in truth:
+        row = analysis["uptake"]["parameters"]["uptake"]
+        return row["mean"], abs(row["mean"] - truth["uptake"]) <= TOLERANCE["uptake"]
     if module == "checks":
         row = analysis["fits"][truth["function"]]["parameters"]["certainty_value"]
         error = abs(row["mean"] - truth["certainty_value"])

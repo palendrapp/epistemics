@@ -8,6 +8,7 @@ T5 fits both certainty functions to the stated maximum prices.
 
 import numpy as np
 
+from epistemics.disposition_tasks import urn
 from epistemics.disposition_tasks.render import items_for
 from epistemics.dispositions import fit, observers
 
@@ -41,7 +42,12 @@ CUE_MODELS = {
     },
 }
 # Capacity battery, Part A: fully specified load modules (docs/capacity-battery-design.md).
-LOAD_MODELS = {"copying-load": "dependence", "mismatch-load": "mismatch"}
+LOAD_MODELS = {
+    "copying-load": "dependence",
+    "mismatch-load": "mismatch",
+    "copying-long-load": "dependence",
+    "mismatch-long-load": "mismatch",
+}
 RANGE_TARGETS = 5
 
 
@@ -165,6 +171,10 @@ def analyze(manifest, observations):
             summary = {"range": range_summary(result)}
         else:
             summary = {"cues": cue_summary(result)}
+        # Audit records (capacity battery, Part B): the fraction of the ideal revision applied.
+        if urn.vigilance(manifest.variant):
+            ideal = urn.vig_ideals(manifest.module, manifest.variant, items)
+            summary["uptake"] = fit.fit_uptake(CUE_MODELS[manifest.module], items, responses, ideal)
         return {
             "module": manifest.module,
             "variant": manifest.variant,

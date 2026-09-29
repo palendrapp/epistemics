@@ -636,10 +636,23 @@
       "status": "complete",
       "prediction": "Range-finding only.",
       "outcome": "16 contexts over two collections (10 + a 6-context top-up after an interruption), 8.3M recorded tokens, 0 errors. Part A: copying ladder binds for GPT-5.6 (exact within 1.5 points at 8 readings: Terra 62%, Luna 25%; neglect weight 0.23-0.29), not for GPT-6 at low effort (88-100%); the misfiling ladder is not ordered by load (the middle level is hardest for every configuration because of one item and its repeat). Part B: no thresholds; implied rates scale with the ideal observer's at a constant fraction. Uptake slope: Astra-high and Sol-high 0.50 (selection), 0.67-0.68 (misfiling); Terra 0.60 and 0; Luna 0 and 0. LR 1-65,536 spans full neglect to near-ideal uptake."
+    },
+    {
+      "id": "capacity-revised-design",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Capacity battery: revised design after pilot 2 (uptake; four-level load ladders)",
+      "question": "Are audit uptake and the load-curve slopes recoverable on the revised designs, and at how many sessions per cell?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Gates set before the study: correlation 0.9, 90% coverage 0.8 (agent noise band); uptake MAE 0.15 and ignore/take-up classification 0.85; neglect slope correlation 0.85.",
+      "outcome": "Built model 0.8.0 (uptake fit against the ideal observer; joint load-curve fit with finer bias and noise grids), design 0.10.0 (copying 2-16 and misfiling 1-12 readings over four levels, misfiling balanced per reading, typical repeats), tasks 0.17.0. Recovery: load curve passes at 2 sessions (copying) and 1 (misfiling); uptake passes at 1 session (copying) and 3 (selection), and misfiling fails within 3 (r 0.89, classification 0.78), limited by noisy respondents and the small range of ideal rates (0.05-0.25). Pilots refitted: uptake GPT-6 high 0.46-0.75, Terra 0.53/0, Luna 0.06/0."
     }
   ],
   "next": [
-    "Capacity battery decisions: Part B model as uptake slope against the ideal observer (replacing the threshold); Part A with a harder top level for GPT-6 and misfiling levels balanced for per-reading difficulty; which configurations and tasks; budget.",
+    "Decide: misfiling uptake (stronger audits via a higher reference rate and a pilot, more sessions, or descriptive only); a small pilot of the four-level ladders on GPT-6 (does 16 readings bind?); then the full battery's configurations, sessions per cell (Part A 2, Part B 3) and budget.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

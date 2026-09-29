@@ -16,6 +16,8 @@ def test_tasks_and_rungs_follow_structure_and_format():
     assert traits.task_of("hub-urn-probed", "urn2-named") == ("hub · urn", "named")
     assert traits.task_of("copying-load", "load-a") == (None, None)
     assert traits.task_of("selection-urn", "urn2-vig") == (None, None)
+    assert traits.task_of("selection-urn", "urn2-vig2") == (None, None)
+    assert traits.task_of("copying-long-load", "load-a") == (None, None)
     assert traits.task_of("checks", "paired") == (None, None)
 
 

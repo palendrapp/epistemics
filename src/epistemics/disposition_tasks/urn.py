@@ -38,6 +38,8 @@ structure. The rates are monotone in the records but far from the mappings the c
 judged for themselves, so using them can be told apart from judging.
 """
 
+import numpy as np
+
 from epistemics.disposition_tasks import render as base
 
 NAMED = {
@@ -515,6 +517,51 @@ def vig_rates(family, items, i):
         return 0.5, (1 - r) * 0.5 * (1 - w) / ((1 - r) * (1 - w) + 0.5 * r)
     a = float(items["accuracy_a"][i])
     return a, (1 - r) * a + r / 2
+
+
+def vig_signature(family, items, i, r):
+    """Signature frequency when the structure acts in a share r of rounds (r may be an array)."""
+    r = np.asarray(r, dtype=float)
+    if family == "copying":
+        a, b = float(items["accuracy_a"][i]), float(items["accuracy_b"][i])
+        return (1 - r) * (a * b + (1 - a) * (1 - b)) + r
+    if family == "selection":
+        w = float(items["omission"][i])
+        return (1 - r) * 0.5 * (1 - w) / ((1 - r) * (1 - w) + 0.5 * r)
+    a = float(items["accuracy_a"][i])
+    return (1 - r) * a + r / 2
+
+
+# Tasks 0.17: the ideal observer's reading of an audit record, the reference for the uptake fit.
+# Its prior puts half its weight on no structure and spreads the rest uniformly over the rate.
+# Records matched on the likelihood ratio for the reference rate also carry rate estimates that
+# rise with the count, so the ideal rate grows with the level for two reasons.
+VIG_ABSENT = 0.5
+VIG_GRID = np.linspace(0, 1, 1001)
+
+
+def vig_ideal(family, items, i, slot, variant):
+    """The ideal observer's posterior mean rate of the structure, given case i's audit record."""
+    _, total = VIG_SCALES[variant]
+    k = vig_count(family, items, i, slot, variant)
+    f = np.clip(vig_signature(family, items, i, VIG_GRID), 1e-12, 1 - 1e-12)
+    log_like = k * np.log(f) + (total - k) * np.log1p(-f)
+    like = np.exp(log_like - log_like.max())
+    slab = like.mean()
+    present = (1 - VIG_ABSENT) * slab / ((1 - VIG_ABSENT) * slab + VIG_ABSENT * like[0])
+    return float(present * (like * VIG_GRID).mean() / slab)
+
+
+def vig_ideals(module, variant, items):
+    """Per design item: the ideal rate for cases with an audit record, 0 for the rest (anchors,
+    and single readings in copying, which no copy can affect)."""
+    family = module.split("-", 1)[0]
+    skip = ("rate", "single") if family == "copying" else ("rate",)
+    values = np.zeros(len(items["kind"]))
+    for i, slot in enumerate(np.asarray(items["slot"])):
+        if slot >= 0 and items["kind"][i] not in skip:
+            values[i] = vig_ideal(family, items, i, int(slot), variant)
+    return values
 
 
 def vig_count(family, items, i, slot, variant="urn2-vig"):

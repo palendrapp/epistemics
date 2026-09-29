@@ -12,11 +12,12 @@ from epistemics.dispositions.response import sample_reports, sample_wtp
 from epistemics.source_learning.simulation import PARTICIPANT
 
 
-def responses(module, truth, rng, order=None, revealed=None):
+def responses(module, truth, rng, order=None, revealed=None, variant=None):
     """One response per design item from a respondent with the given parameters.
 
     A truth with `strength` learns its disposition from revealed structures, starting at
-    `start`; otherwise the disposition is fixed.
+    `start`; a truth with `uptake` applies that fraction of the ideal rate for each audit record
+    (the variant's); otherwise the disposition is fixed.
     """
     items = items_for(module)
     if module == "checks":
@@ -31,6 +32,15 @@ def responses(module, truth, rng, order=None, revealed=None):
         eta = np.asarray(truth["load_eta"])[level]
         sd = np.asarray(truth["load_sd"])[level]
         return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
+    if "uptake" in truth:
+        from epistemics.disposition_tasks.analysis import CUE_MODELS
+        from epistemics.disposition_tasks.urn import vig_ideals
+
+        ideal = vig_ideals(module, variant, items)
+        delta = np.clip(truth["baseline"] + truth["uptake"] * ideal, 0.0, 1.0)
+        latent = fit.REPORT_MODELS[CUE_MODELS[module]](items, delta, truth["gamma"])
+        forecast = ~np.isin(items["kind"], ("probe", "rate"))
+        return sample_reports(latent + truth["bias"] * forecast, truth["report_sd"], rng)
     if "slots" in truth:
         from epistemics.disposition_tasks.analysis import CUE_MODELS
 
@@ -60,7 +70,7 @@ def simulate(directory, *, module, cover, order, truth, seed, variant="paired", 
         reveal_seed=reveal_seed,
         synthetic=True,
     )
-    answers = responses(module, truth, rng, manifest.order, manifest.revealed)
+    answers = responses(module, truth, rng, manifest.order, manifest.revealed, variant)
     service = CollectionService(directory)
     trial = service.get_trial()["trial"]
     while trial is not None:

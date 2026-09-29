@@ -72,6 +72,9 @@ for entry in plan["runs"]:
         record["slot_fits"] = [{"slot": s["slot"], "implied": s["implied"], "stated": s["stated"]}
                                for s in a["fit"]["slots"]]
         record["shared"] = a["fit"]["parameters"]
+        if "uptake" in a:
+            record["uptake"] = {"parameters": a["uptake"]["parameters"],
+                                "ignores_probability": a["uptake"]["ignores_probability"]}
     out.append(record)
 print(json.dumps(out))
 """

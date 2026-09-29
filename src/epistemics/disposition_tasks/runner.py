@@ -248,7 +248,7 @@ PRESETS["traits-stage2"] = (
 PRESETS["capacity-pilot"] = (
     {
         "configurations": ("astra-high", "sol-high"),
-        "modules": LOAD_MODULES,
+        "modules": ("copying-load", "mismatch-load"),
         "contexts": (("load-a", "markets", 1),),
     },
     {
@@ -262,7 +262,7 @@ PRESETS["capacity-pilot"] = (
 PRESETS["capacity-pilot2"] = (
     {
         "configurations": ("astra-low", "sol-low", "luna", "terra"),
-        "modules": LOAD_MODULES,
+        "modules": ("copying-load", "mismatch-load"),
         "contexts": (("load-a", "markets", 1),),
     },
     {
@@ -663,6 +663,13 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "uptake" in analysis:
+        uptake = analysis["uptake"]
+        return {
+            "parameter": "audit_uptake",
+            **uptake["parameters"]["uptake"],
+            "ignores_probability": uptake["ignores_probability"],
         }
     if analysis["module"] in (
         CUE_MODULES

@@ -18,6 +18,7 @@ uv run python -m epistemics.ledger traits-power --output <file>
 uv run python -m epistemics.ledger battery-v2 --output <file>
 uv run python -m epistemics.ledger battery-v2-recovery --output <file>
 uv run python -m epistemics.ledger capacity-pilot <roots...> --output <file>
+uv run python -m epistemics.ledger capacity-recovery --output <file>
 """
 
 import argparse
@@ -138,6 +139,10 @@ def main():
     cp = sub.add_parser("capacity-pilot")
     cp.add_argument("roots", type=Path, nargs="+")
     cp.add_argument("--output", type=Path, required=True)
+    cr = sub.add_parser("capacity-recovery")
+    cr.add_argument("--output", type=Path, required=True)
+    cr.add_argument("--respondents", type=int, default=100)
+    cr.add_argument("--load-respondents", type=int, default=100)
     tp = sub.add_parser("traits-power")
     tp.add_argument("--output", type=Path, required=True)
     ihp = sub.add_parser("inclusion-hier-power")
@@ -368,6 +373,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(capacity.tables(run))
+    elif a.command == "capacity-recovery":
+        from epistemics.ledger import capacity
+
+        run = capacity.recovery(a.respondents, a.load_respondents)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
     elif a.command == "traits-power":
         from epistemics.ledger import traits
 

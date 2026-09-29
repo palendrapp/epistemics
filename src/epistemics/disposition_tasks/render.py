@@ -44,6 +44,8 @@ MODULES = (
     "stale-urn-probed",
     "copying-load",
     "mismatch-load",
+    "copying-long-load",
+    "mismatch-long-load",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -81,9 +83,17 @@ V2_PROBED_MODULES = ("echo-urn-probed", "hub-urn-probed", "stale-urn-probed")
 V2_TWINS = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
 # Capacity battery (tasks 0.15). Part A: fully specified load cases. Part B: the unprompted urn
 # tasks with audit records of matched likelihood ratio ("urn2-vig").
-LOAD_MODULES = ("copying-load", "mismatch-load")
+# Tasks 0.17 (after pilot 2): four-level ladders reaching 16 (copying) and 12 (misfiling)
+# readings, misfiling balanced for per-reading difficulty (design.long_load_design).
+LONG_LOAD_MODULES = ("copying-long-load", "mismatch-long-load")
+LOAD_MODULES = ("copying-load", "mismatch-load") + LONG_LOAD_MODULES
 LOAD_VARIANTS = ("load-a",)
-LOAD_DESIGNS = {"copying-load": "dependence", "mismatch-load": "mismatch"}
+LOAD_DESIGNS = {
+    "copying-load": "dependence",
+    "mismatch-load": "mismatch",
+    "copying-long-load": "dependence",
+    "mismatch-long-load": "mismatch",
+}
 VIG_VARIANTS = ("urn2-vig", "urn2-vig2")
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
@@ -384,6 +394,8 @@ def items_for(module):
         return design.corroboration_probed()
     if module in URN_DESIGNS:
         return URN_DESIGNS[module]()
+    if module in LONG_LOAD_MODULES:
+        return design.long_load_design(LOAD_DESIGNS[module])
     if module in LOAD_DESIGNS:
         return design.load_design(LOAD_DESIGNS[module])
     raise ValueError(f"Unknown module: {module}")
@@ -686,6 +698,8 @@ RENDERERS = {
     **{m: (lambda family: lambda *a: _urn(family, *a))(m.split("-", 1)[0]) for m in URN_DESIGNS},
     "copying-load": lambda *a: _urn("copying_load", *a),
     "mismatch-load": lambda *a: _urn("mismatch_load", *a),
+    "copying-long-load": lambda *a: _urn("copying_load", *a),
+    "mismatch-long-load": lambda *a: _urn("mismatch_load", *a),
 }
 
 

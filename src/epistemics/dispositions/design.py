@@ -472,8 +472,8 @@ def _load_case(model, rng, n):
     return {"prior": prior, "acc": acc, "rep": rep, "mis": mis}
 
 
-def _load_table(model, cases, loads, repeats):
-    width = LOAD_WIDTH[model]
+def _load_table(model, cases, loads, repeats, width=None):
+    width = width or LOAD_WIDTH[model]
     fields = ("acc", "rep", "src", "rate") if model == "dependence" else ("acc", "rep", "mis")
     table = {
         "kind": np.array(["forecast"] * len(cases)),
@@ -514,6 +514,78 @@ def load_design(model):
         loads.append(level)
         repeats.append(first)
     return _load_table(model, cases, loads, repeats)
+
+
+# Design 0.10 (after capacity pilot 2): four load levels, the top one twice the pilot's, so the
+# ladder can reach GPT-6 (at or near ceiling at 8 readings). Five cases per level and one repeat,
+# the level's typical case (median separation of exact and neglect answers), not its first.
+# Misfiling readings are balanced for per-reading difficulty: each reading's gap between its
+# neglect and exact log-likelihood ratios is at most MISFILING_GAP, and each case's mean gap lies
+# in MISFILING_BAND at every level, so levels differ in how many readings there are, not in how
+# hard each one is. (In the pilot, one reading correct 95% of the time and misfiled 50% of the
+# time, gap 1.97, made the middle level the hardest for every configuration.)
+LONG_READINGS = {"dependence": (2, 4, 8, 16), "mismatch": (1, 3, 6, 12)}
+LONG_WIDTH = {"dependence": 16, "mismatch": 12}
+_LONG_SEEDS = {"dependence": 20261005, "mismatch": 20261006}
+_LONG_COPIERS = {2: 1, 4: 2, 8: 3, 16: 5}
+LONG_CASES = 5
+MISFILING_GAP = 1.0
+MISFILING_BAND = (0.3, 0.7)
+
+
+def misfiling_gaps(acc, mis):
+    """Per reading: |log-likelihood ratio if never misfiled - log-likelihood ratio given the
+    stated misfiling rate|, the part of each reading a neglecting answer gets wrong."""
+    acc, mis = np.asarray(acc, dtype=float), np.asarray(mis, dtype=float)
+    independent = np.log(acc) - np.log1p(-acc)
+    effective = (1 - mis) * acc + mis / 2
+    return np.abs(independent - (np.log(effective) - np.log1p(-effective)))
+
+
+def _long_case(model, rng, n):
+    if model == "dependence":
+        prior = float(rng.choice([0.3, 0.4, 0.5, 0.6, 0.7]))
+        rep = rng.choice([-1, 1], n)
+        acc = rng.choice([0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], n)
+        src, rate = np.full(n, -1), np.zeros(n)
+        for idx in sorted(rng.choice(np.arange(1, n), _LONG_COPIERS[n], replace=False)):
+            src[idx] = int(rng.integers(0, idx))
+            rate[idx] = float(rng.choice([0.2, 0.3, 0.4, 0.5, 0.6]))
+        return {"prior": prior, "acc": acc, "rep": rep, "src": src, "rate": rate}
+    case = _load_case(model, rng, n)
+    gaps = misfiling_gaps(case["acc"], case["mis"])
+    if gaps.max() > MISFILING_GAP or not MISFILING_BAND[0] <= gaps.mean() <= MISFILING_BAND[1]:
+        return None
+    return case
+
+
+def long_load_design(model):
+    """Twenty-four fully specified cases on four load levels: five per level plus one repeat."""
+    from epistemics.dispositions import observers
+
+    rng = np.random.default_rng(_LONG_SEEDS[model])
+    cases, loads, separations = [], [], []
+    for level, n in enumerate(LONG_READINGS[model]):
+        found = 0
+        while found < LONG_CASES:
+            case = _long_case(model, rng, n)
+            if case is None:
+                continue
+            probe = _load_table(model, [case], [level], [-1], LONG_WIDTH[model])
+            exact, neglect = observers.load_answers(model, probe)
+            if abs(exact[0]) <= 2.94 and abs(exact[0] - neglect[0]) >= 0.25:
+                cases.append(case)
+                loads.append(level)
+                separations.append(abs(exact[0] - neglect[0]))
+                found += 1
+    repeats = [-1] * len(cases)
+    for level in range(len(LONG_READINGS[model])):
+        members = [i for i, lv in enumerate(loads[: len(separations)]) if lv == level]
+        typical = sorted(members, key=lambda i: separations[i])[len(members) // 2]
+        cases.append(cases[typical])
+        loads.append(level)
+        repeats.append(typical)
+    return _load_table(model, cases, loads, repeats, LONG_WIDTH[model])
 
 
 def dependence_load():
