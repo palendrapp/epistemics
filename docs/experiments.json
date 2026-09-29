@@ -550,12 +550,24 @@
       "status": "complete",
       "prediction": "F1: rated rung reliable if both sessions follow (mean gap <=0.10, largest <=0.20). E1: both configurations follow in both sessions. E2: both get the advice 'state how common it is'.",
       "outcome": "4 contexts (first collection stopped after 2 on the runner's admission reserve; 2 topped up in a second identical collection, disclosed), 2.13M input tokens. Every session forecast with exactly the stated rates (largest gap 0.001) for both configurations: F1, E1, E2 hold. Misfiled-readings advice for both is now 'state how common it is': unstated, the rate is judged and sometimes judged rare; stated, it is computed exactly."
+    },
+    {
+      "id": "traits-reanalysis",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Which candidate traits are general? Reanalysis of existing sessions",
+      "question": "For each candidate trait, do configurations keep their relative position across tasks (generalizability study), and does a configuration's deviation on other tasks predict a held-out task?",
+      "doc": "docs/traits-2026-09-29.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Exploratory; no predictions. Planning input for an abstract battery built to show transfer.",
+      "outcome": "Precision (log report noise) is trait-like: consistency 0.91 [0.71, 1.00], leave-one-task-out gain 0.59, sign 0.85 (6 configurations, 9 tasks); within Astra/Sol weaker (0.62, gain 0.29). Stated-applied fidelity a between-family candidate (0.75, gain 0.40; driven by Luna). Noticing threshold: Astra needs less prompting than Sol in 3 of 4 structures (selection at ceiling); consistency 0.55, gain 0.22 — earlier 'noticing does not generalise' mixed task effects with interaction. Unstated-rate default and evidence weight have no configuration variance (all ~50%, gamma ~1). Cue sensitivity does not transfer. Design: cross all configurations with all tasks, avoid ceilings, finer noise grid, preregister leave-one-task-out transfer."
     }
   ],
   "next": [
-    "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol (plus the rated rung where it exists), publish the reading.",
-    "Consider rate-stating rungs for the other structures where prompting alone is not reliable (Sol's relayed sources needs per-case questions).",
-    "Luna and Terra structure checks (minimal protocol) so the guide covers the weaker configurations.",
+    "Design the abstract battery v2 for general traits: all six configurations crossed with every task, precision, stated-applied fidelity and noticing as targets, structures kept off ceiling, finer report-noise grid, preregistered leave-one-task-out transfer.",
+    "Structure checks stay as a product fallback (offer for named structures; Luna and Terra).",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."
   ]

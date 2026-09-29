@@ -137,7 +137,13 @@ The reworded check was then collected (6 contexts). The misreading is gone, but 
 
 A rate-stating rung then settled it. Told how common misfiling is for each kind of sensor, both configurations forecast with exactly the stated rates in every session. The rate is what varies when it is not stated, so the advice for misfiled readings is "state how common it is".
 
-**Next: offer structure checks for named structures (with the rated rung where it exists), and run them for Luna and Terra.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+**Direction, 29 September: general traits first, on abstract tasks.** Abstract tasks isolate the variables that transfer depends on. A [reanalysis of every session so far](traits-2026-09-29.md) separated task effects from how each configuration's position changes between tasks:
+- **Precision** is trait-like across all six configurations.
+- **Stated–applied fidelity** is a candidate between model families.
+- **Noticing** is more consistent than it first looked: Astra needs less prompting than Sol in three of four structures.
+- **No variance:** the unstated-rate default and evidence weight do not vary between configurations.
+
+**Next: an abstract battery built for transfer.** Every configuration crossed with every task, structures kept off ceiling, and a preregistered leave-one-task-out test. Structure checks remain as a product fallback. The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

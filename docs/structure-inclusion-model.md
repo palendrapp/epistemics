@@ -340,6 +340,17 @@ uv run python -m epistemics.ledger inclusion-hier-power --output output/inclusio
 | --- | --- |
 | Power study and spot check | `0ebd6a478599ff1dc49fb9b3a0ab0db526e7de5db13cedf24eda8d7a969db0ce` |
 
+## Reinterpretation (29 September)
+
+The spread τ_θ above is the spread of one configuration's thresholds across structures. It includes task effects: some structures are easier for every configuration. So it overstates how much the threshold is structure-specific as a trait.
+
+The [trait reanalysis](traits-2026-09-29.md) separated the two, using the per-structure fits with the reworded mismatch:
+- **Direction:** Astra needs less prompting than Sol for copying, relayed sources and misfiled readings.
+- **Selective reporting:** a tie at ceiling.
+- **Consistency:** 0.55 [0.01, 0.99]. The leave-one-structure-out gain is 0.22.
+
+With two configurations this is a lead. Showing it needs more configurations and structures kept off ceiling.
+
 ## What it would add to the passport
 
 The candidate readings are more general than the current task-level ones:

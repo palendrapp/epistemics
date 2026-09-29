@@ -13,6 +13,7 @@ uv run python -m epistemics.ledger inclusion-joint-validate --output <file>
 uv run python -m epistemics.ledger inclusion-hier [--family relay ...] [--output <file>]
 uv run python -m epistemics.ledger inclusion-hier-validate --output <file>
 uv run python -m epistemics.ledger inclusion-hier-power --output <file> [--spot-structures 10]
+uv run python -m epistemics.ledger traits --output <file> [--configuration astra ...]
 """
 
 import argparse
@@ -120,6 +121,10 @@ def main():
     ihv.add_argument("--output", type=Path, required=True)
     ihv.add_argument("--datasets", type=int, default=30)
     ihv.add_argument("--workers", type=int, default=8)
+    tr = sub.add_parser("traits")
+    tr.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
+    tr.add_argument("--output", type=Path, required=True)
+    tr.add_argument("--configuration", action="append", default=None)
     ihp = sub.add_parser("inclusion-hier-power")
     ihp.add_argument("--output", type=Path, required=True)
     ihp.add_argument(
@@ -291,6 +296,34 @@ def main():
             )
         }
         print(json.dumps(summary, indent=2))
+    elif a.command == "traits":
+        import hashlib
+
+        from epistemics.ledger import traits
+
+        raw = a.ledger.read_bytes()
+        models = json.loads(raw)["models"]
+        if a.configuration:
+            models = {
+                **models,
+                "sessions": [
+                    s for s in models["sessions"] if s["configuration"] in a.configuration
+                ],
+            }
+        checks = models.get("structure_checks")
+        if checks and a.configuration:
+            checks = {
+                **checks,
+                "checks": {c: v for c, v in checks["checks"].items() if c in a.configuration},
+            }
+        run = {
+            **traits.analyse(models, checks),
+            "ledger_sha256": hashlib.sha256(raw).hexdigest(),
+            "configurations_filter": a.configuration,
+        }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(traits.table(run))
     elif a.command == "inclusion-hier-power":
         import hashlib
 
