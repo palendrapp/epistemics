@@ -47,6 +47,9 @@ from epistemics.disposition_tasks.render import (
     URN_MODULES,
     URN_PROBED_MODULES,
     URN_VARIANTS,
+    V2_ASKED_MODULES,
+    V2_MODULES,
+    V2_PROBED_MODULES,
     VARIANTS,
     allowed,
     items_for,
@@ -125,6 +128,8 @@ AUDITED_CASES = (
     + 24 * len(URN_ASKED_MODULES + URN_PROBED_MODULES) * 2
     + 24 * len(URN3_MODULES) * len(URN3_VARIANTS)
     + 24 * len(URN3_RATED_MODULES) * len(URN3_RATED_VARIANTS)
+    + 24 * len(V2_MODULES) * len(URN2_VARIANTS)
+    + 24 * len(V2_ASKED_MODULES + V2_PROBED_MODULES)
 )
 PRESETS["transfer"] = (
     {
@@ -179,6 +184,58 @@ PRESETS["abstract2"] = (
         "configurations": ("astra", "sol"),
         "modules": URN_PROBED_MODULES,
         "contexts": tuple(("urn2-named", "markets", r) for r in (1, 2)),
+    },
+)
+# Battery v2 (docs/battery-v2-design.md): five sessions per configuration and task (two plain,
+# named, named and asked, named, asked and probed). Stage 1 puts the four configurations without
+# them on the three existing urn tasks; stage 2 puts all six on the three new surfaces.
+PRESETS["traits-stage1"] = (
+    {
+        "configurations": ("astra-low", "sol-low", "luna", "terra"),
+        "modules": ("copying-urn", "selection-urn", "mismatch-urn"),
+        "contexts": (("urn2-plain", "markets", 1), ("urn2-plain", "markets", 2)),
+    },
+    {
+        "configurations": ("astra-low", "sol-low", "luna", "terra"),
+        "modules": ("copying-urn", "selection-urn"),
+        "contexts": (("urn2-named", "markets", 1),),
+    },
+    {
+        "configurations": ("astra-low", "sol-low", "luna", "terra"),
+        "modules": ("mismatch-urn",),
+        "contexts": (("urn3-named", "markets", 1),),
+    },
+    {
+        "configurations": ("astra-low", "sol-low", "luna", "terra"),
+        "modules": (
+            "copying-urn-asked",
+            "selection-urn-asked",
+            "copying-urn-probed",
+            "selection-urn-probed",
+        ),
+        "contexts": (("urn2-named", "markets", 1),),
+    },
+    {
+        "configurations": ("astra-low", "sol-low", "luna", "terra"),
+        "modules": ("mismatch-urn-asked", "mismatch-urn-probed"),
+        "contexts": (("urn3-named", "markets", 1),),
+    },
+)
+V2_CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
+PRESETS["traits-stage2"] = (
+    {
+        "configurations": V2_CONFIGURATIONS,
+        "modules": V2_MODULES,
+        "contexts": (
+            ("urn2-plain", "markets", 1),
+            ("urn2-plain", "markets", 2),
+            ("urn2-named", "markets", 1),
+        ),
+    },
+    {
+        "configurations": V2_CONFIGURATIONS,
+        "modules": V2_ASKED_MODULES + V2_PROBED_MODULES,
+        "contexts": (("urn2-named", "markets", 1),),
     },
 )
 # Retest of Sol's stated-applied gap on the asked relay dossiers, and the probed variant for both.

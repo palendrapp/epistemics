@@ -568,6 +568,9 @@ def test_reading_guide_turns_structure_checks_into_prompting_advice():
         "whether it considers sources repeating another source unprompted (not yet checked)",
         "whether it considers selective silence unprompted (not yet checked)",
         "whether it considers copied readings unprompted (its check did not converge)",
+        "whether it considers repeated reports unprompted (not yet checked)",
+        "whether it considers dropped readings unprompted (not yet checked)",
+        "whether it considers stale readings unprompted (not yet checked)",
     ]
     assert guide.undetermined_checks("astra", checks) == []
 

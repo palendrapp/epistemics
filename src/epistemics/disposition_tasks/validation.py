@@ -39,6 +39,9 @@ from epistemics.disposition_tasks.render import (
     URN_MODULES,
     URN_PROBED_MODULES,
     URN_VARIANTS,
+    V2_ASKED_MODULES,
+    V2_MODULES,
+    V2_PROBED_MODULES,
     VARIANTS,
     items_for,
     render,
@@ -143,6 +146,10 @@ def variants_of(module):
         return URN_VARIANTS + URN2_VARIANTS + extra
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
         return ("urn-named", "urn2-named") + extra
+    if module in V2_MODULES:
+        return URN2_VARIANTS
+    if module in V2_ASKED_MODULES + V2_PROBED_MODULES:
+        return ("urn2-named",)
     return ("paired",) if module == "checks" else VARIANTS
 
 
@@ -159,6 +166,9 @@ def covers_of(module):
         + URN_MODULES
         + URN_ASKED_MODULES
         + URN_PROBED_MODULES
+        + V2_MODULES
+        + V2_ASKED_MODULES
+        + V2_PROBED_MODULES
         else COVERS
     )
 
@@ -182,6 +192,9 @@ URN_MECHANISM = {
     "copying": ("copy", "copies", "copied", "relay", "repeats"),
     "selection": ("hold back", "holds back", "withh", "selective", "every red"),
     "mismatch": ("different urn", "another urn", "wrong urn"),
+    "echo": ("repeat", "told", "copy", "relay"),
+    "hub": ("every red", "every blue", "selective", "withh", "hold back"),
+    "stale": ("refill", "emptied", "before the urn", "out of date", "stale"),
 }
 
 
@@ -233,7 +246,14 @@ def audit():
                         raise ValueError(f"{where} states the mechanism beyond its variant")
                     # Asked cases: the case text names the mechanism once; only a base-rate
                     # question mentions it again.
-                    urn = module in URN_MODULES + URN_ASKED_MODULES + URN_PROBED_MODULES
+                    urn = module in (
+                        URN_MODULES
+                        + URN_ASKED_MODULES
+                        + URN_PROBED_MODULES
+                        + V2_MODULES
+                        + V2_ASKED_MODULES
+                        + V2_PROBED_MODULES
+                    )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
                     if module in ASKED_MODULES + PROBED_MODULES and not states_only_the_named(
@@ -294,6 +314,11 @@ def contexts_to_validate():
     for module in URN3_RATED_MODULES:
         for variant in URN3_RATED_VARIANTS:
             yield module, "markets", variant, CUE_RESPONDENT
+    for module in V2_MODULES:
+        for variant in URN2_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for module in V2_ASKED_MODULES + V2_PROBED_MODULES:
+        yield module, "markets", "urn2-named", CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):

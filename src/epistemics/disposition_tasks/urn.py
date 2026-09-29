@@ -24,6 +24,13 @@ the new sentence says accuracy applies only when a reading does come from the ur
 under, and that a reading from a different urn says nothing about this one. Its plain cases are
 urn2-plain's.
 
+Battery v2 (tasks 0.14) adds a second surface story for each formal core, with the same item
+designs and observers as its twin (TWIN) and the per-round wording of urn2: "echo" (observers who
+may repeat what another observer told them; dependence, as copying), "hub" (a hub
+that may forward every red reading and drop every blue one; withholding, as selection) and
+"stale" (readings that may date from before the urn was emptied and refilled; uninformative
+evidence, as mismatch). They take urn2-plain and urn2-named.
+
 "urn3-rated" (tasks 0.13, the forecast-only mismatch module) adds the consumer action beyond the
 ladder: the named sentence, and after each sensor's record the rate for sensors with that record
 (RATES). It measures whether a configuration uses a rate it is given, not whether it raises the
@@ -69,6 +76,31 @@ RECORDS = {
         "Record for {x}: it is shared by 10 urns.",
         "Record for {x}: it is shared by 50 urns and moves between them during the session.",
     ),
+    "echo": (
+        "Record for {x}: over the last 200 rounds in which both reported on the same urn, "
+        "{x}'s report agreed with {a}'s in 128.",
+        "Record for {x}: over the last 200 rounds in which both reported on the same urn, "
+        "{x}'s report agreed with {a}'s in 142.",
+        "Record for {x}: they work on the second floor.",
+        "Record for {x}: over the last 200 rounds in which both reported on the same urn, "
+        "{x}'s report agreed with {a}'s in 164.",
+        "Record for {x}: over the last 200 rounds in which both reported on the same urn, "
+        "{x}'s report agreed with {a}'s in 198.",
+    ),
+    "hub": (
+        "Record for {x}: of the last 200 readings it forwarded, 94 were blue.",
+        "Record for {x}: of the last 200 readings it forwarded, 70 were blue.",
+        "Record for {x}: it is housed in building 4.",
+        "Record for {x}: of the last 200 readings it forwarded, 30 were blue.",
+        "Record for {x}: of the last 200 readings it forwarded, 1 was blue.",
+    ),
+    "stale": (
+        "Record for {x}: it takes a fresh reading every round.",
+        "Record for {x}: it takes a fresh reading every 2 rounds.",
+        "Record for {x}: it has a green casing.",
+        "Record for {x}: it takes a fresh reading every 10 rounds.",
+        "Record for {x}: it takes a fresh reading every 50 rounds, and its clock often drifts.",
+    ),
 }
 # Corrected versions: per round, with what the stated accuracies cover.
 NAMED2 = {
@@ -85,7 +117,24 @@ NAMED2 = {
         "In any round, a reading on file may come from a different urn than the one it is filed "
         "under; a sensor's stated accuracy applies to readings of the urn it is filed under."
     ),
+    # Battery v2 surfaces (tasks 0.14).
+    "echo": (
+        "In any round, an observer may repeat what another observer told them instead of looking "
+        "at the urn; a repeated report is the same as the original, and an observer's stated "
+        "accuracy applies when they look at the urn themselves."
+    ),
+    "hub": (
+        "In any round, a hub may forward every red reading it receives and drop every blue one; "
+        "in other rounds it drops readings at random."
+    ),
+    "stale": (
+        "In any round, a reading on file may date from before the urn was last emptied and "
+        "refilled; a sensor's stated accuracy applies only when the reading was taken after the "
+        "refill, and a reading from before the refill says nothing about the urn now."
+    ),
 }
+# Battery v2: each new surface shares its twin's formal core, item design and observer.
+TWIN = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
 NAMED3 = {
     "mismatch": (
         "In any round, a reading on file may come from a different urn than the one it is filed "
@@ -283,6 +332,147 @@ def mismatch(items, i, cover, variant):
         question = (
             f"What is the probability that the reading on file for {n['urn']} came from a "
             "different urn?"
+        )
+    else:
+        question = f"What is the probability that {n['urn']} is red-majority?"
+    return lines, question
+
+
+# Battery v2 surfaces (tasks 0.14). Each mirrors its twin's renderer with its own story.
+
+
+def names_v2(i):
+    return {
+        "urn": f"urn U{101 + i}",
+        "a": f"observer O{11 + i}",
+        "b": f"observer O{41 + i}",
+        "s": f"sensor K{61 + i}",
+        "r": f"hub H{21 + i}",
+    }
+
+
+def echo(items, i, cover, variant):
+    """Dependence, second surface: observers who may repeat what another observer told them."""
+    n, kind, slot = names_v2(i), items["kind"][i], int(items["slot"][i])
+    sentence = background("echo", variant)
+    if kind == "rate":
+        lines = [
+            f"This case concerns {n['b']}, who reports on urns alongside other observers. {LAB}"
+            + (f" Background: {sentence}" if sentence else ""),
+            record("echo", slot, n["b"], n["a"]),
+        ]
+        question = (
+            f"Among the rounds of observers with a record like {n['b']}'s, in what proportion do "
+            "they repeat another observer's report instead of looking at the urn?"
+        )
+        return lines, question
+    lines = [brief(n, items["prior"][i], sentence, "any reports")]
+    rates = [
+        f"{cap(n['a'])}'s reports are correct {base.percent(items['accuracy_a'][i])} of the time."
+    ]
+    log = [f"{n['a']}: {colour(items['report_a'][i])}"]
+    if kind != "single":
+        rates.append(
+            f"{cap(n['b'])}'s reports are correct "
+            f"{base.percent(items['accuracy_b'][i])} of the time."
+        )
+        log.append(f"{n['b']}: {colour(items['report_b'][i])}")
+    lines += [" ".join(rates), "Reports in the order they were made: " + "; ".join(log) + "."]
+    if slot >= 0 and kind != "single":
+        lines.append(record("echo", slot, n["b"], n["a"]))
+    if kind == "probe":
+        question = (
+            f"What is the probability that in this round {n['b']} repeated {n['a']}'s report "
+            "instead of looking at the urn?"
+        )
+    else:
+        question = f"What is the probability that {n['urn']} is red-majority?"
+    return lines, question
+
+
+def hub(items, i, cover, variant):
+    """Withholding, second surface: a hub that may drop every blue reading."""
+    n, kind, slot = names_v2(i), items["kind"][i], int(items["slot"][i])
+    sentence = background("hub", variant)
+    omission = base.percent(items["omission"][i])
+    if kind == "rate":
+        lines = [
+            f"This case concerns {n['r']}, which forwards sensor readings to the lab. Across the "
+            f"lab, a hub drops a reading {omission} of the time. {LAB}"
+            + (f" Background: {sentence}" if sentence else ""),
+            record("hub", slot, n["r"]),
+        ]
+        question = (
+            f"Among the rounds of hubs with a record like {n['r']}'s, in what proportion "
+            "do they forward every red reading and drop every blue one, rather than dropping "
+            "readings at random?"
+        )
+        return lines, question
+    good, bad = base.percent(items["good"][i]), base.percent(1 - items["good"][i])
+    m, j, k = (int(items[f][i]) for f in ("shared_good", "shared_bad", "withheld"))
+    lines = [
+        brief(n, items["prior"][i], sentence, "the readings arrive"),
+        f"A sensor reading a red-majority urn reads red with probability {good}; reading a "
+        f"blue-majority urn, with probability {bad}. Across the lab, a hub drops a "
+        f"reading {omission} of the time.",
+    ]
+    forwarded = ["red"] * m + ["blue"] * j
+    shown = (
+        f"{len(forwarded)} of the 4 readings: " + ", ".join(forwarded)
+        if forwarded
+        else "none of the 4 readings"
+    )
+    lines.append(
+        f"Four sensors each read {n['urn']} once and send their readings through "
+        f"{n['r']}, which forwarded {shown}."
+    )
+    if slot >= 0:
+        lines.append(record("hub", slot, n["r"]))
+    if kind == "probe":
+        question = (
+            f"What is the probability that in this round {n['r']} forwarded every red reading it "
+            "received and dropped every blue one?"
+        )
+    else:
+        question = f"What is the probability that {n['urn']} is red-majority?"
+    return lines, question
+
+
+def stale(items, i, cover, variant):
+    """Uninformative evidence, second surface: readings from before the urn was refilled."""
+    n, kind, slot = names_v2(i), items["kind"][i], int(items["slot"][i])
+    sentence = background("stale", variant)
+    if kind == "rate":
+        lines = [
+            f"This case concerns {n['s']}, which files readings for urns. {LAB}"
+            + (f" Background: {sentence}" if sentence else ""),
+            record("stale", slot, n["s"]),
+        ]
+        question = (
+            f"Among sensors like {n['s']}, what proportion of the readings they file date from "
+            "before the urn was last emptied and refilled?"
+        )
+        return lines, question
+    accuracy = base.percent(items["accuracy_a"][i])
+    lines = [brief(n, items["prior"][i], sentence, "any evidence")]
+    if kind == "own":
+        miss = base.percent(1 - items["accuracy_a"][i])
+        lines.append(
+            f"You draw one ball from {n['urn']} yourself. A ball drawn from a red-majority urn is "
+            f"red with probability {accuracy}, and from a blue-majority urn with probability "
+            f"{miss}. Your ball is {colour(items['report_a'][i])}."
+        )
+    else:
+        lines.append(
+            f"{cap(n['s'])}'s readings are correct {accuracy} of the time. Reading on file "
+            f"for {n['urn']}, from {n['s']}: {colour(items['report_a'][i])}."
+        )
+        if slot >= 0:
+            lines.append(record("stale", slot, n["s"]))
+    if kind == "probe":
+        question = (
+            f"What is the probability that the reading on file for {n['urn']} dates from before "
+            "the urn was last emptied and refilled?"
         )
     else:
         question = f"What is the probability that {n['urn']} is red-majority?"

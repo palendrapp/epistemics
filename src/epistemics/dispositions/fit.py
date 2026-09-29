@@ -16,7 +16,10 @@ from epistemics.dispositions.response import (
 DISPOSITION = np.round(np.linspace(0, 1, 21), 3)
 GAMMA = np.round(np.arange(0.5, 1.501, 0.1), 2)
 BIAS = np.round(np.arange(-0.6, 0.601, 0.15), 2)
-REPORT_SD = np.array([0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.65, 0.8, 1.0])
+# Report noise on the log-odds scale. Model 0.6 adds 0.01-0.03: precise configurations sat at the
+# old floor of 0.05 (docs/traits-2026-09-29.md). Reports are whole percentages, so the lowest
+# values are only partly identified.
+REPORT_SD = np.array([0.01, 0.02, 0.03, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.65, 0.8, 1.0])
 CERTAINTY_VALUE = np.arange(-40.0, 160.1, 4.0)
 DECISION_WEIGHT = np.round(np.arange(0.5, 1.501, 0.1), 2)
 WTP_SD = np.array([0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 14.0])

@@ -33,6 +33,15 @@ MODULES = (
     "copying-urn-probed",
     "selection-urn-probed",
     "mismatch-urn-probed",
+    "echo-urn",
+    "hub-urn",
+    "stale-urn",
+    "echo-urn-asked",
+    "hub-urn-asked",
+    "stale-urn-asked",
+    "echo-urn-probed",
+    "hub-urn-probed",
+    "stale-urn-probed",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -62,6 +71,12 @@ URN3_MODULES = ("mismatch-urn", "mismatch-urn-asked", "mismatch-urn-probed")
 # Rate stated per record (tasks 0.13): the forecast-only mismatch module only.
 URN3_RATED_VARIANTS = ("urn3-rated",)
 URN3_RATED_MODULES = ("mismatch-urn",)
+# Battery v2 (tasks 0.14): a second surface story for each formal core, on the same designs as
+# its twin (urn.TWIN), with urn2-plain and urn2-named.
+V2_MODULES = ("echo-urn", "hub-urn", "stale-urn")
+V2_ASKED_MODULES = ("echo-urn-asked", "hub-urn-asked", "stale-urn-asked")
+V2_PROBED_MODULES = ("echo-urn-probed", "hub-urn-probed", "stale-urn-probed")
+V2_TWINS = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,
@@ -72,6 +87,12 @@ URN_DESIGNS = {
     "mismatch-urn": design.mismatch_urn,
     "mismatch-urn-asked": design.mismatch_urn_asked,
     "mismatch-urn-probed": design.mismatch_urn_probed,
+}
+URN_DESIGNS |= {
+    module: URN_DESIGNS[module.replace(family, twin, 1)]
+    for family, twin in V2_TWINS.items()
+    for module in V2_MODULES + V2_ASKED_MODULES + V2_PROBED_MODULES
+    if module.startswith(family)
 }
 
 
@@ -683,6 +704,10 @@ def allowed(module, cover, variant):
         return cover == "markets"
     if module in URN3_RATED_MODULES and variant in URN3_RATED_VARIANTS:
         return cover == "markets"
+    if module in V2_MODULES:
+        return cover == "markets" and variant in URN2_VARIANTS
+    if module in V2_ASKED_MODULES + V2_PROBED_MODULES:
+        return cover == "markets" and variant == "urn2-named"
     if module in URN_MODULES:
         return cover == "markets" and variant in URN_VARIANTS + URN2_VARIANTS
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
@@ -739,6 +764,7 @@ def stated_percentages(module, index):
 
 
 def urn_percentages(family, items, index):
+    family = V2_TWINS.get(family, family)
     kind = items["kind"][index]
     if family == "selection":
         g = items["good"][index]

@@ -33,6 +33,9 @@ CUE_MODELS = {
             ("copying", "dependence"),
             ("selection", "disclosure"),
             ("mismatch", "mismatch"),
+            ("echo", "dependence"),
+            ("hub", "disclosure"),
+            ("stale", "mismatch"),
         )
         for suffix in ("", "-asked", "-probed")
     },

@@ -469,6 +469,12 @@ CONDITIONS = {
     "selection-urn-probed": "abstract selection cases that also ask whether each reporter selects",
     "mismatch-urn-asked": "abstract mismatch cases that name it and ask for its rate",
     "mismatch-urn-probed": "abstract mismatch cases that also ask whether each reading was misfiled",
+    "echo-urn-asked": "abstract cases with observers who may repeat each other, asked for its rate",
+    "echo-urn-probed": "abstract repeating-observer cases that also ask about each report",
+    "hub-urn-asked": "abstract cases with hubs that may drop readings, asked for its rate",
+    "hub-urn-probed": "abstract dropping-hub cases that also ask about each hub",
+    "stale-urn-asked": "abstract cases with readings that may predate a refill, asked for its rate",
+    "stale-urn-probed": "abstract stale-reading cases that also ask about each reading",
 }
 
 

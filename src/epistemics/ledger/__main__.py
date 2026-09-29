@@ -15,6 +15,8 @@ uv run python -m epistemics.ledger inclusion-hier-validate --output <file>
 uv run python -m epistemics.ledger inclusion-hier-power --output <file> [--spot-structures 10]
 uv run python -m epistemics.ledger traits --output <file> [--configuration astra ...]
 uv run python -m epistemics.ledger traits-power --output <file>
+uv run python -m epistemics.ledger battery-v2 --output <file>
+uv run python -m epistemics.ledger battery-v2-recovery --output <file>
 """
 
 import argparse
@@ -126,6 +128,12 @@ def main():
     tr.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
     tr.add_argument("--output", type=Path, required=True)
     tr.add_argument("--configuration", action="append", default=None)
+    bv = sub.add_parser("battery-v2")
+    bv.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
+    bv.add_argument("--output", type=Path, required=True)
+    bvr = sub.add_parser("battery-v2-recovery")
+    bvr.add_argument("--output", type=Path, required=True)
+    bvr.add_argument("--datasets", type=int, default=24)
     tp = sub.add_parser("traits-power")
     tp.add_argument("--output", type=Path, required=True)
     ihp = sub.add_parser("inclusion-hier-power")
@@ -327,6 +335,28 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(traits.table(run))
+    elif a.command == "battery-v2":
+        import hashlib
+
+        from epistemics.ledger import battery_v2
+
+        raw = a.ledger.read_bytes()
+        models = json.loads(raw)["models"]
+        run = {
+            **battery_v2.analyse(models, models.get("structure_checks")),
+            "ledger_sha256": hashlib.sha256(raw).hexdigest(),
+        }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for trait, r in run["traits"].items():
+            print(trait, r["role"], r["configurations"], r["tasks"], json.dumps(r.get("tests")))
+    elif a.command == "battery-v2-recovery":
+        from epistemics.ledger import battery_v2
+
+        run = battery_v2.recovery(datasets=a.datasets)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(run["pass_rates"], indent=2))
     elif a.command == "traits-power":
         from epistemics.ledger import traits
 

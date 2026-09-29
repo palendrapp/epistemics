@@ -53,13 +53,18 @@ FORMATS = {
     "urn": ("copying", "selection", "mismatch"),
     "urn2": ("copying", "selection", "mismatch"),
     "urn3": ("mismatch",),
+    # Battery v2's second surfaces (tasks 0.14).
+    "urn2b": ("echo", "hub", "stale"),
 }
 # The urn variants each format reads; urn3 shares urn2's plain text and sessions.
 FORMAT_VARIANTS = {
     "urn": ("urn-plain", "urn-named"),
     "urn2": ("urn2-plain", "urn2-named"),
     "urn3": ("urn2-plain", "urn3-named"),
+    "urn2b": ("urn2-plain", "urn2-named"),
 }
+# Battery v2's second surfaces share their twin's formal core, design and recovery mapping.
+TWINS = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
 THETA = np.round(np.arange(-1.0, 4.001, 0.1), 2)
 W = np.round(np.arange(0.0, 1.501, 0.1), 2)
 SIGMA = np.array([0.05, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0])
@@ -396,6 +401,7 @@ def simulate(
     counts = counts or (COUNTS if fmt == "dossier" else URN_COUNTS)
     for fam, per_rung in counts.items():
         base = fam.split("#")[0]
+        base = TWINS.get(base, base)
         mu = TRUE_MAPPING[base]
         cue = logit(mu) - logit(mu[IRRELEVANT])
         theta = truth.get(f"theta_{fam}", truth.get("theta"))

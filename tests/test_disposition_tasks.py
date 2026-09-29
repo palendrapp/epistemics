@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 1656
+    assert audit()["cases"] == 1944
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 71
+    assert result["passed"] and len(result["contexts"]) == 83
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -735,3 +735,43 @@ def test_rated_mismatch_states_each_records_rate_once():
             assert rated["case"].replace("\n\n" + lines[0], "") == named["case"]
     assert not allowed("mismatch-urn-asked", "markets", "urn3-rated")
     assert not allowed("copying-urn", "markets", "urn3-rated")
+
+
+def test_battery_v2_surfaces_share_their_twins_designs_and_differ_only_in_story():
+    import numpy as np
+
+    from epistemics.disposition_tasks.render import allowed, items_for
+    from epistemics.disposition_tasks.urn import NAMED2, TWIN
+    from epistemics.disposition_tasks.validation import URN_MECHANISM
+
+    for family, twin in TWIN.items():
+        for suffix in ("", "-asked", "-probed"):
+            mine, theirs = items_for(f"{family}-urn{suffix}"), items_for(f"{twin}-urn{suffix}")
+            assert mine.keys() == theirs.keys()
+            for key in mine:
+                assert np.array_equal(np.asarray(mine[key]), np.asarray(theirs[key])), key
+        for i in range(24):
+            plain = render(f"{family}-urn", "markets", i, "urn2-plain")
+            named = render(f"{family}-urn", "markets", i, "urn2-named")
+            assert named["case"].count(NAMED2[family]) == 1
+            assert named["case"].replace(" Background: " + NAMED2[family], "") == plain["case"]
+            assert not any(w in plain["case"].lower() for w in URN_MECHANISM[family])
+        assert not allowed(f"{family}-urn", "markets", "urn-named")
+        assert not allowed(f"{family}-urn-asked", "markets", "urn2-plain")
+    probe = render("hub-urn-probed", "markets", 1, "urn2-named")["question"]
+    assert probe.startswith("What is the probability that in this round hub H22")
+
+
+def test_stage_presets_cross_configurations_with_five_sessions_per_task():
+    from collections import Counter
+
+    from epistemics.disposition_tasks import runner
+
+    for preset, configs, tasks in (
+        ("traits-stage1", 4, ("copying", "selection", "mismatch")),
+        ("traits-stage2", 6, ("echo", "hub", "stale")),
+    ):
+        planned = runner.check_groups(runner.PRESETS[preset])
+        cells = Counter((run[0], run[1].split("-")[0]) for run in planned)
+        assert len(planned) == configs * len(tasks) * 5
+        assert set(cells.values()) == {5} and {t for _, t in cells} == set(tasks)

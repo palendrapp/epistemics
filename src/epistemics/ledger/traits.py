@@ -42,6 +42,9 @@ def task_of(module, variant):
         "copying": "copying",
         "selection": "selection",
         "mismatch": "mismatch",
+        "echo": "echo",
+        "hub": "hub",
+        "stale": "stale",
     }
     if family not in names or "range" in module or module == "checks":
         return None, None
@@ -52,15 +55,20 @@ def task_of(module, variant):
         return f"{structure} · formal", "named"
     if module.endswith("-dossier"):
         return f"{structure} · dossier", "named"
-    if module.endswith(("-asked", "-probed")) and not module.startswith(
-        ("copying", "selection", "mismatch")
-    ):
+    if module.endswith(("-asked", "-probed")) and "-urn" not in module:
         return f"{structure} · dossier", "named"
     if module.endswith("-unprompted"):
         return f"{structure} · dossier", "open"
     # Urn tasks: only the corrected texts measure priors (copying and selection urn2, mismatch
     # urn3); every version measures precision.
-    current = {"copying": "urn2-named", "selection": "urn2-named", "mismatch": "urn3-named"}
+    current = {
+        "copying": "urn2-named",
+        "selection": "urn2-named",
+        "mismatch": "urn3-named",
+        "echo": "urn2-named",
+        "hub": "urn2-named",
+        "stale": "urn2-named",
+    }
     if variant == "urn3-rated":
         return None, None
     asked = module.endswith(("-asked", "-probed"))

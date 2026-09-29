@@ -35,7 +35,7 @@ REPORT_PRIOR = {
     "disposition": (0.0, 1.0),
     "gamma": (0.6, 1.4),
     "bias": (-0.4, 0.4),
-    "report_sd": (0.05, 0.8),
+    "report_sd": (0.01, 0.8),
 }
 CHECK_PRIOR = {
     "certainty_value": {"linear": (-20.0, 80.0), "entropy": (-40.0, 160.0)},

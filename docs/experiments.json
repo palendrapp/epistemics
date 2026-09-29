@@ -573,13 +573,27 @@
       "question": "What abstract design can show whether precision, stated-applied fidelity and noticing carry over to tasks they were not measured on?",
       "doc": "docs/battery-v2-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design: 6 configurations x 6 tasks (3 formal cores x 2 surfaces), 5 sessions per cell; primary test leave-one-task-out gain > 0 with within-task permutation p < 0.05 (Holm), secondary leave-one-core-out. Power: precision 0.99 (0.92 frontier-like), fidelity 0.91, noticing 0.62-0.79.",
-      "outcome": "Awaiting decisions: budget (78M recommended; 31M without noticing), noticing's role, session length."
+      "outcome": "Built: model 0.6.0 (report-noise grid to 0.01; validation passed on two seeds), tasks 0.14.0 (echo, hub, stale surfaces; task validation passed on two seeds; fingerprint 91883da3), battery_v2 analysis, recovery, presets. Precision primary (recovery 100% as estimated, 0% false); fidelity demoted to secondary after failing its recovery gate (58% < 80%)."
+    },
+    {
+      "id": "battery-v2",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Abstract battery v2: transfer of general traits",
+      "question": "Does a configuration's relative precision (primary), stated-applied fidelity and noticing threshold (secondary) carry over to abstract tasks it was not measured on?",
+      "doc": "docs/battery-v2-preregistration.md",
+      "roots": [
+        "output/traits-stage1-20260929"
+      ],
+      "status": "running",
+      "prediction": "H1 precision: leave-one-task-out gain > 0 and within-task permutation p < 0.05 (6 configurations x 6 tasks). Secondary: H2 fidelity, H3 noticing, H4 leave-one-core-out; near vs far descriptive."
     }
   ],
   "next": [
-    "Battery v2: decide budget and noticing's role; then build (noise grid 0.6.0, surface-B renderers 0.14.0, analysis and recovery at the design size, presets) and run Stage 1 (existing tasks for the four other configurations, ~31M tokens).",
+    "Battery v2 Stage 1 (running): the existing urn tasks for astra-low, sol-low, luna and terra; then the calibration check and Stage 2 (new surfaces for all six).",
     "Structure checks stay as a product fallback (offer for named structures; Luna and Terra).",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."

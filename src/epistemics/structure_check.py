@@ -96,6 +96,45 @@ CATALOGUE = {
         "rated": {"module": "mismatch-urn", "variant": "urn3-rated", "model": "mismatch"},
     },
 }
+# Battery v2's second surfaces (tasks 0.14), on the same ladder.
+CATALOGUE |= {
+    "echo": {
+        "name": "repeated reports",
+        "phrase": "that some observers repeat what another observer told them instead of looking",
+        "setting": "abstract urn tasks",
+        "format": "urn2b",
+        "ladder": {
+            0: ("echo-urn", "urn2-plain"),
+            1: ("echo-urn", "urn2-named"),
+            2: ("echo-urn-asked", "urn2-named"),
+            3: ("echo-urn-probed", "urn2-named"),
+        },
+    },
+    "hub": {
+        "name": "dropped readings",
+        "phrase": "that some hubs forward only the readings that favour one side",
+        "setting": "abstract urn tasks",
+        "format": "urn2b",
+        "ladder": {
+            0: ("hub-urn", "urn2-plain"),
+            1: ("hub-urn", "urn2-named"),
+            2: ("hub-urn-asked", "urn2-named"),
+            3: ("hub-urn-probed", "urn2-named"),
+        },
+    },
+    "stale": {
+        "name": "stale readings",
+        "phrase": "that some readings on file date from before the item last changed",
+        "setting": "abstract urn tasks",
+        "format": "urn2b",
+        "ladder": {
+            0: ("stale-urn", "urn2-plain"),
+            1: ("stale-urn", "urn2-named"),
+            2: ("stale-urn-asked", "urn2-named"),
+            3: ("stale-urn-probed", "urn2-named"),
+        },
+    },
+}
 # What the consumer does to reach each rung.
 ACTIONS = {
     0: ("Nothing needed", "Nothing extra: it considers {name} unprompted."),
