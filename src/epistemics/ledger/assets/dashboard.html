@@ -1,7 +1,7 @@
 <title>Epistemics Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap">
 <style>
 :root {
   --paper: #f4f6f9;
@@ -42,6 +42,7 @@
   --p-probed: #b0306a;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -222,6 +223,18 @@ label.check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6
 .key { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
 .key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
 .note { font-size: 12px; color: var(--muted); }
+/* Summary tab */
+.sum-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+.sum-block { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.sum-block h4 { font: 600 13px var(--sans); letter-spacing: 0.04em; }
+.sum-block .gloss { font-size: 12.5px; color: var(--muted); }
+.eq { font: 15px/1.7 var(--serif); overflow-x: auto; white-space: nowrap; padding: 2px 0; }
+.eq i { font-style: italic; }
+.eq .op { color: var(--muted); }
+.eqs { display: grid; gap: 2px; }
+.verdict { font-weight: 600; white-space: nowrap; }
+.verdict.yes { color: var(--ok); } .verdict.part { color: var(--warn); } .verdict.no { color: var(--bad); } .verdict.open { color: var(--accent); }
+td.num-cell { font-family: var(--mono); font-size: 12px; }
 .note.bad { color: var(--bad); }
 .readout { font: 12px var(--mono); color: var(--muted); }
 .readout b { color: var(--ink); font-weight: 500; }
@@ -269,11 +282,92 @@ label.check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6
     <p class="meta" id="meta">Loading the ledger…</p>
   </header>
   <nav class="tabs" role="tablist" aria-label="Views">
-    <button type="button" role="tab" id="tab-ledger-btn" aria-controls="tab-ledger" aria-selected="true">Ledger</button>
+    <button type="button" role="tab" id="tab-summary-btn" aria-controls="tab-summary" aria-selected="true">Summary</button>
+    <button type="button" role="tab" id="tab-ledger-btn" aria-controls="tab-ledger" aria-selected="false">Ledger</button>
     <button type="button" role="tab" id="tab-models-btn" aria-controls="tab-models" aria-selected="false">Models</button>
   </nav>
 
-  <div class="panel" id="tab-ledger" role="tabpanel" aria-labelledby="tab-ledger-btn">
+  <div class="panel" id="tab-summary" role="tabpanel" aria-labelledby="tab-summary-btn">
+    <section class="step">
+      <div><p class="eyebrow">Model</p><h3 class="step-title">Two layers: a Bayesian observer, and whether it includes the hidden structure</h3></div>
+      <div class="sum-grid">
+        <div class="sum-block">
+          <h4>1 · Report model (per session)</h4>
+          <div class="eqs">
+            <div class="eq"><i>y</i> = logit <i>p̂</i> &nbsp;~&nbsp; N( ℓ + <i>b</i>·[forecast], <i>τ</i><sup>2</sup> ), &nbsp;binned to whole %</div>
+            <div class="eq">ℓ = logit <i>P</i>(<i>H</i> | <i>E</i>; <i>π</i>, <i>γ</i>) &nbsp;=&nbsp; logit <i>P</i>(<i>H</i>) + log <i>P</i>(<i>E</i>|<i>H</i>) − log <i>P</i>(<i>E</i>|<i>L</i>)</div>
+            <div class="eq">stated accuracy <i>q</i> is read as σ(<i>γ</i> · logit <i>q</i>)</div>
+          </div>
+          <p class="gloss"><i>H</i>/<i>L</i>: high/low state (red-/blue-majority, high/low demand). <i>π<sub>l</sub></i>: prior on the hidden structure at description level <i>l</i> = 1…5. Grid posterior, uniform priors: <i>π<sub>l</sub></i> ∈ [0, 1], <i>γ</i> ∈ [0.5, 1.5], <i>b</i> ∈ [−0.6, 0.6], <i>τ</i> ∈ [0.01, 1].</p>
+        </div>
+        <div class="sum-block">
+          <h4>2 · Three hidden structures (<i>P</i>(<i>E</i>|<i>H</i>); swap <i>H</i>↔<i>L</i> for <i>P</i>(<i>E</i>|<i>L</i>))</h4>
+          <div class="eqs">
+            <div class="eq"><b>Dependence</b> &nbsp;(relay, copying, echo): &nbsp;<i>a</i><sub>1</sub> · [ <i>π</i>·1{match} + (1−<i>π</i>)·<i>b</i><sub>1</sub> ]</div>
+            <div class="eq"><b>Withholding</b> &nbsp;(disclosure, selection, hub): &nbsp;<i>π</i>·1{<i>j</i>=0}·<i>g<sup>m</sup></i>(1−<i>g</i>)<sup><i>k</i></sup> + (1−<i>π</i>)·<i>ω<sup>k</sup></i>(1−<i>ω</i>)<sup><i>m</i>+<i>j</i></sup><i>g<sup>m</sup></i>(1−<i>g</i>)<sup><i>j</i></sup></div>
+            <div class="eq"><b>Uninformative</b> &nbsp;(misfiled, stale): &nbsp;(1−<i>π</i>)·<i>a</i><sub>1</sub> + <i>π</i>/2</div>
+          </div>
+          <p class="gloss"><i>a</i><sub>1</sub>, <i>b</i><sub>1</sub>: chance of each report under <i>H</i> (a wording cue, where a case has one, multiplies <i>π</i>'s odds by its likelihood ratio). <i>m</i>, <i>j</i>, <i>k</i>: good shared, bad shared, withheld; <i>g</i>: chance an item is good under <i>H</i>; <i>ω</i>: stated random omission rate.</p>
+        </div>
+        <div class="sum-block">
+          <h4>3 · Noticing (second layer)</h4>
+          <div class="eqs">
+            <div class="eq"><i>P</i>(include) = Φ( (<i>r</i> + <i>w</i>·<i>c<sub>l</sub></i> + <i>ε<sub>s</sub></i> − <i>θ</i>) / 0.3 ), &nbsp;<i>ε<sub>s</sub></i> ~ N(0, <i>σ</i><sup>2</sup>)</div>
+            <div class="eq"><i>π<sub>l</sub></i> ~ logit-N(<i>μ<sub>l</sub></i>, <i>ω</i>) if included, else 0; &nbsp;<i>c<sub>l</sub></i> = logit <i>μ<sub>l</sub></i> − logit <i>μ</i><sub>irrelevant</sub></div>
+            <div class="eq">stated rate = applied <i>π<sub>l</sub></i> (prob. <i>φ</i>), else <i>μ<sub>l</sub></i></div>
+          </div>
+          <p class="gloss">Rung <i>r</i>: 0 plain · 1 named · 2 named and asked for its rate · 3 also asked per case. <i>θ</i>: the rung at which a structure is included half the time when nothing hints at it. Across structures <i>k</i>: <i>θ<sub>k</sub></i> ~ N(<i>θ̄</i>, <i>τ<sub>θ</sub></i><sup>2</sup>).</p>
+        </div>
+        <div class="sum-block">
+          <h4>4 · Traits and the transfer test</h4>
+          <div class="eqs">
+            <div class="eq">precision = log <i>τ</i>; &nbsp;fidelity = mean<sub><i>l</i>=2…4</sub> | stated<sub><i>l</i></sub> − <i>π̂<sub>l</sub></i> |; &nbsp;noticing = <i>θ</i></div>
+            <div class="eq"><i>d<sub>ct</sub></i> = <i>y<sub>ct</sub></i> − mean<sub><i>c′</i>≠<i>c</i></sub> <i>y<sub>c′t</sub></i>, &nbsp; <i>d̂<sub>ct</sub></i> = mean<sub><i>t′</i>≠<i>t</i></sub> <i>d<sub>ct′</sub></i></div>
+            <div class="eq">gain <i>G</i> = 1 − Σ(<i>d</i> − <i>d̂</i>)<sup>2</sup> / Σ<i>d</i><sup>2</sup>; &nbsp; <i>p</i> = <i>P</i>(<i>G</i><sub>shuffled</sub> ≥ <i>G</i>)</div>
+          </div>
+          <p class="gloss"><i>c</i>: configuration, <i>t</i>: task. Shuffles permute configurations within each task, which keeps task effects and removes consistency. A trait transfers if <i>G</i> &gt; 0 and <i>p</i> &lt; 0.05.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div><p class="eyebrow">Key results</p><h3 class="step-title">What the configurations do</h3></div>
+      <div class="scroll"><table>
+        <thead><tr><th>Finding</th><th>Numbers</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>Given every rate, frontier configurations compute the Bayesian answer.</td><td class="num-cell">γ ≈ 1, b ≈ 0; a stated misfiling rate is used exactly (gap ≤ 0.001, 4 of 4 sessions)</td><td>acceptance; structure checks</td></tr>
+          <tr><td>A named possibility with no rate is set to about 50%.</td><td class="num-cell">all six configurations; Sol varies more</td><td>acceptance; round 2; trait reanalysis</td></tr>
+          <tr><td>Descriptions set priors monotonically.</td><td class="num-cell">relay: 5% → 95% across five descriptions (Astra, Sol)</td><td>cue modules</td></tr>
+          <tr><td>Priors from formal cases predict realistic dossiers.</td><td class="num-cell">error 1.4–4.0 points against 7.7–9.2 for a 50% default</td><td>dossier transfer</td></tr>
+          <tr><td>An unnamed structure is usually ignored.</td><td class="num-cell">aggregator 0–3% unnamed against 93–95% with the mechanism stated; misfiling 0% in 12 of 12 plain sessions</td><td>unprompted; abstract</td></tr>
+          <tr><td>One sentence naming it restores the clear cases, not the 50% default.</td><td class="num-cell">aggregator 86–92%; irrelevant description 17–33%</td><td>salience</td></tr>
+          <tr><td>Stated and applied base rates mostly agree (within 10 points at every level).</td><td class="num-cell" id="summary-coherence">—</td><td>ledger coherence</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">Prompting needed before each hidden structure is reliably considered (structure checks, from the ledger):</p>
+      <div class="scroll"><table id="summary-checks"></table></div>
+    </section>
+
+    <section class="step">
+      <div><p class="eyebrow">Transfer</p><h3 class="step-title">What carries over</h3></div>
+      <div class="scroll"><table>
+        <thead><tr><th>From → to</th><th>Carries over?</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Formal cases → realistic dossiers (same structure)</td><td><span class="verdict yes">Yes</span> (priors)</td><td class="num-cell">error 1.4–4.0 points against 7.7–9.2</td></tr>
+          <tr><td>Unnamed → named (same structure)</td><td><span class="verdict part">Partly</span> (clear cases only)</td><td class="num-cell">aggregator 0–3% → 86–92%; default stays below 50%</td></tr>
+          <tr><td>One structure → another, absolute threshold <i>θ</i></td><td><span class="verdict no">No</span> (tasks differ for everyone)</td><td class="num-cell">Sol: τ<sub>θ</sub> 0.84 [0.33, 1.65] rungs</td></tr>
+          <tr><td>One task → another: precision (relative)</td><td><span class="verdict yes">Yes</span></td><td class="num-cell">ρ 0.91 [0.71, 1.00]; G 0.59; sign 85% (6 configurations, 9 tasks)</td></tr>
+          <tr><td>One task → another: stated–applied fidelity</td><td><span class="verdict part">Between model families</span></td><td class="num-cell">ρ 0.75; G 0.40 (driven by Luna)</td></tr>
+          <tr><td>One task → another: noticing (relative)</td><td><span class="verdict open">Lead</span></td><td class="num-cell">Astra needs less prompting than Sol in 3 of 4 structures; G 0.22</td></tr>
+          <tr><td>One task → another: unstated-rate default, cue sensitivity</td><td><span class="verdict no">No</span></td><td class="num-cell">no variation between configurations; G &lt; 0</td></tr>
+          <tr><td>Confirmatory test (battery v2)</td><td><span class="verdict open" id="summary-v2-status">—</span></td><td class="num-cell">6 configurations × 6 tasks (3 cores × 2 stories); precision primary (recovery: 100% passes, 0% false)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">G: leave-one-task-out transfer gain; ρ: share of a configuration's deviation that it carries to every task. Relative transfer is exploratory until battery v2 reports.</p>
+    </section>
+  </div>
+
+  <div class="panel" id="tab-ledger" role="tabpanel" aria-labelledby="tab-ledger-btn" hidden>
   <div class="stats" id="stats"></div>
 
   <section>
@@ -575,7 +669,41 @@ function renderUsage(byDay) {
   box.append(bars);
 }
 
+function renderSummary(ledger) {
+  const checks = (ledger.models && ledger.models.structure_checks && ledger.models.structure_checks.checks) || {};
+  const NAMES = { relay: "Sources repeating another source (dossiers)", disclosure: "Selective silence (dossiers)",
+    copying: "Copied readings (urns)", selection: "Selective reporting (urns)", mismatch: "Misfiled readings (urns)",
+    echo: "Repeated reports (urns)", hub: "Dropped readings (urns)", stale: "Stale readings (urns)" };
+  const ADVICE = { 0: "nothing needed", 1: "mention it", 2: "mention it, ask how common",
+    3: "mention it, ask how common, ask per case", rate: "state the rate", none: "not reliable" };
+  const configs = Object.keys(checks).sort(byConfig);
+  const structures = Object.keys(NAMES).filter(s => configs.some(c => checks[c][s]));
+  const table = document.getElementById("summary-checks");
+  if (!configs.length) { table.replaceWith(el("p", { class: "note" }, "No structure checks recorded yet.")); }
+  else {
+    table.append(el("thead", {}, el("tr", {}, el("th", {}, "Structure"), configs.map(c => el("th", {}, cfgName(c))))));
+    table.append(el("tbody", {}, structures.map(s => el("tr", {}, el("td", {}, NAMES[s]), configs.map(c => {
+      const x = checks[c][s];
+      if (!x) return el("td", { class: "none" }, "—");
+      if (!x.valid) return el("td", { class: "none" }, "not converged");
+      const advice = x.advice !== undefined ? x.advice : x.recommended_rung;
+      const p0 = x.inclusion_by_rung && x.inclusion_by_rung["0"] ? x.inclusion_by_rung["0"].mean : null;
+      return el("td", { class: "num-cell" }, ADVICE[advice === null ? "none" : advice] || String(advice),
+        p0 === null ? null : el("span", { class: "muted" }, ` · unprompted ${pct(p0)}`));
+    })))));
+  }
+  const coherent = Object.entries(ledger.passport || {})
+    .filter(([, p]) => p.description_coherence)
+    .sort(([a], [b]) => byConfig(a, b))
+    .map(([c, p]) => `${cfgName(c)} ${p.description_coherence[0]} of ${p.description_coherence[1]}`);
+  document.getElementById("summary-coherence").textContent = coherent.length ? coherent.join("; ") + " sessions" : "—";
+  const v2 = (ledger.experiments || []).find(e => e.id === "battery-v2");
+  const status = document.getElementById("summary-v2-status");
+  status.textContent = v2 ? (v2.status === "complete" ? "Reported" : v2.status === "running" ? "Running" : v2.status) : "Planned";
+}
+
 function render(ledger) {
+  try { renderSummary(ledger); } catch (err) { console.error(err); }
   const t = ledger.totals;
   const running = ledger.experiments.filter(e => e.status === "running").map(e => e.title);
   document.getElementById("meta").textContent =
@@ -611,7 +739,7 @@ function render(ledger) {
 
 /* ---------- Tabs ---------- */
 function setupTabs() {
-  const tabs = ["ledger", "models"];
+  const tabs = ["summary", "ledger", "models"];
   const button = (t) => document.getElementById(`tab-${t}-btn`);
   const show = (name, remember) => {
     for (const t of tabs) {
@@ -635,9 +763,9 @@ function setupTabs() {
   });
   let initial = (location.hash || "").replace("#", "");
   if (!tabs.includes(initial)) {
-    try { initial = localStorage.getItem("ledger-tab") || "ledger"; } catch (e) { initial = "ledger"; }
+    try { initial = localStorage.getItem("ledger-tab") || "summary"; } catch (e) { initial = "summary"; }
   }
-  show(tabs.includes(initial) ? initial : "ledger", false);
+  show(tabs.includes(initial) ? initial : "summary", false);
 }
 
 /* ---------- Model views: constants ---------- */
