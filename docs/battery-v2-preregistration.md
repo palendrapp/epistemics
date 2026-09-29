@@ -122,3 +122,26 @@ With no trait, the test passes 5.75% of the time.
 | Task validation 0.14, seed 20261027 | `5d75ce5202bc494991c984fbe32dfabd94c8575c1ef20dddeeb45d61baa2df87` |
 | Transfer-test power | `54020bc1bc1d21eb4ebe5236810e1ad5822508e694ad80bb8384d98aa50da4f1` |
 | Transfer-test recovery | `5077c141835a19962f210f17ecbd7c3c027a8662db6f9cc693aa4b3cf015d76b` |
+
+## Stage 1 and the calibration check (recorded before Stage 2)
+
+**Collection.** All 60 contexts completed and verified, with no errors: 30.3 million input tokens (28.0 million cached), 61 minutes.
+- **A ledger fix was needed:** it first ignored this collection, because its directory name did not start with `disposition-` or `structure-check-`. It now also reads `traits-stage` directories.
+- **An invalid check output was discarded:** a structure-check output computed before the fix, without Stage 1's sessions, was deleted before use.
+
+**Calibration rule.** Is any surface-B twin at ceiling (θ below 0) or floor (θ above 3) for every configuration? Per-structure second-layer fits, all six configurations (`output/structure-checks-20260929-5.json`):
+
+| Task | θ by configuration (Astra, Sol, Astra-low, Sol-low, Luna, Terra) | At a bound for all? |
+| --- | --- | --- |
+| Copying | −0.76, 0.05, 0.07, −0.21, 0.52 (not converged), 0.54 | No |
+| Selection | −0.25, −0.26, −0.25, −0.26, 1.08, 1.19 | No |
+| Mismatch | 1.03, 1.17, 0.99, 1.06, 0.10, 1.19 | No |
+
+**Result: no surface-B story is reworded.** Stage 2 runs on the validated texts (fingerprint `91883da3…`). No transfer test was run on Stage 1 data.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Stage 1 plan.json | `7bf3e80cb1eb382853d532981bc2dc4e6b61652c2954b51f2e47b32454eb34b6` |
+| Stage 1 execution.json | `dd1c72506b1f51371affe5599f961e64e9a864e6c6399ffd6769b530ebcf560b` |
+| Stage 1 summary.json | `bafb61df9e04f220d944182dbc3ff1b07523ba57d19071fa576f7181687259b6` |
+| Structure checks, six configurations | `0a4625130808a3e25d7e133ece3bdee07198f69ece67c3ba1e1332be95787e44` |

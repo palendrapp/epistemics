@@ -580,6 +580,7 @@ def test_structure_check_collections_count_as_disposition_runs():
 
     assert build.is_disposition("output/disposition-abstract2-20260929")
     assert build.is_disposition("output/structure-check-mismatch3-20260929")
+    assert build.is_disposition("output/traits-stage1-20260929")
     assert not build.is_disposition("output/research-world3-acceptance")
 
 

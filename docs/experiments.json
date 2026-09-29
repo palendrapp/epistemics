@@ -586,14 +586,15 @@
       "question": "Does a configuration's relative precision (primary), stated-applied fidelity and noticing threshold (secondary) carry over to abstract tasks it was not measured on?",
       "doc": "docs/battery-v2-preregistration.md",
       "roots": [
-        "output/traits-stage1-20260929"
+        "output/traits-stage1-20260929",
+        "output/traits-stage2-20260929"
       ],
       "status": "running",
       "prediction": "H1 precision: leave-one-task-out gain > 0 and within-task permutation p < 0.05 (6 configurations x 6 tasks). Secondary: H2 fidelity, H3 noticing, H4 leave-one-core-out; near vs far descriptive."
     }
   ],
   "next": [
-    "Battery v2 Stage 1 (running): the existing urn tasks for astra-low, sol-low, luna and terra; then the calibration check and Stage 2 (new surfaces for all six).",
+    "Battery v2 Stage 2 (running): echo, hub and stale for all six configurations; then the preregistered analysis.",
     "Structure checks stay as a product fallback (offer for named structures; Luna and Terra).",
     "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."

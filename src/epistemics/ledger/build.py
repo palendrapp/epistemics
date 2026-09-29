@@ -13,7 +13,7 @@ CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
 
 def is_disposition(root):
     """Collections from the disposition battery, including structure checks run through it."""
-    return Path(root).name.startswith(("disposition-", "structure-check-"))
+    return Path(root).name.startswith(("disposition-", "structure-check-", "traits-stage"))
 
 
 def commit():
