@@ -452,10 +452,24 @@
       "status": "complete",
       "prediction": "P1-P4 as in the first run, assessed only if the primary fit converges (R-hat <= 1.05); S1 per structure. C1: selection's strongest level at least 0.50 at rungs 2 and 3. C2: mismatch's strongest level at rung 3 within 0.20 of rung 1.",
       "outcome": "C1 supported: named selection keeps one mapping at every rung (1 of 200 blue 0.95-1.00 at rungs 2-3). C2 not supported: Sol's strongest mismatch level fell 0.97 -> 0.63; Astra read the clarified accuracy sentence as covering misfiling (0.00 at every named rung). Primary fit did not converge (R-hat 1.96 Astra, 1.15 Sol); P1-P4 not assessable. Per-structure fits all converged: theta selection -0.25/-0.26, copying -0.77/0.07, mismatch 2.42/0.86 (Astra/Sol); S1 holds only for Sol mismatch (0.86 vs dossier 0.74). Where both fits converged (Sol), structure-specific thresholds beat shared by 20.7 +/- 5.9 WAIC. Plain selection answers identical across all 12 sessions of both runs. Astra, not Sol, showed the copying stated-applied gap this run."
+    },
+    {
+      "id": "inclusion-hierarchical",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "model",
+      "title": "Second layer: thresholds per structure, partially pooled",
+      "question": "How much does a configuration's inclusion threshold vary between hidden structures (dossier relay and disclosure; urn copying, selection and mismatch), and what does that predict for an untested structure?",
+      "doc": "docs/structure-inclusion-model.md",
+      "roots": [
+        "output/disposition-abstract2-20260929"
+      ],
+      "status": "running",
+      "prediction": "Specified before fitting (not blind: per-structure urn thresholds known). Spread tau_theta read as generalises (90% interval below 0.5 rung), structure-specific (above) or undetermined. E1 Astra structure-specific; E2 Sol undetermined; E3 without mismatch, Astra undetermined. Recovery gates R1-R5 before reporting."
     }
   ],
   "next": [
-    "Hierarchical second layer: thresholds per structure and format, partially pooled to a configuration mean; recovery first, then fit to existing dossier and urn sessions.",
+    "Hierarchical second layer: recovery, then fit to existing dossier and corrected urn sessions (specified in docs/structure-inclusion-model.md).",
     "Optional: third mismatch wording, checked for its reading before collection.",
     "Luna and Terra on rungs 0-2 so their inclusion parameters are identified.",
     "Reading guide: review wording and thresholds.",

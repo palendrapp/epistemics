@@ -59,6 +59,7 @@ Papers cited in conversation or design notes without full treatment, each with t
 | --- | --- | --- | --- |
 | [Wilson & Collins 2019](https://elifesciences.org/articles/49547) | Distinguishes parameter recovery from model recovery and asks for both before fitting data. The recovery protocol in model §4. | 27 Sep, model §4 | [R] |
 | [Mkrtchian, Valton & Roiser 2023](https://cpsyjournal.org/articles/10.5334/cpsy.86) | Reliability of computational parameters; joint hierarchical fitting across sessions improves test–retest. Basis for reporting retest beside recovery. | 27 Sep, model §4 | [S] |
+| [Gelman 2006](https://doi.org/10.1214/06-BA117A) | Priors for hierarchical variance parameters. A flat prior on a group-level standard deviation is fine with many groups but leaves a long upper tail with few, where a half-Cauchy or half-normal scaled to plausible values is recommended. This is the basis for the half-normal prior (scale 1 rung) on the between-structure threshold spread, with five structures per configuration. | 29 Sep, [hierarchical thresholds](structure-inclusion-model.md) | [M] |
 
 ## Relative judgement
 

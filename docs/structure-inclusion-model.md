@@ -190,6 +190,44 @@ That version gave Sol φ = 0.57 and marked as incoherent many formal and dossier
 - **Sol also varies more between sessions** in whether it considers a named structure (σ 0.74 against 0.39), and needs slightly more prompting (θ 0.74 against 0.47; the intervals overlap).
 - **Copying against selective silence:** a separate threshold for each still gets at most weak support (Astra −6 ± 5; Sol +2 ± 5).
 
+## Hierarchical thresholds (specified 29 September, before fitting)
+
+**Why.** In the corrected abstract run, fits one structure at a time converged but gave thresholds that differ by structure. The question becomes how much a configuration's threshold varies between structures, and what that predicts for a structure it has not been tested on.
+
+**Model** (`epistemics.ledger.inclusion_hier`, `inclusion-hier`).
+- **Structures:**
+  - relay dossiers, including the formal cue modules;
+  - disclosure dossiers;
+  - the corrected urn tasks' copying, selection and mismatch.
+
+  The first urn run is excluded: two of its three named wordings were flawed, and all three differ from the corrected ones.
+- **Per structure:** each keeps the model of the per-structure analysis: mapping μ and spread ω, cue weight w, session drift σ, stated-rate noise τ, and fidelity φ under the mixture stated channel.
+- **Pooling:** only the thresholds are tied. θ_k ~ N(θ̄, τ_θ²), truncated to [−1, 4]. θ̄ is uniform on [−1, 4]. τ_θ is half-normal with a scale of one rung, on [0.02, 3]. With five structures a flat prior leaves a long upper tail (seen in trial fits on synthetic data); the half-normal says spreads beyond two rungs are unlikely (Gelman, 2006).
+- **Reported quantities:**
+  - θ̄, the typical threshold;
+  - τ_θ, the spread between structures, in rungs;
+  - θ for an untested structure (posterior predictive), which is the product-relevant quantity.
+- **Sampling:** given (θ̄, τ_θ) the structures are independent. Each structure's block gets its own adaptive Metropolis step. Shift and scale moves act on all thresholds at once, so chains can cross the funnel near τ_θ = 0. The fit uses 4 chains of 30,000 iterations, with 12,000 burn-in.
+
+**Decision rule for τ_θ.** The limit is 0.5 rung, the tolerance used in P1 of the abstract transfer.
+- **Generalises:** the 90% interval lies below 0.5.
+- **Structure-specific:** the 90% interval lies above 0.5.
+- **Undetermined:** otherwise.
+
+**Validity.** Estimates are reported only if every parameter has R-hat of 1.05 or less.
+
+**Recovery gates.** These use 30 synthetic configurations at the collected session counts. Each gate must pass before the corresponding real estimate is reported.
+- **R1, θ_k:** correlation of at least 0.9, and 90% coverage of at least 0.8.
+- **R2, θ̄:** 90% coverage of at least 0.8.
+- **R3, τ_θ:** 90% coverage of at least 0.8.
+- **R4, wrong-direction readings:** at most 3 of 30. A wrong-direction reading is "generalises" when the true τ_θ is above 0.75, or "structure-specific" when it is below 0.25.
+- **R5, convergence:** at least 27 of 30 datasets converged.
+
+**Expectations.** This is a specified re-analysis, not a blind test. The per-structure urn thresholds are already known (Astra −0.25, −0.77, 2.42; Sol −0.26, 0.07, 0.86).
+- **E1.** Astra's spread reads structure-specific.
+- **E2.** Sol's spread is undetermined.
+- **E3.** Sensitivity analysis without mismatch, whose corrected wording was misread: Astra's spread is undetermined.
+
 ## What it would add to the passport
 
 The candidate readings are more general than the current task-level ones:

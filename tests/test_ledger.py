@@ -441,3 +441,43 @@ def test_fidelity_mixture_estimates_the_share_of_coherent_sessions():
     assert fit["parameters"]["phi"]["mean"] > 0.5
     probabilities = [p for ps in fit["session_fidelity"].values() for p in ps if p is not None]
     assert len(probabilities) >= 20 and all(0 <= p <= 1 for p in probabilities)
+
+
+def test_simulate_takes_per_structure_parameters_and_counts():
+    from epistemics.ledger import inclusion
+
+    rng = np.random.default_rng(5)
+    truth = {"theta_selection": -0.5, "theta_mismatch": 3.5, "w": 0.0}
+    truth |= {"sigma_selection": 0.2, "sigma_mismatch": 0.2, "phi": 1.0}
+    counts = {"selection": {0: 2, 3: 1}, "mismatch": {0: 2, 3: 1}}
+    rows = inclusion.simulate(rng, truth, stated=True, stated_source="mixture", counts=counts)
+    assert {f: len(r) for f, r in rows.items()} == {"selection": 3, "mismatch": 3}
+    assert [s for s, _, _ in rows["selection"]] == [0, 0, 3]
+
+
+def test_hierarchical_thresholds_order_structures_and_read_the_spread():
+    from epistemics.ledger import inclusion
+    from epistemics.ledger import inclusion_hier as hier
+
+    rng = np.random.default_rng(11)
+    truth = {"theta_selection": -0.5, "theta_mismatch": 2.5, "w": 0.2, "sigma": 0.3, "phi": 0.9}
+    counts = {f: inclusion.URN_COUNTS[f] for f in ("selection", "mismatch")}
+    rows = inclusion.simulate(rng, truth, stated=True, stated_source="mixture", counts=counts)
+    result = hier.sample(rows, chains=2, iterations=1500, burn=500)
+    thetas = {f: x["parameters"]["theta"]["mean"] for f, x in result["structures"].items()}
+    assert thetas["selection"] < 0.5 < 1.5 < thetas["mismatch"]
+    assert result["spread_reading"] in ("generalises", "structure-specific", "undetermined")
+    lo, hi = result["theta_new_structure"]["interval_90"]
+    assert -1 <= lo < hi <= 4
+    assert result["structures"]["mismatch"]["format"] == "urn2"
+
+
+def test_hierarchical_prior_bounds_and_truncated_draws():
+    from epistemics.ledger import inclusion_hier as hier
+
+    assert hier.hyper_logprior(np.array([0.0, 1.0]), 5.0, 1.0) == -np.inf
+    assert hier.hyper_logprior(np.array([0.0, 1.0]), 0.5, 0.0) == -np.inf
+    draws = hier.truncated_normal_draws(
+        np.random.default_rng(2), np.full(500, -1.0), np.full(500, 3.0)
+    )
+    assert draws.min() >= -1 and draws.max() <= 4

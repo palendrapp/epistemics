@@ -10,6 +10,8 @@ uv run python -m epistemics.ledger inclusion [--configuration astra --configurat
 uv run python -m epistemics.ledger inclusion-validate --output <file>
 uv run python -m epistemics.ledger inclusion-joint [--configuration astra --configuration sol]
 uv run python -m epistemics.ledger inclusion-joint-validate --output <file>
+uv run python -m epistemics.ledger inclusion-hier [--family relay ...] [--output <file>]
+uv run python -m epistemics.ledger inclusion-hier-validate --output <file>
 """
 
 import argparse
@@ -103,6 +105,20 @@ def main():
     ijv.add_argument("--datasets", type=int, default=30)
     ijv.add_argument("--models", type=int, default=12)
     ijv.add_argument("--format", choices=("dossier", "urn"), default="dossier")
+    ih = sub.add_parser("inclusion-hier")
+    ih.add_argument("--ledger", type=Path, default=Path("output/ledger.json"))
+    ih.add_argument("--configuration", action="append", default=None)
+    ih.add_argument(
+        "--family",
+        action="append",
+        default=None,
+        help="Structures to pool (default: relay, disclosure, copying, selection, mismatch)",
+    )
+    ih.add_argument("--output", type=Path, default=None)
+    ihv = sub.add_parser("inclusion-hier-validate")
+    ihv.add_argument("--output", type=Path, required=True)
+    ihv.add_argument("--datasets", type=int, default=30)
+    ihv.add_argument("--workers", type=int, default=8)
     fv = sub.add_parser("fidelity-validate")
     fv.add_argument("--output", type=Path, required=True)
     fv.add_argument("--datasets", type=int, default=20)
@@ -229,6 +245,40 @@ def main():
         summary = {
             k: run[k]
             for k in ("metrics", "converged_only", "converged_datasets", "stated_model_recovery")
+        }
+        print(json.dumps(summary, indent=2))
+    elif a.command == "inclusion-hier":
+        from epistemics.ledger import inclusion
+        from epistemics.ledger import inclusion_hier as hier
+
+        models = json.loads(a.ledger.read_text())["models"]
+        chosen = a.family or list(hier.FORMAT)
+        result = {}
+        for config in a.configuration or ["astra", "sol"]:
+            rows = {}
+            for fmt_ in ("dossier", "urn2"):
+                rows.update(inclusion.ledger_sessions(models, config, fmt=fmt_))
+            rows = {f: rows[f] for f in chosen if f in rows}
+            result[config] = hier.sample(rows, workers=4)
+        text = json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n"
+        if a.output:
+            a.output.parent.mkdir(parents=True, exist_ok=True)
+            a.output.write_text(text)
+        print(text)
+    elif a.command == "inclusion-hier-validate":
+        from epistemics.ledger import inclusion_hier as hier
+
+        run = hier.validate(datasets=a.datasets, workers=a.workers)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        summary = {
+            k: run[k]
+            for k in (
+                "metrics",
+                "spread_readings_by_true_spread",
+                "wrong_direction_readings",
+                "converged_datasets",
+            )
         }
         print(json.dumps(summary, indent=2))
     elif a.command == "fidelity-validate":

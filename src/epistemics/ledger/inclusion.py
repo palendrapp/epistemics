@@ -355,9 +355,13 @@ def simulate(
     stated=False,
     stated_source="considered",
     fmt="dossier",
+    counts=None,
 ):
     """Synthetic sessions per family. Stated rates, when asked, report the mapping ("considered")
-    or the session's applied prior ("applied")."""
+    or the session's applied prior ("applied").
+
+    θ, w, σ and φ may be given per family (theta_relay, w_relay, ...) or shared (theta, w, ...).
+    counts overrides the format's session counts per family and rung."""
     from epistemics.dispositions import observers
     from epistemics.dispositions.response import sample_reports
 
@@ -377,15 +381,19 @@ def simulate(
         "mismatch": "mismatch",
     }
     rows = {}
-    for fam, counts in (COUNTS if fmt == "dossier" else URN_COUNTS).items():
+    counts = counts or (COUNTS if fmt == "dossier" else URN_COUNTS)
+    for fam, per_rung in counts.items():
         mu = TRUE_MAPPING[fam]
         cue = logit(mu) - logit(mu[IRRELEVANT])
-        for salience, n in counts.items():
+        theta = truth.get(f"theta_{fam}", truth.get("theta"))
+        w = truth.get(f"w_{fam}", truth.get("w"))
+        sigma = truth.get(f"sigma_{fam}", truth.get("sigma"))
+        fidelity = truth.get(f"phi_{fam}", truth.get("phi"))
+        for salience, n in per_rung.items():
             items = items_for[(fam, salience)]
             for _ in range(n):
                 eps = rng.normal()
-                theta = truth.get(f"theta_{fam}", truth.get("theta"))
-                p = inclusion_probability(salience, cue, theta, truth["w"], truth["sigma"], eps)
+                p = inclusion_probability(salience, cue, theta, w, sigma, eps)
                 included = rng.random(5) < p
                 applied = np.where(
                     included,
@@ -395,7 +403,7 @@ def simulate(
                 latent = observers.cue_observer(observer[fam], items, applied, 1.0)
                 source_here = stated_source
                 if stated_source == "mixture":
-                    source_here = "applied" if rng.random() < truth["phi"] else "considered"
+                    source_here = "applied" if rng.random() < fidelity else "considered"
                 source = (
                     logit(mu)
                     if source_here == "considered"
