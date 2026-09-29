@@ -534,6 +534,20 @@
       "status": "complete",
       "prediction": "Variant urn3-rated adds one rate line per record (5, 20, 30, 40, 60%). A session follows if implied priors are within 0.10 on average and 0.20 at every level. Gates: follows when applied at least 90%, falsely follows at most 10%; task validation 0.13 on two seeds.",
       "outcome": "Task validation 0.13 passed on both seeds (1,656 cases, 71 contexts; fingerprint 73d66dbc). Rule: follows when applied 57/60 (95%); falsely follows 0/120 across four alternative priors. Collection pending: 4 contexts, about 2.1M tokens."
+    },
+    {
+      "id": "structure-check-mismatch-rated",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Rate-stating sessions for misfiled readings",
+      "question": "When told how common misfiled readings are for each kind of sensor, do Astra and Sol forecast with the stated rates?",
+      "doc": "docs/structure-checks.md",
+      "roots": [
+        "output/structure-check-mismatch-rated-20260929"
+      ],
+      "status": "running",
+      "prediction": "F1: rated rung reliable if both sessions follow (mean gap <=0.10, largest <=0.20). E1: both configurations follow in both sessions. E2: both get the advice 'state how common it is'."
     }
   ],
   "next": [

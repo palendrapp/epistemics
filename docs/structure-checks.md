@@ -303,3 +303,15 @@ Collection needs both gates and task validation 0.13 on two seeds.
 ```bash
 uv run python -m epistemics.structure_check collect output/structure-check-mismatch-rated-<date> --configuration astra --configuration sol --structure mismatch --protocol reduced --rated-only --validation output/disposition-tasks-v0.13-validation-20260927.json --validation output/disposition-tasks-v0.13-validation-20261027.json
 ```
+
+### Preregistration: the rate-stating sessions (written before collection)
+
+**Design.** Two rated sessions per configuration for Astra and Sol (4 contexts, cap 2.5 million tokens), on battery 0.13.0 with its two validations.
+
+**Criterion.**
+- **F1.** A configuration's rated rung is reliable if both of its sessions follow the stated rates (mean gap 0.10 or less, largest 0.20 or less).
+- **Advice:** because neither configuration has a reliable ladder rung for misfiled readings, a reliable rated rung makes its advice "state how common it is".
+
+**Expectations.**
+- **E1.** Both configurations follow the stated rates in both sessions. When asked, they stated and applied the same rates, and earlier tasks with stated rates were computed exactly.
+- **E2.** Both configurations' misfiled-readings advice becomes "state how common it is".
