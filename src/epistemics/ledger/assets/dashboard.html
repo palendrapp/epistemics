@@ -640,7 +640,10 @@ const MODULE_SHORT = {
   "corroboration-dossier": "relay dossier", "disclosure-dossier": "disclosure dossier",
   "corroboration-unprompted": "relay unprompted", "disclosure-unprompted": "disclosure unprompted",
   "corroboration-asked": "relay named and asked", "disclosure-asked": "disclosure named and asked",
-  "corroboration-probed": "relay named, asked and probed"
+  "corroboration-probed": "relay named, asked and probed",
+  "copying-urn": "urn copying", "copying-urn-asked": "urn copying asked", "copying-urn-probed": "urn copying probed",
+  "selection-urn": "urn selection", "selection-urn-asked": "urn selection asked", "selection-urn-probed": "urn selection probed",
+  "mismatch-urn": "urn mismatch", "mismatch-urn-asked": "urn mismatch asked", "mismatch-urn-probed": "urn mismatch probed"
 };
 const cfgName = (c) => CONFIG_NAMES[c] || c;
 const cfgColor = (c) => `var(--c-${c})`;
@@ -732,6 +735,12 @@ function shortLabel(design, i) {
     if (g === "probe") return level + `probe: relayed? both ${call(it.report_a)}${cue ? ", " + cue : ""}`;
     if (g === "agree") return level + `both ${call(it.report_a)}, prior ${pct(it.prior)}${cue ? ", " + cue : ""}`;
     return level + `${pct(it.accuracy_a)} ${call(it.report_a)} vs ${pct(it.accuracy_b)} ${call(it.report_b)}`;
+  }
+  if (design.family === "mismatch") {
+    if (g === "rate") return level + "stated base rate";
+    const colour = it.report_a > 0 ? "red" : "blue";
+    if (it.kind === "own") return level + `own draw, ${pct(it.accuracy_a)}, ${colour}`;
+    return level + `${it.kind === "probe" ? "probe: misfiled? " : ""}sensor ${pct(it.accuracy_a)} reads ${colour}`;
   }
   if (design.family === "disclosure") {
     if (g === "rate") return level + "stated base rate";

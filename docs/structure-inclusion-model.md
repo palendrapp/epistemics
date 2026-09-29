@@ -202,7 +202,7 @@ These become passport readings only if they transfer.
 ## Next
 
 1. **Joint fit.** Done (above). It fixes w's coverage and estimates stated–applied fidelity directly.
-2. **Abstract transfer task (confirmatory).** Build contentless urn versions of copying (some draws are copies of earlier draws) and selection (a sampler shows only some draws). Add a third hidden structure, such as a common cause or survivorship. Each runs on the same four rungs, cued by structure alone. Preregister that the dossier θ predicts inclusion rates in the abstract tasks.
+2. **Abstract transfer task (confirmatory).** Run on 28–29 September ([record](disposition-abstract-2026-09-28.md)). The preregistered fit did not converge because of two design flaws in the urn cues. Exploratory fits on the mismatch structure alone reproduced the dossier thresholds (θ 0.69 for both configurations). The parameters above stay dossier-specific until a corrected task is run. The original plan follows. Build contentless urn versions of copying (some draws are copies of earlier draws) and selection (a sampler shows only some draws). Add a third hidden structure, such as a common cause or survivorship. Each runs on the same four rungs, cued by structure alone. Preregister that the dossier θ predicts inclusion rates in the abstract tasks.
    - **The shared-trait claim** predicts that the configurations' ordering and rung profiles carry over.
    - **The family-specific alternative** predicts that the relay-like structure needs more prompting in every format.
 3. **Luna and Terra.** Collect rungs 0–2, so their θ is identified.

@@ -1,6 +1,19 @@
 # Abstract transfer of the second layer: urn tasks — 28 September 2026
 
-Preregistration, written and committed before collection. This is the confirmatory test proposed in the [second-layer model](structure-inclusion-model.md#next).
+Preregistration, written and committed before collection; the results follow below. This is the confirmatory test proposed in the [second-layer model](structure-inclusion-model.md#next).
+
+**Result.** The preregistered analysis failed. The second-layer fit to the urn sessions did not converge (R-hat 1.4–13), so P1–P4 cannot be assessed as preregistered.
+
+The failure traces to two design problems the data exposed:
+- **Selection:** once the mechanism is named, the selection records contradict it logically.
+- **Mismatch:** stated sensor accuracy is ambiguous about whether it includes filing errors.
+
+Descriptively and in exploratory fits:
+- **Unprompted neglect transfers:** fully for the new mismatch structure, partly for copying.
+- **Naming restores consideration** for both copying and mismatch.
+- **Mismatch alone** gives inclusion thresholds close to the dossier ones.
+- **Sol's stated–applied gap** reappeared in the copying asked condition.
+
 
 The second layer describes Astra and Sol with a few abstract parameters, all fitted to relay and disclosure dossiers:
 - **θ, inclusion threshold:** how much prompting a hidden structure needs before it is considered, on a salience ladder of plain, named, named and asked, and named, asked and probed.
@@ -113,3 +126,112 @@ If P1 fails, the threshold is format-specific: dossier descriptions and abstract
 | Task validation 0.10, seed 20260927 | `db1805f8d578f047805dadb04b371c180aa1c3d198a91b150ab83fb87c8d4f77` |
 | Task validation 0.10, seed 20261027 | `787994888a843971c5cf57f88b34351dba5aefc17959ebff86f73ed343b284e0` |
 | Second-layer recovery at the urn counts | `32e9d7905131422912b83452f2f960275b5eb8d53bbc15c604584fbf683935fc` |
+
+## Results
+
+**Collection.**
+- **Completion:** all 66 contexts completed with the minimum 27 calls and no tool errors, in 71–127 seconds each, 58 minutes in all.
+- **Tokens:** 34,595,381 input tokens in total (32,642,048 cached), or 0.49–0.61 million per context, inside the 38 million cap.
+
+The tables regenerate with:
+
+```bash
+uv run python -m epistemics.ledger cues-summary output/disposition-abstract-20260928
+```
+
+```bash
+uv run python -m epistemics.ledger inclusion-joint --format urn
+```
+
+### The preregistered analysis
+
+The joint second-layer fit to the urn sessions (shared threshold, fidelity mixture, 4 chains of 40,000 iterations) did not converge.
+- **R-hat:** 1.66 for Astra and 2.05 for Sol in the preregistered specification, and up to 13 in the structure-specific variants.
+- **WAIC:** several variants gave values in the millions, meaning chains stuck in degenerate regions.
+- **θ:** its 90% intervals reached the lower bound of its prior (−1).
+
+Recovery at these session counts had converged in all 30 synthetic datasets. The failure therefore reflects a mismatch between the model and these data, not the counts. **P1–P4 are not assessable as preregistered.**
+
+### Why: the model's assumptions fail for two of the three structures
+
+The second layer assumes each structure has one mapping from cue to prior, which inclusion switches on or off. Mean implied priors per level, from strongly reassuring to strongly suggestive:
+
+| Structure | Configuration | Plain (rung 0) | Named (1) | Named and asked (2) | Named, asked and probed (3) |
+| --- | --- | --- | --- | --- | --- |
+| Copying | Astra | 0.00, 0.10, 0.04, 0.19, 0.20 | 0.00, 0.08, 0.22, 0.43, 0.95 | 0.00, 0.10, 0.10, 0.43, 0.95 | 0.03, 0.07, 0.30, 0.44, 0.95 |
+| Copying | Sol | 0.00, 0.11, 0.05, 0.28, 0.21 | 0.00, 0.10, 0.06, 0.50, 0.96 | 0.00, 0.10, 0.10, 0.44, 0.95 | 0.05, 0.06, 0.15, 0.44, 0.95 |
+| Selection | Astra | 0.05, 0.21, 0.03, 0.71, 0.96 | 0.02, 0.18, 0.39, 0.63, 0.92 | 0.04, 0.08, 0.54, 0.22, 0.57 | 0.00, 0.00, 0.46, 0.00, 0.00 |
+| Selection | Sol | 0.05, 0.21, 0.03, 0.71, 0.96 | 0.02, 0.29, 0.40, 0.82, 0.96 | 0.03, 0.03, 0.53, 0.03, 0.10 | 0.00, 0.00, 0.49, 0.00, 0.00 |
+| Mismatch | Astra | 0.00, 0.00, 0.00, 0.00, 0.00 | 0.00, 0.44, 0.20, 0.77, 0.88 | 0.06, 0.40, 0.19, 0.62, 0.67 | 0.03, 0.11, 0.13, 0.19, 0.26 |
+| Mismatch | Sol | 0.00, 0.00, 0.00, 0.00, 0.00 | 0.00, 0.50, 0.12, 0.90, 0.96 | 0.00, 0.50, 0.27, 0.90, 0.97 | 0.03, 0.11, 0.13, 0.25, 0.45 |
+
+1. **Selection: the records contradict the named mechanism.** The named sentence and the questions describe reporters that hold back every blue ball. A record showing any blue balls reported, even 1 of 200, therefore proves this reporter is not one.
+
+   Asked and probed, both configurations applied this: every level with a record went to 0, and only the irrelevant level (no record) kept the 50% default. Their completion answers say so directly: "Records containing blue reports rule out literal red-only behavior"; "I interpreted 'every' literally".
+
+   Their reasoning was correct; the design was not. The same records, unnamed, read as strong selectivity (0.96 for 1 of 200). The dossier descriptions never contradicted the mechanism, which is why this did not arise there.
+2. **Mismatch: stated accuracy is ambiguous.** The mismatch mapping falls from rung 1 to rung 3 (strongly suggestive: 0.88 → 0.26 for Astra, 0.96 → 0.45 for Sol). Completion answers in the probed sessions said "readings are correct" was ambiguous about whether it included filing errors. If it does, misfiling is already priced into the stated accuracy. The relay dossiers had the same ambiguity over track records.
+3. **Copying:** its mapping is stable across rungs 1–3. Its irrelevant level ("mounted on rack 4") sits at 0.04–0.30, not 0.50. That makes inclusion at uninformative levels hard to identify.
+
+### Exploratory results
+
+Everything in this section is exploratory, because the preregistered analysis failed.
+
+**Unprompted neglect transfers to two of the three structures.**
+- **Mismatch:** all six plain sessions put every level at 0.00, including a sensor "shared by 50 urns and moves between them". Named, the same sensor got 0.88–0.96. This is the relay-dossier pattern in a new structure and a contentless format.
+- **Copying:** partial. Unprompted, a sensor that had matched the other in 198 of 200 rounds got 0.20–0.21. Named, it got 0.95–0.96. That statistical record carries more unprompted weight than "an aggregator with no reporters" did (0.00–0.03).
+- **Selection:** no neglect. Unprompted, a reporter with 1 blue ball of 200 got 0.96. That record makes the structure plain without naming it.
+
+**Mismatch alone fits the second layer and matches the dossier pattern.** The joint fit on mismatch sessions alone converged (R-hat at most 1.01):
+
+| | θ | Inclusion by rung 0 → 3 | φ |
+| --- | --- | --- | --- |
+| Astra, mismatch | 0.69 [0.29, 1.04] | 0.07, 0.75, 0.99, 1.00 | 0.86 |
+| Sol, mismatch | 0.69 [0.19, 1.16] | 0.10, 0.73, 0.97, 0.99 | 0.86 |
+| Astra, dossiers | 0.47 [0.17, 0.73] | 0.17, 0.85, 0.99, 1.00 | 0.97 |
+| Sol, dossiers | 0.74 [0.28, 1.08] | 0.18, 0.62, 0.94, 0.99 | 0.87 |
+
+Both mismatch thresholds are within 0.25 of the dossier ones. Had P1 been assessable on this structure alone, it would have held. The copying-only fit converged, but its θ is not identified (see point 3 above). The copying-and-mismatch fit did not converge for Sol.
+
+**Sol's stated–applied gap reappeared in the analogous condition.** In the copying asked sessions:
+- **Sol:** stated rates exceeded its applied priors at the ambiguous levels by +0.15 in two of three sessions, and +0.04 in the third. Its stated rate for the mildly suggestive sensor was 0.72 and 0.60, against 0.43 and 0.45 applied.
+- **Astra:** within 0.06 in all three.
+- **Mismatch asked:** stated and applied rates agreed almost exactly for both configurations.
+
+This matches the dossier finding: Sol's gap appears intermittently when copying is named and its rate is asked, and not elsewhere.
+
+**Against the predictions:** P1–P4 are not assessable (non-convergence). On the mismatch structure alone, exploratory: P1 would hold for both; P2 holds (rung 0 at most 0.10, rung 2 at least 0.97); P3 holds for Astra (0.86); P4 is untestable with one structure.
+
+## Interpretation
+
+1. **The confirmatory test did not work, and the failure is informative about the design.**
+   - **Selection:** the record cues and the deterministic mechanism statement were incompatible. Once named, the agents correctly treated any blue ball as disqualifying.
+   - **Mismatch:** the ambiguity over what "readings are correct" covers let the mapping shift with the question format.
+
+   Both are fixable. The second layer's claims stay descriptive of the dossier format until a corrected urn task is run.
+2. **What does transfer, descriptively:**
+   - **Unprompted neglect:** fully for a new structure (mismatch), partly for copying.
+   - **Naming restores consideration.**
+   - **For mismatch,** the inclusion ladder closely matches the dossier one.
+   - **Sol's intermittent stated–applied gap** appears in the copying condition again.
+3. **The cue format matters.** Statistical records ("198 of 200", "1 of 200 blue") carry more weight unprompted than semantic descriptions do. The second layer's cue weight w is format-dependent, as the preregistration anticipated.
+
+## Next
+
+- **Corrected urn task:**
+  - **Selection:** make the records compatible with the mechanism. Either name a probabilistic mechanism ("hold back most blue balls"), or use records that don't count blue reports.
+  - **Mismatch:** state accuracy as conditional on reading the right urn ("when it reads the urn it is filed under, its readings are correct 90% of the time").
+  - **Copying:** give its irrelevant level a neutral default.
+
+  Then preregister again, with the analysis specification unchanged.
+- **Keep the dossier second-layer estimates marked as dossier-specific** in the design note until then.
+
+## Commitments (run)
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `ce59e1f72c50dc6b7cfa99c4b5e1a97dfe1a0716705748155a105039e563e4f4` |
+| execution.json | `5d3d8b1fcba3655f8c026454553d013550ad6e087f3b6dd7a86c30659df25235` |
+| summary.json | `983f29a5886549e301515341c04cebdade572b4c6c7e6246d8786bb2f8bbc1c1` |
+| Preregistered urn fit | `2a8887b95b99a650a631beda03083be9ab0e83c8e6ab88bc76ffd80b2d95e38d` |
+| Exploratory urn fits (copying, mismatch, both) | `d68b2db7e792a0a06c821b317111d25208ede933756212ee65f78cb1c9846565` |

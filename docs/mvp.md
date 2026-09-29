@@ -123,7 +123,9 @@ A [default-induction test](disposition-asked-2026-09-28.md) then asked for each 
 
 A [retest with structure probes](disposition-probed-2026-09-28.md) found Sol's gap intermittent: wide in two of six sessions. With probes, both configurations were coherent.
 
-**Next: a second-layer model with abstract parameters (structure inclusion, closed-world default, description sensitivity, stated–applied fidelity) fitted across these studies, then an abstract transfer task.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
+A [second-layer model](structure-inclusion-model.md) now describes these results with abstract parameters: an inclusion threshold on a salience ladder, session drift and stated–applied fidelity. Its confirmatory test on [abstract urn tasks](disposition-abstract-2026-09-28.md) failed to converge, because of two design flaws the data exposed. Exploratory results show unprompted neglect transferring to a new structure (mismatch) with dossier-like thresholds.
+
+**Next: a corrected urn task, then its preregistered test again.** The bounded estimation collection for weaker configurations is deferred. The naturalistic pilot keeps these constraints:
 - **Arms.** Render a private research world as realistic documents. Compare information-equivalent presentations in unprompted, hinted and explicit arms.
 - **Explicit arm.** This is the existing task. It keeps the audit's design: calibration kept separate from error relative to a privileged oracle, and absolute decision quality separate from improvement; public pre-outcome opportunity strata; low-opportunity controls; a small repeatability check; stated population weights.
 - **Collection cost.** Simplify repeated protocol/archive transmission, with version-reviewed MCP acceptance, before any panel.

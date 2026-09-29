@@ -221,6 +221,12 @@ def rounded(values, digits=5):
 def item_label(module, items, i):
     """A short description of one case, for tooltips and row labels."""
     kind = str(items["kind"][i]) if "kind" in items else "check"
+    if "accuracy_a" in items and "accuracy_b" not in items:
+        if kind == "rate":
+            return "stated base rate"
+        colour = "red" if items["report_a"][i] > 0 else "blue"
+        source = "own draw" if kind == "own" else "probe" if kind == "probe" else "sensor"
+        return f"{source} · prior {items['prior'][i]:.0%} · {items['accuracy_a'][i]:.0%} reads {colour}"
     if "accuracy_a" in items:
         if kind == "rate":
             return "stated base rate"
@@ -251,6 +257,8 @@ def item_label(module, items, i):
 
 def item_group(module, items, i):
     kind = str(items["kind"][i]) if "kind" in items else "check"
+    if "accuracy_a" in items and "accuracy_b" not in items:
+        return {"own": "single", "single": "withheld"}.get(kind, kind)
     if kind in ("probe", "rate", "single"):
         return kind
     if "accuracy_a" in items:
@@ -274,7 +282,13 @@ class Designs:
             items = arrays(raw)
             self.ids[key] = f"d{len(self.table)}"
             family = (
-                "relay" if "accuracy_a" in items else "disclosure" if "good" in items else "checks"
+                "mismatch"
+                if "accuracy_a" in items and "accuracy_b" not in items
+                else "relay"
+                if "accuracy_a" in items
+                else "disclosure"
+                if "good" in items
+                else "checks"
             )
             entry = {
                 "id": self.ids[key],
