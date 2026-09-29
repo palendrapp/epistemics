@@ -47,6 +47,9 @@ SPREAD_LIMIT = 0.5
 SHIFT_SD = 0.2
 SCALE_SD = 0.3
 HYPER_STEPS = 5
+# Histogram bins for the posterior densities the dashboard draws.
+THETA_EDGES = np.round(np.arange(-1.0, 4.001, 0.1), 2)
+TAU_EDGES = np.round(np.arange(0.0, 3.001, 0.05), 2)
 ITERATIONS, BURN = 30000, 12000
 
 
@@ -166,6 +169,11 @@ def run_chain(sessions_by_family, iterations, burn, seed, thin=5):
     return np.array(draws), np.array(pointwise)
 
 
+def density(values, edges):
+    counts, _ = np.histogram(values, bins=edges)
+    return (counts / max(counts.sum(), 1)).round(5).tolist()
+
+
 def truncated_normal_draws(rng, mean, sd):
     """One draw per (mean, sd) pair from the normal truncated to the θ bounds."""
     lo, hi = THETA_BOUNDS
@@ -201,6 +209,7 @@ def summarise(sessions_by_family, results, seed=0):
     draws = np.concatenate([d for d, _ in results])
     pointwise = np.concatenate([p for _, p in results])
     per_structure, offset, session_offset = {}, 0, 0
+    threshold_index = []
     for s in structures:
         dim = len(s.layout.names)
         n = len(s.data[s.fam]["salience"])
@@ -214,7 +223,9 @@ def summarise(sessions_by_family, results, seed=0):
             s.data,
         )
         fit["waic"].pop("elpd_pointwise", None)
+        fit["theta_density"] = density(draws[:, offset + s.theta], THETA_EDGES)
         per_structure[s.fam] = {"format": FORMAT.get(s.fam), **fit}
+        threshold_index.append(offset + s.theta)
         offset += dim
         session_offset += n
     bar, tau = draws[:, -2], draws[:, -1]
@@ -235,9 +246,19 @@ def summarise(sessions_by_family, results, seed=0):
         ),
         "tau_theta_above_limit": float(np.mean(tau > SPREAD_LIMIT)),
         "theta_new_structure": joint.interval(new),
+        "densities": {
+            "theta_edges": THETA_EDGES.tolist(),
+            "tau_edges": TAU_EDGES.tolist(),
+            "theta_bar": density(bar, THETA_EDGES),
+            "theta_new_structure": density(new, THETA_EDGES),
+            "tau_theta": density(tau, TAU_EDGES),
+        },
         "structures": per_structure,
         "rhat_max": float(np.max(r)),
         "rhat_hyper": [float(r[-2]), float(r[-1])],
+        # The thresholds and their distribution only; validity uses every parameter.
+        "rhat_thresholds": float(np.max(r[[*threshold_index, -2, -1]])),
+        "valid": bool(np.max(r) <= joint.RHAT_LIMIT),
         "waic": {k: v for k, v in joint.waic(pointwise).items() if k != "elpd_pointwise"},
         "draws": int(draws.shape[0]),
         "families": list(sessions_by_family),

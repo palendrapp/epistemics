@@ -11,6 +11,7 @@ over the joint grid posterior. The recovery sample fits synthetic respondents dr
 validation study's generating priors; it is cached by the model fingerprint.
 """
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -445,6 +446,26 @@ def descriptors():
     return result
 
 
+def hierarchy(cache_dir="output"):
+    """The latest hierarchical threshold fit (`inclusion-hier --output`), with its file hash, and
+    the sensitivity fit of the same date if one was recorded."""
+    files = sorted(Path(cache_dir).glob("inclusion-hier-fit-*.json"))
+    if not files:
+        return None
+
+    def load(path):
+        data = path.read_bytes()
+        return {"file": path.name, "sha256": hashlib.sha256(data).hexdigest()}, json.loads(data)
+
+    source, fits = load(files[-1])
+    result = {**source, "fits": fits}
+    sensitivity = files[-1].with_name(files[-1].name.replace("-fit-", "-sensitivity-"))
+    if sensitivity.exists():
+        source, fits = load(sensitivity)
+        result["sensitivity"] = {**source, "fits": fits}
+    return result
+
+
 def build(sessions_by_root, experiment_for, cache_dir="output"):
     """The dashboard's model block from verified extraction records, keyed by root."""
     designs = Designs()
@@ -472,6 +493,7 @@ def build(sessions_by_root, experiment_for, cache_dir="output"):
         "designs": designs.table,
         "sessions": sessions,
         "recovery": recovery_sample(cache_dir),
+        "hierarchy": hierarchy(cache_dir),
         "scope": (
             "Grid posteriors recomputed with the current model from each session's responses and "
             "its collected design; recorded_difference is the largest gap to the verified "

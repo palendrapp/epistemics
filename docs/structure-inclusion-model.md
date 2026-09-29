@@ -228,6 +228,83 @@ That version gave Sol φ = 0.57 and marked as incoherent many formal and dossier
 - **E2.** Sol's spread is undetermined.
 - **E3.** Sensitivity analysis without mismatch, whose corrected wording was misread: Astra's spread is undetermined.
 
+## Hierarchical thresholds: results (29 September)
+
+These are the fits specified above. They use the relay and disclosure dossier sessions and the corrected urn sessions.
+
+```bash
+uv run python -m epistemics.ledger inclusion-hier-validate --output output/inclusion-hier-recovery-20260929.json
+```
+
+```bash
+uv run python -m epistemics.ledger inclusion-hier --output output/inclusion-hier-fit-20260929.json
+```
+
+```bash
+uv run python -m epistemics.ledger inclusion-hier --family relay --family disclosure --family copying --family selection --output output/inclusion-hier-sensitivity-20260929.json
+```
+
+**Recovery: all five gates pass.** 30 synthetic configurations, all converged (largest R-hat 1.028).
+
+| Gate | Result | Required |
+| --- | --- | --- |
+| R1, θ_k | correlation 0.97, coverage 0.93, MAE 0.21 | at least 0.9 and 0.8 |
+| R2, θ̄ | coverage 1.00 (correlation 0.84, MAE 0.32) | at least 0.8 |
+| R3, τ_θ | coverage 0.93 (correlation 0.82, MAE 0.32) | at least 0.8 |
+| R4, wrong-direction readings | 0 of 30 | at most 3 |
+| R5, converged | 30 of 30 | at least 27 |
+
+**The design's limit.** With five structures, the model never reached a "generalises" reading: 0 of the 5 synthetic configurations whose true spread was below 0.25 got one. All five read undetermined, and τ_θ is overestimated when it is small. A large spread is detected more often: 13 of 18 above 0.75 read structure-specific. So "undetermined" is the most this design can show for a configuration whose noticing does generalise.
+
+**Estimates** (90% intervals):
+
+| | Astra (exploratory, see below) | Sol |
+| --- | --- | --- |
+| Relay dossiers | 0.73 [0.37, 1.06] | 1.01 [0.49, 1.42] |
+| Disclosure dossiers | 0.10 [−0.40, 0.45] | 0.28 [−0.12, 0.64] |
+| Copying, urns | −0.75 [−0.98, −0.36] | 0.14 [−0.53, 0.66] |
+| Selection, urns | −0.25 [−0.51, 0.00] | −0.22 [−0.48, 0.03] |
+| Mismatch, urns | 2.19 [1.52, 2.91] | 0.79 [0.35, 1.23] |
+| Typical threshold θ̄ | 0.08 [−0.87, 1.23] | 0.25 [−0.67, 0.96] |
+| Spread τ_θ (rungs) | 1.41 [0.79, 2.25] | 0.84 [0.33, 1.65] |
+| P(τ_θ > 0.5) | 1.00 | 0.78 |
+| Reading | structure-specific | undetermined |
+| θ for an untested structure | 0.61 [−0.83, 2.70] | 0.46 [−0.72, 1.94] |
+| Largest R-hat | 1.69 (disclosure mapping); thresholds 1.018 | 1.013 |
+
+**Astra's fit misses the validity rule.** The failure is confined to its disclosure mapping. Pairs of chains settled in two modes for the irrelevant description's prior, 0.50 or about 0.41, and did not cross.
+- **At twice the chain length (a check, not a replacement):** the modes persisted (R-hat 1.61).
+- **The quantities of interest:** every threshold, θ̄ and τ_θ converged in both runs (R-hat 1.018 or less).
+- **Status:** Astra's estimates are therefore exploratory, and E1 is not assessable.
+
+**Without mismatch** (sensitivity; both fits converged, R-hat 1.012 or less):
+
+| | τ_θ | Reading | θ̄ | θ for an untested structure |
+| --- | --- | --- | --- | --- |
+| Astra | 0.92 [0.39, 1.70] | undetermined | −0.23 | [−0.88, 1.70] |
+| Sol | 0.87 [0.31, 1.73] | undetermined | 0.12 | [−0.79, 1.93] |
+
+**Against the expectations:**
+- **E1** (Astra structure-specific): not assessable under the validity rule. The exploratory reading is structure-specific (P(τ_θ > 0.5) = 1.00), driven by mismatch.
+- **E2** (Sol undetermined): holds.
+- **E3** (Astra undetermined without mismatch): holds.
+
+**Interpretation.**
+1. **Noticing one hidden structure does not predict noticing another.**
+   - **Sol:** the spread is at least 0.33 rungs and possibly more than 1.5.
+   - **Astra:** exploratory, 0.79–2.25 rungs.
+   - **An untested structure:** for both configurations the 90% prediction runs from "considered unprompted" (below 0) to "considered only once asked for its rate" (about 2, Sol) or later (Astra).
+   - **Consequence:** a consumer cannot infer from these five structures whether a configuration will raise a new hidden structure on its own. Each structure that matters has to be tested.
+2. **The design cannot show that noticing generalises.** That would need more structures per configuration. With five, even a true spread near zero reads undetermined.
+3. **Astra's large spread rests on mismatch,** whose corrected wording Astra read as covering misfiling. Without mismatch, the two configurations look alike (τ_θ about 0.9).
+4. **Relay dossiers need more prompting than disclosure dossiers** under this model: Astra 0.73 against 0.10; Sol 1.01 against 0.28. This is not a clean test of that difference. Here w and σ also differ by structure, and the earlier dossier-only comparison, with shared w and σ, found only weak support for separate thresholds.
+
+| File | SHA-256 |
+| --- | --- |
+| Hierarchical recovery | `863440dabb8f6ddb727a95653ffb3b2357f38e98c6554a875b11328d60e97838` |
+| Hierarchical fit | `91b57546f3363d8abf30e65b1ace07365854fe1c033b85c88a8fb5b2ac6209aa` |
+| Hierarchical fit without mismatch | `d0a0931d061efcc91077d803b131c39031e78d76d25ca7687c0b19ce562e9d03` |
+
 ## What it would add to the passport
 
 The candidate readings are more general than the current task-level ones:
@@ -252,8 +329,9 @@ These become passport readings only if they transfer. In the corrected abstract 
    - **Against the dossiers:** only Sol's mismatch threshold is within 0.5 of its dossier value.
    - **Shared against structure-specific:** where both fits converged (Sol), structure-specific thresholds fit better by 3.5 SE.
    - **Conclusion:** the family-specific alternative is favoured. θ is a property of a structure, a cue format and a configuration together.
-4. **Hierarchical thresholds.** Give each structure and format its own θ, partially pooled toward a configuration mean. The between-structure spread measures how far noticing generalises. Validate by recovery, then fit jointly to the dossier and urn sessions.
-5. **Luna and Terra.** Collect rungs 0–2, so their θ is identified.
+4. **Hierarchical thresholds.** Done (above). Recovery passed. Sol's spread is undetermined, and Astra's is exploratory (structure-specific, driven by mismatch). For both, an untested structure's threshold is unpredictable within about −0.8 to 2 rungs.
+5. **How many structures would show generalisation?** A power simulation over the number of structures per configuration, offline.
+6. **Luna and Terra.** Collect rungs 0–2, so their θ is identified.
 
 ## Commands
 

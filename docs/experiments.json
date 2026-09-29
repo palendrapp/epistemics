@@ -464,15 +464,16 @@
       "roots": [
         "output/disposition-abstract2-20260929"
       ],
-      "status": "running",
-      "prediction": "Specified before fitting (not blind: per-structure urn thresholds known). Spread tau_theta read as generalises (90% interval below 0.5 rung), structure-specific (above) or undetermined. E1 Astra structure-specific; E2 Sol undetermined; E3 without mismatch, Astra undetermined. Recovery gates R1-R5 before reporting."
+      "status": "complete",
+      "prediction": "Specified before fitting (not blind: per-structure urn thresholds known). Spread tau_theta read as generalises (90% interval below 0.5 rung), structure-specific (above) or undetermined. E1 Astra structure-specific; E2 Sol undetermined; E3 without mismatch, Astra undetermined. Recovery gates R1-R5 before reporting.",
+      "outcome": "Recovery gates R1-R5 pass (theta_k r 0.97, coverage 0.93; tau coverage 0.93; 0 wrong-direction; 30/30 converged), but with five structures a 'generalises' reading was never reached (0/5 true spread <0.25). Sol (valid): tau_theta 0.84 [0.33, 1.65], undetermined (E2 holds); untested structure theta [-0.72, 1.94]. Astra: misses the validity rule (bimodal disclosure mapping, R-hat 1.69; thresholds 1.018) so E1 not assessable; exploratory tau 1.41 [0.79, 2.25], structure-specific, driven by mismatch (2.19). Without mismatch both undetermined (tau ~0.9; E3 holds). Noticing one structure does not predict another; each structure must be tested."
     }
   ],
   "next": [
-    "Hierarchical second layer: recovery, then fit to existing dossier and corrected urn sessions (specified in docs/structure-inclusion-model.md).",
+    "Power simulation: how many structures per configuration would let the hierarchical model show that noticing generalises (offline).",
+    "Reading guide: a caution that noticing one hidden structure does not predict noticing an untested one.",
     "Optional: third mismatch wording, checked for its reading before collection.",
     "Luna and Terra on rungs 0-2 so their inclusion parameters are identified.",
-    "Reading guide: review wording and thresholds.",
     "HGF volatility module (T4) offline."
   ]
 }

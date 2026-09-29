@@ -481,3 +481,20 @@ def test_hierarchical_prior_bounds_and_truncated_draws():
         np.random.default_rng(2), np.full(500, -1.0), np.full(500, 3.0)
     )
     assert draws.min() >= -1 and draws.max() <= 4
+
+
+def test_ledger_loads_the_latest_hierarchical_fit_with_its_hash(tmp_path):
+    import hashlib
+    import json
+
+    from epistemics.ledger import models
+
+    assert models.hierarchy(tmp_path) is None
+    (tmp_path / "inclusion-hier-fit-20260928.json").write_text(json.dumps({"astra": {"old": 1}}))
+    latest = tmp_path / "inclusion-hier-fit-20260929.json"
+    latest.write_text(json.dumps({"astra": {"new": 1}}))
+    (tmp_path / "inclusion-hier-sensitivity-20260929.json").write_text(json.dumps({"astra": {}}))
+    loaded = models.hierarchy(tmp_path)
+    assert loaded["fits"] == {"astra": {"new": 1}}
+    assert loaded["sha256"] == hashlib.sha256(latest.read_bytes()).hexdigest()
+    assert loaded["sensitivity"]["file"] == "inclusion-hier-sensitivity-20260929.json"
