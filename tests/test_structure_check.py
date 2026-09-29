@@ -11,6 +11,60 @@ def test_every_structure_and_protocol_plans_a_valid_collection():
         assert len(planned) == 2 * len(sc.CATALOGUE) * sum(counts.values())
 
 
+def test_rated_rung_is_planned_separately_and_off_the_ladder():
+    from epistemics.ledger import inclusion
+
+    groups = sc.plan(("sol",), ("mismatch",), "minimal", rungs=(), rated=True)
+    assert groups == (
+        {
+            "configurations": ("sol",),
+            "modules": ("mismatch-urn",),
+            "contexts": (("urn3-rated", "markets", 1),),
+        },
+    )
+    assert len(runner.check_groups(groups)) == 1
+    assert inclusion.rung("mismatch-urn", "urn3-rated") is None
+    assert sc.plan(("sol",), ("copying",), "minimal", rungs=(), rated=True) == ()
+
+
+def test_follows_rule_and_rated_check():
+    rates = sc.stated_rates("mismatch")
+    assert sc.follows(rates, rates)["follows"]
+    assert not sc.follows(sc.IGNORED["judged rare"], rates)["follows"]
+    assert not sc.follows(sc.IGNORED["judged, applied"], rates)["follows"]
+    near = [r + 0.08 for r in rates]
+    assert sc.follows(near, rates)["follows"]
+    models = {
+        "sessions": [
+            {
+                "id": "a",
+                "configuration": "sol",
+                "module": "mismatch-urn",
+                "variant": "urn3-rated",
+                "slot_means": list(rates),
+            },
+            {
+                "id": "b",
+                "configuration": "sol",
+                "module": "mismatch-urn",
+                "variant": "urn3-rated",
+                "slot_means": list(sc.IGNORED["judged rare"]),
+            },
+            {
+                "id": "c",
+                "configuration": "sol",
+                "module": "mismatch-urn",
+                "variant": "urn3-named",
+                "slot_means": list(rates),
+            },
+        ]
+    }
+    rated = sc.rated_check(models, "sol", "mismatch")
+    assert rated["sessions"] == 2 and rated["followed"] == 1 and not rated["reliable"]
+    assert sc.rated_check(models, "astra", "mismatch") is None
+    assert sc.rated_check(models, "sol", "copying") is None
+
+
 def test_ladder_modules_sit_on_their_rungs():
     from epistemics.ledger import inclusion
 

@@ -23,6 +23,12 @@ is filed under" was read as covering misfiled readings (docs/disposition-abstrac
 the new sentence says accuracy applies only when a reading does come from the urn it is filed
 under, and that a reading from a different urn says nothing about this one. Its plain cases are
 urn2-plain's.
+
+"urn3-rated" (tasks 0.13, the forecast-only mismatch module) adds the consumer action beyond the
+ladder: the named sentence, and after each sensor's record the rate for sensors with that record
+(RATES). It measures whether a configuration uses a rate it is given, not whether it raises the
+structure. The rates are monotone in the records but far from the mappings the configurations
+judged for themselves, so using them can be told apart from judging.
 """
 
 from epistemics.disposition_tasks import render as base
@@ -87,12 +93,25 @@ NAMED3 = {
         "urn, and a reading from a different urn says nothing about this one."
     ),
 }
+# Stated misfiling rates per record level (urn3-rated), strongly reassuring to strongly suggestive.
+RATES = {"mismatch": (0.05, 0.20, 0.30, 0.40, 0.60)}
 LAB = "Half of all urns in the lab are red-majority."
+
+
+def rated(variant):
+    return variant.endswith("rated")
+
+
+def rate_line(family, slot, x):
+    return (
+        f"Among sensors with a record like {x}'s, {base.percent(RATES[family][slot])} of the "
+        "readings on file come from a different urn than the one they are filed under."
+    )
 
 
 def background(family, variant):
     """The variant's one named sentence, or None in a plain variant."""
-    if not variant.endswith("named"):
+    if not variant.endswith(("named", "rated")):
         return None
     if variant.startswith("urn3"):
         return NAMED3[family]
@@ -258,6 +277,8 @@ def mismatch(items, i, cover, variant):
         )
         if slot >= 0:
             lines.append(record("mismatch", slot, n["s"]))
+            if rated(variant):
+                lines.append(rate_line("mismatch", slot, n["s"]))
     if kind == "probe":
         question = (
             f"What is the probability that the reading on file for {n['urn']} came from a "

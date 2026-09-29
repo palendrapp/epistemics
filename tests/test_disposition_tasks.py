@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 1632
+    assert audit()["cases"] == 1656
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 70
+    assert result["passed"] and len(result["contexts"]) == 71
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -714,3 +714,24 @@ def test_reworded_mismatch_conditions_accuracy_on_the_right_urn():
             assert new["question"] == old["question"]
     for module in ("copying-urn", "selection-urn-asked"):
         assert not allowed(module, "markets", "urn3-named")
+
+
+def test_rated_mismatch_states_each_records_rate_once():
+    from epistemics.disposition_tasks.render import allowed, items_for
+    from epistemics.disposition_tasks.urn import NAMED3, RATES
+
+    items = items_for("mismatch-urn")
+    for i in range(24):
+        rated = render("mismatch-urn", "markets", i, "urn3-rated")
+        named = render("mismatch-urn", "markets", i, "urn3-named")
+        assert rated["case"].count(NAMED3["mismatch"]) == 1
+        assert rated["question"] == named["question"]
+        slot = int(items["slot"][i])
+        lines = [x for x in rated["case"].split("\n") if x.startswith("Among sensors")]
+        if slot < 0:
+            assert not lines and rated["case"] == named["case"]
+        else:
+            assert len(lines) == 1 and f"{round(100 * RATES['mismatch'][slot])}%" in lines[0]
+            assert rated["case"].replace("\n\n" + lines[0], "") == named["case"]
+    assert not allowed("mismatch-urn-asked", "markets", "urn3-rated")
+    assert not allowed("copying-urn", "markets", "urn3-rated")

@@ -521,10 +521,23 @@
       "status": "complete",
       "prediction": "R1: strongly suggestive mismatch level at rung 1 at least 0.50 per configuration (Astra 0.00 under urn2). R2: check converges and recommends a rung. E1 both meet R1-R2; E2 Astra no longer 'not reliable'; E3 Sol's advice unchanged within one rung.",
       "outcome": "6 contexts, 3.16M tokens, 0 errors. R1: Sol 0.96 passes, Astra 0.40 fails (was 0.00). R2: both converge (R-hat <=1.011) but both 'not reliable' (rung-3 lower bounds 0.79 Astra, 0.66 Sol). E1-E3 not supported. Rewording removed the misreading (no completion answer calls accuracy ambiguous; Astra applied misfiling fully when asked, 0.97; theta 2.42 -> 1.02) but both now switch by session between applying misfiling and judging it rare (stated 0.10-0.20 for the 50-urn sensor), and one low session per configuration keeps the minimal protocol's interval below the bar. Guide wording changed to 'does not reliably take it into account'."
+    },
+    {
+      "id": "mismatch-rated-rung",
+      "date": "2026-09-29",
+      "track": "dispositions",
+      "kind": "validation",
+      "title": "Rate-stating rung for misfiled readings (tasks 0.13.0)",
+      "question": "Can the check test whether a configuration uses a misfiling rate it is given, as the consumer action beyond prompting?",
+      "doc": "docs/structure-checks.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Variant urn3-rated adds one rate line per record (5, 20, 30, 40, 60%). A session follows if implied priors are within 0.10 on average and 0.20 at every level. Gates: follows when applied at least 90%, falsely follows at most 10%; task validation 0.13 on two seeds.",
+      "outcome": "Task validation 0.13 passed on both seeds (1,656 cases, 71 contexts; fingerprint 73d66dbc). Rule: follows when applied 57/60 (95%); falsely follows 0/120 across four alternative priors. Collection pending: 4 contexts, about 2.1M tokens."
     }
   ],
   "next": [
-    "Misfiled readings: top up to the full protocol at rungs 1-3 (about 5.3M tokens), or add a rung that states the rate (new variant and validation).",
+    "Collect the rate-stating misfiled-readings sessions (4 contexts, about 2.1M tokens).",
     "Offer structure checks: a consumer names a catalogued structure, collect it with the minimal protocol, publish the reading.",
     "Luna and Terra structure checks (minimal protocol) so the guide covers the weaker configurations.",
     "Reading guide: review wording and thresholds.",

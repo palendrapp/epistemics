@@ -578,3 +578,27 @@ def test_structure_check_collections_count_as_disposition_runs():
     assert build.is_disposition("output/disposition-abstract2-20260929")
     assert build.is_disposition("output/structure-check-mismatch3-20260929")
     assert not build.is_disposition("output/research-world3-acceptance")
+
+
+def test_reading_guide_advises_stating_the_rate_when_prompting_is_not_enough():
+    from epistemics.ledger import guide
+
+    base = {
+        "format": "urn3",
+        "valid": True,
+        "recommended_rung": None,
+        "sessions": 6,
+        "inclusion_by_rung": {str(r): {"mean": m} for r, m in enumerate((0.1, 0.5, 0.8, 0.9))},
+    }
+    followed = {"followed": 2, "sessions": 2, "reliable": True}
+    r = guide.structure_checks(
+        "sol", {"checks": {"sol": {"mismatch": {**base, "advice": "rate", "rated": followed}}}}
+    )[0]
+    assert r["fact"]["value"] == "State how common it is"
+    assert "when told how common it is" in r["claim"] and "2 of 2 sessions" in r["claim"]
+    ignored = {"followed": 0, "sessions": 2, "reliable": False}
+    r = guide.structure_checks(
+        "sol", {"checks": {"sol": {"mismatch": {**base, "advice": None, "rated": ignored}}}}
+    )[0]
+    assert r["fact"]["value"] == "Not reliable" and "did not fix this" in r["claim"]
+    assert "followed the stated rates in 0 of 2 sessions" in r["detail"]

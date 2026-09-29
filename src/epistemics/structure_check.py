@@ -25,7 +25,7 @@ import numpy as np
 from epistemics.ledger import inclusion
 from epistemics.ledger import inclusion_joint as joint
 
-VERSION = "structure-check/0.1.0"
+VERSION = "structure-check/0.2.0"
 # The structures that can be checked: a hidden structure in one task format, with the module and
 # variant that realise each rung of the salience ladder, and the words a consumer would use.
 CATALOGUE = {
@@ -92,6 +92,8 @@ CATALOGUE = {
             2: ("mismatch-urn-asked", "urn3-named"),
             3: ("mismatch-urn-probed", "urn3-named"),
         },
+        # Beyond the ladder: the structure named and its rate stated for each record (tasks 0.13).
+        "rated": {"module": "mismatch-urn", "variant": "urn3-rated", "model": "mismatch"},
     },
 }
 # What the consumer does to reach each rung.
@@ -107,6 +109,7 @@ ACTIONS = {
         "Not reliable",
         "Even with every prompt tested, it does not reliably take {name} into account.",
     ),
+    "rate": ("State how common it is", "Say {phrase}, and state how common it is."),
 }
 # Inclusion is read for a case in which nothing hints at the structure (the uninformative
 # description). A rung is reliable when the 90% interval of inclusion there starts at 0.8 or above.
@@ -124,6 +127,127 @@ PROTOCOLS = {
 # consumer one more sentence of prompt.
 GATES = {"unsafe_at_most": 0.10, "within_one_at_least": 0.80, "converged_at_least": 0.90}
 TOKENS_PER_SESSION = 0.53e6  # The corrected urn run: 34.7M input tokens over 66 contexts.
+# Rated sessions per protocol (the rate-stating rung), and when a session follows the stated
+# rates: implied priors within 0.10 of them on average and 0.20 at every level (the task
+# validation's tolerance for description modules).
+RATED_SESSIONS = {"full": 2, "reduced": 2, "lean": 1, "minimal": 1}
+FOLLOWS = {"mean_at_most": 0.10, "largest_at_most": 0.20}
+RATED_GATES = {"follows_at_least": 0.90, "false_follows_at_most": 0.10}
+# Priors a configuration might apply when it ignores the stated rates: the mappings it judged
+# for itself under the named wording (applied, and judged rare), the recovery mapping, and a flat
+# default.
+IGNORED = {
+    "judged, applied": (0.0, 0.5, 0.3, 0.9, 0.96),
+    "judged rare": (0.0, 0.05, 0.05, 0.1, 0.2),
+    "recovery mapping": (0.03, 0.3, 0.45, 0.6, 0.85),
+    "flat default": (0.5, 0.5, 0.5, 0.5, 0.5),
+}
+
+
+def stated_rates(structure):
+    from epistemics.disposition_tasks.urn import RATES
+
+    return RATES[structure]
+
+
+def follows(implied, rates):
+    """Whether a session's implied priors follow the stated rates."""
+    gaps = np.abs(np.asarray(implied, dtype=float) - np.asarray(rates, dtype=float))
+    return {
+        "mean_gap": float(gaps.mean()),
+        "largest_gap": float(gaps.max()),
+        "follows": bool(
+            gaps.mean() <= FOLLOWS["mean_at_most"] and gaps.max() <= FOLLOWS["largest_at_most"]
+        ),
+    }
+
+
+def rated_check(models, config, structure):
+    """The rate-stating rung: does each rated session's forecasting follow the stated rates?"""
+    rated = CATALOGUE[structure].get("rated")
+    if not rated:
+        return None
+    rates = stated_rates(structure)
+    rows = [
+        {"id": s["id"], **follows(s["slot_means"], rates)}
+        for s in models["sessions"]
+        if s["configuration"] == config
+        and s["module"] == rated["module"]
+        and s["variant"] == rated["variant"]
+        and s.get("slot_means")
+    ]
+    if not rows:
+        return None
+    return {
+        "rates": list(rates),
+        "sessions": len(rows),
+        "followed": sum(r["follows"] for r in rows),
+        "reliable": all(r["follows"] for r in rows),
+        "rows": rows,
+    }
+
+
+def _rated_one(args):
+    """One synthetic rated session: its implied priors under the real design and fit."""
+    from epistemics.dispositions import design, observers
+    from epistemics.dispositions.response import sample_reports
+    from epistemics.ledger.models import cue_marginals
+
+    applied_mean, seed = args
+    rng = np.random.default_rng(seed)
+    items = design.mismatch_urn()
+    omega = rng.uniform(0.1, 0.4)
+    target = inclusion.logit(np.clip(applied_mean, 0.005, 0.995))
+    applied = 1 / (1 + np.exp(-(target + omega * rng.normal(size=5))))
+    latent = observers.cue_observer(observers.mismatch, items, applied, 1.0)
+    reports = sample_reports(latent, rng.uniform(0.05, 0.3), rng)
+    posterior = cue_marginals("mismatch", items, reports)[0]
+    return (posterior @ inclusion.GRID).tolist()
+
+
+def validate_rated(seed=SEED + 7, datasets=60, workers=8):
+    """Sensitivity and specificity of the follows rule through the real design and fit."""
+    rates = np.array(stated_rates("mismatch"))
+    rng = np.random.default_rng(seed)
+    jobs = [("stated rates", rates, int(rng.integers(2**31))) for _ in range(datasets)]
+    for name, mapping in IGNORED.items():
+        jobs += [(name, np.array(mapping), int(rng.integers(2**31))) for _ in range(datasets // 2)]
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        implied = list(pool.map(_rated_one, [(m, s) for _, m, s in jobs]))
+    rows = [
+        {"source": name, "implied": imp, **follows(imp, rates)}
+        for (name, _, _), imp in zip(jobs, implied, strict=True)
+    ]
+    by_source = {}
+    for r in rows:
+        cell = by_source.setdefault(r["source"], {"sessions": 0, "follows": 0})
+        cell["sessions"] += 1
+        cell["follows"] += r["follows"]
+    sensitivity = by_source["stated rates"]["follows"] / by_source["stated rates"]["sessions"]
+    ignored = [r for r in rows if r["source"] != "stated rates"]
+    false_follows = sum(r["follows"] for r in ignored) / len(ignored)
+    return {
+        "schema_version": "epistemics.structure-check-rated-validation.v1",
+        "version": VERSION,
+        "seed": seed,
+        "rates": rates.tolist(),
+        "rule": FOLLOWS,
+        "gates": RATED_GATES,
+        "by_source": by_source,
+        "follows_when_applied": sensitivity,
+        "false_follows": false_follows,
+        "passed": bool(
+            sensitivity >= RATED_GATES["follows_at_least"]
+            and false_follows <= RATED_GATES["false_follows_at_most"]
+        ),
+        "rows": rows,
+        "scope": (
+            "Synthetic rated sessions through the forecast-only mismatch design and the per-level "
+            "description fit, at report noise 0.05-0.3 and per-level spread 0.1-0.4 on the "
+            "log-odds scale; respondents apply the stated rates, or one of the priors they might "
+            "apply instead."
+        ),
+    }
 
 
 def rung_needed(inclusions):
@@ -286,9 +410,15 @@ def check(models, configurations, structures):
             if structure not in rows or not any(s == 3 for s, _, _ in rows[structure]):
                 continue
             fit = fit_structure({structure: rows[structure]})
-            short, _ = ACTIONS[fit["recommended_rung"]]
+            rated = rated_check(models, config, structure)
+            advice = fit["recommended_rung"]
+            if fit["valid"] and advice is None and rated and rated["reliable"]:
+                advice = "rate"
+            short, _ = ACTIONS[advice]
             result.setdefault(config, {})[structure] = {
                 **fit,
+                "rated": rated,
+                "advice": advice if fit["valid"] else None,
                 "format": fmt,
                 "variants": list(inclusion.FORMAT_VARIANTS.get(fmt, ())),
                 "action": short if fit["valid"] else None,
@@ -297,11 +427,24 @@ def check(models, configurations, structures):
     return result
 
 
-def plan(configurations, structures, protocol="full", rungs=(0, 1, 2, 3)):
+def plan(configurations, structures, protocol="full", rungs=(0, 1, 2, 3), rated=False):
     """Runner groups that collect the named structures on the salience ladder (the given rungs;
-    leave out a rung whose sessions already exist with the same text)."""
+    leave out a rung whose sessions already exist with the same text), and optionally the
+    rate-stating rung."""
     groups = []
     for structure in structures:
+        extra = CATALOGUE[structure].get("rated")
+        if rated and extra:
+            groups.append(
+                {
+                    "configurations": tuple(configurations),
+                    "modules": (extra["module"],),
+                    "contexts": tuple(
+                        (extra["variant"], "markets", r)
+                        for r in range(1, RATED_SESSIONS[protocol] + 1)
+                    ),
+                }
+            )
         for rung, count in PROTOCOLS[protocol].items():
             if rung not in rungs:
                 continue
@@ -336,6 +479,11 @@ def main():
     k.add_argument("--protocol", choices=sorted(PROTOCOLS), required=True)
     k.add_argument("--validation", action="append", type=Path, required=True)
     k.add_argument("--rung", action="append", type=int, choices=range(4), default=None)
+    k.add_argument("--rated", action="store_true", help="Also collect the rate-stating rung")
+    k.add_argument("--rated-only", action="store_true", help="Collect only the rate-stating rung")
+    vr = sub.add_parser("validate-rated")
+    vr.add_argument("--output", type=Path, required=True)
+    vr.add_argument("--datasets", type=int, default=60)
     k.add_argument("--max-tokens", type=int, default=None)
     a = p.parse_args()
     if a.command == "validate":
@@ -343,6 +491,19 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({"summary": run["summary"], "chosen": run["chosen_protocol"]}, indent=2))
+    elif a.command == "validate-rated":
+        run = validate_rated(datasets=a.datasets)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(
+            json.dumps(
+                {
+                    k: run[k]
+                    for k in ("by_source", "follows_when_applied", "false_follows", "passed")
+                },
+                indent=2,
+            )
+        )
     elif a.command == "check":
         raw = a.validation.read_bytes()
         validation = json.loads(raw)
@@ -366,11 +527,12 @@ def main():
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         for config, rows in run["checks"].items():
             for structure, r in rows.items():
-                print(config, structure, r["valid"], r["recommended_rung"], r["action"])
+                print(config, structure, r["valid"], r["advice"], r["action"])
     else:
         from epistemics.disposition_tasks import runner
 
-        groups = plan(a.configuration, a.structure, a.protocol, tuple(a.rung or range(4)))
+        rungs = () if a.rated_only else tuple(range(4)) if a.rung is None else tuple(a.rung)
+        groups = plan(a.configuration, a.structure, a.protocol, rungs, a.rated or a.rated_only)
         sessions = sum(len(g["contexts"]) * len(g["configurations"]) for g in groups)
         budget = a.max_tokens or int(sessions * TOKENS_PER_SESSION * 1.2)
         root = a.directory.resolve()

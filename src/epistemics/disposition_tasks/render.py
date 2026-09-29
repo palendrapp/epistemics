@@ -59,6 +59,9 @@ URN2_VARIANTS = ("urn2-plain", "urn2-named")
 # misfiling. Named only; its plain text is urn2-plain's.
 URN3_VARIANTS = ("urn3-named",)
 URN3_MODULES = ("mismatch-urn", "mismatch-urn-asked", "mismatch-urn-probed")
+# Rate stated per record (tasks 0.13): the forecast-only mismatch module only.
+URN3_RATED_VARIANTS = ("urn3-rated",)
+URN3_RATED_MODULES = ("mismatch-urn",)
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,
@@ -677,6 +680,8 @@ def allowed(module, cover, variant):
     if module in ASKED_MODULES + PROBED_MODULES:
         return cover == "markets" and variant in ASKED_VARIANTS
     if module in URN3_MODULES and variant in URN3_VARIANTS:
+        return cover == "markets"
+    if module in URN3_RATED_MODULES and variant in URN3_RATED_VARIANTS:
         return cover == "markets"
     if module in URN_MODULES:
         return cover == "markets" and variant in URN_VARIANTS + URN2_VARIANTS

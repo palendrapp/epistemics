@@ -32,6 +32,8 @@ from epistemics.disposition_tasks.render import (
     UNPROMPTED_VARIANTS,
     URN2_VARIANTS,
     URN3_MODULES,
+    URN3_RATED_MODULES,
+    URN3_RATED_VARIANTS,
     URN3_VARIANTS,
     URN_ASKED_MODULES,
     URN_MODULES,
@@ -134,7 +136,9 @@ def variants_of(module):
         return UNPROMPTED_VARIANTS
     if module in ASKED_MODULES + PROBED_MODULES:
         return ASKED_VARIANTS
-    extra = URN3_VARIANTS if module in URN3_MODULES else ()
+    extra = (URN3_VARIANTS if module in URN3_MODULES else ()) + (
+        URN3_RATED_VARIANTS if module in URN3_RATED_MODULES else ()
+    )
     if module in URN_MODULES:
         return URN_VARIANTS + URN2_VARIANTS + extra
     if module in URN_ASKED_MODULES + URN_PROBED_MODULES:
@@ -184,7 +188,9 @@ URN_MECHANISM = {
 def urn_states_only_the_named(module, variant, case):
     """Plain cases never state the structure; named cases state its one sentence exactly once.
     Only the question of a base-rate or probe case may mention it again."""
-    from epistemics.disposition_tasks.urn import background
+    import re
+
+    from epistemics.disposition_tasks.urn import background, rated
 
     family = urn_family(module)
     text = case["case"]
@@ -193,6 +199,13 @@ def urn_states_only_the_named(module, variant, case):
         if text.count(sentence) != 1:
             return False
         text = text.replace(sentence, "")
+    if rated(variant):
+        # A stated rate follows a record, once; nowhere else.
+        lines = re.findall(r"Among sensors with a record like [^.]*\.", text)
+        if len(lines) != text.count("Record for "):
+            return False
+        for line in lines:
+            text = text.replace(line, "")
     words = URN_MECHANISM[family] + MECHANISM
     return not any(word in text.lower() for word in words)
 
@@ -277,6 +290,9 @@ def contexts_to_validate():
         yield module, "markets", "urn2-named", CUE_RESPONDENT
     for module in URN3_MODULES:
         for variant in URN3_VARIANTS:
+            yield module, "markets", variant, CUE_RESPONDENT
+    for module in URN3_RATED_MODULES:
+        for variant in URN3_RATED_VARIANTS:
             yield module, "markets", variant, CUE_RESPONDENT
 
 

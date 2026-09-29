@@ -615,13 +615,21 @@ def structure_checks(config, checks):
         # A check fitted to an older wording of the structure is not read.
         if not entry or not check.get("valid") or check.get("format") != entry["format"]:
             continue
-        name, rung = entry["name"], check["recommended_rung"]
+        name, rung = entry["name"], check.get("advice", check["recommended_rung"])
+        rated = check.get("rated")
         means = [check["inclusion_by_rung"][str(r)]["mean"] for r in range(4)]
         short, sentence = ACTIONS[rung]
         action = sentence.format(name=name, phrase=entry["phrase"])
         if rung == 0:
             claim = f"It considers {name} without being prompted."
             caution = None
+        elif rung == "rate":
+            claim = (
+                f"Prompting alone does not make it reliably take {name} into account, but when "
+                "told how common it is, its forecasts use the rate it is given "
+                f"({rated['followed']} of {count(rated['sessions'])})."
+            )
+            caution = f"Needs to be told how common {name} is"
         elif rung is None:
             # When asked, it may state a low rate and apply it: considered, but judged rare.
             claim = (
@@ -645,6 +653,13 @@ def structure_checks(config, checks):
             f"In {entry['setting']}, when nothing in a case hinted at {name}, it considered it in "
             f"about {steps}. The prompts tested were short sentences naming the structure."
         )
+        if rated:
+            detail += (
+                f" Told how common it is for each kind of source, its forecasts followed the "
+                f"stated rates in {rated['followed']} of {count(rated['sessions'])}."
+            )
+            if rung is None:
+                claim += " Telling it how common it is did not fix this."
         if entry.get("known_issue"):
             detail += f" Known issue: {entry['known_issue']}"
             caution = (caution + "; " if caution else "") + "the tested wording was ambiguous"

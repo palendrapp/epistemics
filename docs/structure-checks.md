@@ -241,3 +241,65 @@ Under the old wording, Astra's per-structure fit gave θ 2.42 and inclusion when
 | execution.json | `0da4bf982b7da07bf93cbe7f378868d4bfcf6ee6494e09d123c35b7be66a83c9` |
 | summary.json | `b373d051bdfd995f8eb584fa2e3153482279296f3f31347b3ba9733f68857282` |
 | Structure checks with the reworded mismatch | `86609ff759267d0058b1667fcd2eb775752e95bd0ac3a0039a2dfc9d3af31fe2` |
+
+## The rate-stating rung (tasks 0.13.0, structure-check 0.2.0; specified before validation)
+
+**Why.** In the reworded check, both configurations sometimes judged misfiling rare and forecast with that judgment. Their stated and applied rates agreed. If the variation is a judged rate, the consumer's fix is to state the rate. This rung tests whether a configuration uses a rate it is given.
+
+**The variant** `urn3-rated` exists for the forecast-only misfiled-readings module only. Each case with a sensor record carries the reworded named sentence and, after the record, one added line:
+
+> Among sensors with a record like sensor S64's, 5% of the readings on file come from a different urn than the one they are filed under.
+
+**The stated rates** are 5%, 20%, 30%, 40% and 60% across the five records (fixed to one urn → shared by 50 urns and moving).
+- **Why these values:** they are monotone in the records, so they stay plausible, but far from the mappings the configurations judged for themselves. When applied: about 0, 50, 30, 90 and 96%. When judged rare: about 0, 5, 5, 10 and 20%. So using the rate can be told apart from judging.
+- **Everything else:** unchanged from urn3-named. Own-draw anchors carry no record and no rate.
+- **Ladder:** the rung is not on the salience ladder, and the inclusion fit ignores it.
+
+**Scoring.** A rated session **follows the stated rates** if its implied priors are within 0.10 of them on average and within 0.20 at every level (the task validation's tolerance for description modules). The rung is **reliable** for a configuration if every rated session follows.
+
+**Advice.**
+- **When the ladder has a reliable rung:** the advice is that rung, as before.
+- **When no rung is reliable but the rated rung is:** the advice is "state how common it is".
+- **When neither is reliable:** the advice stays "not reliable", and the reading adds that stating the rate did not fix it.
+
+**Sessions:** 1 rated session per configuration under the minimal protocol, 2 under the reduced and full protocols.
+
+**Validation of the rule** (`structure_check validate-rated`). The synthetic sessions run through the real design and per-level fit, at report noise 0.05–0.3 and per-level spread 0.1–0.4 on the log-odds scale:
+- **60 that apply the stated rates.**
+- **30 each that apply one of four other priors instead:**
+  - the judged-and-applied mapping;
+  - the judged-rare mapping;
+  - the recovery mapping;
+  - a flat 50%.
+
+**Gates.**
+- **Follows when applied:** at least 90%.
+- **Falsely follows when ignored:** at most 10%.
+
+Collection needs both gates and task validation 0.13 on two seeds.
+
+**Validation results.**
+- **Battery:** task validation 0.13 passed on both seeds (1,656 rendered cases, all 71 contexts). The implementation fingerprint is `73d66dbcdeaba5dc6743e017a161fb44e8260847a6e901beb449df561019831d`.
+- **Rule:** it passed both gates.
+
+| Respondent applies | Sessions | Counted as following the stated rates |
+| --- | --- | --- |
+| the stated rates | 60 | 57 (95%) |
+| its judged, applied mapping | 30 | 0 |
+| its judged-rare mapping | 30 | 0 |
+| the recovery mapping | 30 | 0 |
+| a flat 50% | 30 | 0 |
+
+**Implication for collection.** A configuration that does use stated rates passes one rated session 95% of the time, and two 90% of the time. A configuration that ignores them passes neither.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.13, seed 20260927 | `018b8523465d46e11d528da5cef23fbc3e8d221d36e6572d85678b840245d4ca` |
+| Task validation 0.13, seed 20261027 | `bd6f951b94be81e0836bc8857e0381cf7cd2cf7e310b9f03482357683aaea5e7` |
+| Rate-following rule validation | `49baadbf0219bff04f276b3befddf8b18f9deb950c748406c0e6795ffb8aaef0` |
+
+**Collecting it.** Two rated sessions per configuration (the reduced protocol's count) is 4 contexts, about 2.1 million tokens:
+
+```bash
+uv run python -m epistemics.structure_check collect output/structure-check-mismatch-rated-<date> --configuration astra --configuration sol --structure mismatch --protocol reduced --rated-only --validation output/disposition-tasks-v0.13-validation-20260927.json --validation output/disposition-tasks-v0.13-validation-20261027.json
+```
