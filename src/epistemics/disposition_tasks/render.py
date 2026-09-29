@@ -84,7 +84,7 @@ V2_TWINS = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
 LOAD_MODULES = ("copying-load", "mismatch-load")
 LOAD_VARIANTS = ("load-a",)
 LOAD_DESIGNS = {"copying-load": "dependence", "mismatch-load": "mismatch"}
-VIG_VARIANTS = ("urn2-vig",)
+VIG_VARIANTS = ("urn2-vig", "urn2-vig2")
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,

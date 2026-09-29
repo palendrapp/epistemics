@@ -9,9 +9,8 @@ audit records): the implied prior at each likelihood-ratio level (1, 2, 4, 8, 16
 import json
 from pathlib import Path
 
+from epistemics.disposition_tasks.urn import VIG_SCALES
 from epistemics.ledger import dispositions
-
-LR_LEVELS = (1, 2, 4, 8, 16)
 
 
 def usage(root):
@@ -57,11 +56,10 @@ def pilot(roots):
                         "repeat_noise": load["repeat_noise"],
                     }
                 )
-            elif record["variant"].endswith("vig"):
+            elif record["variant"] in VIG_SCALES:
                 implied = [s["implied"]["mean"] for s in record["slot_fits"]]
-                vig_rows.append(
-                    {**base, "implied_by_lr": dict(zip(LR_LEVELS, implied, strict=True))}
-                )
+                levels = VIG_SCALES[record["variant"]][0]
+                vig_rows.append({**base, "implied_by_lr": dict(zip(levels, implied, strict=True))})
     return {
         "schema_version": "epistemics.capacity-pilot.v1",
         "load": load_rows,
@@ -87,12 +85,13 @@ def tables(result):
         )
     lines += [
         "",
-        "| Configuration | Module | Implied prior at LR 1, 2, 4, 8, 16 | Tokens |",
-        "| --- | --- | --- | --- |",
+        "| Configuration | Module | Variant | Implied prior by likelihood ratio | Tokens |",
+        "| --- | --- | --- | --- | --- |",
     ]
     for r in result["vigilance"]:
-        values = ", ".join(f"{v:.2f}" for v in r["implied_by_lr"].values())
+        values = ", ".join(f"{k}: {v:.2f}" for k, v in r["implied_by_lr"].items())
         lines.append(
-            f"| {r['configuration']} | {r['module']} | {values} | {(r['input_tokens'] or 0) / 1e6:.2f}M |"
+            f"| {r['configuration']} | {r['module']} | {r['variant']} | {values} | "
+            f"{(r['input_tokens'] or 0) / 1e6:.2f}M |"
         )
     return "\n".join(lines)

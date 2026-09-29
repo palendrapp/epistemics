@@ -35,7 +35,7 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 2064
+    assert audit()["cases"] == 2136
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -196,7 +196,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 88
+    assert result["passed"] and len(result["contexts"]) == 91
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -847,3 +847,21 @@ def test_capacity_pilot_preset_uses_the_high_effort_configurations():
         {"module": "copying-load", "load": {"load_slope": 1.0, "eta_slope": 0.2}}
     )
     assert load["parameter"] == "load_slope"
+
+
+def test_widened_audit_range_reaches_every_level():
+    from epistemics.disposition_tasks.render import items_for
+    from epistemics.disposition_tasks.urn import VIG_SCALES, vig_ratio
+
+    levels, total = VIG_SCALES["urn2-vig2"]
+    assert levels[-1] == 65536 and total == 200
+    for family in ("copying", "selection", "mismatch"):
+        items = items_for(f"{family}-urn")
+        for i in range(24):
+            slot = int(items["slot"][i])
+            if slot < 0 or (family == "copying" and items["kind"][i] == "single"):
+                continue
+            ratio = vig_ratio(family, items, i, slot, "urn2-vig2")
+            assert levels[slot] / 2 <= ratio <= levels[slot] * 2, (family, i, ratio)
+            case = render(f"{family}-urn", "markets", i, "urn2-vig2")["case"]
+            assert f"last {total}" in case

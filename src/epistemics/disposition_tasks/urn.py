@@ -236,7 +236,7 @@ def copying(items, i, cover, variant):
     lines += [" ".join(rates), "Readings in the order they were logged: " + "; ".join(log) + "."]
     if slot >= 0 and kind != "single":
         if vigilance(variant):
-            lines.append(vig_record("copying", items, i, slot, n))
+            lines.append(vig_record("copying", items, i, slot, n, variant))
         else:
             lines.append(record("copying", slot, n["b"], n["a"]))
     if kind == "probe":
@@ -286,7 +286,7 @@ def selection(items, i, cover, variant):
     lines.append(f"{cap(n['r'])} drew 4 balls from {n['urn']} and reported {shown}.")
     if slot >= 0:
         if vigilance(variant):
-            lines.append(vig_record("selection", items, i, slot, n))
+            lines.append(vig_record("selection", items, i, slot, n, variant))
         else:
             lines.append(record("selection", slot, n["r"]))
     if kind == "probe":
@@ -331,7 +331,7 @@ def mismatch(items, i, cover, variant):
             f"for {n['urn']}, from {n['s']}: {colour(items['report_a'][i])}."
         )
         if slot >= 0 and vigilance(variant):
-            lines.append(vig_record("mismatch", items, i, slot, n))
+            lines.append(vig_record("mismatch", items, i, slot, n, variant))
         elif slot >= 0:
             lines.append(record("mismatch", slot, n["s"]))
             if rated(variant):
@@ -494,10 +494,13 @@ def stale(items, i, cover, variant):
 VIG_LR = (1, 2, 4, 8, 16)
 VIG_N = 100
 VIG_RATE = 0.2
+# Pilot 2 (tasks 0.16): the first range sat at floor, so "urn2-vig2" spans 1 to 65,536 in steps of
+# 16, over 200 audited rounds so every structure can reach the top ratio.
+VIG_SCALES = {"urn2-vig": (VIG_LR, VIG_N), "urn2-vig2": ((1, 16, 256, 4096, 65536), 200)}
 
 
 def vigilance(variant):
-    return variant.endswith("vig")
+    return variant in VIG_SCALES
 
 
 def vig_rates(family, items, i):
@@ -514,40 +517,43 @@ def vig_rates(family, items, i):
     return a, (1 - r) * a + r / 2
 
 
-def vig_count(family, items, i, slot):
-    """The count K of VIG_N whose likelihood ratio is closest to the level's target."""
+def vig_count(family, items, i, slot, variant="urn2-vig"):
+    """The count K of N whose likelihood ratio is closest to the level's target."""
     import math
 
+    levels, total = VIG_SCALES[variant]
     f0, f1 = vig_rates(family, items, i)
     per_hit = math.log(f1 / f0)
     per_miss = math.log((1 - f1) / (1 - f0))
-    target = math.log(VIG_LR[slot])
+    target = math.log(levels[slot])
     best = min(
-        range(VIG_N + 1),
-        key=lambda k: abs(k * per_hit + (VIG_N - k) * per_miss - target),
+        range(total + 1),
+        key=lambda k: abs(k * per_hit + (total - k) * per_miss - target),
     )
     return best
 
 
-def vig_ratio(family, items, i, slot):
+def vig_ratio(family, items, i, slot, variant="urn2-vig"):
     import math
 
+    _, total = VIG_SCALES[variant]
     f0, f1 = vig_rates(family, items, i)
-    k = vig_count(family, items, i, slot)
-    return math.exp(k * math.log(f1 / f0) + (VIG_N - k) * math.log((1 - f1) / (1 - f0)))
+    k = vig_count(family, items, i, slot, variant)
+    return math.exp(k * math.log(f1 / f0) + (total - k) * math.log((1 - f1) / (1 - f0)))
 
 
-def vig_record(family, items, i, slot, n):
-    k = vig_count(family, items, i, slot)
+def vig_record(family, items, i, slot, n, variant="urn2-vig"):
+    _, total = VIG_SCALES[variant]
+    k = vig_count(family, items, i, slot, variant)
     if family == "copying":
         return (
-            f"Audit of {n['b']}: in the last {VIG_N} rounds in which {n['b']} and {n['a']} read the "
-            f"same urn, {n['b']}'s reading matched {n['a']}'s in {k}."
+            f"Audit of {n['b']}: in the last {total} rounds in which {n['b']} and {n['a']} read "
+            f"the same urn, {n['b']}'s reading matched {n['a']}'s in {k}."
         )
     if family == "selection":
-        return f"Audit of {n['r']}: of the last {VIG_N} balls it reported, {k} were blue."
+        return f"Audit of {n['r']}: of the last {total} balls it reported, {k} were blue."
     return (
-        f"Audit of {n['s']}: of the last {VIG_N} of its filed readings that were checked, {k} "
+        f"Audit of {n['s']}: of the last {total} of its filed readings that were checked, {k} "
         "agreed with the later-verified majority of the urn they were filed under."
     )
 

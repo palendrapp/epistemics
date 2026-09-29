@@ -260,3 +260,20 @@ The rise is faint and monotone. Statistical audits up to LR 16 barely register. 
 | execution.json | `6ec1262dc96b517dba69cb847b93d4db4c715b88c57a6d076a17191fb135e226` |
 | summary.json | `4e593c88f0bebf17b8dc5867af6484a98fe9cf343da6e998fff278c568c6c1d1` |
 | Pilot summary | `9e66cabce563aadceb33b00cdffb7c3d124846e4890e9c985f930887e7288714` |
+
+### Pilot 2 (built 29 September)
+
+**Part A:** the load ladder, unchanged, on Astra-low, Sol-low, Luna and Terra (preset `capacity-pilot2`).
+
+**Part B:** the widened audit range.
+- **Variant** `urn2-vig2`, tasks 0.16.0, fingerprint `3b9ea94d18587bd778b6d986dc8b9a32b68cf1f36cc1c3fad879937a14845bcf`.
+- **Likelihood ratios** 1, 16, 256, 4,096 and 65,536, over 200 audited rounds.
+- **Realised ratios** are within a factor of 1.2 of target for copying and selection, and 1.7 for misfiling.
+- **Configurations:** Astra-high, Sol-high, Luna and Terra, on selection and misfiling.
+
+**Size and validation.** Sixteen contexts, token cap 12 million. Task validation 0.16 passed on both seeds (2,136 cases, 91 contexts).
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.16, seed 20260927 | `71381bc14d6e2ff999c5a1fa3bfb5e4e23050301858d33242c4017a390641662` |
+| Task validation 0.16, seed 20261027 | `8f0c8fa4c26ce3e3eaecac71a59595f84d61db5ca0423fac564ab55a91b33c62` |

@@ -257,6 +257,20 @@ PRESETS["capacity-pilot"] = (
         "contexts": (("urn2-vig", "markets", 1),),
     },
 )
+# Capacity pilot 2: the load ladder on the configurations more likely to hit a limit, and the
+# widened audit range (likelihood ratios 1 to 65,536) at both ends of the configurations.
+PRESETS["capacity-pilot2"] = (
+    {
+        "configurations": ("astra-low", "sol-low", "luna", "terra"),
+        "modules": LOAD_MODULES,
+        "contexts": (("load-a", "markets", 1),),
+    },
+    {
+        "configurations": ("astra-high", "sol-high", "luna", "terra"),
+        "modules": ("selection-urn", "mismatch-urn"),
+        "contexts": (("urn2-vig2", "markets", 1),),
+    },
+)
 # Retest of Sol's stated-applied gap on the asked relay dossiers, and the probed variant for both.
 PRESETS["probed"] = (
     {
