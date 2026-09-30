@@ -153,6 +153,8 @@ With six configurations instead of eight, each part costs three-quarters as much
 
 ## Part C, for later: multi-agent capacity
 
+**Designed 30 September:** see the [multi-agent design note](multi-agent-design.md). The outline below is the original.
+
 The same logic in communication between agents. Communication is a noisy channel, so the capacity limits are rate and provenance.
 
 - **Channel fidelity:** an agent summarises its evidence for a peer, and a second agent decides from the summary. The traits are what survives: the point estimate, the uncertainty, the provenance ("two of these reports share a source").
