@@ -226,3 +226,5 @@ Power SHA-256: `f330f96c422479242dcfa64e1d2e008fc73b19155a703d5530b50f34ecebb646
 - whether the calibration mapping is stable;
 - tokens per session;
 - whether any loaded session's context was compacted.
+
+**Tasks 0.23.1 (before collection).** The first preparation of the pilot failed: the refer-back ordering used numpy's random interface, but preparation passes Python's `random.Random`. Nothing was collected; the partial root, containing only the implementation snapshot, is kept as `output/battery-v3-pilot-20260930-failed-prepare`. The ordering now uses only calls that both provide. A test now prepares a real loaded group, and the battery was re-validated on both seeds before the pilot.

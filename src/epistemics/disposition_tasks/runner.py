@@ -346,10 +346,14 @@ def refer_back_order(module, rng):
     stated = {int(scenarios[i]): i for i in range(CASES) if kinds[i] == "stated"}
     revealed = {int(scenarios[i]): i for i in range(CASES) if kinds[i] == "revealed"}
     lotteries = [i for i in range(CASES) if kinds[i] == "lottery"]
+    # Only shuffle() and random() are used, so the runner's random.Random and numpy's Generator
+    # both work (tasks 0.23.1: preparation passes random.Random).
     while True:
         slots = [None] * CASES
         ok = True
-        for s in rng.permutation(sorted(stated)):
+        scenarios = sorted(stated)
+        rng.shuffle(scenarios)
+        for s in scenarios:
             free = [
                 (a, b)
                 for a in range(CASES)
@@ -359,12 +363,13 @@ def refer_back_order(module, rng):
             if not free:
                 ok = False
                 break
-            a, b = free[int(rng.integers(len(free)))]
+            a, b = free[int(rng.random() * len(free))]
             slots[a], slots[b] = stated[int(s)], revealed[int(s)]
         if not ok:
             continue
         rest = [k for k in range(CASES) if slots[k] is None]
-        for k, lottery in zip(rest, rng.permutation(lotteries), strict=True):
+        rng.shuffle(lotteries)
+        for k, lottery in zip(rest, lotteries, strict=True):
             slots[k] = int(lottery)
         return slots
 

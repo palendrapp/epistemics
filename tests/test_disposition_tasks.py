@@ -207,6 +207,18 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
         paths.append(p)
     with pytest.raises(ValueError, match="two distinct"):
         runner.prepare(tmp_path / "one", paths[:1])
+    # Battery v3's loaded variant, prepared for real (the refer-back order runs in preparation).
+    loaded = [
+        {
+            "configurations": ["astra"],
+            "modules": ["coherence-a"],
+            "contexts": [["v3-loaded", "markets", 1]],
+            "order": "refer-back",
+        }
+    ]
+    plan = runner.prepare(tmp_path / "loaded", paths, groups=loaded)
+    order = plan["runs"][0]["order"]
+    assert sorted(order) == list(range(24))
     bad = [
         {"configurations": ["astra"], "modules": ["checks"], "contexts": [["open", "markets", 1]]}
     ]
