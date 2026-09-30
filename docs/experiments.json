@@ -707,7 +707,7 @@
       ],
       "status": "complete",
       "prediction": "Range-finding only; one session per cell; may change the structural levels, nothing else.",
-      "outcome": "8 contexts over two collections (5 + a 3-context top-up after Sol-high hit the 900 s limit; tasks 0.18.1 made the limit settable), 4.7M recorded tokens. GPT-6: Astra-low and Astra err on one case in six at the top levels (both missed the same level-3 case by treating a conditional copy as unconditional); Astra-high and Sol at every effort exact. Sol sessions ran 2-4x longer. GPT-5.6 fails from level 0 (Luna exact 0-50%; Terra worst at low levels), so the ladder does not grade it. Structure is the first manipulation to move GPT-6 off ceiling, but only Astra below high effort, one case per level."
+      "outcome": "8 contexts over two collections (5 + a 3-context top-up after Sol-high hit the 900 s limit; tasks 0.18.1 made the limit settable), 4.7M recorded tokens. GPT-6: Astra-low and Astra err on one case in six at the top levels (both missed the same level-3 case by treating a conditional copy as unconditional); Astra-high and Sol at every effort exact. Sol sessions ran 1.7-4x longer than Astra's at the same effort. GPT-5.6 fails from level 0 (Luna exact 0-50%; Terra worst at low levels), so the ladder does not grade it. Structure is the first manipulation to move GPT-6 off ceiling, but only Astra below high effort, one case per level."
     }
   ],
   "next": [

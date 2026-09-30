@@ -639,7 +639,7 @@ uv run python -m epistemics.ledger capacity-pilot output/capacity-structure-pilo
   - Both missed the same level-3 case, answering 83% where the exact answer is 80%. That is the answer you get by treating the conditional copy as unconditional when its source read blue: a structural error (a missed condition), not a slip.
   - Astra's level-2 miss (70% against 75%) matches no single ignored structure.
   - Astra-high is exact, as is Sol at every effort.
-- **Sol takes longer.** Sol's sessions ran two to four times as long as Astra's, the longest at high effort. Wall time depends on server load and is not a fitted quantity, but it points to Sol spending more computation to stay exact.
+- **Sol takes longer.** At each effort, Sol's sessions ran 1.7 to 4 times as long as Astra's, the longest at high effort. Wall time depends on server load and is not a fitted quantity, but it points to Sol spending more computation to stay exact.
 - **GPT-5.6 fails from the first level.** Luna is exact on 0–50% of cases at every level, with high noise and neglect. Terra errs most at the lowest levels and least at the highest. For GPT-5.6 the task is hard from one copy relation onwards, so the ladder does not grade their failures.
 - **Scope:** one session per cell, against the two that recovery requires. A single miss moves *κ* from −0.29 to about 0.6, so these slopes are range-finding only.
 
