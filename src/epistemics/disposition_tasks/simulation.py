@@ -32,10 +32,10 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         eta = np.asarray(truth["load_eta"])[level]
         sd = np.asarray(truth["load_sd"])[level]
         return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
-    if module in ("advice-peer", "conformity-peer", "relay-peer"):
+    if module in ("advice-peer", "conformity-peer", "relay-peer") or module.startswith("advice-"):
         from epistemics.dispositions import social
 
-        if module == "advice-peer" and "w0" in truth:
+        if module.startswith("advice-") and "w0" in truth:
             latent = social.advice_open_answer(
                 items, truth["beta_own"], truth["w0"], truth["w_conf"]
             )

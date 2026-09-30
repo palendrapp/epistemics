@@ -44,7 +44,14 @@ CUE_MODELS = {
     "copying-peer": "dependence",
 }
 # Multi-agent battery, Stage 1: scripted peers (dispositions.social).
-SOCIAL_MODULES = ("advice-peer", "conformity-peer", "relay-peer")
+SOCIAL_MODULES = (
+    "advice-peer",
+    "conformity-peer",
+    "relay-peer",
+    "advice-relay",
+    "advice-sensor",
+    "advice-agent",
+)
 # Capacity battery, Part A: fully specified load modules (docs/capacity-battery-design.md).
 LOAD_MODELS = {
     "copying-load": "dependence",
@@ -168,7 +175,7 @@ def analyze(manifest, observations):
         from epistemics.dispositions import social
 
         opened = manifest.variant == "peer-open"
-        if manifest.module == "advice-peer" and opened:
+        if manifest.module.startswith("advice-") and opened:
             fitted, headline = social.fit_advice_open(items, responses), "w_conf"
         elif manifest.module == "advice-peer":
             fitted, headline = social.fit_advice(items, responses), "beta_conf"

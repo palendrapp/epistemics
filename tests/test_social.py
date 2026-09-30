@@ -146,3 +146,28 @@ def test_open_variants_hide_the_record_and_the_majoritys_evidence_and_fit_defaul
     reports = sample_reports(social.conformity_open_answer(items, 1.0, 0.8, 0.3), 0.02, rng)
     fit = social.fit_conformity_open(items, reports)["parameters"]
     assert abs(fit["v"]["mean"] - 0.8) < 0.1 and abs(fit["rho"]["mean"] - 0.3) < 0.1
+
+
+def test_confidence_surfaces_share_the_advice_cases_and_never_price_confidence():
+    from epistemics.disposition_tasks.render import items_for
+
+    base = items_for("advice-peer")
+    for module in ("advice-relay", "advice-sensor", "advice-agent"):
+        items = items_for(module)
+        assert all(np.array_equal(items[k], base[k]) for k in base)
+        for i in range(24):
+            case = render(module, "markets", i, "peer-open")["case"]
+            source = case.split("Your own sensor")[0].split("\n\n", 1)[1]
+            assert "%" not in source and "correct" not in source
+    relay = render("advice-relay", "markets", 0, "peer-open")["case"]
+    assert "did not read the urn" in relay and "no information" in relay
+
+
+def test_leave_one_surface_out_gain_rewards_a_shared_configuration_effect():
+    from epistemics.ledger import confidence
+
+    rng = np.random.default_rng(7)
+    shared = np.repeat(np.linspace(0, 1, 8)[:, None], 4, axis=1) + rng.normal(0, 0.02, (8, 4))
+    assert confidence.gain(shared)["gain"] > 0.9
+    unrelated = np.column_stack([rng.permutation(np.linspace(0, 1, 8)) for _ in range(4)])
+    assert confidence.gain(unrelated)["gain"] < 0.5

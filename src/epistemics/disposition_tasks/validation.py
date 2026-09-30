@@ -114,6 +114,16 @@ SOCIAL_RESPONDENTS = {
         "bias": 0.0,
         "report_sd": 0.05,
     },
+    **{
+        (module, "peer-open"): {
+            "beta_own": 1.0,
+            "w0": 1.2,
+            "w_conf": 0.5,
+            "bias": 0.0,
+            "report_sd": 0.05,
+        }
+        for module in ("advice-relay", "advice-sensor", "advice-agent")
+    },
     ("conformity-peer", "peer-open"): {
         "beta_own": 1.0,
         "v": 0.6,
@@ -125,6 +135,9 @@ SOCIAL_RESPONDENTS = {
 }
 # The copying-peer texts must never describe copying or passing on calls.
 PEER_MECHANISM = ("copy", "copies", "pass on", "passes on", "passed on", "repeat", "relay")
+# Confidence surfaces (tasks 0.22): nothing may say what a confidence level is worth, and the
+# relayer must be said to have no information of its own.
+ACCURACY_WORDS = ("correct", "accura", "right in", "record", "reliab", "%")
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -326,6 +339,16 @@ def audit():
                     )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
+                    if module in ("advice-relay", "advice-sensor", "advice-agent"):
+                        source = "\n\n".join(
+                            part
+                            for part in case["case"].split("\n\n")[1:]
+                            if not part.startswith("Your own sensor")
+                        )
+                        if any(word in source.lower() for word in ACCURACY_WORDS):
+                            raise ValueError(f"{where} says what confidence is worth")
+                        if module == "advice-relay" and "did not read the urn" not in source:
+                            raise ValueError(f"{where} does not say the relayer did not read it")
                     if module == "copying-peer" and any(
                         word in case["case"].lower() for word in PEER_MECHANISM
                     ):

@@ -89,3 +89,13 @@ This is the T1-open model unchanged, so its recovery (correlation 0.99 at one se
 2. **Configurations:** all eight, reusing the existing task A sessions (recommended).
 3. **Budget:** about 13 million tokens for the collection.
 4. **Preregistration:** a leave-one-task-out primary test, with task B against zero and the model direction as secondary tests (recommended).
+
+## Built (30 September)
+
+- **Surfaces:** B, C and D are the modules `advice-relay`, `advice-sensor` and `advice-agent` (tasks 0.22.0). Each uses the advice cases unchanged, and a test checks that the item tables are identical.
+- **Wording audit:**
+  - no new surface's source description mentions accuracy, a record, reliability or a percentage;
+  - the relayer's text says it did not read the urn.
+- **Power:** at the values observed so far, the test passes in 100% of simulated data sets if the trait is general, 25% if only the analyst surfaces share it, and 4.5% if no surface does.
+- **Preregistration:** [confidence-transfer-preregistration.md](confidence-transfer-preregistration.md), committed before collection.
+- **Collection** (awaiting your go-ahead): B, C and D on the eight configurations, one session each. That is 24 sessions, about 13 million tokens.

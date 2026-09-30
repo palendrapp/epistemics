@@ -219,6 +219,9 @@ SHOWN = {
     "copying-peer": ("uptake", "baseline"),
     "conformity-peer": ("kappa", "eta", "v", "rho", "beta_own"),
     "relay-peer": ("omega", "fidelity", "gamma"),
+    "advice-relay": ("w0", "w_conf", "beta_own"),
+    "advice-sensor": ("w0", "w_conf", "beta_own"),
+    "advice-agent": ("w0", "w_conf", "beta_own"),
 }
 
 

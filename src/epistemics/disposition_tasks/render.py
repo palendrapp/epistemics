@@ -52,6 +52,9 @@ MODULES = (
     "copying-peer",
     "conformity-peer",
     "relay-peer",
+    "advice-relay",
+    "advice-sensor",
+    "advice-agent",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -108,12 +111,25 @@ LOAD_DESIGNS = {
 }
 VIG_VARIANTS = ("urn2-vig", "urn2-vig2")
 # Multi-agent battery, Stage 1 (tasks 0.20): scripted peers (peers.py, dispositions.social).
-PEER_MODULES = ("advice-peer", "copying-peer", "conformity-peer", "relay-peer")
+PEER_MODULES = (
+    "advice-peer",
+    "copying-peer",
+    "conformity-peer",
+    "relay-peer",
+    # Tasks 0.22: the confidence transfer test's surfaces (the advice design, open variant).
+    "advice-relay",
+    "advice-sensor",
+    "advice-agent",
+)
+CONFIDENCE_MODULES = ("advice-peer", "advice-relay", "advice-sensor", "advice-agent")
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
     "conformity-peer": ("peer-a", "peer-open"),
     "relay-peer": ("chain-stated", "chain-open"),
+    "advice-relay": ("peer-open",),
+    "advice-sensor": ("peer-open",),
+    "advice-agent": ("peer-open",),
 }
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
@@ -422,6 +438,9 @@ def items_for(module):
             "copying-peer": design.corroboration_unprompted,
             "conformity-peer": social.conformity_design,
             "relay-peer": social.relay_design,
+            "advice-relay": social.advice_design,
+            "advice-sensor": social.advice_design,
+            "advice-agent": social.advice_design,
         }[module]()
     if module == "composite-deep-load":
         return design.composite_deep_design()
@@ -740,6 +759,9 @@ RENDERERS = {
         for m in ("advice-peer", "conformity-peer", "relay-peer")
     },
     "copying-peer": lambda *a: _peer("copying_peer", *a),
+    "advice-relay": lambda *a: _peer("advice_relay", *a),
+    "advice-sensor": lambda *a: _peer("advice_sensor", *a),
+    "advice-agent": lambda *a: _peer("advice_agent", *a),
 }
 
 

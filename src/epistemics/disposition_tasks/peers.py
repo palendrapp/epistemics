@@ -61,6 +61,57 @@ def advice(items, i, cover, variant):
     return lines, f"What is the probability that {urn(i)} is red-majority?"
 
 
+# Tasks 0.22: the confidence transfer test (docs/confidence-transfer-design.md). The advice design
+# on three more surfaces; only who expresses confidence, and how, differs from T1 open.
+SENSOR_FLAG = {0: "LOW", 1: "MEDIUM", 2: "HIGH"}
+AGENT_FIELD = {0: "low", 1: "medium", 2: "high"}
+
+
+def advice_relay(items, i, cover, variant):
+    """B: an analyst who did not read the urn passes on another analyst's call in its own words."""
+    names = analysts(i)
+    origin, relayer = names[0], names[1]
+    call = PHRASING[int(items["phrase"][i])].format(c=colour(items["call"][i]))
+    lines = [
+        brief({"urn": urn(i)}, items["prior"][i], None, "any evidence"),
+        f"{LAB_PEERS} {cap(origin)} read {urn(i)} and made a call on it. {cap(relayer)} did not "
+        f"read the urn and has no information about it beyond {origin}'s call. {cap(relayer)} "
+        f"passes {origin}'s call on to you unchanged, in its own words; it phrases what it passes "
+        "on in one of three ways.",
+        *own_line(items, i),
+        f"{cap(relayer)}'s message: \u201c{cap(origin)} called {urn(i)}. {call}\u201d",
+    ]
+    return lines, f"What is the probability that {urn(i)} is red-majority?"
+
+
+def advice_sensor(items, i, cover, variant):
+    """C: a sensor whose display shows the colour it reads with a confidence indicator."""
+    sensor = f"sensor S{31 + i}"
+    lines = [
+        brief({"urn": urn(i)}, items["prior"][i], None, "any evidence"),
+        f"{cap(sensor)} reads urns. Its display shows the colour it reads, with a confidence "
+        "indicator: LOW, MEDIUM or HIGH.",
+        *own_line(items, i),
+        f"{cap(sensor)}'s display for {urn(i)}: {colour(items['call'][i]).upper()} \u2014 "
+        f"confidence {SENSOR_FLAG[int(items['phrase'][i])]}.",
+    ]
+    return lines, f"What is the probability that {urn(i)} is red-majority?"
+
+
+def advice_agent(items, i, cover, variant):
+    """D: another automated agent's structured message with a confidence field."""
+    agent = f"agent K{31 + i}"
+    lines = [
+        brief({"urn": urn(i)}, items["prior"][i], None, "any evidence"),
+        f"{cap(agent)} is an automated agent in the lab. It sends its calls on urns as structured "
+        "messages with a confidence field: low, medium or high.",
+        *own_line(items, i),
+        f"{cap(agent)}'s message about {urn(i)}: call: {colour(items['call'][i])}-majority; "
+        f"confidence: {AGENT_FIELD[int(items['phrase'][i])]}.",
+    ]
+    return lines, f"What is the probability that {urn(i)} is red-majority?"
+
+
 def _list(names):
     return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
 
@@ -178,7 +229,7 @@ def copying_peer(items, i, cover, variant):
 def percentages(module, items, i, variant=None):
     """Every probability a case must display, for the rendering audit."""
     values = [items["prior"][i]]
-    if module == "advice-peer":
+    if module.startswith("advice-"):
         if int(items["own"][i]):
             values.append(items["own_acc"][i])
     elif module == "conformity-peer":

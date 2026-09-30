@@ -804,13 +804,25 @@
       "question": "Does reliance on expressed confidence without a record (w_conf) transfer across surfaces: analyst phrase, relayed emphasis from an uninformed relayer, sensor confidence flag, agent structured message?",
       "doc": "docs/confidence-transfer-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. Same 24 cases on four surfaces; leave-one-task-out over 8 configurations; secondary: Sol above Astra per surface and effort, relayed emphasis against zero, social vs non-social.",
-      "outcome": "Awaiting decisions: surfaces (optional record-present control), configurations, budget (about 13M), preregistration."
+      "outcome": "Built tasks 0.22.0 (advice-relay, advice-sensor, advice-agent on the advice cases), validated on both seeds; power 1.00 if general, 0.25 if social only, 0.045 if none; preregistration committed before collection."
+    },
+    {
+      "id": "confidence-transfer",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "preregistered",
+      "title": "Confidence persuasion transfer test",
+      "question": "Does w_conf (reliance on expressed confidence without a record) transfer across analyst, relayed, sensor and agent surfaces?",
+      "doc": "docs/confidence-transfer-preregistration.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Primary: leave-one-surface-out gain > 0 and permutation p < 0.05 over 8 configurations x 4 surfaces. Secondary: Sol above Astra (12 comparisons), uninformed relayer emphasis against zero, social minus non-social."
     }
   ],
   "next": [
-    "Confidence persuasion transfer test: decisions on the design note, then build (three surfaces), power simulation, preregistration, collection (about 13M).",
+    "Confidence transfer test: collect surfaces B, C, D on eight configurations (24 sessions, about 13M), then run the preregistered analysis.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
