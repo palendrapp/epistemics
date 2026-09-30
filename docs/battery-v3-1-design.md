@@ -177,7 +177,16 @@ The pooled analysis adds a stakes shift *δ* (−3 to 3), added to the stated lo
 
 Both traits pass the criteria (*r* ≥ 0.9, coverage ≥ 0.8). With three designs (the pilot's scale; 40 configurations), the action bias gives *r* 0.93 and the sensitivity 0.91, while *κ* falls to 0.52.
 
-**Power.** Running at the time of the pilot launch; results follow in the pilot section.
+**Power** (`output/battery-v31-power-20260930.json`). 8 configurations, 100 simulated datasets per scenario, spreads assumed (the pilot was to supply them):
+
+| Scenario | Pass rate |
+| --- | --- |
+| General (action bias sd 0.5, sensitivity sd 0.6; interaction sd 0.2) | 0.96 |
+| General, strong interaction (sd 0.5) | 0.95 |
+| Surface-bound (no trait spread; interaction sd 0.5) | 0.05 |
+| None (no trait spread, no interaction) | 0.19 |
+
+**The "none" scenario is not calibrated as simulated.** *κ* still varies between its configurations (1 to 16), and a low *κ* pulls the sensitivity estimate towards 0 on both halves, which the permutation (within surfaces) does not reproduce. With *κ* equal across configurations, the pass rate is 0.05 (60 datasets). A general difference in decisiveness can therefore pass as generality of the consequence sensitivity. A preregistered version would need to fit *κ* jointly with the traits or report the two together.
 
 **Task validation 0.24.** It passed on both seeds: 2,904 cases and 126 contexts. Six v3.1 contexts per seed recover a respondent's balanced threshold (true 0, *κ* 8) within tolerance (0.6); the largest error is 0.20.
 - Fingerprint `c33425ed3f5ecf27404777f18fd214580e2d82ecfc12cf7638954144a4812086`.
@@ -197,3 +206,43 @@ Both traits pass the criteria (*r* ≥ 0.9, coverage ≥ 0.8). With three design
 - the stakes shift;
 - choice-format problems: rejected answers and hedging;
 - tokens per session.
+
+### Pilot results (30 September)
+
+All 12 sessions completed with no errors: 6.3 million input tokens (about 0.52 million per session), 12 minutes. Every session gave all 24 answers. Rejected attempts are not recorded by the service, but none of the logs contain a rejection message.
+
+```bash
+uv run python -m epistemics.ledger battery-v31 output/battery-v31-pilot-20260930 --output output/battery-v31-pilot-summary-20260930.json
+```
+
+**The four configurations decide identically, and the described consequences decide everything except the balanced class.** Pooled over three sessions each (42 decisions):
+
+| | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| *θ*<sub>balanced</sub> (log-odds) | +0.06 | +0.06 | +0.07 | +0.06 |
+| *θ*<sub>cheap</sub> | −2.74 | −2.63 | −2.73 | −2.63 |
+| *θ*<sub>costly</sub> | +2.62 | +2.72 | +2.66 | +2.90 |
+| Δ*θ* | 5.36 | 5.36 | 5.38 | 5.53 |
+| *κ* (90% interval) | 2–64 | 2–64 | 2–64 | 2–64 |
+
+**What the decisions are:**
+- **Balanced consequences:** every configuration acted exactly when its stated belief was above 50% and held below. There was no exception in 88 decisions, anchors included (all hold at 15% and 35%, all act at 65% and 85%). No action bias, and actions follow stated beliefs perfectly.
+- **Cheap to act:** every configuration acted on every decision, at stated beliefs from 8% to 95%.
+- **Costly to act:** every configuration held on every decision, at stated beliefs up to 95%. The one exception is below.
+
+The cheap and costly thresholds are therefore censored at the edges of the beliefs the design offers (below about 8%, above about 95%). The fitted values sit at the grid's edges, and Δ*θ* is a lower bound. The consequence texts imply cost ratios beyond about 10:1, so they act as rules, not as weights.
+
+**Stakes shifted almost nothing.** In 24 stakes decisions, only one departed from the class rule: Luna acted at a stated 70% in the costly class when its own task needed the act (decision-c). The other three configurations held on the same scenario. In the balanced class, every stakes decision followed the stated belief against the favoured option (for example, holding at 20–30% when the act was favoured).
+
+**Generality: not interpretable.** The spread between configurations is 0.005 (action bias) and 0.07 (sensitivity), and no configuration departs from the median, so the guard applies. The split-half correlations (−0.18, −0.58) are noise.
+
+**Interpretation (task-conditional).** Battery v3.1 is a strong situation too, one level up:
+- **Measured where the normative answer is clear.** The balanced threshold is ½, and all four sit at ½ with perfectly sharp decisions.
+- **The texts made the answer clear where it was meant to be open.** "The crew has spare time, so sending it costs little" against "the production line could stop" leaves no judgement to make. The cheap and costly classes were meant to require weighing, but the texts settled them.
+
+So these configurations act coherently on their stated beliefs, and they follow qualitatively described asymmetries of consequence without being moved by probabilities between 8% and 95%. That is a passport finding: a clearly described asymmetry of harms overrides even a 90% belief. But it is not a trait that varies between them.
+
+**What would make it a weak situation:**
+- **Milder asymmetries:** normative thresholds well inside 20–80%, with graded wording ("somewhat worse", "a little more costly").
+- **Incommensurable consequences:** the two mistakes cost different kinds of thing (a customer's goodwill against a safety margin, a day's output against a protected site), so the threshold depends on how the agent values them, and no answer is normative. That is where configurations' values, if they differ, would show.
+

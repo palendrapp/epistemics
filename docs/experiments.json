@@ -876,7 +876,7 @@
       "roots": [],
       "status": "complete",
       "prediction": "Design only. Belief and binary decision per scenario; consequences described without numbers in three classes; threshold model P(act) = Phi(kappa (s - theta_k)); primary: split-half surface generality of theta_balanced and delta theta, with the guard.",
-      "outcome": "Built model 0.14.0, design 0.15.0, tasks 0.24.0: six 24-trial designs (10 stated beliefs, the 10 matching decisions, 4 balanced anchors at 15/35/65/85%), classes rotated over belief rank so each spans beliefs on both sides of 50%, consequences described without numbers, stakes both ways, a two-option choice answer. Recovery (6 sessions): action bias r 0.96, sensitivity r 0.91, coverage 0.87/0.85. Validated on both seeds. Power running."
+      "outcome": "Built model 0.14.0, design 0.15.0, tasks 0.24.0: six 24-trial designs (10 stated beliefs, the 10 matching decisions, 4 balanced anchors at 15/35/65/85%), classes rotated over belief rank so each spans beliefs on both sides of 50%, consequences described without numbers, stakes both ways, a two-option choice answer. Recovery (6 sessions): action bias r 0.96, sensitivity r 0.91, coverage 0.87/0.85. Validated on both seeds. Power (assumed spreads): general 0.96, surface-bound 0.05; 'none' 0.19 because kappa differences leak into the sensitivity estimate (0.05 with kappa equal)."
     },
     {
       "id": "battery-v3-1-pilot",
@@ -889,9 +889,9 @@
       "roots": [
         "output/battery-v31-pilot-20260930"
       ],
-      "status": "running",
+      "status": "complete",
       "prediction": "Range-finding; sets the power assumptions. Risk: thresholds at 1/2 in every class (consequences ignored) or identical across configurations.",
-      "outcome": "Collecting: Astra, Sol, Luna and Terra on decision-a to decision-c (12 sessions, about 6M tokens)."
+      "outcome": "12 sessions, 6.3M tokens, 0 errors. All four configurations decide identically: balanced threshold exactly 1/2 (act iff stated belief > 50%, no exception in 88 decisions), always act when acting is described as cheap (beliefs 8-95%), always hold when described as costly (up to 95%); thresholds censored at the design's range, delta theta >= 5.4 log-odds. Stakes: 1 departure in 24 (Luna). Spread 0.005/0.07; guard applies, generality not interpretable. The consequence texts made a strong situation; next: milder or incommensurable consequences."
     }
   ],
   "next": [
