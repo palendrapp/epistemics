@@ -864,10 +864,23 @@
       "status": "complete",
       "prediction": "Range-finding; sets the power assumptions for the preregistered battery.",
       "outcome": "16 sessions, 11.8M tokens, 0 errors (after tasks 0.23.1 fixed the refer-back order before collection). Coherence at ceiling: every configuration answered bets at exactly 100 x its stated probability and lotteries at expected value (beta 1, tau_c 0, rho 1), at every strength; stakes shifted nothing. Generality 'pass' (r 1.00) is an artefact of near-zero spread; guard added, not interpretable. Only departure: Luna's loaded session (beta 0.33, tau_c 1.48), confounded by unadapted instructions ('nothing carries over') and a load the agent tool apparently shortened."
+    },
+    {
+      "id": "battery-v3-1-design",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Battery v3.1: implicit decisions (design)",
+      "question": "Are action bias (the threshold for balanced, qualitatively described consequences) and consequence sensitivity general traits across surfaces?",
+      "doc": "docs/battery-v3-1-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Design only. Belief and binary decision per scenario; consequences described without numbers in three classes; threshold model P(act) = Phi(kappa (s - theta_k)); primary: split-half surface generality of theta_balanced and delta theta, with the guard.",
+      "outcome": "Awaiting decisions: construct, choice response type, loaded variant dropped, pilot budget (about 6M)."
     }
   ],
   "next": [
-    "Battery v3: explicit certainty equivalents are computed, so coherence is at ceiling. Decide between trajectory coherence (fixed instructions, a load the tool does not strip), implicit decisions, or more model families.",
+    "Battery v3.1 (implicit decisions): decisions on the design note, then build (choice response, decision texts, threshold fit, recovery).",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

@@ -270,3 +270,5 @@ Two problems qualify this.
 | plan.json | `5582835a147fe936809c9b2a1d8d2a38f75572aebfb3a95d7af6c085405a365b` |
 | execution.json | `374b4f4142558b3bc2573229006c3cc1f3f8c1500f49d552d0afa6c3294ea394` |
 | Summary (with the guard) | `1f9c4efc14a2bbf63640ddf26fafcf732ec42d933a3275397e0529478b264bd3` |
+
+**Next, designed 30 September:** [battery v3.1, implicit decisions](battery-v3-1-design.md).
