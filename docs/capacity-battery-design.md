@@ -711,3 +711,18 @@ Tasks fingerprint `b40f07aa7c3d8b66ef59ba447ea0092cc8383cf5fc17a56bd81c8127a2a95
 - whether Sol and high effort leave ceiling at levels 2 and 3;
 - how often Astra misses conditions;
 - whether load slopes separate configurations within GPT-6.
+
+### Extended ladder pilot (planned 30 September, before collection)
+
+**Question.** On the extended ladder, do Sol and high effort leave ceiling? How often do the GPT-6 configurations misread each structure? Do load slopes separate configurations within GPT-6?
+
+**Contexts.** `composite-deep-load` (tasks 0.19.0, validations 0.19 on both seeds) on the six GPT-6 configurations: Astra-low, Sol-low, Astra, Sol, Astra-high and Sol-high. Two sessions each, as recovery requires, so 12 contexts.
+- **Limits:** 1,800 seconds per run, because high-effort structural sessions ran past 900 seconds.
+- **Budget:** about 7.5 million tokens, cap 10 million.
+- **Groups** are passed to the runner directly; `plan.json` records them.
+
+**Read-out.**
+- Per configuration, pooled over its two sessions: exactness by level; the joint load curve (*κ*, *λ*) with 90% intervals; errors by structure.
+- Across configurations: whether *κ* orders by effort within Astra and within Sol.
+
+This is range-finding for the battery's configurations and budget; only the structural levels may change after it.

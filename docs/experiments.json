@@ -721,6 +721,20 @@
       "status": "complete",
       "prediction": "Same pre-set gates as the revised design.",
       "outcome": "Built model 0.10.0 (conditions on either colour, a second copy source, conditional misfiling; checked against full enumeration), design 0.12.0 (four levels from the first ladder's level 1 to chains with two conditional links, conditional misfiling and a two-source copier), tasks 0.19.0 (composite-deep-load; first ladder unchanged by hash). Errors attributed by structure (fit.load_errors). Recovery passes at 2 sessions (load slope r 0.94, neglect slope r 0.98). Pilot reanalysis: Astra's and Astra-low's errors are copy conditions read as unconditional."
+    },
+    {
+      "id": "capacity-deep-pilot",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Capacity: extended structural ladder pilot (GPT-6, two sessions per cell)",
+      "question": "Do Sol and high effort leave ceiling on the extended ladder, how often is each structure misread, and do load slopes separate GPT-6 configurations?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [
+        "output/capacity-deep-pilot-20260930"
+      ],
+      "status": "running",
+      "prediction": "Range-finding; two sessions per cell pooled; may change the structural levels only."
     }
   ],
   "next": [
