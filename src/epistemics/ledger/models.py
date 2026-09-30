@@ -321,8 +321,10 @@ def session(record, experiment, designs):
     module = record["module"]
     if module.endswith("-load"):
         return None  # Capacity load modules have their own analysis (ledger.capacity).
-    if "social" in record or "coherence" in record or "decisions" in record:
-        return None  # Scripted-peer and battery v3/v3.1 modules have their own analyses.
+    if any(k in record for k in ("social", "coherence", "decisions", "screen")):
+        return (
+            None  # Scripted-peer, battery v3/v3.1/v3.2 and screen modules have their own analyses.
+        )
     items = arrays(record["items"])
     responses = np.asarray(record["responses"], dtype=float)
     base = {

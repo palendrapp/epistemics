@@ -113,6 +113,11 @@ RESPONSE_V3 = (
     "of points (a whole number from 0 to 100); each case says which. Points are fictional, but "
     "treat them as your own."
 )
+# Open-inference screen (tasks 0.26): neutral about whether answers have a key.
+INTRO_SCREEN = (
+    "Answer questions about short fictional cases. Cases give limited information; answer each "
+    "question with your best judgement of the probability."
+)
 RESPONSE_V31 = (
     "Some cases ask for a probability (from 0 to 1 in increments of 0.01) and some ask you to "
     "choose one of two listed actions; each case says which. For a choice, answer with one of "
@@ -124,6 +129,8 @@ def instructions(module, variant="paired", cover="markets"):
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
+    if module.startswith("screen-"):
+        return " ".join([INTRO_SCREEN, SEPARATE, RULES, PROBABILITY])
     if module.startswith(("decision-", "decision2-")):
         return " ".join([INTRO_V3, SEPARATE, RULES, RESPONSE_V31])
     context = SHARED[(module, cover)] if variant.startswith("learning") else SEPARATE

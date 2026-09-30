@@ -39,6 +39,8 @@ from epistemics.disposition_tasks.render import (
     PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
+    SCREEN_MODULES,
+    SCREEN_VARIANTS,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
     URN2_VARIANTS,
@@ -146,6 +148,7 @@ AUDITED_CASES = (
     + 24 * len(V3_MODULES) * len(V3_VARIANTS)
     + 24 * len(V31_MODULES) * len(V31_VARIANTS)
     + 24 * len(V32_MODULES) * len(V32_VARIANTS)
+    + 24 * len(SCREEN_MODULES) * len(SCREEN_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -252,6 +255,16 @@ PRESETS["traits-stage2"] = (
         "configurations": V2_CONFIGURATIONS,
         "modules": V2_ASKED_MODULES + V2_PROBED_MODULES,
         "contexts": (("urn2-named", "markets", 1),),
+    },
+)
+# Open-inference screen (docs/open-inference-screen-design.md): stage A is form a of every family
+# on battery v2's six configurations; stage B (form b) covers only the families that pass stage A,
+# so its groups are made by `ledger screen-a` from the stage A results.
+PRESETS["screen-a"] = (
+    {
+        "configurations": V2_CONFIGURATIONS,
+        "modules": tuple(m for m in SCREEN_MODULES if m.endswith("-a")),
+        "contexts": (("screen", "markets", 1),),
     },
 )
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
@@ -429,6 +442,7 @@ def check_groups(groups):
             + V3_VARIANTS
             + V31_VARIANTS
             + V32_VARIANTS
+            + SCREEN_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -732,6 +746,13 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "screen" in analysis:
+        s = analysis["screen"]
+        return {
+            "parameter": f"screen-{s['family']}",
+            **{name: c["score"] for name, c in s["contrasts"].items()},
+            "anchors_ok": s["anchors_ok"],
         }
     if "decisions" in analysis:
         fit = analysis["decisions"]["fit"]

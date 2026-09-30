@@ -915,9 +915,22 @@
       "question": "In which task families that leave the generative model to the agent (hypotheses, speakers, other agents, unlisted causes, functions) do configurations differ reliably, before any is built into a trait battery?",
       "doc": "docs/open-inference-screen-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. Five families (generalisation from examples, reading reported numbers, inference from others' choices, unlisted alternatives, extrapolation), each with a rational model, an openness audit and determinate anchors. Stage A: spread across 6 configurations (1 session each); stage B: retest on a parallel form for passing families. Exploratory: a shared hypothesis-commitment trait across families.",
-      "outcome": "Awaiting decisions: families, configurations, two stages, budget (about 11-15M for stage A), battery v3.2 pilot timing."
+      "outcome": "Built model 0.16.0, design 0.17.0, tasks 0.26.0: modules screen-<gen|num|choice|lists|trend>-<a|b>, 20 open items + 4 anchors each; openness medians 1.64-3.32 log-odds, anchors 0. Recovery: reliability 0.90-1.00 at report noise 0.3, all contrasts monotone; rank with a single parameter 0.5-1.0 (F2, F5, F4 source measure combined constructs). Calibration (200 datasets): stage A without differences 0-6%, stage B with session states only 2.5-4% (limit 8.1%), stage A with differences 91.5-100%. Deviations from the note are listed in its Built section. Stage A awaiting go-ahead (about 11-15M)."
+    },
+    {
+      "id": "open-inference-screen-stage-a",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Open-inference screen, stage A (spread)",
+      "question": "In which of five open-inference families do six configurations differ by more than session noise, with at least three departing from the median and no shared rule?",
+      "doc": "docs/open-inference-screen-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Screening, criteria fixed before collection (ledger/screen.py). CogGym's shared failures suggest few families will pass; differences, if any, most likely between GPT-6 and GPT-5.6. Exploratory: commitment scores correlated across families.",
+      "outcome": "Planned: preset screen-a, 30 sessions, cap 20M tokens."
     }
   ],
   "next": [

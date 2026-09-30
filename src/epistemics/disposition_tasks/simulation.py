@@ -36,6 +36,10 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return coherence_responses(items, truth, rng)
     if module.startswith(("decision-", "decision2-")):
         return decision_responses(items, truth, rng)
+    if module.startswith("screen-"):
+        from epistemics.dispositions import screen
+
+        return screen.respond(str(items["family"][0]), items, truth["params"], rng, truth["noise"])
     if module in ("advice-peer", "conformity-peer", "relay-peer") or module.startswith("advice-"):
         from epistemics.dispositions import social
 

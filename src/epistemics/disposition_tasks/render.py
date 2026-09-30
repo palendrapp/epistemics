@@ -73,6 +73,16 @@ MODULES = (
     "decision2-d",
     "decision2-e",
     "decision2-f",
+    "screen-gen-a",
+    "screen-gen-b",
+    "screen-num-a",
+    "screen-num-b",
+    "screen-choice-a",
+    "screen-choice-b",
+    "screen-lists-a",
+    "screen-lists-b",
+    "screen-trend-a",
+    "screen-trend-b",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -152,6 +162,14 @@ V31_VARIANTS = ("v31-standard",)
 # (surfaces.CONSEQUENCES_V32, decisions.SCHEMES["v32"]).
 V32_MODULES = tuple(f"decision2-{letter}" for letter in "abcdef")
 V32_VARIANTS = ("v32-standard",)
+# Open-inference screen (tasks 0.26): five families x two parallel forms (dispositions.screen,
+# screen_texts).
+SCREEN_MODULES = tuple(
+    f"screen-{family}-{form}"
+    for family in ("gen", "num", "choice", "lists", "trend")
+    for form in "ab"
+)
+SCREEN_VARIANTS = ("screen",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -464,6 +482,11 @@ def items_for(module):
         from epistemics.dispositions import coherence
 
         return coherence.design(module.split("-")[1])
+    if module in SCREEN_MODULES:
+        from epistemics.dispositions import screen
+
+        _, family, form = module.split("-")
+        return screen.design(family, form)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -829,7 +852,14 @@ RENDERERS = {
             "decision2-f",
         )
     },
+    **{m: (lambda *a: _screen(*a)) for m in SCREEN_MODULES},
 }
+
+
+def _screen(items, i, cover, variant):
+    from epistemics.disposition_tasks import screen_texts
+
+    return screen_texts.trial(items, i, cover, variant)
 
 
 def _decisions(items, i, cover, variant):
@@ -867,6 +897,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in V31_VARIANTS
     if module in V32_MODULES:
         return cover == "markets" and variant in V32_VARIANTS
+    if module in SCREEN_MODULES:
+        return cover == "markets" and variant in SCREEN_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -908,7 +940,7 @@ def render(module, cover, index, variant="paired"):
     if module not in RENDERERS or not allowed(module, cover, variant):
         raise ValueError(f"Unknown variant for {module}: {variant}")
     items = items_for(module)
-    if not 0 <= index < len(items["prior"]):
+    if not 0 <= index < len(next(iter(items.values()))):
         raise ValueError("Item index outside the design")
     lines, question = RENDERERS[module](items, index, cover, variant)
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
@@ -926,6 +958,8 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index, variant=None):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
+    if module in SCREEN_MODULES:
+        return []  # Screen cases state no percentages.
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 

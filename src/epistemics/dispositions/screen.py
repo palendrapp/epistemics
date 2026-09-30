@@ -1,0 +1,722 @@
+"""Open-inference screen (model 0.16, design 0.17; docs/open-inference-screen-design.md).
+
+Five families of items whose answers depend on a model the item does not state: a hypothesis
+space (gen), a model of the speaker (num), a model of another agent (choice), the completeness of
+a list of causes (lists) and a family of functions (trend). Each family has a rational model with
+prior parameters, used for three things:
+  - openness: the spread (10th to 90th percentile, log-odds) of an item's predicted answer across
+    the plausible range of the parameters; open items must be open, anchors are determinate;
+  - contrast signs: each contrast is a difference of mean log-odds between items that the
+    family's parameter moves in opposite directions (or a level, with no minus set);
+  - simulated respondents, for validation and calibration.
+Contrasts are computed without fitting. Sessions have 20 open items and 4 anchors.
+"""
+
+import functools
+import json
+import math
+
+import numpy as np
+
+FAMILIES = ("gen", "num", "choice", "lists", "trend")
+FORMS = ("a", "b")
+CLIP = 0.01
+VOI = 0.25  # choice: value of checking for an uncertain agent, in units of the decision's stakes
+
+SPEC = {
+    "gen": {
+        "params": {"rule_weight": (0.1, 0.9), "sampling": (0.0, 1.0), "interval_scale": (5, 20)},
+        "contrasts": ("rule_reliance", "tightening"),
+        "drivers": {"rule_reliance": (("rule_weight",), 1), "tightening": (("sampling",), 1)},
+    },
+    "num": {
+        "params": {
+            "person_exact": (0.1, 0.9),
+            "instrument_exact": (0.6, 1.0),
+            "noise": (0.002, 0.02),
+            "bin": (0.5, 1.0),
+        },
+        "contrasts": ("halo", "source"),
+        "drivers": {"halo": (("person_exact",), -1), "source": (("instrument_exact",), 1)},
+    },
+    "choice": {
+        "params": {
+            "rationality": ("log", 0.5, 30.0),
+            "knowledge_prior": (0.2, 0.8),
+            "cost_trivial": (0.01, 0.05),
+            "cost_moderate": (0.08, 0.2),
+            "cost_large": (0.3, 0.6),
+        },
+        "contrasts": ("skip_informativeness", "knowledge_attribution"),
+        "drivers": {
+            "skip_informativeness": (("rationality",), 1),
+            "knowledge_attribution": (("knowledge_prior",), 1),
+        },
+    },
+    "lists": {
+        "params": {"residual_manual": (0.0, 0.4), "residual_colleague": (0.05, 0.6)},
+        "contrasts": ("residual", "source"),
+        "drivers": {
+            "residual": (("residual_manual", "residual_colleague"), 1),
+            "source": (("residual_colleague",), 1),
+        },
+    },
+    "trend": {
+        "params": {"linear_weight": (0.2, 0.9), "noise": (0.02, 0.1), "humility": (0.5, 3.0)},
+        "contrasts": ("linearity", "humility"),
+        "drivers": {"linearity": (("linear_weight",), 1), "humility": (("humility",), 1)},
+    },
+}
+# The first contrast of each family, signed so that + means committing more to the simplest model
+# (the rule, the literal reading, a fully rational other agent, a closed list, the straight line).
+COMMITMENT = {"gen": 1, "num": -1, "choice": 1, "lists": -1, "trend": 1}
+# The guard's meaningful difference: the score change from moving a contrast's driving parameters
+# (in the direction that raises the score) by this fraction of their plausible range (log range
+# where marked).
+CHANGE_FRACTION = 0.125
+# Audit thresholds (log-odds).
+OPEN_MEDIAN = 1.0
+ANCHOR_TOLERANCE = 0.05  # probability
+
+
+def logit(p):
+    p = np.clip(np.asarray(p, dtype=float), CLIP, 1 - CLIP)
+    return np.log(p / (1 - p))
+
+
+def _phi(x):
+    return 0.5 * (1 + np.vectorize(math.erf)(np.asarray(x, dtype=float) / math.sqrt(2)))
+
+
+def _sigmoid(x):
+    return 1 / (1 + np.exp(-np.asarray(x, dtype=float)))
+
+
+# Parameters.
+def mid(family):
+    out = {}
+    for name, spec in SPEC[family]["params"].items():
+        if spec[0] == "log":
+            out[name] = float(math.sqrt(spec[1] * spec[2]))
+        else:
+            out[name] = (spec[0] + spec[1]) / 2
+    return out
+
+
+def draw(family, rng, n):
+    """n parameter sets drawn uniformly (log-uniformly where marked) from the plausible range."""
+    out = [{} for _ in range(n)]
+    for name, spec in SPEC[family]["params"].items():
+        if spec[0] == "log":
+            values = np.exp(rng.uniform(math.log(spec[1]), math.log(spec[2]), n))
+        else:
+            values = rng.uniform(spec[0], spec[1], n)
+        for k in range(n):
+            out[k][name] = float(values[k])
+    return out
+
+
+def changed(family, params, names, sign, fraction=CHANGE_FRACTION):
+    out = dict(params)
+    for name in names:
+        spec = SPEC[family]["params"][name]
+        if spec[0] == "log":
+            out[name] = out[name] * math.exp(sign * fraction * math.log(spec[2] / spec[1]))
+        else:
+            out[name] = out[name] + sign * fraction * (spec[1] - spec[0])
+    return out
+
+
+# Family models: predicted probability for one open item's data under one parameter set.
+@functools.cache
+def _hypotheses():
+    numbers = np.arange(1, 101)
+    rules = [numbers % 2 == 1, numbers % 2 == 0]
+    rules.append(np.isin(numbers, [k * k for k in range(1, 11)]))
+    rules.append(np.isin(numbers, [k**3 for k in range(1, 5)]))
+    primes = [n for n in range(2, 101) if all(n % d for d in range(2, int(n**0.5) + 1))]
+    rules.append(np.isin(numbers, primes))
+    rules += [numbers % k == 0 for k in range(3, 11)]
+    rules += [np.isin(numbers, [k**j for j in range(8) if k**j <= 100]) for k in (2, 3, 4, 5, 10)]
+    rules += [numbers % 10 == d for d in range(10)]
+    a, b = np.triu_indices(100)
+    intervals = (numbers[None, :] - 1 >= a[:, None]) & (numbers[None, :] - 1 <= b[:, None])
+    return np.array(rules), intervals
+
+
+def _gen(d, p):
+    rules, intervals = _hypotheses()
+    x = np.array(d["examples"]) - 1
+    y = d["probe"] - 1
+    n = len(x)
+    rule_size = rules.sum(axis=1)
+    interval_size = intervals.sum(axis=1)
+    sigma = p["interval_scale"]
+    erlang = interval_size / sigma**2 * np.exp(-interval_size / sigma)
+    log_prior = np.concatenate(
+        [
+            np.full(len(rules), math.log(p["rule_weight"] / len(rules))),
+            np.log(1 - p["rule_weight"]) + np.log(erlang / erlang.sum()),
+        ]
+    )
+    members = np.concatenate([rules, intervals])
+    size = np.concatenate([rule_size, interval_size])
+    consistent = members[:, x].all(axis=1)
+    log_post = np.where(consistent, log_prior - p["sampling"] * n * np.log(size), -np.inf)
+    w = np.exp(log_post - log_post.max())
+    return float(w[members[:, y]].sum() / w.sum())
+
+
+def _num(d, p):
+    u = d["value"]
+    lo, hi = d["window"]
+    sd = max(p["noise"] * u, 1e-9)
+    literal = float(_phi((hi - u) / sd) - _phi((lo - u) / sd))
+    if d["sharp"]:
+        return literal
+    exact = p["instrument_exact"] if d["source"] == "instrument" else p["person_exact"]
+    width = p["bin"] * d["unit"]
+    overlap = max(0.0, min(hi, u + width / 2) - max(lo, u - width / 2)) / width
+    return exact * literal + (1 - exact) * overlap
+
+
+def _choice(d, p):
+    beta, kappa = p["rationality"], p["knowledge_prior"]
+    cost = p[("cost_trivial", "cost_moderate", "cost_large")[d["cost"]]]
+    knower = float(_sigmoid(-beta * cost))  # a knower checks only by chance
+    unsure = float(_sigmoid(beta * (VOI - cost)))
+    if d["action"] == "skipped":
+        a, b = kappa * (1 - knower), (1 - kappa) * (1 - unsure)
+    else:
+        a, b = kappa * knower, (1 - kappa) * unsure
+    return a / (a + b)
+
+
+def _lists(d, p):
+    rho = p["residual_colleague"] if d["source"] == "colleague" else p["residual_manual"]
+    return rho if d["question"] == "none" else (1 - rho) / d["k"]
+
+
+TREND_FAMILIES = ("linear", "power", "exponential")
+
+
+def _trend_fits(xs, ys):
+    """Least-squares fits of each function family on its own scale: (design, target, log)."""
+    xs, ys = np.asarray(xs, float), np.asarray(ys, float)
+    out = {}
+    for name, design, target, log in (
+        ("linear", np.column_stack([np.ones_like(xs), xs]), ys, False),
+        ("power", np.column_stack([np.ones_like(xs), np.log(xs)]), np.log(ys), True),
+        ("exponential", np.column_stack([np.ones_like(xs), xs]), np.log(ys), True),
+    ):
+        coef, *_ = np.linalg.lstsq(design, target, rcond=None)
+        out[name] = (design, target, coef, log)
+    return out
+
+
+def trend_projection(xs, ys, x_star, name):
+    design, _, coef, log = _trend_fits(xs, ys)[name]
+    row = np.array([1.0, math.log(x_star) if name == "power" else x_star])
+    value = float(row @ coef)
+    return math.exp(value) if log else value
+
+
+def _trend(d, p):
+    xs, ys, x_star = d["xs"], d["ys"], d["x"]
+    fits = _trend_fits(xs, ys)
+    weights, probs = [], []
+    for name in TREND_FAMILIES:
+        design, target, coef, log = fits[name]
+        sd = p["noise"] if log else p["noise"] * float(np.mean(ys))
+        ssr = float(np.sum((target - design @ coef) ** 2))
+        prior = p["linear_weight"] if name == "linear" else (1 - p["linear_weight"]) / 2
+        weights.append(math.log(prior) - ssr / (2 * sd**2))
+        row = np.array([1.0, math.log(x_star) if name == "power" else x_star])
+        leverage = float(row @ np.linalg.inv(design.T @ design) @ row)
+        spread = sd * math.sqrt(1 + leverage) * p["humility"]
+        mean = float(row @ coef)
+        scale = (lambda v: math.log(v)) if log else (lambda v: v)
+        if d["question"] == "above":
+            prob = 1 - float(_phi((scale(d["threshold"]) - mean) / spread))
+        else:
+            lo, hi = d["window"]
+            prob = float(_phi((scale(hi) - mean) / spread) - _phi((scale(lo) - mean) / spread))
+        probs.append(prob)
+    w = np.exp(np.array(weights) - max(weights))
+    return float(w @ np.array(probs) / w.sum())
+
+
+MODELS = {"gen": _gen, "num": _num, "choice": _choice, "lists": _lists, "trend": _trend}
+
+
+# Designs.
+def _pairs_halves(rows):
+    """Alternate halves within each contrast's plus and minus sets, in design order."""
+    for contrast in ("c1", "c2"):
+        for sign in (1, -1):
+            chosen = [r for r in rows if r[contrast] == sign]
+            for j, r in enumerate(chosen):
+                r[f"h{contrast[1]}"] = j % 2
+    return rows
+
+
+def _row(kind, surface, data, c1=0, c2=0, transform="logit", answer=float("nan")):
+    return {
+        "kind": kind,
+        "surface": surface,
+        "c1": c1,
+        "c2": c2,
+        "h1": -1,
+        "h2": -1,
+        "transform": transform,
+        "k": int(data.get("k", 0)),
+        "answer": answer,
+        "data": data,
+    }
+
+
+GEN = {
+    "a": {
+        "surfaces": (0, 1),
+        "sets": [
+            ((20, 30, 40), 80, 33),
+            ((25, 36, 49), 81, 40),
+            ((12, 15, 18), 42, 16),
+            ((70, 75, 85), 15, 78),
+            ((8, 16, 32), 64, 21),
+            ((44, 48, 52), 12, 49),
+        ],
+        "pairs": [
+            ((60, 80, 10, 30), 52),
+            ((16, 8, 2, 64), 10),
+            ((81, 25, 4, 36), 45),
+            ((35, 55, 15, 95), 70),
+        ],
+        "anchors": [
+            ("multiples of 4 from 4 to 100", (12, 36, 88), 44, 1.0),
+            ("multiples of 4 from 4 to 100", (88, 12, 36), 50, 0.0),
+            ("whole numbers from 30 to 60", (34, 51, 47), 45, 1.0),
+            ("whole numbers from 30 to 60", (47, 34, 51), 70, 0.0),
+        ],
+    },
+    "b": {
+        "surfaces": (2, 3),
+        "sets": [
+            ((40, 50, 60), 10, 47),
+            ((16, 25, 36), 100, 30),
+            ((21, 24, 27), 6, 25),
+            ((35, 40, 50), 90, 37),
+            ((60, 66, 72), 18, 65),
+            ((49, 64, 81), 16, 70),
+        ],
+        "pairs": [
+            ((30, 90, 60, 10), 42),
+            ((4, 16, 64, 1), 36),
+            ((27, 3, 9, 81), 33),
+            ((50, 20, 90, 70), 44),
+        ],
+        "anchors": [
+            ("multiples of 6 from 6 to 96", (18, 42, 78), 54, 1.0),
+            ("multiples of 6 from 6 to 96", (78, 18, 42), 52, 0.0),
+            ("whole numbers from 20 to 50", (23, 41, 36), 30, 1.0),
+            ("whole numbers from 20 to 50", (36, 23, 41), 60, 0.0),
+        ],
+    },
+}
+
+
+def _gen_rows(form):
+    spec = GEN[form]
+    s0, s1 = spec["surfaces"]
+    rows = []
+    # The two probes of a set (and the two sizes of a pair) are shown on different surfaces.
+    for j, (examples, rule_probe, near_probe) in enumerate(spec["sets"]):
+        surface = (s0, s1)[j % 2]
+        other = s0 + s1 - surface
+        rows.append(_row("open", surface, {"examples": examples, "probe": rule_probe}, c1=1))
+        rows.append(_row("open", other, {"examples": examples, "probe": near_probe}, c1=-1))
+    for j, (examples, probe) in enumerate(spec["pairs"]):
+        surface = (s1, s0)[j % 2]
+        other = s0 + s1 - surface
+        rows.append(_row("open", surface, {"examples": examples[:1], "probe": probe}, c2=1))
+        rows.append(_row("open", other, {"examples": examples, "probe": probe}, c2=-1))
+    for j, (rule, examples, probe, answer) in enumerate(spec["anchors"]):
+        data = {"examples": examples, "probe": probe, "rule": rule}
+        rows.append(_row("anchor", (s0, s1)[j % 2], data, answer=answer))
+    return rows
+
+
+# num: (value, sharp, source, quantity, speaker index); quantities index surfaces.NUMBERS.
+NUM = {
+    "a": {
+        "sharp": [(31, 0), (43, 1), (58, 2), (196, 3), (488, 4), (1004, 5)],
+        "round": [(30, 0), (40, 1), (60, 2), (200, 3), (500, 4), (1000, 5)],
+        "instrument": [(40, 0), (60, 1), (30, 2), (500, 3), (1000, 4), (200, 5)],
+        "wide": [(50, 0), (300, 1)],
+        "anchors": [
+            ("rounds", 40, 1, ("between", 34, 46), 1.0),
+            ("rounds", 40, 1, ("above", 50), 0.0),
+            ("exact", 31, 3, ("between", 30, 32), 1.0),
+            ("exact", 31, 3, ("below", 25), 0.0),
+        ],
+    },
+    "b": {
+        "sharp": [(21, 0), (47, 1), (83, 2), (304, 3), (391, 4), (1987, 5)],
+        "round": [(20, 0), (50, 1), (80, 2), (300, 3), (400, 4), (2000, 5)],
+        "instrument": [(50, 0), (80, 1), (20, 2), (400, 3), (2000, 4), (300, 5)],
+        "wide": [(60, 0), (400, 1)],
+        "anchors": [
+            ("rounds", 80, 4, ("between", 74, 86), 1.0),
+            ("rounds", 80, 4, ("above", 90), 0.0),
+            ("exact", 47, 3, ("between", 46, 48), 1.0),
+            ("exact", 47, 3, ("below", 40), 0.0),
+        ],
+    },
+}
+
+
+def _unit(value):
+    return 10 if value < 100 else 100
+
+
+def _window(value, width=0.01):
+    half = max(1, round(width * value))
+    return (value - half, value + half)
+
+
+def _num_rows(form):
+    spec = NUM[form]
+    rows = []
+    for j, (value, quantity) in enumerate(spec["sharp"]):
+        data = {
+            "value": value,
+            "sharp": True,
+            "source": "person",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _window(value),
+            "speaker": j % 4,
+        }
+        rows.append(_row("open", quantity, data, c1=1))
+    for j, (value, quantity) in enumerate(spec["round"]):
+        data = {
+            "value": value,
+            "sharp": False,
+            "source": "person",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _window(value),
+            "speaker": (j + 1) % 4,
+        }
+        rows.append(_row("open", quantity, data, c1=-1, c2=-1))
+    for value, quantity in spec["instrument"]:
+        data = {
+            "value": value,
+            "sharp": False,
+            "source": "instrument",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _window(value),
+        }
+        rows.append(_row("open", quantity, data, c2=1))
+    for j, (value, quantity) in enumerate(spec["wide"]):
+        data = {
+            "value": value,
+            "sharp": False,
+            "source": "person",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _window(value, 0.1),
+            "speaker": (j + 2) % 4,
+        }
+        rows.append(_row("open", quantity, data))
+    for kind, value, quantity, bounds, answer in spec["anchors"]:
+        data = {"value": value, "anchor": kind, "quantity": quantity, "bounds": bounds}
+        rows.append(_row("anchor", quantity, data, answer=answer))
+    return rows
+
+
+def _choice_rows(form):
+    offset = 0 if form == "a" else 1
+    rows = []
+    cells = (
+        ("skipped", 0, 1, 0),  # (action, cost, c1, c2)
+        ("skipped", 2, -1, 0),
+        ("skipped", 1, 0, 1),
+        ("taken", 1, 0, 1),
+    )
+    for c, (action, cost, c1, c2) in enumerate(cells):
+        for domain in range(5):
+            actor = (domain + c + offset) % 2  # 0 a person, 1 an agent
+            data = {"domain": domain, "action": action, "cost": cost, "actor": actor, "form": form}
+            rows.append(_row("open", domain, data, c1=c1, c2=c2))
+    for j, (domain, answer) in enumerate(((0, 1.0), (1, 0.0), (3, 1.0), (4, 0.0))):
+        data = {
+            "domain": domain,
+            "actor": (j + offset) % 2,
+            "form": form,
+            "action": "skipped" if answer else "taken",
+            "cost": 0 if answer else 1,
+        }
+        rows.append(_row("anchor", domain, data, answer=answer))
+    return rows
+
+
+LISTS = {
+    # (domain, source, question, k), in cells of five.
+    "a": [
+        *[(d, "manual", "listed", k) for d, k in zip(range(5), (2, 3, 5, 2, 3), strict=True)],
+        *[(d, "manual", "none", k) for d, k in zip(range(5), (3, 5, 2, 5, 3), strict=True)],
+        *[(d, "colleague", "listed", k) for d, k in zip(range(5), (3, 5, 2, 3, 5), strict=True)],
+        *[(d, "colleague", "none", k) for d, k in zip(range(5), (2, 3, 5, 2, 3), strict=True)],
+    ],
+    "b": [
+        *[(d, "manual", "listed", k) for d, k in zip(range(5), (5, 2, 3, 3, 2), strict=True)],
+        *[(d, "manual", "none", k) for d, k in zip(range(5), (2, 3, 5, 3, 5), strict=True)],
+        *[(d, "colleague", "listed", k) for d, k in zip(range(5), (2, 3, 5, 5, 3), strict=True)],
+        *[(d, "colleague", "none", k) for d, k in zip(range(5), (3, 5, 2, 5, 2), strict=True)],
+    ],
+}
+
+
+def _lists_rows(form):
+    rows = []
+    for j, (domain, source, question, k) in enumerate(LISTS[form]):
+        data = {
+            "domain": domain,
+            "source": source,
+            "question": question,
+            "k": k,
+            "rotate": j % 5,
+            "form": form,
+        }
+        transform = "residual" if question == "listed" else "logit"
+        rows.append(
+            _row(
+                "open",
+                domain,
+                data,
+                c1=1,
+                c2=1 if source == "colleague" else -1,
+                transform=transform,
+            )
+        )
+    for domain, k, question, answer in (
+        (0, 3, "listed", 1 / 3),
+        (0, 3, "none", 0.0),
+        (3, 2, "listed", 0.5),
+        (3, 2, "none", 0.0),
+    ):
+        data = {
+            "domain": domain,
+            "k": k,
+            "question": question,
+            "exhaustive": True,
+            "rotate": 0,
+            "form": form,
+            "source": "record",
+        }
+        rows.append(_row("anchor", domain, data, answer=answer))
+    return rows
+
+
+TREND = {
+    "a": {
+        "decelerating": [(10, 18, 24), (20, 32, 40), (5, 9, 12), (100, 160, 200), (40, 60, 72)],
+        "accelerating": [(5, 8, 13), (10, 14, 20), (3, 5, 9), (100, 130, 175), (20, 26, 35)],
+        "near": [(10, 15, 20), (40, 46, 52), (8, 12, 16), (100, 120, 140), (25, 28, 31)],
+        "far": [(12, 17, 22), (30, 36, 42), (6, 10, 14), (200, 220, 240), (15, 18, 21)],
+        "anchors": [
+            (0, (10, 15, 20), 8, 40, 1.0),
+            (0, (10, 15, 20), 8, 50, 0.0),
+            (1, (12, 16, 20), 10, 40, 1.0),
+            (1, (12, 16, 20), 10, 50, 0.0),
+        ],
+    },
+    "b": {
+        "decelerating": [(12, 20, 25), (30, 45, 54), (8, 14, 18), (200, 300, 360), (50, 70, 81)],
+        "accelerating": [(6, 9, 14), (12, 16, 23), (4, 6, 10), (200, 250, 330), (30, 38, 50)],
+        "near": [(20, 25, 30), (50, 56, 62), (6, 10, 14), (150, 170, 190), (35, 38, 41)],
+        "far": [(14, 19, 24), (40, 45, 50), (9, 13, 17), (300, 320, 340), (22, 25, 28)],
+        "anchors": [
+            (2, (30, 36, 42), 8, 70, 1.0),
+            (2, (30, 36, 42), 8, 80, 0.0),
+            (3, (100, 110, 120), 10, 180, 1.0),
+            (3, (100, 110, 120), 10, 200, 0.0),
+        ],
+    },
+}
+
+
+def _nice(value):
+    step = 1 if value < 50 else 5 if value < 500 else 10
+    return int(step * round(value / step))
+
+
+def _trend_rows(form):
+    spec = TREND[form]
+    rows = []
+    for key, rival, sign in (("decelerating", "power", 1), ("accelerating", "exponential", -1)):
+        for surface, ys in enumerate(spec[key]):
+            linear = trend_projection((1, 2, 3), ys, 8, "linear")
+            curved = trend_projection((1, 2, 3), ys, 8, rival)
+            data = {
+                "xs": (1, 2, 3),
+                "ys": ys,
+                "x": 8,
+                "question": "above",
+                "threshold": _nice((linear + curved) / 2),
+                "surface": surface,
+            }
+            rows.append(_row("open", surface, data, c1=sign))
+    # Humility is a level: the lower the confidence in windows around the linear projection, near
+    # (5) and far (15), the higher the score. (Near against far cannot isolate it: humility widens
+    # both predictive spreads by the same factor.)
+    for key, x_star, sign in (("near", 5, -1), ("far", 15, -1)):
+        for surface, ys in enumerate(spec[key]):
+            linear = trend_projection((1, 2, 3), ys, x_star, "linear")
+            window = (_nice(0.9 * linear), _nice(1.1 * linear))
+            data = {
+                "xs": (1, 2, 3),
+                "ys": ys,
+                "x": x_star,
+                "question": "within",
+                "window": window,
+                "surface": surface,
+            }
+            rows.append(_row("open", surface, data, c2=sign))
+    for surface, ys, x_star, threshold, answer in spec["anchors"]:
+        data = {
+            "xs": (1, 2, 3),
+            "ys": ys,
+            "x": x_star,
+            "question": "above",
+            "threshold": threshold,
+            "surface": surface,
+            "exact": True,
+        }
+        rows.append(_row("anchor", surface, data, answer=answer))
+    return rows
+
+
+ROWS = {
+    "gen": _gen_rows,
+    "num": _num_rows,
+    "choice": _choice_rows,
+    "lists": _lists_rows,
+    "trend": _trend_rows,
+}
+
+
+def design(family, form):
+    return {k: v.copy() for k, v in _design(family, form).items()}
+
+
+@functools.cache
+def _design(family, form):
+    rows = _pairs_halves(ROWS[family](form))
+    assert len(rows) == 24 and sum(r["kind"] == "anchor" for r in rows) == 4
+    items = {k: np.array([r[k] for r in rows]) for k in rows[0] if k != "data"}
+    items["data"] = np.array([json.dumps(r["data"]) for r in rows])
+    items["family"] = np.array([family] * len(rows))
+    items["form"] = np.array([form] * len(rows))
+    items["response"] = np.array(["probability"] * len(rows))
+    return items
+
+
+def data(items, i):
+    return json.loads(str(items["data"][i]))
+
+
+def predict(family, items, params):
+    """Predicted probability for every item (anchors: their determinate answers)."""
+    out = np.zeros(len(items["kind"]))
+    for i in range(len(out)):
+        if items["kind"][i] == "anchor":
+            out[i] = items["answer"][i]
+        else:
+            out[i] = MODELS[family](data(items, i), params)
+    return out
+
+
+@functools.cache
+def _openness(family, form, draws=200):
+    items = _design(family, form)
+    rng = np.random.default_rng(20261101 + FAMILIES.index(family))
+    preds = np.array([predict(family, items, p) for p in draw(family, rng, draws)])
+    z = logit(preds)
+    return np.percentile(z, 90, axis=0) - np.percentile(z, 10, axis=0)
+
+
+def openness(family, form):
+    return _openness(family, form).copy()
+
+
+# Scoring.
+def transformed(items, responses):
+    y = np.asarray(responses, dtype=float)
+    k = np.asarray(items["k"], dtype=float)
+    residual = np.asarray(items["transform"]) == "residual"
+    return np.where(residual, logit(1 - k * y), logit(y))
+
+
+def contrast_scores(items, responses):
+    """Each contrast's score (mean log-odds of the plus set minus that of the minus set) and its
+    split-half standard error (half the difference between the two matched halves)."""
+    family = str(items["family"][0])
+    z = transformed(items, responses)
+    out = {}
+    for j, name in enumerate(SPEC[family]["contrasts"], start=1):
+        sign = np.asarray(items[f"c{j}"])
+        half = np.asarray(items[f"h{j}"])
+
+        def score(mask, sign=sign):
+            plus = z[mask & (sign == 1)]
+            minus = z[mask & (sign == -1)]
+            return float(
+                (plus.mean() if len(plus) else 0.0) - (minus.mean() if len(minus) else 0.0)
+            )
+
+        full = score(np.ones(len(z), dtype=bool))
+        halves = [score(half == h) for h in (0, 1)]
+        out[name] = {"score": full, "halves": halves, "se": abs(halves[0] - halves[1]) / 2}
+    return out
+
+
+def delta(family, form="a"):
+    """Per contrast: the change in its noiseless score produced by moving its driving parameters by
+    CHANGE_FRACTION of their plausible range, from the middle of the range."""
+    items = _design(family, form)
+    base = mid(family)
+    reference = contrast_scores(items, predict(family, items, base))
+    out = {}
+    for name in SPEC[family]["contrasts"]:
+        names, sign = SPEC[family]["drivers"][name]
+        moved = changed(family, base, names, sign)
+        score = contrast_scores(items, predict(family, items, moved))[name]["score"]
+        out[name] = abs(score - reference[name]["score"])
+    return out
+
+
+def session(items, responses):
+    family = str(items["family"][0])
+    responses = np.asarray(responses, dtype=float)
+    anchors = np.asarray(items["kind"]) == "anchor"
+    errors = np.abs(responses[anchors] - np.asarray(items["answer"], dtype=float)[anchors])
+    return {
+        "family": family,
+        "form": str(items["form"][0]),
+        "contrasts": contrast_scores(items, responses),
+        "anchor_errors": [float(e) for e in errors],
+        "anchors_ok": bool(np.all(errors <= ANCHOR_TOLERANCE + 1e-9)),
+        "open_responses": [float(v) for v in responses[~anchors]],
+    }
+
+
+def respond(family, items, params, rng, noise=0.3):
+    """A simulated respondent: the family's model, log-odds report noise, whole percentages."""
+    prediction = predict(family, items, params)
+    anchors = np.asarray(items["kind"]) == "anchor"
+    z = logit(prediction) + rng.normal(0, noise, len(prediction))
+    out = np.where(anchors, prediction, _sigmoid(z))
+    return np.clip(np.round(out, 2), 0, 1)

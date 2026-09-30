@@ -35,6 +35,9 @@ uv run python -m epistemics.ledger battery-v31 <roots...> --output <file>
 uv run python -m epistemics.ledger battery-v32-recovery --output <file>
 uv run python -m epistemics.ledger battery-v32-power --output <file>
 uv run python -m epistemics.ledger battery-v32 <roots...> --output <file>
+uv run python -m epistemics.ledger screen-validation --output <file>
+uv run python -m epistemics.ledger screen-a <roots...> --output <file>
+uv run python -m epistemics.ledger screen-b <roots...> --output <file>
 """
 
 import argparse
@@ -164,6 +167,11 @@ def main():
     b3 = sub.add_parser("battery-v3")
     b3.add_argument("roots", type=Path, nargs="+")
     b3.add_argument("--output", type=Path, required=True)
+    sub.add_parser("screen-validation").add_argument("--output", type=Path, required=True)
+    for name in ("screen-a", "screen-b"):
+        sa = sub.add_parser(name)
+        sa.add_argument("roots", type=Path, nargs="+")
+        sa.add_argument("--output", type=Path, required=True)
     for version in ("v31", "v32"):
         for name in (f"battery-{version}-recovery", f"battery-{version}-power"):
             sub.add_parser(name).add_argument("--output", type=Path, required=True)
@@ -428,6 +436,32 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command in ("screen-validation", "screen-a", "screen-b"):
+        from epistemics.ledger import screen as screen_ledger
+
+        if a.command == "screen-validation":
+            run = {
+                "recovery": screen_ledger.recovery(),
+                "calibration": screen_ledger.calibration(),
+            }
+            run["passed"] = run["recovery"]["passed"] and run["calibration"]["passed"]
+            summary = {
+                "recovery_passed": run["recovery"]["passed"],
+                "calibration": run["calibration"]["result"],
+                "passed": run["passed"],
+            }
+        elif a.command == "screen-a":
+            run = screen_ledger.stage_a(a.roots)
+            summary = {
+                f: {n: c["passed"] for n, c in v["contrasts"].items()}
+                for f, v in run["families"].items()
+            }
+        else:
+            run = screen_ledger.stage_b(a.roots)
+            summary = {"passed": run["passed"]}
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(summary, indent=2))
     elif a.command.startswith(("battery-v31", "battery-v32")):
         from epistemics.ledger import battery_v31
 

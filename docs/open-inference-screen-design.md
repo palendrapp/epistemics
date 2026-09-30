@@ -1,6 +1,6 @@
 # Open-inference screen (design note)
 
-Design, 30 September 2026. Nothing is built or collected. The decisions for you are listed at the end.
+Design, 30 September 2026; built on 1 October (model 0.16.0, design 0.17.0, tasks 0.26.0; see [Built](#built)). Nothing is collected yet.
 
 ## Why a screen
 
@@ -209,3 +209,117 @@ The two are independent. Battery v3.2 opens the cost side of decisions (graded a
 3. **Two stages** (recommended) or a single stage with retests for every family (about 25–30 million tokens, and no selection step).
 4. **Budget:** about 11–15 million for stage A. Stage B is decided after stage A.
 5. **Battery v3.2's pilot:** run it now, after the screen, or drop it in favour of the screen.
+
+## Built
+
+Built on 1 October 2026 as model 0.16.0, design 0.17.0, tasks 0.26.0. The decisions were taken as recommended:
+- all five families;
+- battery v2's six configurations;
+- two stages.
+
+**Code:**
+- **Models, designs and scoring:** `dispositions/screen.py`.
+- **Texts:** `disposition_tasks/screen_texts.py`.
+- **Modules:** `screen-<family>-<form>` for families `gen`, `num`, `choice`, `lists` and `trend`, forms `a` and `b`, with variant `screen`.
+- **Stage A preset:** `screen-a`, which is 30 runs.
+- **Ledger:**
+  - `ledger/screen.py`;
+  - `screen-validation`;
+  - `screen-a <roots>`, which also writes the stage B groups for the families that pass;
+  - `screen-b <roots>`.
+
+**Items.** Each module has 20 open items and 4 anchors, in random order, answered as probabilities. Form `b` has the same structure as form `a` with different data and surfaces. Battery-level instructions: "Cases give limited information; answer each question with your best judgement of the probability."
+
+| Family | Open items | Contrast 1 | Contrast 2 |
+| --- | --- | --- | --- |
+| F1 `gen` | 6 example sets (a rule and a cluster both fit), each with a far rule probe and a near rule-breaking probe; 4 pairs of one example against four | Rule reliance: rule probes minus near probes | Tightening: one example minus four |
+| F2 `num` | 6 sharp and 6 round numbers from people, 6 round numbers from instruments (±1% windows), 2 wide windows | Halo: sharp minus round (people) | Source: instrument minus person (round numbers) |
+| F3 `choice` | Skipped trivial, skipped large, skipped moderate and taken moderate checks, 5 each; half by people, half by agents | Skip informativeness: skipped trivial minus skipped large | Knowledge attribution: level over the moderate items |
+| F4 `lists` | 10 lists from manuals and 10 from colleagues (2, 3 or 5 causes), asking about a listed cause or "none of these" | Residual mass: level of the implied unlisted share (1 − *k*·*p* for listed causes) | Source: colleague minus manual |
+| F5 `trend` | 5 decelerating and 5 accelerating series (probe at 8, threshold between the linear and curved projections); 10 linear series with ±10% windows at 5 and at 15 | Linearity: decelerating minus accelerating | Humility: minus the level of all ten windows |
+
+**Audits** (in task validation):
+- openness per family and form: open-item medians 3.27/3.32 (F1), 2.28/2.29 (F2), 3.06/3.06 (F3), 1.64/1.64 (F4), 2.15/1.99 (F5), all anchors 0;
+- no case shows a percentage;
+- no open case uses "probability", "likely", "rate", "accuracy" or "chance";
+- every anchor states the sentence that fixes its answer;
+- no two cases share both text and question.
+
+### Deviations from the note
+
+1. **Openness is measured in log-odds** (median at least 1.0), not probability (at least 0.3). The contrasts are on the log-odds scale, and a probability threshold penalises items whose answers lie near 0 or 1.
+2. **The guard's *δ* is uniform:** the score change from moving a contrast's parameters by an eighth of their plausible range. The note's examples (such as *λ* changing by 0.2) were too large for some parameters: a change of 0.2 in the knowledge prior is a third of its range, and the guard then rejected real differences.
+3. **Stage A's noise is estimated across configurations:** the SD of the split-half differences, divided by 2. Each session's own split-half error included the fixed difference between its halves' items, which inflated it (1.05 against 0.36 in one check).
+4. **Stage B centres each form across configurations and permutes within forms,** which is exact with no configuration differences. The forms' items differ, so an uncentred ICC is diluted by the form difference.
+5. **Two contrasts became levels.**
+   - **F3's second contrast** is now knowledge attribution, not the discount for a taken check. The latter depended on the same parameter as skip informativeness.
+   - **F5's humility** is minus the level of the window probabilities. Near against far cannot isolate humility, which widens both spreads by the same factor; the difference even moved the wrong way.
+6. **Recovery checks reliability and monotonicity, not rank correlation with one parameter.** Several contrasts measure constructs that combine a family's parameters:
+   - the halo combines the exactness attributed to people with the rounding width assumed;
+   - linearity combines the prior with how sharply the data separate function families.
+
+   Their rank correlations with a single parameter, with the others varying, are 0.5–0.7 (F2, F5, F4's source), and 0.8–1.0 for the rest. The screen asks whether configurations differ on each construct. Separating the parameters is for the full model in a battery.
+7. **Stage B's calibration criterion is "not significantly above 5%",** that is, at most 5% plus two binomial standard errors, because its permutation test is exact.
+
+### Validation (`output/screen-validation-20261001.json`)
+
+**Contrast recovery** at report noise 0.3 (log-odds), 200 simulated respondents per family and form, parameters drawn across the plausible ranges:
+
+| Contrast | Reliability | Largest decrease | Rank with its parameter | *δ* |
+| --- | --- | --- | --- | --- |
+| F1 rule reliance | 1.00 | 0 | 0.78–0.85 | 0.78 |
+| F1 tightening | 0.92 | 0.02 (clipping near 0) | 0.84 | 0.31–0.51 |
+| F2 halo | 0.98 | 0 | 0.50–0.53 | 0.22–0.25 |
+| F2 source | 0.97 | 0 | 0.53–0.54 | 0.15–0.18 |
+| F3 skip informativeness | 0.90 | 0 | 1.00 | 0.49 |
+| F3 knowledge attribution | 0.99 | 0 | 0.95 | 0.30 |
+| F4 residual mass | 0.95 | 0 | 0.94 | 0.29 |
+| F4 source | 0.95 | 0 | 0.70 | 0.30 |
+| F5 linearity | 0.99 | 0 | 0.58–0.59 | 0.32–0.33 |
+| F5 humility | 0.99 | 0 | 0.63–0.67 | 0.18 |
+
+**Calibration.** Six simulated configurations, 200 datasets per family and scenario, report noise 0.3. Session states jitter every parameter by 10% of its range.
+
+| Family | Stage A, no differences | Stage B, session states only | Stage A, differences |
+| --- | --- | --- | --- |
+| F1 | 0.00 | 0.035 | 0.965 |
+| F2 | 0.05 | 0.035 | 0.995 |
+| F3 | 0.00 | 0.04 | 0.915 |
+| F4 | 0.06 | 0.03 | 0.97 |
+| F5 | 0.01 | 0.025 | 1.00 |
+
+All criteria hold:
+- stage A without differences passes at most 10% of the time;
+- stage B with states only passes at most 8.1% (5% plus two standard errors);
+- stage A with differences passes at least 80% of the time.
+
+Session states alone make stage A pass 31–64% of the time. That is expected, and it is why stage B exists.
+
+**Task validation 0.26.** It passed on both seeds: 3,288 cases and 142 contexts.
+- **Screen contexts:** ten per seed. Each simulated respondent (middle parameters, report noise 0.05) has its anchors within 5 points and every contrast within 0.3 log-odds of its noiseless score; the largest error is 0.10.
+- Fingerprint `cf8d9ce22788072d18b1e41f1100e06383b2073222ef79ac1b8b6934f3ef3fd5`.
+- Seed 20260927: `f9581ed85abce3827bee18a414544e89c13b22abf1117e4367f298f8451ae4d5`.
+- Seed 20261027: `f5bc2e9338692f5f27584ae4531019ad41ea6b18e2551923a50b3c73549a73f3`.
+
+### Stage A (planned, awaiting your go-ahead)
+
+**Sessions.** Preset `screen-a`, tasks 0.26.0 validated on both seeds. Astra, Sol, Astra-low, Sol-low, Luna and Terra each take form `a` of all five families. That is 30 sessions.
+
+**Limits.** 1,800 seconds per run and a cap of 20 million tokens (11–15 million expected).
+
+**Analysis:**
+
+```bash
+uv run python -m epistemics.ledger screen-a <root> --output <file>
+```
+
+It reports per family:
+- the contrasts' scores, spread, noise, *δ* and checks;
+- anchor failures;
+- the share of items all configurations answer the same;
+- openness against observed spread per item;
+- the stage B groups;
+- the exploratory commitment scores and their correlations across families.
+
+**Stage B** would use the groups `screen-a` writes: form `b` for the families that pass, about 2–3 million tokens each.
+

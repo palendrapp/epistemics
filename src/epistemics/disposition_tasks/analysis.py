@@ -9,7 +9,13 @@ T5 fits both certainty functions to the stated maximum prices.
 import numpy as np
 
 from epistemics.disposition_tasks import urn
-from epistemics.disposition_tasks.render import V3_MODULES, V31_MODULES, V32_MODULES, items_for
+from epistemics.disposition_tasks.render import (
+    SCREEN_MODULES,
+    V3_MODULES,
+    V31_MODULES,
+    V32_MODULES,
+    items_for,
+)
 from epistemics.dispositions import fit, observers
 
 MODELS = {
@@ -180,6 +186,15 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in SCREEN_MODULES:
+        from epistemics.dispositions import screen
+
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "screen": screen.session(items, responses),
+            "rows": rows,
+        }
     if manifest.module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 

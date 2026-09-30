@@ -34,6 +34,8 @@ from epistemics.disposition_tasks.render import (
     PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
+    SCREEN_MODULES,
+    SCREEN_VARIANTS,
     STRUCTURE_LOAD_MODULES,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
@@ -94,6 +96,9 @@ TOLERANCE = {
     "v31_theta": 0.6,
     # Battery v3.2: share of a session's 14 decisions agreeing with the respondent's thresholds.
     "v32_agreement": 0.85,
+    # Open-inference screen: each contrast within 0.3 log-odds of the respondent's noiseless score
+    # at report noise 0.05 (log-odds), anchors within 5 points.
+    "screen_contrast": 0.3,
 }
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
@@ -274,7 +279,56 @@ def v32_consequences_match(module, index, case):
     return text in case["case"] and not words.search(text)
 
 
+# Open-inference screen: words that would state a rate or likelihood in a case (tasks 0.26 audit).
+SCREEN_FORBIDDEN = ("probability", "likely", "likelihood", "percent", "rate", "accura", "chance")
+
+
+def screen_case_clean(module, index, case):
+    """The case (not the question) states no percentage and no rate or likelihood word; anchors
+    state the sentence that fixes their answer."""
+    text = case["case"].lower()
+    items = items_for(module)
+    anchor = items["kind"][index] == "anchor"
+    if "%" in text or (not anchor and any(re.search(rf"\b{w}", text) for w in SCREEN_FORBIDDEN)):
+        return False
+    if anchor:
+        return any(
+            w in text
+            for w in (
+                "exactly",
+                "rounds to",
+                "had tested",
+                "had pressure-tested",
+                "had run",
+                "had surveyed",
+                "had received",
+                "no information",
+            )
+        )
+    return True
+
+
+def screen_audit():
+    """Openness per family and form: open items open (median at least OPEN_MEDIAN log-odds),
+    anchors determinate (openness 0)."""
+    from epistemics.dispositions import screen
+
+    out = {}
+    for family in screen.FAMILIES:
+        for form in screen.FORMS:
+            items = screen.design(family, form)
+            openness = screen.openness(family, form)
+            anchors = items["kind"] == "anchor"
+            median = float(np.median(openness[~anchors]))
+            if median < screen.OPEN_MEDIAN or np.any(openness[anchors] > 1e-9):
+                raise ValueError(f"screen-{family}-{form} fails the openness audit ({median:.2f})")
+            out[f"{family}-{form}"] = round(median, 3)
+    return out
+
+
 def variants_of(module):
+    if module in SCREEN_MODULES:
+        return SCREEN_VARIANTS
     if module in V31_MODULES:
         return V31_VARIANTS
     if module in V32_MODULES:
@@ -330,6 +384,7 @@ def covers_of(module):
         + V3_MODULES
         + V31_MODULES
         + V32_MODULES
+        + SCREEN_MODULES
         else COVERS
     )
 
@@ -395,7 +450,7 @@ def audit():
                 # Battery v3 shows each scenario twice, with different questions.
                 keys = {
                     (c["case"], c["question"])
-                    if module in V3_MODULES + V31_MODULES + V32_MODULES
+                    if module in V3_MODULES + V31_MODULES + V32_MODULES + SCREEN_MODULES
                     else c["case"]
                     for c in cases
                 }
@@ -424,6 +479,8 @@ def audit():
                     )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
+                    if module in SCREEN_MODULES and not screen_case_clean(module, i, case):
+                        raise ValueError(f"{where} states a rate, a percentage or a probability")
                     if module in V31_MODULES + V32_MODULES and case["response"] == "choice":
                         if not v31_consequences_clean(case):
                             raise ValueError(f"{where} states a number in its consequences")
@@ -470,7 +527,12 @@ def audit():
     for name, (against, towards) in coherence.balance().items():
         if abs(against - towards) > max(2, 0.15 * (against + towards)):
             raise ValueError(f"Battery v3 {name} balance {against}/{towards}")
-    return {"modules": len(MODULES), "covers": len(COVERS), "cases": count}
+    return {
+        "modules": len(MODULES),
+        "covers": len(COVERS),
+        "cases": count,
+        "screen_openness": screen_audit(),
+    }
 
 
 def contexts_to_validate():
@@ -543,9 +605,24 @@ def contexts_to_validate():
         yield module, "markets", "v31-standard", V31_RESPONDENT
     for module in V32_MODULES:
         yield module, "markets", "v32-standard", V32_RESPONDENT
+    from epistemics.dispositions import screen
+
+    for module in SCREEN_MODULES:
+        family = module.split("-")[1]
+        yield module, "markets", "screen", {"params": screen.mid(family), "noise": 0.05}
 
 
 def estimate(module, analysis, truth):
+    if "screen" in analysis:
+        # Anchors at their answers, and each contrast within tolerance of the respondent's
+        # noiseless score (the pipeline check: items, texts, order and scoring line up).
+        from epistemics.dispositions import screen
+
+        s = analysis["screen"]
+        items = items_for(module)
+        clean = screen.contrast_scores(items, screen.predict(s["family"], items, truth["params"]))
+        error = max(abs(c["score"] - clean[n]["score"]) for n, c in s["contrasts"].items())
+        return float(error), bool(s["anchors_ok"] and error <= TOLERANCE["screen_contrast"])
     if "load_sd" in truth:
         levels = analysis["load"]["levels"]
         slope = analysis["load"]["load_slope"]
