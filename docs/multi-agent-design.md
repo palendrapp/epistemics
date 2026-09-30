@@ -241,3 +241,23 @@ Tasks fingerprint `3e18c2f391fa541f61f045e68df872aa61720dad6a76c71d7dfaf85f12dd3
 - **Contexts:** the four tasks on Astra, Sol, Luna and Terra, one session each, with T4 in both variants. That is 20 contexts, about 11 million tokens.
 - **What it checks:** that no parameter sits at a grid edge for every configuration, that the texts are read as intended, and how many tokens a session uses.
 - **Then:** Stage 1 at one session per cell (recovery allows it) on all eight configurations. That is 5 contexts × 8 = 40 sessions, about 22 million tokens.
+
+### Pilot (planned 30 September, before collection)
+
+**Contexts.** Tasks 0.20.0, validations 0.20 on both seeds. Astra, Sol, Luna and Terra, one session each, on:
+- `advice-peer` (`peer-a`);
+- `copying-peer` (`urn2-vig2`);
+- `conformity-peer` (`peer-a`);
+- `relay-peer` (`chain-stated` and `chain-open`).
+
+That is 20 contexts. Limits: 1,800 seconds per run, and a cap of 15 million tokens.
+
+**Read-out.** Per configuration and task, the fitted parameters with 90% intervals:
+- T1: *β*<sub>rec</sub> and *β*<sub>conf</sub>;
+- T2: uptake;
+- T3: *κ* and *η*;
+- T4: *ω* and the implied fidelity.
+
+Also whether any parameter sits at a grid edge for every configuration, and tokens per session.
+
+**What may change after it.** This is range-finding: only the designs' ranges (record levels, majority sizes, relay lengths and fidelities) may change.

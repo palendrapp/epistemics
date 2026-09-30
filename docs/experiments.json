@@ -749,6 +749,20 @@
       "status": "complete",
       "prediction": "Design only. Stage 1 scripted peers: T1 advice (weight, confidence persuasion), T2 peer dependence, T3 conformity, T4 relay chains; cascades and live channels later.",
       "outcome": "Stage 1 built: model 0.11.0, design 0.13.0, tasks 0.20.0 (advice-peer, copying-peer, conformity-peer, relay-peer). Recovery passes at one session per cell for every fit (T1 beta_rec r 0.99, beta_conf 0.98; T3 kappa 0.99; T4 omega 0.96, fidelity 0.97); T2 reuses the copying uptake recovery. Task validation 0.20 passed on both seeds. Next: range-finding pilot (Astra, Sol, Luna, Terra; about 11M tokens)."
+    },
+    {
+      "id": "multi-agent-pilot",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Multi-agent Stage 1 pilot (scripted peers)",
+      "question": "Where do Astra, Sol, Luna and Terra sit on advice weight, confidence persuasion, peer-copying uptake, conformity and relay discount, and are the design ranges right?",
+      "doc": "docs/multi-agent-design.md",
+      "roots": [
+        "output/multi-agent-pilot-20260930"
+      ],
+      "status": "running",
+      "prediction": "Range-finding only: may change design ranges, nothing else."
     }
   ],
   "next": [
