@@ -399,6 +399,7 @@ def prepare(
     phase="acceptance",
     groups=PRESETS["acceptance"],
     max_tokens=10000000,
+    per_run_seconds=900,
 ):
     root = Path(root).resolve()
     planned = check_groups(groups)
@@ -509,7 +510,9 @@ def prepare(
         "runs": runs,
         "limits": {
             "max_attempts_per_run": 1,
-            "per_run_seconds": 900,
+            # Tasks 0.18.1: settable, because high-effort structural sessions can exceed 900 s
+            # (the structural pilot's Sol-high attempt reached the limit at 20 of 24 answers).
+            "per_run_seconds": per_run_seconds,
             "total_seconds": 7200,
             "max_known_processed_tokens": max_tokens,
             "admission_reserve_tokens_per_run": 800000,

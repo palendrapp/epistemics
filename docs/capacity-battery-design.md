@@ -606,3 +606,9 @@ Tasks fingerprint `6781afa919105ff2f17c8e10c04a2a89935658b1250514319c0b8eff8ee23
 **Contexts.** `composite-load` (tasks 0.18.0, validations 0.18 on both seeds), one session each, on eight configurations: the six GPT-6 ones, plus Luna and Terra as a positive control (GPT-5.6 failed the copying ladder in pilot 2). About 4.5 million tokens, cap 7 million. The groups are passed to the runner directly; `plan.json` records them.
 
 **Read-out.** Exactness by level, and the joint load curve (*κ*, *λ*) with 90% intervals. One session is below the two that recovery requires, so this is range-finding. Only the structural levels may change after it.
+
+**Deviation (written before the top-up).**
+- **The failure:** in the first collection (`output/capacity-structure-pilot-20260930`), Sol-high reached the 900-second per-run limit after about 20 of its 24 answers. Structural cases at high effort took up to 2 minutes each. The runner then admitted nothing further, so Sol and Terra were not attempted.
+- **Kept:** the five completed contexts (Astra-low, Sol-low, Astra, Astra-high, Luna). The partial Sol-high attempt has no report and is not used.
+- **The fix:** tasks 0.18.1 makes the per-run limit a setting of the runner's plan (default 900 seconds). Nothing else changed: no texts, designs, observers or fits. It was re-validated on both seeds.
+- **The top-up:** Sol-high, Sol and Terra, collected in `output/capacity-structure-pilot-20260930-2` with a 1,800-second limit. The per-run limit cuts a run short but does not change its answers.

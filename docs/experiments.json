@@ -702,7 +702,8 @@
       "question": "Does structural load leave ceiling for GPT-6, and does effort order the load slope within each model?",
       "doc": "docs/capacity-battery-design.md",
       "roots": [
-        "output/capacity-structure-pilot-20260930"
+        "output/capacity-structure-pilot-20260930",
+        "output/capacity-structure-pilot-20260930-2"
       ],
       "status": "running",
       "prediction": "Range-finding only; one session per cell; may change the structural levels, nothing else."
