@@ -654,3 +654,60 @@ uv run python -m epistemics.ledger capacity-pilot output/capacity-structure-pilo
 | plan.json (top-up) | `d7a5a8e0e34cad7cb60536eec57549e7b542592a5c8c4b93945fa29525c3e234` |
 | execution.json (top-up) | `207921dbf62c2d4f72eb6ac3ad8b285383fb009e877c8bf5fc86f466323bd228` |
 | Summary | `531dbae72fcdc1491967250b63e2ac84dff42d4c426b1b8c6c384a704d012f5e` |
+
+## Extended structural ladder (built 30 September)
+
+After the structural pilot, the ladder was extended upward so it can reach Sol and high effort, and errors are now counted by structure. Model 0.10.0, design 0.12.0 (`design.composite_deep_design`), tasks 0.19.0 (module `composite-deep-load`). The first ladder (`composite-load`) is unchanged; a test checks its texts and exact answers against their pilot hashes.
+
+**Levels** (five readings throughout; five cases per level plus the typical case repeated):
+
+| Level | Structure |
+| --- | --- |
+| 0 | One copy relation, and misfiling on another reading (the first ladder's level 1) |
+| 1 | A chain (B copies A, C copies B) with one link conditional on red or on blue, and misfiling on A, C and D (the first ladder's top level) |
+| 2 | A chain with both links conditional, on opposite colours; misfiling on A and C; and misfiling on D that applies only in rounds when B reads blue |
+| 3 | Level 2, plus a fifth sensor that copies A in some rounds and C in others |
+
+**New structures** in the observer (`observers.composite`, checked against full enumeration of every sensor's hidden state):
+- conditions on either colour;
+- a second copy source;
+- conditional misfiling.
+
+The texts state each one explicitly, for example: "In rounds when sensor B's logged reading is blue, 20% of the readings sensor D takes itself come from a different urn…".
+
+**Design rules.**
+- **Every stated structure bears on the answer**, by at least 0.1 log-odds. This covers each copy condition, each misfiling condition and the second source.
+- **Conditions alternate.** Within a level, each condition applies in some cases and not in others. At levels 2 and 3 the pattern cycles through first link only, second only, and both, never neither, so that copying always bears.
+
+**Errors by structure** (`fit.load_errors`, in every structural analysis).
+- **Attribution:** a wrong answer (more than 1.5 points from exact) is attributed to a structure when one of that structure's misreadings reproduces it within 1.5 points. The misreadings are: copying ignored; misfiling ignored; a copy or misfiling condition read as unconditional or as never; the second source ignored; or every structure ignored.
+- **Rates:** each structure's error rate is over the cases where its misreading changes the answer.
+- **The pilot, recomputed with this rule:**
+  - Astra and Astra-low each have one error, and both are a copy condition read as unconditional (1 of 5 opportunities).
+  - Luna has 6 of 19 errors attributed, to ignoring copying or misfiling or both.
+  - None of Terra's 7 errors matches a single misreading.
+  - Source: `output/capacity-structure-pilot-reanalysis-20260930.json` (SHA-256 `3362662fe05f35a0edc7d10aa5c64699861337343aa37b2476dde89accb6691a`).
+
+**Recovery** (`ledger capacity-load-recovery --module composite-deep-load`, 100 respondents, the same pre-set gates):
+
+| Sessions | Load slope *κ*: correlation, coverage | Neglect slope *λ*: correlation, coverage | Passes |
+| --- | --- | --- | --- |
+| 1 | 0.899, 0.94 | 0.98, 0.93 | no |
+| 2 | 0.94, 0.91 | 0.98, 0.95 | **yes** |
+| 3 | 0.96, 0.90 | 0.99, 0.96 | yes |
+
+**Result:** two sessions per cell. SHA-256 `c4ee4d7ec4c078624440d91db4ba4c55ca0f1dce1907198598b6716da7275939`.
+
+**Task validation 0.19.** It passed on both seeds: 2,232 cases and 98 contexts, adding the extended ladder with the four-level respondent. The per-level slope pipeline check came out at 0.56 and 0.44 against a true 0.53, within its tolerance of 0.6.
+
+Tasks fingerprint `b40f07aa7c3d8b66ef59ba447ea0092cc8383cf5fc17a56bd81c8127a2a95594`.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.19, seed 20260927 | `d0036ba64230e2d39a123207710343fbb1e8f7850432c919a57347313b939f7f` |
+| Task validation 0.19, seed 20261027 | `7cda201f300302f50e8c90fc14df064a7eaf55523a8545debe40dcc882e5cf57` |
+
+**Next.** A pilot of the extended ladder on the six GPT-6 configurations, at the two sessions per cell that recovery requires: 12 contexts, about 7.5 million tokens with the longer high-effort sessions. It would show:
+- whether Sol and high effort leave ceiling at levels 2 and 3;
+- how often Astra misses conditions;
+- whether load slopes separate configurations within GPT-6.

@@ -478,6 +478,7 @@ def _load_table(model, cases, loads, repeats, width=None):
         "dependence": ("acc", "rep", "src", "rate"),
         "mismatch": ("acc", "rep", "mis"),
         "composite": ("acc", "rep", "mis", "src", "rate", "cond"),
+        "composite-deep": ("acc", "rep", "mis", "src", "rate", "cond", "src2", "rate2", "msrc"),
     }[model]
     table = {
         "kind": np.array(["forecast"] * len(cases)),
@@ -487,10 +488,10 @@ def _load_table(model, cases, loads, repeats, width=None):
         "repeat_of": np.array(repeats, dtype=int),
     }
     for field in fields:
-        pad = -1 if field == "src" else 0
+        pad = -1 if field in ("src", "src2", "msrc") else 0
         for k in range(width):
             values = [c[field][k] if k < len(c["acc"]) else pad for c in cases]
-            dtype = int if field in ("rep", "src", "cond") else float
+            dtype = int if field in ("rep", "src", "cond", "src2", "msrc") else float
             table[f"{field}_{k}"] = np.array(values, dtype=dtype)
     return table
 
@@ -660,21 +661,35 @@ def composite_bearing(items):
     from epistemics.dispositions import observers
 
     exact = observers.composite(items)
+    partial = observers.composite_partials(items)
     width = sum(1 for key in items if key.startswith("acc_"))
+
+    def some(name, test):
+        keys = [f"{name}_{k}" for k in range(width) if f"{name}_{k}" in items]
+        if not keys:
+            return np.zeros(len(exact), dtype=bool)
+        return np.any([test(np.asarray(items[key])) for key in keys], axis=0)
+
+    def moved(*names):
+        return np.max([np.abs(partial[name] - exact) for name in names], axis=0)
+
     has = {
-        "copy": np.any([np.asarray(items[f"src_{k}"]) >= 0 for k in range(width)], axis=0),
-        "mis": np.any([np.asarray(items[f"mis_{k}"]) > 0 for k in range(width)], axis=0),
-        "cond": np.any([np.asarray(items[f"cond_{k}"]) > 0 for k in range(width)], axis=0),
+        "copy": some("src", lambda v: v >= 0) | some("src2", lambda v: v >= 0),
+        "mis": some("mis", lambda v: v > 0),
+        "cond": some("cond", lambda v: v > 0),
+        "mcond": some("msrc", lambda v: v >= 0),
+        "second": some("src2", lambda v: v >= 0),
     }
-    moved = {
-        "copy": np.abs(observers.composite(items, ignore_copy=True) - exact),
-        "mis": np.abs(observers.composite(items, ignore_mis=True) - exact),
-        "cond": np.maximum(
-            np.abs(observers.composite(items, conditions="unconditional") - exact),
-            np.abs(observers.composite(items, conditions="never") - exact),
+    values = {
+        "copy": moved("copying ignored"),
+        "mis": moved("misfiling ignored"),
+        "cond": moved("copy condition read as unconditional", "copy condition read as never"),
+        "mcond": moved(
+            "misfiling condition read as unconditional", "misfiling condition read as never"
         ),
+        "second": moved("second source ignored"),
     }
-    return {name: np.where(has[name], moved[name], np.nan) for name in moved}
+    return {name: np.where(has[name], values[name], np.nan) for name in has if has[name].any()}
 
 
 def composite_load_design():
@@ -708,6 +723,108 @@ def composite_load_design():
         loads.append(level)
         repeats.append(typical)
     return _load_table("composite", cases, loads, repeats, COMPOSITE_READINGS)
+
+
+# Design 0.12 (after the structural pilot, where only Astra below high effort erred, once per
+# level at the top): the structural ladder extended upward, five readings throughout.
+#   0: one copy relation and misfiling on another reading (the first ladder's level 1);
+#   1: a chain (B copies A, C copies B) with one link conditional on red or blue, misfiling on A,
+#      C and D (the first ladder's top level, with either colour of condition);
+#   2: a chain with both links conditional on opposite colours, misfiling on A and C, and
+#      misfiling on D that applies only in rounds when B reads blue;
+#   3: level 2 plus a fifth sensor that copies A in some rounds and C in others.
+# Every stated structure must bear on the answer (COMPOSITE_BEARING), including each condition
+# and the second source. Each condition applies in some cases of its level and not in others:
+# A's and B's readings are set so that the conditions they govern alternate across cases (at
+# levels 2 and 3 cycling through first link only, second only, both).
+_DEEP_SEED = 20261010
+_DEEP_SECOND_RATE = (0.2, 0.3, 0.4)
+
+
+def _deep_case(rng, level, found):
+    n = COMPOSITE_READINGS
+    case = {
+        "prior": float(rng.choice([0.3, 0.4, 0.5, 0.6, 0.7])),
+        "acc": rng.choice(_COMPOSITE_ACC, n),
+        "rep": rng.choice([-1, 1], n),
+        "mis": np.zeros(n),
+        "src": np.full(n, -1),
+        "rate": np.zeros(n),
+        "cond": np.zeros(n, dtype=int),
+        "src2": np.full(n, -1),
+        "rate2": np.zeros(n),
+        "msrc": np.full(n, -1),
+    }
+
+    def copy(k, s, cond=0):
+        case["src"][k], case["rate"][k], case["cond"][k] = s, rng.choice(_COMPOSITE_RATE), cond
+
+    def set_applies(s, cond, applies):
+        # The source's reading decides whether a relation conditioned on it applies.
+        red = (cond == 1) == applies
+        case["rep"][s] = 1 if red else -1
+
+    if level == 0:
+        s, k, j = rng.choice(n, 3, replace=False)
+        s, k = sorted((s, k))
+        copy(k, s)
+        case["mis"][j] = rng.choice(_COMPOSITE_MIS)
+        return case
+    a, b, c, d = sorted(rng.choice(n, 4, replace=False)) if level == 1 else (0, 1, 2, 3)
+    first = int(rng.integers(1, 3))
+    if level == 1:
+        conditional = int(rng.integers(2))
+        copy(b, a, cond=first if conditional == 0 else 0)
+        copy(c, b, cond=first if conditional == 1 else 0)
+        set_applies((a, b)[conditional], first, found % 2 == 0)
+        case["mis"][a], case["mis"][c], case["mis"][d] = rng.choice(_COMPOSITE_MIS, 3)
+        return case
+    copy(b, a, cond=first)
+    copy(c, b, cond=3 - first)
+    # Each link applies in some cases and not others, never neither (copying must bear).
+    applies = ((True, False), (False, True), (True, True))[found % 3]
+    set_applies(a, first, applies[0])
+    set_applies(b, 3 - first, applies[1])
+    case["mis"][a], case["mis"][c], case["mis"][d] = rng.choice(_COMPOSITE_MIS, 3)
+    case["msrc"][d] = b
+    if level == 3:
+        e = 4
+        case["src"][e], case["rate"][e] = a, rng.choice(_DEEP_SECOND_RATE)
+        case["src2"][e], case["rate2"][e] = c, rng.choice(_DEEP_SECOND_RATE)
+    return case
+
+
+def composite_deep_design():
+    """Twenty-four fully specified cases on the extended structural ladder: five per level plus
+    the level's typical case repeated."""
+    from epistemics.dispositions import observers
+
+    rng = np.random.default_rng(_DEEP_SEED)
+    cases, loads, separations = [], [], []
+    for level in range(COMPOSITE_LEVELS):
+        found = 0
+        while found < LONG_CASES:
+            case = _deep_case(rng, level, found)
+            probe = _load_table("composite-deep", [case], [level], [-1], COMPOSITE_READINGS)
+            exact, neglect = observers.load_answers("composite", probe)
+            bearing = [v[0] for v in composite_bearing(probe).values() if not np.isnan(v[0])]
+            if (
+                abs(exact[0]) <= 2.94
+                and abs(exact[0] - neglect[0]) >= 0.25
+                and min(bearing) >= COMPOSITE_BEARING
+            ):
+                cases.append(case)
+                loads.append(level)
+                separations.append(abs(exact[0] - neglect[0]))
+                found += 1
+    repeats = [-1] * len(cases)
+    for level in range(COMPOSITE_LEVELS):
+        members = [i for i, lv in enumerate(loads[: len(separations)]) if lv == level]
+        typical = sorted(members, key=lambda i: separations[i])[len(members) // 2]
+        cases.append(cases[typical])
+        loads.append(level)
+        repeats.append(typical)
+    return _load_table("composite-deep", cases, loads, repeats, COMPOSITE_READINGS)
 
 
 def dependence_load():

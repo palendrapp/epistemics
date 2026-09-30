@@ -708,10 +708,23 @@
       "status": "complete",
       "prediction": "Range-finding only; one session per cell; may change the structural levels, nothing else.",
       "outcome": "8 contexts over two collections (5 + a 3-context top-up after Sol-high hit the 900 s limit; tasks 0.18.1 made the limit settable), 4.7M recorded tokens. GPT-6: Astra-low and Astra err on one case in six at the top levels (both missed the same level-3 case by treating a conditional copy as unconditional); Astra-high and Sol at every effort exact. Sol sessions ran 1.7-4x longer than Astra's at the same effort. GPT-5.6 fails from level 0 (Luna exact 0-50%; Terra worst at low levels), so the ladder does not grade it. Structure is the first manipulation to move GPT-6 off ceiling, but only Astra below high effort, one case per level."
+    },
+    {
+      "id": "capacity-structural-deep",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Capacity: extended structural ladder and errors by structure",
+      "question": "Is the extended structural ladder recoverable, and can errors be attributed to the structure whose misreading reproduces them?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Same pre-set gates as the revised design.",
+      "outcome": "Built model 0.10.0 (conditions on either colour, a second copy source, conditional misfiling; checked against full enumeration), design 0.12.0 (four levels from the first ladder's level 1 to chains with two conditional links, conditional misfiling and a two-source copier), tasks 0.19.0 (composite-deep-load; first ladder unchanged by hash). Errors attributed by structure (fit.load_errors). Recovery passes at 2 sessions (load slope r 0.94, neglect slope r 0.98). Pilot reanalysis: Astra's and Astra-low's errors are copy conditions read as unconditional."
     }
   ],
   "next": [
-    "Capacity: decide whether to extend the structural ladder upward (two conditional links, conditions on misfiling) and count errors by structure, then run two sessions per cell on GPT-6; or accept family-level Part A.",
+    "Capacity: pilot the extended structural ladder on the six GPT-6 configurations at two sessions per cell (12 contexts, about 7.5M tokens).",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

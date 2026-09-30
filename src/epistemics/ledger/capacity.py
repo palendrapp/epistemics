@@ -68,6 +68,18 @@ def curve(record):
     return {"parameters": result["parameters"], "source": "reanalysis"}
 
 
+def errors(record):
+    """Structural sessions: wrong answers by the structure whose misreading reproduces them,
+    from the collection when the battery computed them (tasks 0.19 on), otherwise recomputed."""
+    model = LOAD_MODELS[record["module"]]
+    if model != "composite":
+        return None
+    if record["load"].get("errors"):
+        return {**record["load"]["errors"], "source": "collection"}
+    items = {k: np.asarray(v) for k, v in record["items"].items()}
+    return {**fit.load_errors(model, items, record["responses"]), "source": "reanalysis"}
+
+
 def usage(root):
     """Input tokens per run: from the collection log, or from each run's own execution record
     when the collection was interrupted before writing its log."""
@@ -119,6 +131,7 @@ def pilot(roots):
                         "eta_slope": load["eta_slope"],
                         "repeat_noise": load["repeat_noise"],
                         "curve": curve(record),
+                        "errors": errors(record),
                     }
                 )
             elif record["variant"] in VIG_SCALES:

@@ -276,6 +276,54 @@ def fit_load_curve(model, items, reports):
     return summarize(log_likelihood, grids)
 
 
+# Structural load (model 0.10): a wrong answer is attributed to a structure when one of that
+# structure's misreadings (observers.composite_partials, or ignoring every structure) reproduces
+# it, within the 1.5 points used for exactness. A misreading can only explain an error where it
+# changes the answer, so each structure's error rate is over those cases.
+ATTRIBUTION_EDGE = 0.015
+
+
+def load_errors(model, items, reports):
+    """Wrong answers by the structure whose misreading reproduces them (composite model only)."""
+    if model != "composite":
+        return None
+    reports = np.asarray(reports, dtype=float)
+    exact = 1 / (1 + np.exp(-observers.composite(items)))
+    readings = {
+        **observers.composite_partials(items),
+        "every structure ignored": observers.composite(items, ignore_copy=True, ignore_mis=True),
+    }
+    readings = {name: 1 / (1 + np.exp(-v)) for name, v in readings.items()}
+    wrong = np.abs(reports - exact) > ATTRIBUTION_EDGE
+    by_structure, matched_any = {}, np.zeros(len(reports), dtype=bool)
+    for name, answer in readings.items():
+        possible = np.abs(answer - exact) > ATTRIBUTION_EDGE
+        matched = wrong & possible & (np.abs(reports - answer) <= ATTRIBUTION_EDGE)
+        matched_any |= matched
+        by_structure[name] = {"opportunities": int(possible.sum()), "errors": int(matched.sum())}
+    loads = np.asarray(items["load"])
+    return {
+        "wrong": int(wrong.sum()),
+        "attributed": int((wrong & matched_any).sum()),
+        "by_structure": by_structure,
+        "cases": [
+            {
+                "item": int(i),
+                "load": int(loads[i]),
+                "response": float(reports[i]),
+                "exact": float(exact[i]),
+                "matches": [
+                    name
+                    for name, answer in readings.items()
+                    if abs(answer[i] - exact[i]) > ATTRIBUTION_EDGE
+                    and abs(reports[i] - answer[i]) <= ATTRIBUTION_EDGE
+                ],
+            }
+            for i in np.flatnonzero(wrong)
+        ],
+    }
+
+
 def fit_load(model, items, reports, curve=True):
     """Per load level: eta, bias and report noise; the slopes of log noise and of eta over load;
     the model-free noise between repeated cases; and (model 0.8) the joint load curve."""
@@ -318,4 +366,5 @@ def fit_load(model, items, reports, curve=True):
         if pairs
         else None,
         "curve": fit_load_curve(model, items, reports) if curve else None,
+        "errors": load_errors(model, items, reports),
     }

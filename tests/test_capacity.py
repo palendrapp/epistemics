@@ -102,29 +102,47 @@ def test_vigilance_headline_is_the_uptake():
 
 
 def _enumerated(items, i):
-    """Posterior log-odds by summing over every sensor's hidden state: copied, read this urn, or
-    read another urn."""
+    """Posterior log-odds by summing over every sensor's hidden state: copied from its first
+    source, copied from its second, read this urn, or read another urn."""
     import itertools
+
+    def get(name, k, default):
+        key = f"{name}_{k}"
+        return items[key][i] if key in items else default
 
     n = int(items["n"][i])
     rep = [int(items[f"rep_{k}"][i]) for k in range(n)]
+
+    def applies(cond, s):
+        return cond == 0 or (cond == 1 and rep[s] > 0) or (cond == 2 and rep[s] < 0)
+
     odds = []
     for h in (1, 0):
         total = 0.0
-        for states in itertools.product(range(3), repeat=n):
+        for states in itertools.product(range(4), repeat=n):
             p = 1.0
             for k, z in enumerate(states):
-                acc, mis = float(items[f"acc_{k}"][i]), float(items[f"mis_{k}"][i])
-                src, rate = int(items[f"src_{k}"][i]), float(items[f"rate_{k}"][i])
-                can = src >= 0 and (not int(items[f"cond_{k}"][i]) or rep[src] > 0)
-                c = rate if can else 0.0
+                acc = float(items[f"acc_{k}"][i])
+                mis = float(items[f"mis_{k}"][i])
+                msrc = int(get("msrc", k, -1))
+                if msrc >= 0 and rep[msrc] > 0:
+                    mis = 0.0
+                src, src2 = int(items[f"src_{k}"][i]), int(get("src2", k, -1))
+                c1 = (
+                    float(items[f"rate_{k}"][i])
+                    if src >= 0 and applies(int(items[f"cond_{k}"][i]), src)
+                    else 0.0
+                )
+                c2 = float(get("rate2", k, 0.0)) if src2 >= 0 else 0.0
                 if z == 0:
-                    p *= c * float(rep[k] == rep[src]) if can else 0.0
+                    p *= c1 * float(rep[k] == rep[src]) if c1 else 0.0
                 elif z == 1:
+                    p *= c2 * float(rep[k] == rep[src2]) if c2 else 0.0
+                elif z == 2:
                     right = acc if (rep[k] > 0) == (h == 1) else 1 - acc
-                    p *= (1 - c) * (1 - mis) * right
+                    p *= (1 - c1 - c2) * (1 - mis) * right
                 else:
-                    p *= (1 - c) * mis * 0.5
+                    p *= (1 - c1 - c2) * mis * 0.5
             total += p
         odds.append(total)
     prior = float(items["prior"][i])
@@ -132,10 +150,81 @@ def _enumerated(items, i):
 
 
 def test_structural_load_observer_matches_full_enumeration():
-    items = items_for("composite-load")
-    exact, _ = observers.load_answers("composite", items)
-    for i in range(len(exact)):
-        assert abs(exact[i] - _enumerated(items, i)) < 1e-9
+    for module in ("composite-load", "composite-deep-load"):
+        items = items_for(module)
+        exact, _ = observers.load_answers("composite", items)
+        for i in range(len(exact)):
+            assert abs(exact[i] - _enumerated(items, i)) < 1e-9
+
+
+def test_first_structural_ladder_is_unchanged_by_the_extension():
+    import hashlib
+
+    text = "\n=====\n".join(
+        render.render("composite-load", "markets", i, "load-a")["case"]
+        + "\n"
+        + render.render("composite-load", "markets", i, "load-a")["question"]
+        for i in range(24)
+    )
+    assert (
+        hashlib.sha256(text.encode()).hexdigest()
+        == "c22caad7e8c1706daead911a79e5b94b2e0c856e1ed8d700931e922f03e02597"
+    )
+    answers = np.round(observers.composite(items_for("composite-load")), 12).tobytes()
+    assert (
+        hashlib.sha256(answers).hexdigest()
+        == "fb991880b895403045307b7ccb115d2c029e6a650f6098ee14814a6235e72011"
+    )
+
+
+def test_extended_structural_ladder_adds_structure_and_every_condition_varies():
+    items = items_for("composite-deep-load")
+    assert np.bincount(items["load"]).tolist() == [6, 6, 6, 6]
+    assert set(items["n"].tolist()) == {design.COMPOSITE_READINGS}
+    exact, neglect = observers.load_answers("composite", items)
+    assert np.all(np.abs(exact - neglect) >= 0.25) and np.all(np.abs(exact) <= 2.95)
+    bearing = design.composite_bearing(items)
+    for values in bearing.values():
+        present = ~np.isnan(values)
+        assert np.all(values[present] >= design.COMPOSITE_BEARING)
+    level = items["load"]
+    assert np.all(np.isnan(bearing["second"][level < 3])) and not np.any(
+        np.isnan(bearing["second"][level == 3])
+    )
+    assert not np.any(np.isnan(bearing["mcond"][level >= 2]))
+    # Every conditional relation applies in some cases of its level and not in others (at level
+    # 1 the conditional link's position varies, so its relations are pooled).
+    for lv in (1, 2, 3):
+        states = {}
+        for i in np.flatnonzero((level == lv) & (items["repeat_of"] < 0)):
+            for k in range(5):
+                cond = int(items[f"cond_{k}"][i])
+                if cond:
+                    red = int(items[f"rep_{int(items[f'src_{k}'][i])}"][i]) > 0
+                    states.setdefault(("copy", k if lv > 1 else None), set()).add(
+                        red == (cond == 1)
+                    )
+                msrc = int(items[f"msrc_{k}"][i])
+                if msrc >= 0:
+                    states.setdefault(("mis", k), set()).add(int(items[f"rep_{msrc}"][i]) < 0)
+        assert states and all(s == {True, False} for s in states.values()), (lv, states)
+    for i in range(24):
+        case = render.render("composite-deep-load", "markets", i, "load-a")["case"]
+        for p in render.stated_percentages("composite-deep-load", i):
+            assert p in case
+
+
+def test_errors_are_attributed_to_the_structure_whose_misreading_reproduces_them():
+    items = items_for("composite-deep-load")
+    exact = 1 / (1 + np.exp(-observers.composite(items)))
+    misread = 1 / (1 + np.exp(-observers.composite(items, conditions="unconditional")))
+    reports = np.round(misread * 100) / 100
+    errors = fit.load_errors("composite", items, reports)
+    row = errors["by_structure"]["copy condition read as unconditional"]
+    assert row["errors"] == row["opportunities"] > 0
+    assert errors["wrong"] == row["opportunities"] == errors["attributed"]
+    exact_reports = np.round(exact * 100) / 100
+    assert fit.load_errors("composite", items, exact_reports)["wrong"] == 0
 
 
 def test_structural_load_design_holds_readings_fixed_and_every_structure_bears():

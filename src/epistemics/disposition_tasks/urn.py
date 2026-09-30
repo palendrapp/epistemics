@@ -672,6 +672,11 @@ def composite_load(items, i, cover, variant):
         + "; ".join(f"{s} {base.percent(items[f'acc_{k}'][i])}" for k, s in enumerate(sensors))
         + ".",
     ]
+
+    def value(name, k, default=-1):
+        key = f"{name}_{k}"
+        return items[key][i] if key in items else default
+
     relations = []
     for k in range(count):
         source = int(items[f"src_{k}"][i])
@@ -681,18 +686,38 @@ def composite_load(items, i, cover, variant):
             f"{cap(sensors[k])} copies {sensors[source]}'s logged reading in "
             f"{base.percent(items[f'rate_{k}'][i])} of rounds"
         )
-        if int(items[f"cond_{k}"][i]):
+        second = int(value("src2", k))
+        if second >= 0:
+            # Tasks 0.19: a second source.
             copied += (
-                f", but only in rounds when {sensors[source]}'s logged reading is red; when it is "
-                f"blue, {sensors[k]} always reads the urn itself"
+                f" and {sensors[second]}'s in {base.percent(value('rate2', k))} of rounds; in "
+                "the other rounds it reads the urn itself"
+            )
+        condition = int(items[f"cond_{k}"][i])
+        if condition:
+            when, other = ("red", "blue") if condition == 1 else ("blue", "red")
+            copied += (
+                f", but only in rounds when {sensors[source]}'s logged reading is {when}; when it "
+                f"is {other}, {sensors[k]} always reads the urn itself"
             )
         relations.append(copied + ".")
     for k in range(count):
         if float(items[f"mis_{k}"][i]) > 0:
-            relations.append(
-                f"{base.percent(items[f'mis_{k}'][i])} of the readings {sensors[k]} takes itself "
-                "come from a different urn than the one they are filed under."
-            )
+            share = base.percent(items[f"mis_{k}"][i])
+            governed = int(value("msrc", k))
+            if governed >= 0:
+                # Tasks 0.19: misfiling that applies only when another reading is blue.
+                relations.append(
+                    f"In rounds when {sensors[governed]}'s logged reading is blue, {share} of the "
+                    f"readings {sensors[k]} takes itself come from a different urn than the one "
+                    "they are filed under; in other rounds all of them are filed under the right "
+                    "urn."
+                )
+            else:
+                relations.append(
+                    f"{share} of the readings {sensors[k]} takes itself come from a different urn "
+                    "than the one they are filed under."
+                )
     lines.append(" ".join(relations))
     lines.append(
         "Every other sensor always reads the urn itself, and every other reading is filed under "
@@ -710,6 +735,8 @@ def load_percentages(family, items, i):
         values.append(items[f"acc_{k}"][i])
         if family in ("copying", "composite") and int(items[f"src_{k}"][i]) >= 0:
             values.append(items[f"rate_{k}"][i])
+        if family == "composite" and f"src2_{k}" in items and int(items[f"src2_{k}"][i]) >= 0:
+            values.append(items[f"rate2_{k}"][i])
         if family == "mismatch" or (family == "composite" and float(items[f"mis_{k}"][i]) > 0):
             values.append(items[f"mis_{k}"][i])
     return sorted({base.percent(v) for v in values})
