@@ -917,7 +917,7 @@
       "roots": [],
       "status": "complete",
       "prediction": "Design only. Five families (generalisation from examples, reading reported numbers, inference from others' choices, unlisted alternatives, extrapolation), each with a rational model, an openness audit and determinate anchors. Stage A: spread across 6 configurations (1 session each); stage B: retest on a parallel form for passing families. Exploratory: a shared hypothesis-commitment trait across families.",
-      "outcome": "Built model 0.16.0, design 0.17.0, tasks 0.26.0: modules screen-<gen|num|choice|lists|trend>-<a|b>, 20 open items + 4 anchors each; openness medians 1.64-3.32 log-odds, anchors 0. Recovery: reliability 0.90-1.00 at report noise 0.3, all contrasts monotone; rank with a single parameter 0.5-1.0 (F2, F5, F4 source measure combined constructs). Calibration (200 datasets): stage A without differences 0-6%, stage B with session states only 2.5-4% (limit 8.1%), stage A with differences 91.5-100%. Deviations from the note are listed in its Built section. Stage A awaiting go-ahead (about 11-15M)."
+      "outcome": "Built model 0.16.0, design 0.17.0, tasks 0.26.0: modules screen-<gen|num|choice|lists|trend>-<a|b>, 20 open items + 4 anchors each; openness medians 1.64-3.32 log-odds, anchors 0. Recovery: reliability 0.90-1.00 at report noise 0.3, all contrasts monotone; rank with a single parameter 0.5-1.0 (F2, F5, F4 source measure combined constructs). Calibration (200 datasets): stage A without differences 0-6%, stage B with session states only 2.5-4% (limit 8.1%), stage A with differences 91.5-100%. Deviations from the note are listed in its Built section. Stage A awaiting go-ahead (about 11-15M). Revised 1 October (model 0.17.0, design 0.18.0, tasks 0.27.0) after the user asked about separable profiles: F2 (speaker model with exact priors for people and instruments and a precision parameter, each with its own items) and F5 (linear prior and likelihood weight; exponential-growth and proportional-line items) redesigned. Profile recovery added (each family's Bayesian observer fitted by grid posterior to both forms): all 11 profile parameters r 0.97-0.99, coverage 0.80-0.96, largest confusion 0.01-0.23 (200 configurations). Calibration still passes. Validated on both seeds (fingerprint 4491e2d5)."
     },
     {
       "id": "open-inference-screen-stage-a",
@@ -930,7 +930,7 @@
       "roots": [],
       "status": "planned",
       "prediction": "Screening, criteria fixed before collection (ledger/screen.py). CogGym's shared failures suggest few families will pass; differences, if any, most likely between GPT-6 and GPT-5.6. Exploratory: commitment scores correlated across families.",
-      "outcome": "Planned: preset screen-a, 30 sessions, cap 20M tokens."
+      "outcome": "Planned: preset screen-a (tasks 0.27.0), 30 sessions, cap 20M tokens."
     }
   ],
   "next": [

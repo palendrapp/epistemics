@@ -443,11 +443,15 @@ def main():
             run = {
                 "recovery": screen_ledger.recovery(),
                 "calibration": screen_ledger.calibration(),
+                "profile_recovery": screen_ledger.profile_recovery(configs=200),
             }
-            run["passed"] = run["recovery"]["passed"] and run["calibration"]["passed"]
+            run["passed"] = all(
+                run[k]["passed"] for k in ("recovery", "calibration", "profile_recovery")
+            )
             summary = {
                 "recovery_passed": run["recovery"]["passed"],
                 "calibration": run["calibration"]["result"],
+                "profile_recovery_passed": run["profile_recovery"]["passed"],
                 "passed": run["passed"],
             }
         elif a.command == "screen-a":

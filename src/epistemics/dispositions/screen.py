@@ -30,14 +30,19 @@ SPEC = {
         "drivers": {"rule_reliance": (("rule_weight",), 1), "tightening": (("sampling",), 1)},
     },
     "num": {
+        # Speaker model: a person's (or an instrument's) number is exact with prior probability
+        # person_exact (instrument_exact), otherwise rounded to its unit (10 below 100, else 100);
+        # an exact report carries measurement noise with SD precision x value.
         "params": {
             "person_exact": (0.1, 0.9),
-            "instrument_exact": (0.6, 1.0),
-            "noise": (0.002, 0.02),
-            "bin": (0.5, 1.0),
+            "instrument_exact": (0.4, 1.0),
+            "precision": ("log", 0.002, 0.03),
         },
-        "contrasts": ("halo", "source"),
-        "drivers": {"halo": (("person_exact",), -1), "source": (("instrument_exact",), 1)},
+        "contrasts": ("halo_people", "halo_instruments"),
+        "drivers": {
+            "halo_people": (("person_exact",), -1),
+            "halo_instruments": (("instrument_exact",), -1),
+        },
     },
     "choice": {
         "params": {
@@ -62,9 +67,16 @@ SPEC = {
         },
     },
     "trend": {
-        "params": {"linear_weight": (0.2, 0.9), "noise": (0.02, 0.1), "humility": (0.5, 3.0)},
-        "contrasts": ("linearity", "humility"),
-        "drivers": {"linearity": (("linear_weight",), 1), "humility": (("humility",), 1)},
+        # Bayesian model averaging over linear, power and exponential functions, with prior
+        # linear_weight on linear and the rest split equally, and a likelihood weight: the
+        # log-likelihood of the readings is multiplied by it (below 1 the readings constrain the
+        # curve less, as in conservatism; above 1, more).
+        "params": {"linear_weight": (0.2, 0.9), "likelihood_weight": ("log", 0.2, 5.0)},
+        "contrasts": ("linearity", "conservatism"),
+        "drivers": {
+            "linearity": (("linear_weight",), 1),
+            "conservatism": (("likelihood_weight",), -1),
+        },
     },
 }
 # The first contrast of each family, signed so that + means committing more to the simplest model
@@ -167,15 +179,18 @@ def _gen(d, p):
     return float(w[members[:, y]].sum() / w.sum())
 
 
+NUM_UNIT_ROUNDING = 1.0  # a rounded report comes from anywhere in its unit's bin
+
+
 def _num(d, p):
     u = d["value"]
     lo, hi = d["window"]
-    sd = max(p["noise"] * u, 1e-9)
+    sd = max(p["precision"] * u, 1e-9)
     literal = float(_phi((hi - u) / sd) - _phi((lo - u) / sd))
     if d["sharp"]:
         return literal
     exact = p["instrument_exact"] if d["source"] == "instrument" else p["person_exact"]
-    width = p["bin"] * d["unit"]
+    width = NUM_UNIT_ROUNDING * d["unit"]
     overlap = max(0.0, min(hi, u + width / 2) - max(lo, u - width / 2)) / width
     return exact * literal + (1 - exact) * overlap
 
@@ -221,19 +236,26 @@ def trend_projection(xs, ys, x_star, name):
     return math.exp(value) if log else value
 
 
+TREND_NOISE = 0.15  # the process noise assumed for every series (relative)
+
+
 def _trend(d, p):
+    """Posterior predictive with a tempered likelihood (weight b): family weights use b x the
+    log-likelihood, and parameter uncertainty grows as 1/b (a flat prior on each family's
+    coefficients)."""
     xs, ys, x_star = d["xs"], d["ys"], d["x"]
+    b = p["likelihood_weight"]
     fits = _trend_fits(xs, ys)
     weights, probs = [], []
     for name in TREND_FAMILIES:
         design, target, coef, log = fits[name]
-        sd = p["noise"] if log else p["noise"] * float(np.mean(ys))
+        sd = TREND_NOISE if log else TREND_NOISE * float(np.mean(ys))
         ssr = float(np.sum((target - design @ coef) ** 2))
         prior = p["linear_weight"] if name == "linear" else (1 - p["linear_weight"]) / 2
-        weights.append(math.log(prior) - ssr / (2 * sd**2))
+        weights.append(math.log(prior) - b * ssr / (2 * sd**2))
         row = np.array([1.0, math.log(x_star) if name == "power" else x_star])
         leverage = float(row @ np.linalg.inv(design.T @ design) @ row)
-        spread = sd * math.sqrt(1 + leverage) * p["humility"]
+        spread = sd * math.sqrt(1 + leverage / b)
         mean = float(row @ coef)
         scale = (lambda v: math.log(v)) if log else (lambda v: v)
         if d["question"] == "above":
@@ -346,13 +368,14 @@ def _gen_rows(form):
     return rows
 
 
-# num: (value, sharp, source, quantity, speaker index); quantities index surfaces.NUMBERS.
+# num: (value, quantity); quantities index screen_texts.NUMBERS. Round numbers get windows of +/-0.2
+# of their unit (wide against measurement noise, narrow against rounding), so they measure the
+# speaker model; sharp numbers get +/-1% windows, which measure the assumed precision.
 NUM = {
     "a": {
-        "sharp": [(31, 0), (43, 1), (58, 2), (196, 3), (488, 4), (1004, 5)],
-        "round": [(30, 0), (40, 1), (60, 2), (200, 3), (500, 4), (1000, 5)],
-        "instrument": [(40, 0), (60, 1), (30, 2), (500, 3), (1000, 4), (200, 5)],
-        "wide": [(50, 0), (300, 1)],
+        "person": [(30, 0), (40, 1), (60, 2), (200, 3), (500, 4), (300, 5), (70, 0)],
+        "instrument": [(40, 0), (60, 1), (30, 2), (500, 3), (300, 4), (200, 5), (80, 1)],
+        "sharp": [(31, 0), (43, 1), (58, 2), (196, 3), (488, 4), (291, 5)],
         "anchors": [
             ("rounds", 40, 1, ("between", 34, 46), 1.0),
             ("rounds", 40, 1, ("above", 50), 0.0),
@@ -361,10 +384,9 @@ NUM = {
         ],
     },
     "b": {
-        "sharp": [(21, 0), (47, 1), (83, 2), (304, 3), (391, 4), (1987, 5)],
-        "round": [(20, 0), (50, 1), (80, 2), (300, 3), (400, 4), (2000, 5)],
-        "instrument": [(50, 0), (80, 1), (20, 2), (400, 3), (2000, 4), (300, 5)],
-        "wide": [(60, 0), (400, 1)],
+        "person": [(20, 0), (50, 1), (80, 2), (300, 3), (400, 4), (600, 5), (90, 0)],
+        "instrument": [(50, 0), (80, 1), (20, 2), (400, 3), (600, 4), (300, 5), (70, 1)],
+        "sharp": [(21, 0), (47, 1), (83, 2), (304, 3), (391, 4), (587, 5)],
         "anchors": [
             ("rounds", 80, 4, ("between", 74, 86), 1.0),
             ("rounds", 80, 4, ("above", 90), 0.0),
@@ -384,9 +406,35 @@ def _window(value, width=0.01):
     return (value - half, value + half)
 
 
+def _unit_window(value):
+    half = round(0.2 * _unit(value))
+    return (value - half, value + half)
+
+
 def _num_rows(form):
     spec = NUM[form]
     rows = []
+    for j, (value, quantity) in enumerate(spec["person"]):
+        data = {
+            "value": value,
+            "sharp": False,
+            "source": "person",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _unit_window(value),
+            "speaker": j % 4,
+        }
+        rows.append(_row("open", quantity, data, c1=-1))
+    for value, quantity in spec["instrument"]:
+        data = {
+            "value": value,
+            "sharp": False,
+            "source": "instrument",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _unit_window(value),
+        }
+        rows.append(_row("open", quantity, data, c2=-1))
     for j, (value, quantity) in enumerate(spec["sharp"]):
         data = {
             "value": value,
@@ -395,38 +443,6 @@ def _num_rows(form):
             "quantity": quantity,
             "unit": _unit(value),
             "window": _window(value),
-            "speaker": j % 4,
-        }
-        rows.append(_row("open", quantity, data, c1=1))
-    for j, (value, quantity) in enumerate(spec["round"]):
-        data = {
-            "value": value,
-            "sharp": False,
-            "source": "person",
-            "quantity": quantity,
-            "unit": _unit(value),
-            "window": _window(value),
-            "speaker": (j + 1) % 4,
-        }
-        rows.append(_row("open", quantity, data, c1=-1, c2=-1))
-    for value, quantity in spec["instrument"]:
-        data = {
-            "value": value,
-            "sharp": False,
-            "source": "instrument",
-            "quantity": quantity,
-            "unit": _unit(value),
-            "window": _window(value),
-        }
-        rows.append(_row("open", quantity, data, c2=1))
-    for j, (value, quantity) in enumerate(spec["wide"]):
-        data = {
-            "value": value,
-            "sharp": False,
-            "source": "person",
-            "quantity": quantity,
-            "unit": _unit(value),
-            "window": _window(value, 0.1),
             "speaker": (j + 2) % 4,
         }
         rows.append(_row("open", quantity, data))
@@ -520,12 +536,27 @@ def _lists_rows(form):
     return rows
 
 
+# trend: linearity items are accelerating (geometric) series, asked whether the reading at 8 will
+# exceed 1.5x the linear projection (the exponential projection is far above it, so the answer
+# turns on how much weight the straight line keeps: exponential growth bias); conservatism items
+# are exact proportional lines, asked for +/-10% windows around the projection at 5 and 10 (only
+# the spread matters: the families agree on these lines).
 TREND = {
     "a": {
-        "decelerating": [(10, 18, 24), (20, 32, 40), (5, 9, 12), (100, 160, 200), (40, 60, 72)],
-        "accelerating": [(5, 8, 13), (10, 14, 20), (3, 5, 9), (100, 130, 175), (20, 26, 35)],
-        "near": [(10, 15, 20), (40, 46, 52), (8, 12, 16), (100, 120, 140), (25, 28, 31)],
-        "far": [(12, 17, 22), (30, 36, 42), (6, 10, 14), (200, 220, 240), (15, 18, 21)],
+        "accelerating": [
+            (4, 8, 16),
+            (8, 12, 18),
+            (3, 6, 12),
+            (12, 18, 27),
+            (5, 10, 20),
+            (16, 24, 36),
+            (6, 12, 24),
+            (20, 30, 45),
+            (2, 4, 8),
+            (4, 6, 9),
+        ],
+        "near": [(10, 20, 30), (15, 30, 45), (8, 16, 24), (12, 24, 36), (25, 50, 75)],
+        "far": [(6, 12, 18), (20, 40, 60), (14, 28, 42), (30, 60, 90), (9, 18, 27)],
         "anchors": [
             (0, (10, 15, 20), 8, 40, 1.0),
             (0, (10, 15, 20), 8, 50, 0.0),
@@ -534,10 +565,20 @@ TREND = {
         ],
     },
     "b": {
-        "decelerating": [(12, 20, 25), (30, 45, 54), (8, 14, 18), (200, 300, 360), (50, 70, 81)],
-        "accelerating": [(6, 9, 14), (12, 16, 23), (4, 6, 10), (200, 250, 330), (30, 38, 50)],
-        "near": [(20, 25, 30), (50, 56, 62), (6, 10, 14), (150, 170, 190), (35, 38, 41)],
-        "far": [(14, 19, 24), (40, 45, 50), (9, 13, 17), (300, 320, 340), (22, 25, 28)],
+        "accelerating": [
+            (7, 14, 28),
+            (28, 42, 63),
+            (9, 18, 36),
+            (32, 48, 72),
+            (11, 22, 44),
+            (36, 54, 81),
+            (13, 26, 52),
+            (40, 60, 90),
+            (15, 30, 60),
+            (24, 36, 54),
+        ],
+        "near": [(11, 22, 33), (16, 32, 48), (7, 14, 21), (13, 26, 39), (35, 70, 105)],
+        "far": [(5, 10, 15), (18, 36, 54), (40, 80, 120), (24, 48, 72), (17, 34, 51)],
         "anchors": [
             (2, (30, 36, 42), 8, 70, 1.0),
             (2, (30, 36, 42), 8, 80, 0.0),
@@ -556,23 +597,18 @@ def _nice(value):
 def _trend_rows(form):
     spec = TREND[form]
     rows = []
-    for key, rival, sign in (("decelerating", "power", 1), ("accelerating", "exponential", -1)):
-        for surface, ys in enumerate(spec[key]):
-            linear = trend_projection((1, 2, 3), ys, 8, "linear")
-            curved = trend_projection((1, 2, 3), ys, 8, rival)
-            data = {
-                "xs": (1, 2, 3),
-                "ys": ys,
-                "x": 8,
-                "question": "above",
-                "threshold": _nice((linear + curved) / 2),
-                "surface": surface,
-            }
-            rows.append(_row("open", surface, data, c1=sign))
-    # Humility is a level: the lower the confidence in windows around the linear projection, near
-    # (5) and far (15), the higher the score. (Near against far cannot isolate it: humility widens
-    # both predictive spreads by the same factor.)
-    for key, x_star, sign in (("near", 5, -1), ("far", 15, -1)):
+    for j, ys in enumerate(spec["accelerating"]):
+        linear = trend_projection((1, 2, 3), ys, 8, "linear")
+        data = {
+            "xs": (1, 2, 3),
+            "ys": ys,
+            "x": 8,
+            "question": "above",
+            "threshold": _nice(1.5 * linear),
+            "surface": j % 5,
+        }
+        rows.append(_row("open", j % 5, data, c1=-1))
+    for key, x_star in (("near", 5), ("far", 10)):
         for surface, ys in enumerate(spec[key]):
             linear = trend_projection((1, 2, 3), ys, x_star, "linear")
             window = (_nice(0.9 * linear), _nice(1.1 * linear))
@@ -584,7 +620,7 @@ def _trend_rows(form):
                 "window": window,
                 "surface": surface,
             }
-            rows.append(_row("open", surface, data, c2=sign))
+            rows.append(_row("open", surface, data, c2=-1))
     for surface, ys, x_star, threshold, answer in spec["anchors"]:
         data = {
             "xs": (1, 2, 3),
@@ -720,3 +756,113 @@ def respond(family, items, params, rng, noise=0.3):
     z = logit(prediction) + rng.normal(0, noise, len(prediction))
     out = np.where(anchors, prediction, _sigmoid(z))
     return np.clip(np.round(out, 2), 0, 1)
+
+
+# Profile fit: each family's Bayesian observer fitted to a configuration's sessions (both forms), by
+# a grid posterior over its parameters and the report noise (flat priors). Responses are modelled as
+# logit(y) ~ Normal(logit(prediction), report_noise).
+FIT_GRID = {
+    "gen": {
+        "rule_weight": np.linspace(0.1, 0.9, 9),
+        "sampling": np.linspace(0.0, 1.0, 9),
+        "interval_scale": np.array([5.0, 10.0, 15.0, 20.0]),
+    },
+    "num": {
+        "person_exact": np.linspace(0.1, 0.9, 9),
+        "instrument_exact": np.linspace(0.4, 1.0, 9),
+        "precision": np.geomspace(0.002, 0.03, 7),
+    },
+    "choice": {
+        "rationality": np.geomspace(0.5, 30.0, 10),
+        "knowledge_prior": np.linspace(0.2, 0.8, 9),
+        "cost_trivial": np.array([0.01, 0.03, 0.05]),
+        "cost_moderate": np.array([0.08, 0.14, 0.2]),
+        "cost_large": np.array([0.3, 0.45, 0.6]),
+    },
+    "lists": {
+        "residual_manual": np.linspace(0.0, 0.4, 11),
+        "residual_colleague": np.linspace(0.05, 0.6, 12),
+    },
+    "trend": {
+        "linear_weight": np.linspace(0.2, 0.9, 11),
+        "likelihood_weight": np.geomspace(0.2, 5.0, 11),
+    },
+}
+REPORT_NOISE = np.array([0.1, 0.2, 0.3, 0.5, 0.8])
+# The parameters a profile reports (the rest are nuisance, marginalised).
+PROFILE = {
+    "gen": ("rule_weight", "sampling"),
+    "num": ("person_exact", "instrument_exact", "precision"),
+    "choice": ("rationality", "knowledge_prior"),
+    "lists": ("residual_manual", "residual_colleague"),
+    "trend": ("linear_weight", "likelihood_weight"),
+}
+
+
+@functools.cache
+def _fit_table(family, forms):
+    grid = FIT_GRID[family]
+    names = list(grid)
+    mesh = np.meshgrid(*[grid[n] for n in names], indexing="ij")
+    points = {n: m.ravel() for n, m in zip(names, mesh, strict=True)}
+    size = len(points[names[0]])
+    columns = []
+    for form in forms:
+        items = _design(family, form)
+        open_items = [i for i in range(len(items["kind"])) if items["kind"][i] == "open"]
+        table = np.empty((size, len(open_items)))
+        for g in range(size):
+            params = {n: float(points[n][g]) for n in names}
+            table[g] = [MODELS[family](data(items, i), params) for i in open_items]
+        columns.append(logit(table))
+    return points, np.concatenate(columns, axis=1)
+
+
+def _cell_edges(values):
+    values = np.asarray(values, dtype=float)
+    mids = (values[1:] + values[:-1]) / 2
+    return np.concatenate([[values[0]], mids]), np.concatenate([mids, [values[-1]]])
+
+
+def _marginal(weights, points, values, log):
+    probs = np.array([weights[points == v].sum() for v in values])
+    probs /= probs.sum()
+    scale = np.log(values) if log else values
+    mean = float(probs @ scale)
+    cdf = np.cumsum(probs)
+    lo, hi = np.searchsorted(cdf, [0.05, 0.95])
+    lower, upper = _cell_edges(values)
+    return {
+        "mean": float(np.exp(mean)) if log else mean,
+        "interval_90": [
+            float(lower[min(lo, len(values) - 1)]),
+            float(upper[min(hi, len(values) - 1)]),
+        ],
+    }
+
+
+def fit_profile(family, responses, forms=FORMS):
+    """responses: {form: 24 responses in design order}. Posterior summaries of every parameter of
+    the family's observer and of the report noise."""
+    points, table = _fit_table(family, tuple(forms))
+    observed = []
+    for form in forms:
+        items = _design(family, form)
+        y = np.asarray(responses[form], dtype=float)
+        observed.append(logit(y[np.asarray(items["kind"]) == "open"]))
+    z = np.concatenate(observed)
+    squares = ((table - z[None, :]) ** 2).sum(axis=1)
+    n = len(z)
+    loglik = (
+        -squares[:, None] / (2 * REPORT_NOISE[None, :] ** 2) - n * np.log(REPORT_NOISE)[None, :]
+    )
+    post = np.exp(loglik - loglik.max())
+    post /= post.sum()
+    by_point = post.sum(axis=1)
+    out = {}
+    for name, values in FIT_GRID[family].items():
+        log = SPEC[family]["params"][name][0] == "log"
+        out[name] = _marginal(by_point, points[name], values, log)
+    noise = post.sum(axis=0)
+    out["report_noise"] = {"mean": float(noise @ REPORT_NOISE)}
+    return out

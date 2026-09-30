@@ -401,3 +401,88 @@ def calibration(datasets=200, configs=6, noise=0.3, state=0.1, seed=20261104):
         "result": result,
         "passed": passed,
     }
+
+
+# Profile recovery: can each family's observer parameters be recovered, and told apart, from a
+# configuration's sessions? Criteria, per profile parameter: recovery correlation at least 0.8,
+# 90% coverage at least 0.8, and its estimate correlated at most 0.3 (absolute) with every other
+# true parameter of the family (the confusion matrix is near-diagonal).
+PROFILE_R = 0.8
+PROFILE_COVERAGE = 0.8
+PROFILE_CONFUSION = 0.3
+
+
+def _scale(family, name, values):
+    log = screen.SPEC[family]["params"][name][0] == "log"
+    return np.log(values) if log else np.asarray(values, dtype=float)
+
+
+def _profile_family(args):
+    family, configs, forms, seed = args
+    rng = np.random.default_rng(seed)
+    truths = screen.draw(family, rng, configs)
+    noises = rng.uniform(0.1, 0.5, configs)
+    fits = []
+    for truth, noise in zip(truths, noises, strict=True):
+        responses = {
+            form: screen.respond(family, screen.design(family, form), truth, rng, noise)
+            for form in forms
+        }
+        fits.append(screen.fit_profile(family, responses, forms))
+    names = list(screen.SPEC[family]["params"])
+    out = {}
+    for name in screen.PROFILE[family]:
+        estimate = _scale(family, name, [f[name]["mean"] for f in fits])
+        truth = _scale(family, name, [t[name] for t in truths])
+        inside = [
+            f[name]["interval_90"][0] - 1e-9 <= t[name] <= f[name]["interval_90"][1] + 1e-9
+            for f, t in zip(fits, truths, strict=True)
+        ]
+        confusion = {
+            other: float(
+                np.corrcoef(estimate, _scale(family, other, [t[other] for t in truths]))[0, 1]
+            )
+            for other in names
+        }
+        off = max(abs(v) for k, v in confusion.items() if k != name)
+        out[name] = {
+            "r": float(np.corrcoef(estimate, truth)[0, 1]),
+            "coverage_90": float(np.mean(inside)),
+            "confusion": confusion,
+            "largest_confusion": off,
+            "passed": bool(
+                np.corrcoef(estimate, truth)[0, 1] >= PROFILE_R
+                and np.mean(inside) >= PROFILE_COVERAGE
+                and off <= PROFILE_CONFUSION
+            ),
+        }
+    return family, "+".join(forms), out
+
+
+def profile_recovery(configs=100, seed=20261105):
+    """Profile recovery per family with both forms (the screen's stage A and B sessions), and,
+    descriptively, with form a only (stage A)."""
+    from concurrent.futures import ProcessPoolExecutor
+
+    jobs = []
+    seeds = np.random.SeedSequence(seed).spawn(2 * len(screen.FAMILIES))
+    for k, family in enumerate(screen.FAMILIES):
+        jobs.append((family, configs, ("a", "b"), seeds[2 * k]))
+        jobs.append((family, configs, ("a",), seeds[2 * k + 1]))
+    with ProcessPoolExecutor(WORKERS) as pool:
+        results = list(pool.map(_profile_family, jobs))
+    out = {}
+    for family, forms, params in results:
+        out.setdefault(family, {})[forms] = params
+    passed = all(p["passed"] for v in out.values() for p in v["a+b"].values())
+    return {
+        "schema_version": "epistemics.screen-profile-recovery.v1",
+        "configs": configs,
+        "criteria": {
+            "r": PROFILE_R,
+            "coverage_90": PROFILE_COVERAGE,
+            "confusion": PROFILE_CONFUSION,
+        },
+        "families": out,
+        "passed": passed,
+    }

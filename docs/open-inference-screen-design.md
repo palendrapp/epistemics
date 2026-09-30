@@ -1,6 +1,6 @@
 # Open-inference screen (design note)
 
-Design, 30 September 2026; built on 1 October (model 0.16.0, design 0.17.0, tasks 0.26.0; see [Built](#built)). Nothing is collected yet.
+Design, 30 September 2026. Built on 1 October (tasks 0.26.0) and revised the same day (model 0.17.0, design 0.18.0, tasks 0.27.0), with families F2 and F5 redesigned and a profile-recovery test added: see [Built](#built) and [Revision](#revision-tasks-027-1-october). Nothing is collected yet.
 
 ## Why a screen
 
@@ -118,6 +118,31 @@ Each family has two primary contrasts. Each contrast is a signed average of item
 - **Moral and blame judgements.** Values, not inference; out of the passport's current scope.
 - **Physical and visual reasoning.** Not text.
 
+## What the parameters are: a Bayesian observer per family
+
+**Added 1 October, after you asked what parameters a working screen would give.**
+
+Every family's model is a Bayesian observer. It computes the posterior predictive P(answer | data) = Σ<sub>h</sub> P(answer | h)·P(h | data) over hypotheses the item does not state. Its parameters are of two kinds, the same kinds as the original model's (the dependence prior and suspicion of silence were also assumptions about how evidence came to be):
+
+| Family | Structural prior: what it assumes when the task is silent | Diagnosticity: how it thinks the data were generated |
+| --- | --- | --- |
+| F1 Generalising | *λ*, rules against similarity | *ω*, examples sampled from the concept (the size principle's weight) |
+| F2 Reported numbers | *π*, a person's number is exact rather than rounded (*π*<sub>I</sub> for instruments) | *ε*, the precision of an exact report |
+| F3 Others' choices | *κ*, others already know | *β*, others act rationally, so their choices are evidence |
+| F4 Unlisted causes | *ρ*, the world is open (causes outside the list), by who listed them | none (no evidence in these items) |
+| F5 Extrapolating | *w*, the world is linear | *b*, a likelihood weight (how much the readings constrain the curve; below 1 is conservatism) |
+
+- **The profile** a configuration would get is these parameters, from the full observer fitted to its sessions ([Profile recovery](#profile-recovery-tasks-027)), not the contrasts. The contrasts are model-free summaries used only to screen.
+- **The general-trait questions become formal:**
+  - Is diagnosticity one trait across families? Over-weighting the data would be commitment; under-weighting, conservatism in Edwards' sense.
+  - Are the structural priors one "simplicity" trait: rules, literal readings, closed lists, straight lines?
+- **What is not part of the observer:** report noise (a response parameter, fitted and marginalised), and nuisance parameters that are marginalised:
+  - F1's interval size prior;
+  - F3's readings of the cost words.
+- **A correction.** Two pieces of the first build drifted from this form, and are replaced in tasks 0.27:
+  - F5's "humility" was a multiplier on predictive spread, not a Bayesian parameter; *b* replaces it;
+  - F2 mixed its exactness prior with an assumed rounding width and precision in the same items; each parameter now has its own items.
+
 ## A general trait these families could share
 
 CogGym's diagnosis of its failures is "over-confident, under-dispersed judgments": committing to the first compact model. The same disposition would show in every family here:
@@ -233,10 +258,10 @@ Built on 1 October 2026 as model 0.16.0, design 0.17.0, tasks 0.26.0. The decisi
 | Family | Open items | Contrast 1 | Contrast 2 |
 | --- | --- | --- | --- |
 | F1 `gen` | 6 example sets (a rule and a cluster both fit), each with a far rule probe and a near rule-breaking probe; 4 pairs of one example against four | Rule reliance: rule probes minus near probes | Tightening: one example minus four |
-| F2 `num` | 6 sharp and 6 round numbers from people, 6 round numbers from instruments (±1% windows), 2 wide windows | Halo: sharp minus round (people) | Source: instrument minus person (round numbers) |
+| F2 `num` (tasks 0.26; redesigned in 0.27) | 6 sharp and 6 round numbers from people, 6 round numbers from instruments (±1% windows), 2 wide windows | Halo: sharp minus round (people) | Source: instrument minus person (round numbers) |
 | F3 `choice` | Skipped trivial, skipped large, skipped moderate and taken moderate checks, 5 each; half by people, half by agents | Skip informativeness: skipped trivial minus skipped large | Knowledge attribution: level over the moderate items |
 | F4 `lists` | 10 lists from manuals and 10 from colleagues (2, 3 or 5 causes), asking about a listed cause or "none of these" | Residual mass: level of the implied unlisted share (1 − *k*·*p* for listed causes) | Source: colleague minus manual |
-| F5 `trend` | 5 decelerating and 5 accelerating series (probe at 8, threshold between the linear and curved projections); 10 linear series with ±10% windows at 5 and at 15 | Linearity: decelerating minus accelerating | Humility: minus the level of all ten windows |
+| F5 `trend` (tasks 0.26; redesigned in 0.27) | 5 decelerating and 5 accelerating series (probe at 8, threshold between the linear and curved projections); 10 linear series with ±10% windows at 5 and at 15 | Linearity: decelerating minus accelerating | Humility: minus the level of all ten windows |
 
 **Audits** (in task validation):
 - openness per family and form: open-item medians 3.27/3.32 (F1), 2.28/2.29 (F2), 3.06/3.06 (F3), 1.64/1.64 (F4), 2.15/1.99 (F5), all anchors 0;
@@ -261,7 +286,7 @@ Built on 1 October 2026 as model 0.16.0, design 0.17.0, tasks 0.26.0. The decisi
    Their rank correlations with a single parameter, with the others varying, are 0.5–0.7 (F2, F5, F4's source), and 0.8–1.0 for the rest. The screen asks whether configurations differ on each construct. Separating the parameters is for the full model in a battery.
 7. **Stage B's calibration criterion is "not significantly above 5%",** that is, at most 5% plus two binomial standard errors, because its permutation test is exact.
 
-### Validation (`output/screen-validation-20261001.json`)
+### Validation of tasks 0.26 (`output/screen-validation-20261001.json`; superseded by [tasks 0.27](#revision-tasks-027-1-october))
 
 **Contrast recovery** at report noise 0.3 (log-odds), 200 simulated respondents per family and form, parameters drawn across the plausible ranges:
 
@@ -301,9 +326,86 @@ Session states alone make stage A pass 31–64% of the time. That is expected, a
 - Seed 20260927: `f9581ed85abce3827bee18a414544e89c13b22abf1117e4367f298f8451ae4d5`.
 - Seed 20261027: `f5bc2e9338692f5f27584ae4531019ad41ea6b18e2551923a50b3c73549a73f3`.
 
+### Revision: tasks 0.27 (1 October)
+
+You asked whether the screen could give separable parameter profiles. A check across all parameters found two families where it could not:
+- **F2:** the halo tracked the assumed measurement precision (−0.84) more than the exactness prior (−0.51), and its two contrasts shared items (correlation 0.67);
+- **F5:** both contrasts were driven by the assumed process noise (0.76 and 0.64).
+
+Both were redesigned so that each parameter has its own items, within the Bayesian observer ([What the parameters are](#what-the-parameters-are-a-bayesian-observer-per-family)). Model 0.17.0, design 0.18.0, tasks 0.27.0.
+
+**F2, reported numbers.** The speaker model now has three parameters, each pinned by its own items:
+- **round numbers from people** (7 items, windows ±0.2 of the number's unit): *π*, the prior that a person's number is exact;
+- **round numbers from instruments** (7 items): *π*<sub>I</sub>;
+- **sharp numbers from people** (6 items, ±1% windows): *ε*, the precision of an exact report.
+
+A rounded report comes from anywhere in its unit's bin (rounding width fixed). The contrasts are levels: minus the mean log-odds for people's round numbers (halo, people), and for instruments' (halo, instruments).
+
+**F5, extrapolation.** Bayesian model averaging with a fixed process noise (0.15) and two parameters:
+- *w*, the prior on linear functions;
+- *b*, a likelihood weight: family weights use *b* times the log-likelihood, and parameter uncertainty grows as 1/*b*.
+
+The items are also new:
+- **Linearity:** 10 accelerating (geometric) series, each asking whether the reading at 8 will exceed 1.5 times the linear projection. The exponential projection is far above it, so the answer turns on the weight kept on the straight line (exponential growth bias).
+- **Conservatism:** 10 exact proportional lines with ±10% windows at 5 and 10. The families agree on these, so only the spread matters.
+
+The decelerating series and the humility multiplier are gone.
+
+**Contrast cross-talk** (rank correlation of each contrast with each parameter, 300 simulated respondents):
+
+| Contrast | Own parameter | Largest other |
+| --- | --- | --- |
+| F2 halo, people | −1.00 (*π*) | 0.07 |
+| F2 halo, instruments | −0.98 (*π*<sub>I</sub>) | 0.13 |
+| F5 linearity | 0.79 (*w*) | −0.46 (*b*) |
+| F5 conservatism | −0.91 (*b*) | −0.46 (*w*) |
+
+F5's contrasts still overlap; its full fit separates the parameters (below).
+
+#### Profile recovery (tasks 0.27)
+
+**The test.** Each family's full observer is fitted to a configuration's sessions by a grid posterior over all its parameters and the report noise (flat priors; responses are the model's log-odds plus normal noise). Simulated configurations draw every parameter from its plausible range, with report noise between 0.1 and 0.5.
+
+**Criteria**, per profile parameter:
+- recovery correlation at least 0.8;
+- 90% coverage at least 0.8;
+- the estimate correlates at most 0.3 (absolute) with every other true parameter of the family.
+
+200 configurations per family, `output/screen-validation-20261001-2.json`:
+
+| Family | Parameter | *r* (both forms) | Coverage | Largest confusion | *r* (form a only) |
+| --- | --- | --- | --- | --- | --- |
+| F1 | rules against similarity *λ* | 0.97 | 0.80 | 0.07 | 0.98 |
+| F1 | sampling *ω* | 0.98 | 0.84 | 0.23 | 0.98 |
+| F2 | exact prior, people *π* | 0.99 | 0.96 | 0.01 | 0.98 |
+| F2 | exact prior, instruments *π*<sub>I</sub> | 0.99 | 0.95 | 0.03 | 0.98 |
+| F2 | precision *ε* | 0.98 | 0.91 | 0.02 | 0.98 |
+| F3 | attributed rationality *β* | 0.98 | 0.94 | 0.13 | 0.97 |
+| F3 | knowledge prior *κ* | 0.97 | 0.82 | 0.18 | 0.98 |
+| F4 | open-world prior, manuals *ρ*<sub>M</sub> | 0.99 | 0.96 | 0.03 | 0.99 |
+| F4 | open-world prior, colleagues *ρ*<sub>C</sub> | 0.99 | 0.94 | 0.05 | 0.99 |
+| F5 | linear prior *w* | 0.99 | 0.96 | 0.03 | 0.98 |
+| F5 | likelihood weight *b* | 0.99 | 0.96 | 0.02 | 0.99 |
+
+All pass. At 60 configurations, F4's confusion had read 0.32, a chance correlation, since its two parameters have disjoint items; at 200 it is 0.03–0.05.
+
+**What this does and does not establish.** If a configuration answers like one of these observers, its profile (eleven parameters over five families) can be recovered and the parameters told apart, from the stage A and B sessions (and nearly as well from stage A alone). It does not establish that real configurations answer like these observers. Stage A's anchors, shared-answer check and openness-against-spread per item, and the fits' report noise, are the first evidence on that.
+
+**Screen validation, tasks 0.27** (same file):
+- **Contrast reliability:** 0.90–0.99, all contrasts monotone in their parameters.
+- **Calibration** (200 datasets):
+  - stage A without differences: 0–6%;
+  - stage B with session states only: 2.5–6% (limit 8.1%);
+  - stage A with differences: 91.5–98%.
+
+**Task validation 0.27.** It passed on both seeds: 3,288 cases and 142 contexts. The screen contexts have their anchors within 5 points and their contrasts within 0.3 of the noiseless scores; the largest error is 0.10.
+- Fingerprint `4491e2d5e1e270645532f4467677f1e7ebffba911d3b13c2cdef8075cfa6c1f0`.
+- Seed 20260927: `f217dfc292012417ea2778a2fd38cb9782ffac52e35ded5a74e6573b497216af`.
+- Seed 20261027: `7f09b896f5d64842c7a1f6cb50e9c8b09c764ba66f7640af838161171a145e44`.
+
 ### Stage A (planned, awaiting your go-ahead)
 
-**Sessions.** Preset `screen-a`, tasks 0.26.0 validated on both seeds. Astra, Sol, Astra-low, Sol-low, Luna and Terra each take form `a` of all five families. That is 30 sessions.
+**Sessions.** Preset `screen-a`, tasks 0.27.0 validated on both seeds. Astra, Sol, Astra-low, Sol-low, Luna and Terra each take form `a` of all five families. That is 30 sessions.
 
 **Limits.** 1,800 seconds per run and a cap of 20 million tokens (11–15 million expected).
 

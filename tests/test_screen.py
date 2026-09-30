@@ -56,9 +56,11 @@ def test_texts_state_data_only_and_anchors_fix_their_answers():
     gen = render("screen-gen-a", "markets", 0, "screen")
     assert gen["case"].startswith("A process produced these values: 20, 30, 40.")
     assert gen["question"].endswith("could also produce 80?")
-    num = render("screen-num-a", "markets", 6, "screen")
-    assert re.fullmatch(r"The site manager says the transfer took 30 minutes\.", num["case"])
-    assert "between 29 and 31 minutes" in num["question"]
+    num = render("screen-num-a", "markets", 0, "screen")
+    assert re.fullmatch(r"A colleague says the transfer took 30 minutes\.", num["case"])
+    assert "between 28 and 32 minutes" in num["question"]
+    sharp = render("screen-num-a", "markets", 14, "screen")
+    assert "31 minutes" in sharp["case"] and "between 30 and 32 minutes" in sharp["question"]
     choice = render("screen-choice-a", "markets", 0, "screen")
     assert "could have carried out a quick visual check" in choice["case"]
     assert "They did not, and signed B11 off as sound." in choice["case"]
@@ -125,3 +127,24 @@ def test_screen_preset_and_simulated_session_through_the_service(tmp_path):
     error, ok = validation.estimate("screen-lists-b", report.analysis, truth)
     assert ok and report.analysis["screen"]["anchors_ok"]
     assert runner.headline(report.analysis)["parameter"] == "screen-lists"
+
+
+@pytest.mark.parametrize("family", ["num", "choice", "trend"])
+def test_profile_fit_recovers_separable_parameters(family):
+    """The family's Bayesian observer, fitted to both forms, recovers each profile parameter and
+    does not mistake it for another (ledger.screen.profile_recovery at a smaller scale)."""
+    _, _, result = ledger._profile_family((family, 40, ("a", "b"), 7))
+    for name, p in result.items():
+        assert p["r"] >= 0.9 and p["coverage_90"] >= 0.7, (name, p)
+        assert p["largest_confusion"] <= 0.4, (name, p["confusion"])
+
+
+def test_num_and_trend_contrasts_track_their_own_parameters():
+    rng = np.random.default_rng(11)
+    for family in ("num", "trend"):
+        items = screen.design(family, "a")
+        draws = screen.draw(family, rng, 120)
+        clean = [screen.contrast_scores(items, screen.predict(family, items, p)) for p in draws]
+        for name, (names, sign) in screen.SPEC[family]["drivers"].items():
+            r = ledger._spearman([d[names[0]] for d in draws], [c[name]["score"] for c in clean])
+            assert sign * r >= 0.75, (family, name, r)
