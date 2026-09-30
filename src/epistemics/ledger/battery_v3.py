@@ -249,4 +249,18 @@ def analyse(roots, seed=20261021):
     }
     if len(by_config) >= 3:
         result["generality"] = generality(by_config, rng)
+        # Guard (added after the pilot): a split-half correlation is only a trait if the
+        # configurations differ. With fewer than three configurations departing from the median,
+        # the statistic is driven by one or two and the test is not interpretable.
+        spread = {}
+        for name in ("beta", "tau_c"):
+            values = np.array([e["overall"][name] for e in configs.values()])
+            spread[name] = {
+                "between_configuration_sd": float(np.std(values)),
+                "departing_configurations": int(np.sum(np.abs(values - np.median(values)) > 0.05)),
+            }
+            result["generality"][name]["interpretable"] = (
+                spread[name]["departing_configurations"] >= 3
+            )
+        result["spread"] = spread
     return result

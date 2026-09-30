@@ -861,12 +861,13 @@
       "roots": [
         "output/battery-v3-pilot-20260930"
       ],
-      "status": "running",
-      "prediction": "Range-finding; sets the power assumptions for the preregistered battery."
+      "status": "complete",
+      "prediction": "Range-finding; sets the power assumptions for the preregistered battery.",
+      "outcome": "16 sessions, 11.8M tokens, 0 errors (after tasks 0.23.1 fixed the refer-back order before collection). Coherence at ceiling: every configuration answered bets at exactly 100 x its stated probability and lotteries at expected value (beta 1, tau_c 0, rho 1), at every strength; stakes shifted nothing. Generality 'pass' (r 1.00) is an artefact of near-zero spread; guard added, not interpretable. Only departure: Luna's loaded session (beta 0.33, tau_c 1.48), confounded by unadapted instructions ('nothing carries over') and a load the agent tool apparently shortened."
     }
   ],
   "next": [
-    "Battery v3 pilot: Astra, Sol, Luna, Terra on designs a-c standard plus one loaded session each (16 sessions, about 18M tokens).",
+    "Battery v3: explicit certainty equivalents are computed, so coherence is at ceiling. Decide between trajectory coherence (fixed instructions, a load the tool does not strip), implicit decisions, or more model families.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

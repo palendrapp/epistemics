@@ -228,3 +228,45 @@ Power SHA-256: `f330f96c422479242dcfa64e1d2e008fc73b19155a703d5530b50f34ecebb646
 - whether any loaded session's context was compacted.
 
 **Tasks 0.23.1 (before collection).** The first preparation of the pilot failed: the refer-back ordering used numpy's random interface, but preparation passes Python's `random.Random`. Nothing was collected; the partial root, containing only the implementation snapshot, is kept as `output/battery-v3-pilot-20260930-failed-prepare`. The ordering now uses only calls that both provide. A test now prepares a real loaded group, and the battery was re-validated on both seeds before the pilot.
+
+### Pilot results (30 September)
+
+All 16 sessions completed with no errors: 11.8 million input tokens, 17 minutes. Standard sessions used about 0.5 million tokens each; loaded ones used 0.9–2.4 million.
+
+```bash
+uv run python -m epistemics.ledger battery-v3 output/battery-v3-pilot-20260930 --output output/battery-v3-pilot-summary-20260930.json
+```
+
+**Coherence is at ceiling.** On every standard session:
+- **Astra, Luna and Terra** answered every bet question with exactly 100 × their stated probability, and every lottery at its expected value (*β* 1.00, *α* 0.00, *τ*<sub>c</sub> 0.00, *ρ* 1.00).
+- **Sol** did the same except in one session (*β* 0.94, *τ*<sub>c</sub> 0.05).
+- **Across strengths:** the same at strong, intermediate and weak.
+- **Stakes** shifted nothing (0.00).
+
+Luna's closing message states the policy: "for lotteries, I used expected value". The certainty equivalent is not a revealed belief for these agents. It is one more explicit calculation, so the design placed the strong situation one step further on.
+
+**The generality "pass" is an artefact, and the guard now says so.** The split-half test gives *r* 1.00 (*p* = 0.004), but the configurations do not differ: the between-configuration spread of *β* is 0.01, and no configuration departs from the others by more than 0.05. The statistic is driven by one Sol session. `ledger battery-v3` now marks generality as not interpretable unless at least three configurations depart from the median. It is not interpretable here.
+
+**Load: one departure, under a confound.**
+- **Luna's loaded session** decoupled: *β* 0.33, *τ*<sub>c</sub> 1.48, mean gap 1.04 log-odds. Its strong-scenario stated answers were also off (0.18).
+- **Astra, Sol and Terra** were perfectly coherent under load.
+
+Two problems qualify this.
+
+1. **The battery's general instructions were not adapted for v3.** They say:
+   - "Answer each question with a probability";
+   - "Each case states the relevant probabilities, including how reliable each source is";
+   - "Each case is separate… nothing carries over between cases".
+
+   The last directly contradicts the loaded condition's back-references. Agents followed each trial's own instruction, but Astra and Luna both reported the conflict in their closing messages. This is a build error of mine.
+2. **The load delivered was smaller than designed.** Loaded sessions used 0.9–2.4 million input tokens, where about 3.7 million were expected if every log stayed in context. The agent tool most likely shortened long tool outputs in its history. No compaction message was logged, so how much of each log the models saw is unknown.
+
+**What the pilot shows.**
+- **When a revealed-belief question states its payoffs, frontier agents compute it.** Coherence between an explicit probability and an explicit bet is not a trait of these configurations. The one construct that transferred before (stated against applied rates) was different: the application there was implicit, spread over forecasts.
+- **The only candidate is coherence across a trajectory** (Luna's loaded session). It needs corrected instructions and a load the agent tool does not strip before it can be read.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `5582835a147fe936809c9b2a1d8d2a38f75572aebfb3a95d7af6c085405a365b` |
+| execution.json | `374b4f4142558b3bc2573229006c3cc1f3f8c1500f49d552d0afa6c3294ea394` |
+| Summary (with the guard) | `1f9c4efc14a2bbf63640ddf26fafcf732ec42d933a3275397e0529478b264bd3` |
