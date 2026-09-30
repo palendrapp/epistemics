@@ -32,6 +32,19 @@ TASKS = {
         "primary": {"kappa": social.CONFORM_KAPPA},
         "secondary": {"eta": social.CONFORM_ETA, "beta_own": social.CONFORM_OWN},
     },
+    # Tasks 0.21: default weights where nothing is stated.
+    "advice-open": {
+        "design": social.advice_design,
+        "prior": {"beta_own": (0.3, 1.3), "w0": (0.0, 2.5), "w_conf": (-0.5, 1.2)},
+        "primary": {"w0": social.ADVICE_W0, "w_conf": social.ADVICE_WCONF},
+        "secondary": {"beta_own": social.ADVICE_OWN},
+    },
+    "conformity-open": {
+        "design": social.conformity_design,
+        "prior": {"beta_own": (0.3, 1.3), "v": (0.1, 1.8), "rho": (0.0, 1.1)},
+        "primary": {"v": social.CONFORM_V, "rho": social.CONFORM_RHO},
+        "secondary": {"beta_own": social.CONFORM_OWN},
+    },
     "relay-stated": {
         "design": social.relay_design,
         "prior": {"omega": (0.0, 1.8), "gamma": (0.6, 1.4)},
@@ -49,6 +62,10 @@ GATES_SOCIAL = {"primary_correlation": 0.9, "secondary_correlation": 0.85, "cove
 
 
 def latent(task, items, truth):
+    if task == "advice-open":
+        return social.advice_open_answer(items, truth["beta_own"], truth["w0"], truth["w_conf"])
+    if task == "conformity-open":
+        return social.conformity_open_answer(items, truth["beta_own"], truth["v"], truth["rho"])
     if task == "advice":
         return social.advice_answer(items, truth["beta_own"], truth["beta_rec"], truth["beta_conf"])
     if task == "conformity":
@@ -66,6 +83,10 @@ def latent(task, items, truth):
 
 
 def fitted(task, items, reports):
+    if task == "advice-open":
+        return social.fit_advice_open(items, reports)
+    if task == "conformity-open":
+        return social.fit_conformity_open(items, reports)
     if task == "advice":
         return social.fit_advice(items, reports)
     if task == "conformity":
@@ -117,11 +138,13 @@ def _metrics(task, rows):
     return result
 
 
-def recovery(respondents=100, seed=20261014, sessions=SESSIONS):
+def recovery(respondents=100, seed=20261014, sessions=SESSIONS, tasks=None):
     rng = np.random.default_rng(seed)
     result = {}
     with ProcessPoolExecutor(WORKERS) as pool:
         for task, spec in TASKS.items():
+            if tasks and task not in tasks:
+                continue
             truths = [draw(rng, {**spec["prior"], **NOISE}) for _ in range(respondents)]
             seeds = rng.integers(2**31, size=respondents).tolist()
             by_sessions = {}
@@ -192,9 +215,9 @@ def pilot(roots):
 
 
 SHOWN = {
-    "advice-peer": ("beta_rec", "beta_conf", "beta_own"),
+    "advice-peer": ("beta_rec", "beta_conf", "w0", "w_conf", "beta_own"),
     "copying-peer": ("uptake", "baseline"),
-    "conformity-peer": ("kappa", "eta", "beta_own"),
+    "conformity-peer": ("kappa", "eta", "v", "rho", "beta_own"),
     "relay-peer": ("omega", "fidelity", "gamma"),
 }
 

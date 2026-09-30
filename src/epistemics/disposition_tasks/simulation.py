@@ -35,7 +35,15 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
     if module in ("advice-peer", "conformity-peer", "relay-peer"):
         from epistemics.dispositions import social
 
-        if module == "advice-peer":
+        if module == "advice-peer" and "w0" in truth:
+            latent = social.advice_open_answer(
+                items, truth["beta_own"], truth["w0"], truth["w_conf"]
+            )
+        elif module == "conformity-peer" and "rho" in truth:
+            latent = social.conformity_open_answer(
+                items, truth["beta_own"], truth["v"], truth["rho"]
+            )
+        elif module == "advice-peer":
             latent = social.advice_answer(
                 items, truth["beta_own"], truth["beta_rec"], truth["beta_conf"]
             )

@@ -110,9 +110,9 @@ VIG_VARIANTS = ("urn2-vig", "urn2-vig2")
 # Multi-agent battery, Stage 1 (tasks 0.20): scripted peers (peers.py, dispositions.social).
 PEER_MODULES = ("advice-peer", "copying-peer", "conformity-peer", "relay-peer")
 PEER_VARIANTS = {
-    "advice-peer": ("peer-a",),
+    "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
-    "conformity-peer": ("peer-a",),
+    "conformity-peer": ("peer-a", "peer-open"),
     "relay-peer": ("chain-stated", "chain-open"),
 }
 URN_DESIGNS = {
@@ -811,13 +811,13 @@ def render(module, cover, index, variant="paired"):
     }
 
 
-def stated_percentages(module, index):
+def stated_percentages(module, index, variant=None):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
     if module in PEER_MODULES:
         from epistemics.disposition_tasks.peers import percentages
 
-        return percentages(module, items, index)
+        return percentages(module, items, index, variant)
     if module in LOAD_DESIGNS:
         from epistemics.disposition_tasks.urn import load_percentages
 

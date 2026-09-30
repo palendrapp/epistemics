@@ -29,7 +29,7 @@ def test_advice_design_crosses_records_phrases_and_own_readings():
     # The ideal answer uses only the record of the phrase used.
     for i in range(24):
         h = int(items["phrase"][i])
-        q = (items[f"hits_{h}"][i] + 1) / 42
+        q = items[f"hits_{h}"][i] / 40  # model 0.12: the hit rate
         own = items["own"][i] * logit(items["own_acc"][i])
         expected = logit(items["prior"][i]) + own + items["call"][i] * logit(q)
         assert abs(exact[i] - expected) < 1e-12
@@ -64,14 +64,16 @@ def test_relay_accuracy_matches_enumeration_of_garbles():
 def test_peer_texts_show_every_number_and_state_fidelity_only_when_asked():
     for module, variant in (
         ("advice-peer", "peer-a"),
+        ("advice-peer", "peer-open"),
         ("conformity-peer", "peer-a"),
+        ("conformity-peer", "peer-open"),
         ("relay-peer", "chain-stated"),
         ("relay-peer", "chain-open"),
         ("copying-peer", "urn2-vig2"),
     ):
         for i in range(24):
             case = render(module, "markets", i, variant)["case"]
-            for p in stated_percentages(module, i):
+            for p in stated_percentages(module, i, variant):
                 assert p in case, (module, variant, i, p)
     items = social.relay_design()
     for i in range(24):
@@ -125,3 +127,22 @@ def test_runner_accepts_every_module_variant_and_cover_the_audit_renders():
             for cover in covers_of(module):
                 group = {"configurations": ["astra"], "modules": [module]}
                 runner.check_groups([{**group, "contexts": [(variant, cover, 1)]}])
+
+
+def test_open_variants_hide_the_record_and_the_majoritys_evidence_and_fit_defaults():
+    for i in range(24):
+        advice = render("advice-peer", "markets", i, "peer-open")["case"]
+        assert "right in" not in advice and "record" not in advice
+        analysts = render("conformity-peer", "markets", i, "peer-open")["case"].split("\n\n")[-1]
+        if "Analysts in the lab" in analysts:
+            for hidden in ("read the urn", "guess", "passed on", "sensor", "correct"):
+                assert hidden not in analysts
+    rng = np.random.default_rng(6)
+    items = social.advice_design()
+    reports = sample_reports(social.advice_open_answer(items, 1.0, 1.5, 0.6), 0.02, rng)
+    fit = social.fit_advice_open(items, reports)["parameters"]
+    assert abs(fit["w0"]["mean"] - 1.5) < 0.1 and abs(fit["w_conf"]["mean"] - 0.6) < 0.1
+    items = social.conformity_design()
+    reports = sample_reports(social.conformity_open_answer(items, 1.0, 0.8, 0.3), 0.02, rng)
+    fit = social.fit_conformity_open(items, reports)["parameters"]
+    assert abs(fit["v"]["mean"] - 0.8) < 0.1 and abs(fit["rho"]["mean"] - 0.3) < 0.1

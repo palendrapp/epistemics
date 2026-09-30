@@ -167,8 +167,13 @@ def analyze(manifest, observations):
     if manifest.module in SOCIAL_MODULES:
         from epistemics.dispositions import social
 
-        if manifest.module == "advice-peer":
+        opened = manifest.variant == "peer-open"
+        if manifest.module == "advice-peer" and opened:
+            fitted, headline = social.fit_advice_open(items, responses), "w_conf"
+        elif manifest.module == "advice-peer":
             fitted, headline = social.fit_advice(items, responses), "beta_conf"
+        elif manifest.module == "conformity-peer" and opened:
+            fitted, headline = social.fit_conformity_open(items, responses), "rho"
         elif manifest.module == "conformity-peer":
             fitted, headline = social.fit_conformity(items, responses), "kappa"
         else:

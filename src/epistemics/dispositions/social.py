@@ -26,8 +26,10 @@ RECORD_HITS = (22, 28, 34, 38)
 
 
 def record_accuracy(hits, calls=RECORD_CALLS):
-    """The ideal observer's accuracy for a call with this record (uniform prior on accuracy)."""
-    return (np.asarray(hits, dtype=float) + 1) / (calls + 2)
+    """The accuracy a call with this record carries: its hit rate. (Model 0.11 used the uniform-
+    prior mean (K + 1)/(N + 2); in the pilot every configuration used the hit rate, which the texts
+    invite and is equally defensible, so model 0.12 takes it as the ideal.)"""
+    return np.asarray(hits, dtype=float) / calls
 
 
 def advice_terms(items):
@@ -69,6 +71,41 @@ def fit_advice(items, reports):
         "beta_own": ADVICE_OWN,
         "beta_rec": ADVICE_REC,
         "beta_conf": ADVICE_CONF,
+        "bias": BIAS,
+        "report_sd": REPORT_SD,
+    }
+    return summarize(ll, grids)
+
+
+# T1 open (model 0.12): no record is given, so no ideal exists. The fitted weights are defaults:
+# w0, the log-odds weight on a plain call, and w_conf, the change per step of emphasis.
+ADVICE_W0 = np.round(np.arange(0, 3.001, 0.1), 2)
+ADVICE_WCONF = np.round(np.arange(-1.0, 1.501, 0.1), 2)
+
+
+def advice_open_answer(items, beta_own=1.0, w0=1.0, w_conf=0.0):
+    prior, own, _, conf = advice_terms(items)
+    call = np.asarray(items["call"], dtype=float)
+    return prior + beta_own * own + w0 * call + w_conf * conf
+
+
+def fit_advice_open(items, reports):
+    """Grid posterior for own weight, default call weight w0, emphasis weight, bias and noise."""
+    reports = np.asarray(reports, dtype=float)
+    prior, own, _, conf = advice_terms(items)
+    call = np.asarray(items["call"], dtype=float)
+    means = (
+        prior
+        + ADVICE_OWN[:, None, None, None, None] * own
+        + ADVICE_W0[None, :, None, None, None] * call
+        + ADVICE_WCONF[None, None, :, None, None] * conf
+        + BIAS[None, None, None, :, None]
+    )
+    ll = np.stack([report_log_likelihood(means, reports, sd) for sd in REPORT_SD], axis=-1)
+    grids = {
+        "beta_own": ADVICE_OWN,
+        "w0": ADVICE_W0,
+        "w_conf": ADVICE_WCONF,
         "bias": BIAS,
         "report_sd": REPORT_SD,
     }
@@ -122,6 +159,48 @@ def fit_conformity(items, reports):
         "beta_own": CONFORM_OWN,
         "eta": CONFORM_ETA,
         "kappa": CONFORM_KAPPA,
+        "bias": BIAS,
+        "report_sd": REPORT_SD,
+    }
+    return summarize(ll, grids)
+
+
+# T3 open (model 0.12): the majority's evidence is not described. The fitted defaults are v, the
+# log-odds weight of one analyst's call, and rho, how the majority's weight grows with its size:
+# weight v * n^rho (rho 1 counts every analyst as independent, 0 treats the majority as one).
+CONFORM_V = np.round(np.arange(0, 2.001, 0.1), 2)
+CONFORM_RHO = np.round(np.arange(0, 1.201, 0.1), 2)
+
+
+def conformity_open_terms(items):
+    prior = logit(np.asarray(items["prior"], dtype=float))
+    own = np.asarray(items["own"], dtype=float) * logit(np.asarray(items["own_acc"], dtype=float))
+    n = np.asarray(items["n"], dtype=float)
+    majority = -np.asarray(items["own"], dtype=float)
+    return prior, own, n, majority
+
+
+def conformity_open_answer(items, beta_own=1.0, v=0.5, rho=1.0):
+    prior, own, n, majority = conformity_open_terms(items)
+    return prior + beta_own * own + majority * v * np.where(n > 0, n**rho, 0.0)
+
+
+def fit_conformity_open(items, reports):
+    """Grid posterior for own weight, v, rho, bias and noise."""
+    reports = np.asarray(reports, dtype=float)
+    prior, own, n, majority = conformity_open_terms(items)
+    size = np.where(n > 0, n[None, :] ** CONFORM_RHO[:, None], 0.0)
+    means = (
+        prior
+        + CONFORM_OWN[:, None, None, None, None] * own
+        + CONFORM_V[None, :, None, None, None] * majority * size[None, None, :, None, :]
+        + BIAS[None, None, None, :, None]
+    )
+    ll = np.stack([report_log_likelihood(means, reports, sd) for sd in REPORT_SD], axis=-1)
+    grids = {
+        "beta_own": CONFORM_OWN,
+        "v": CONFORM_V,
+        "rho": CONFORM_RHO,
         "bias": BIAS,
         "report_sd": REPORT_SD,
     }

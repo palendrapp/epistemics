@@ -153,6 +153,7 @@ def main():
     sr = sub.add_parser("social-recovery")
     sr.add_argument("--output", type=Path, required=True)
     sr.add_argument("--respondents", type=int, default=100)
+    sr.add_argument("--task", action="append", default=None)
     cpl = sub.add_parser("capacity-pooled")
     cpl.add_argument("roots", type=Path, nargs="+")
     cpl.add_argument("--output", type=Path, required=True)
@@ -407,7 +408,7 @@ def main():
     elif a.command == "social-recovery":
         from epistemics.ledger import social
 
-        run = social.recovery(a.respondents)
+        run = social.recovery(a.respondents, tasks=a.task)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(social.table(run))

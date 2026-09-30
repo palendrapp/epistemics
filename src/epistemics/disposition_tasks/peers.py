@@ -45,10 +45,16 @@ def advice(items, i, cover, variant):
         for h in (2, 1, 0)
     )
     call = PHRASING[int(items["phrase"][i])].format(c=colour(items["call"][i]))
+    # Tasks 0.21: "peer-open" gives no record, so the phrase and the call are the only cues.
+    about = (
+        f"{LAB_PEERS} {cap(who)} phrases each call in one of three ways, and the lab keeps its "
+        f"record for each: {record}."
+        if variant == "peer-a"
+        else f"{LAB_PEERS} {cap(who)} phrases each call in one of three ways."
+    )
     lines = [
         brief({"urn": urn(i)}, items["prior"][i], None, "any evidence"),
-        f"{LAB_PEERS} {cap(who)} phrases each call in one of three ways, and the lab keeps its "
-        f"record for each: {record}.",
+        about,
         *own_line(items, i),
         f"{cap(who)}'s call on {urn(i)}: “{call}”",
     ]
@@ -67,7 +73,17 @@ def conformity(items, i, cover, variant):
     against = colour(-int(items["own"][i]))
     accuracy = base.percent(items["peer_acc"][i])
     lines = [brief({"urn": urn(i)}, items["prior"][i], None, "any evidence"), *own_line(items, i)]
-    if n:
+    if n and variant == "peer-open":
+        # Tasks 0.21: the majority's evidence is not described.
+        everyone = {2: "both", 3: "all three", 4: "all four", 5: "all five"}.get(n, "")
+        text = (
+            f"{cap(_list(names))} each made a call on the urn, and {everyone} called it "
+            f"{against}-majority."
+            if n > 1
+            else f"{cap(names[0])} made a call on the urn and called it {against}-majority."
+        )
+        lines.append(f"{LAB_PEERS} {text}")
+    elif n:
         everyone = {2: "both", 3: "all three", 4: "all four", 5: "all five"}.get(n, "")
         if status == 0:
             text = (
@@ -159,7 +175,7 @@ def copying_peer(items, i, cover, variant):
     return lines, f"What is the probability that {urn(i)} is red-majority?"
 
 
-def percentages(module, items, i):
+def percentages(module, items, i, variant=None):
     """Every probability a case must display, for the rendering audit."""
     values = [items["prior"][i]]
     if module == "advice-peer":
@@ -167,7 +183,8 @@ def percentages(module, items, i):
             values.append(items["own_acc"][i])
     elif module == "conformity-peer":
         values.append(items["own_acc"][i])
-        if int(items["n"][i]) and int(items["status"][i]) < 2:
+        stated = variant != "peer-open"
+        if stated and int(items["n"][i]) and int(items["status"][i]) < 2:
             values.append(items["peer_acc"][i])
     elif module == "relay-peer":
         values.append(items["acc"][i])

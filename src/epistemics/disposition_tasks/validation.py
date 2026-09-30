@@ -106,6 +106,21 @@ SOCIAL_RESPONDENTS = {
         "report_sd": 0.05,
     },
     ("relay-peer", "chain-stated"): {"omega": 0.5, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05},
+    # Tasks 0.21: default weights where nothing is stated.
+    ("advice-peer", "peer-open"): {
+        "beta_own": 1.0,
+        "w0": 1.2,
+        "w_conf": 0.5,
+        "bias": 0.0,
+        "report_sd": 0.05,
+    },
+    ("conformity-peer", "peer-open"): {
+        "beta_own": 1.0,
+        "v": 0.6,
+        "rho": 0.5,
+        "bias": 0.0,
+        "report_sd": 0.05,
+    },
     ("relay-peer", "chain-open"): {"fidelity": 0.7, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05},
 }
 # The copying-peer texts must never describe copying or passing on calls.
@@ -290,7 +305,7 @@ def audit():
                     raise ValueError(f"Duplicate case text in {module}/{cover}/{variant}")
                 for i, case in enumerate(cases):
                     where = f"{module}/{cover}/{variant}/{i}"
-                    for p in stated_percentages(module, i):
+                    for p in stated_percentages(module, i, variant):
                         if p not in case["case"]:
                             raise ValueError(f"{where} does not display {p}")
                     if any(word in json.dumps(case).lower() for word in PRIVATE):
