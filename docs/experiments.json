@@ -761,12 +761,13 @@
       "roots": [
         "output/multi-agent-pilot-20260930"
       ],
-      "status": "running",
-      "prediction": "Range-finding only: may change design ranges, nothing else."
+      "status": "complete",
+      "prediction": "Range-finding only: may change design ranges, nothing else.",
+      "outcome": "20 contexts, 10.2M tokens, 0 errors (after tasks 0.20.1 fixed the runner's variant list before collection). Stated structure: all four configurations normative (no confidence persuasion, no conformity to guesses, dependent majorities counted once, stated relay fidelity applied); T1's record weight 1.10 reflects use of the raw hit rate rather than the design's smoothed ideal. Unstated relays taken at face value by all (implied fidelity 1.00). Only difference: unprompted peer-copying uptake, Astra 0.90 vs Sol 0.15, Terra 0.11, Luna 0.06, reversing the sensor ordering (Sol 0.41, Astra 0.11)."
     }
   ],
   "next": [
-    "Multi-agent Stage 1: range-finding pilot on Astra, Sol, Luna and Terra (20 contexts, about 11M tokens), then all eight configurations at one session per cell (about 22M).",
+    "Multi-agent: open variants of T1 (no record) and T3 (unstated majority evidence) to measure default social weights; fix T1's ideal to the raw hit rate; replicate T2 and sensor copying on Astra and Sol.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

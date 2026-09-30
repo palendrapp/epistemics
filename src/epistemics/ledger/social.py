@@ -156,3 +156,65 @@ def table(result):
             lines.append(f"| {task} | {name} | {first['role']} | " + " | ".join(cells) + " |")
         lines.append(f"| {task} | sessions needed: {r['sessions_needed']} | | | | |")
     return "\n".join(lines)
+
+
+def pilot(roots):
+    """Per configuration, module and variant: the fitted social parameters (T1, T3, T4) or the
+    audit uptake (T2), with 90% intervals."""
+    from epistemics.ledger import capacity, dispositions
+
+    rows = []
+    for root in roots:
+        tokens = capacity.usage(root)
+        for record in dispositions.extract(root):
+            if not record.get("verified") or not record["module"].endswith("-peer"):
+                continue
+            base = {
+                "configuration": record["configuration"],
+                "module": record["module"],
+                "variant": record["variant"],
+                "input_tokens": tokens.get(record["run_id"]),
+            }
+            if "social" in record:
+                rows.append({**base, "parameters": record["social"]["parameters"]})
+            else:
+                up = capacity.uptake(record)
+                rows.append(
+                    {
+                        **base,
+                        "parameters": {
+                            **up["parameters"],
+                            "ignores_probability": up["ignores_probability"],
+                        },
+                    }
+                )
+    return {"schema_version": "epistemics.social-pilot.v1", "rows": rows}
+
+
+SHOWN = {
+    "advice-peer": ("beta_rec", "beta_conf", "beta_own"),
+    "copying-peer": ("uptake", "baseline"),
+    "conformity-peer": ("kappa", "eta", "beta_own"),
+    "relay-peer": ("omega", "fidelity", "gamma"),
+}
+
+
+def pilot_table(result):
+    lines = [
+        "| Configuration | Module | Variant | Parameters (90%) | Noise | Tokens |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for r in sorted(result["rows"], key=lambda r: (r["module"], r["variant"], r["configuration"])):
+        p = r["parameters"]
+        shown = ", ".join(
+            f"{k} {p[k]['mean']:.2f} ({p[k]['interval_90'][0]:.2f}–{p[k]['interval_90'][1]:.2f})"
+            for k in SHOWN[r["module"]]
+            if k in p
+        )
+        noise = p.get("report_sd", {}).get("mean")
+        lines.append(
+            f"| {r['configuration']} | {r['module']} | {r['variant']} | {shown} | "
+            + (f"{noise:.3f}" if noise is not None else "")
+            + f" | {(r['input_tokens'] or 0) / 1e6:.2f}M |"
+        )
+    return "\n".join(lines)

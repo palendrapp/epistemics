@@ -22,6 +22,7 @@ uv run python -m epistemics.ledger capacity-recovery --output <file>
 uv run python -m epistemics.ledger capacity-load-recovery --module <m> --output <file>
 uv run python -m epistemics.ledger capacity-pooled <roots...> --output <file>
 uv run python -m epistemics.ledger social-recovery --output <file>
+uv run python -m epistemics.ledger social-pilot <roots...> --output <file>
 """
 
 import argparse
@@ -146,6 +147,9 @@ def main():
     cr.add_argument("--output", type=Path, required=True)
     cr.add_argument("--respondents", type=int, default=100)
     cr.add_argument("--load-respondents", type=int, default=100)
+    sp = sub.add_parser("social-pilot")
+    sp.add_argument("roots", type=Path, nargs="+")
+    sp.add_argument("--output", type=Path, required=True)
     sr = sub.add_parser("social-recovery")
     sr.add_argument("--output", type=Path, required=True)
     sr.add_argument("--respondents", type=int, default=100)
@@ -393,6 +397,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command == "social-pilot":
+        from epistemics.ledger import social
+
+        run = social.pilot(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(social.pilot_table(run))
     elif a.command == "social-recovery":
         from epistemics.ledger import social
 

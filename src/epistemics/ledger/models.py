@@ -321,6 +321,8 @@ def session(record, experiment, designs):
     module = record["module"]
     if module.endswith("-load"):
         return None  # Capacity load modules have their own analysis (ledger.capacity).
+    if "social" in record:
+        return None  # Scripted-peer modules have their own analysis (ledger.social).
     items = arrays(record["items"])
     responses = np.asarray(record["responses"], dtype=float)
     base = {

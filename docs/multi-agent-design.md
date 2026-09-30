@@ -261,3 +261,55 @@ That is 20 contexts. Limits: 1,800 seconds per run, and a cap of 15 million toke
 Also whether any parameter sits at a grid edge for every configuration, and tokens per session.
 
 **What may change after it.** This is range-finding: only the designs' ranges (record levels, majority sizes, relay lengths and fidelities) may change.
+
+**Tasks 0.20.1 (before collection).** Preparing the pilot failed: the runner's list of known variants did not include the peer variants. Nothing was collected.
+- **The fix:** the runner now accepts the peer variants, and a test checks that it accepts every module, variant and cover the audit renders.
+- **Validation:** re-validated on both seeds (2,352 cases, 103 contexts). The 0.20.0 validations were never used.
+- **Fingerprint:** `c3b828416d991daace6ff6f12ef80b19a2400de576f4803c6174e40ad533f840`.
+- **Validation SHA-256s:** seed 20260927 `c1ce2e08b676e06881badffab6944b33773449237baf0acce1801deb4442308a`; seed 20261027 `05b29a0b24c0446fb1e2f7ff0d3a1410fac2b8b7fb5f807a2a1d149bf7d3739a`.
+
+### Pilot results (30 September)
+
+All 20 contexts completed with no errors: 10.2 million input tokens (0.47–0.54 million per session), 25 minutes.
+
+```bash
+uv run python -m epistemics.ledger social-pilot output/multi-agent-pilot-20260930 --output output/multi-agent-pilot-summary-20260930.json
+```
+
+| | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| T1 answers matching the hit-rate ideal | 24 of 24 | 24 of 24 | 23 of 24 | 24 of 24 |
+| T1 confidence persuasion *β*<sub>conf</sub> | 0.00 | 0.00 | 0.00 (−0.1 to 0.1) | 0.00 |
+| T3 conformity *κ* | 0.00 | 0.00 | −0.06 (−0.1 to 0.0) | 0.00 |
+| T3 dependence neglect *η* | 0.00 | 0.00 | 0.05 (0 to 0.2) | 0.00 |
+| T4 stated: exponent on the stated fidelity *ω* (1 is exact) | 1.00 | 1.00 | 0.98 | 1.07 |
+| T4 open: implied fidelity per relay | 1.00 | 1.00 | 1.00 | 1.00 |
+| T2 uptake of peer-copying audits | **0.90 (0.90–0.90)** | 0.15 (0.10–0.20) | 0.06 (0.05–0.10) | 0.11 (0.00–0.20) |
+
+- **Where the structure is stated, every configuration gives the normative answer, including GPT-5.6.**
+  - No configuration is moved by confident wording beyond the analyst's record.
+  - None moves towards a majority of guesses.
+  - Every configuration counts a majority that repeats one call as one reading.
+  - Every configuration applies a stated relay fidelity exactly.
+  - Luna is only noisier.
+- **T1's ideal was the wrong convention.** The fitted record weight *β*<sub>rec</sub> came out at 1.10 for all four, because every configuration uses the raw hit rate (for example 30 of 40), not the smoothed (*K* + 1)/(*N* + 2) of the design's ideal observer. Against the raw rate their answers are exact. The ideal should use the raw rate, which is equally defensible and is what the texts invite; this is a correction to make before the battery.
+- **Unstated relays are taken at face value.** With no fidelity stated, every configuration treats a call passed through three analysts as if its originator had given it directly (implied fidelity 1.00). This is uniform, not a difference, but it is the "my predecessor confirms" behaviour. The texts say nothing about relays garbling calls, so it is a default, not an error.
+- **The one difference is unprompted peer dependence (T2), and it reverses the sensor result.**
+  - Astra's answers follow the ideal observer at every audit strength (at the strongest, 63% against an ideal of 63%).
+  - Sol and Terra make a correction that grows at the weaker audits and then stops (76% against 63%).
+  - Luna corrects little.
+  - On the sensor version of the same design (tasks 0.17, 30 September), the order was the other way: Sol 0.41, Astra 0.11.
+  - With one session per cell on each surface, this is suggestive, not established. But it is the same surface-specific pattern that kept noticing from transferring in battery v2.
+
+**What this means.**
+- **Explicit social influence doesn't move these configurations.** In this format (explicit records, stated statuses, probability reports), the peer constructs show no individual differences at all. Being persuaded by confidence or conforming to guesses does not happen when the evidence is on the page.
+- **The variance is again in what agents do unprompted:** defaults, and noticing dependence.
+- **Next:** measure the peer constructs where nothing is stated.
+  - T1 and T3 need open variants: no record, and a majority's evidence unstated. There the confidence phrase and the majority's size are the only cues, and the agent's default weights are the traits, as T4-open measured for relays.
+  - Replicate T2 and sensor copying on Astra and Sol, to see whether the reversal holds.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `308023cc0b95cac826e83ed0b80e4f7c9b301a606437f0ff142b87bbf6b4f1b6` |
+| execution.json | `eaca98778ef565d5f87423aa8c4b8e3c19fa90950c55deb3007a50a6ab230cf5` |
+| Summary | `eb9875dfb638a20992ea9b5065adca8e32f6f8265275247b3e09195d3057bff3` |
