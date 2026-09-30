@@ -692,6 +692,20 @@
       "status": "complete",
       "prediction": "Same pre-set gates as the revised design.",
       "outcome": "Built model 0.9.0 (composite observer, checked against full enumeration), design 0.11.0 (four structural levels, five readings each, every structure load-bearing), tasks 0.18.0 (composite-load). Recovery passes at 2 sessions (load slope r 0.94, coverage 0.88; neglect slope r 0.98)."
+    },
+    {
+      "id": "capacity-structure-pilot",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Capacity: structural-load pilot (GPT-6 and GPT-5.6)",
+      "question": "Does structural load leave ceiling for GPT-6, and does effort order the load slope within each model?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [
+        "output/capacity-structure-pilot-20260930"
+      ],
+      "status": "running",
+      "prediction": "Range-finding only; one session per cell; may change the structural levels, nothing else."
     }
   ],
   "next": [

@@ -598,3 +598,11 @@ Tasks fingerprint `6781afa919105ff2f17c8e10c04a2a89935658b1250514319c0b8eff8ee23
 | --- | --- |
 | Task validation 0.18, seed 20260927 | `db5773ffcae8e5290b781bebb02ff15b14886b912ab0df76e2a07ecb945e1142` |
 | Task validation 0.18, seed 20261027 | `ce56c7885d64ecaa142f64f0a8d8f243eadca4d6160ae4ddc654a6e387c34c92` |
+
+### Structural pilot (planned 30 September, before collection)
+
+**Question.** Does structural load leave ceiling for GPT-6, where arithmetic load did not? And does effort order the load slope within each model?
+
+**Contexts.** `composite-load` (tasks 0.18.0, validations 0.18 on both seeds), one session each, on eight configurations: the six GPT-6 ones, plus Luna and Terra as a positive control (GPT-5.6 failed the copying ladder in pilot 2). About 4.5 million tokens, cap 7 million. The groups are passed to the runner directly; `plan.json` records them.
+
+**Read-out.** Exactness by level, and the joint load curve (*κ*, *λ*) with 90% intervals. One session is below the two that recovery requires, so this is range-finding. Only the structural levels may change after it.
