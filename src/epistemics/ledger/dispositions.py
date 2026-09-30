@@ -70,6 +70,8 @@ for entry in plan["runs"]:
         record["load"] = a["load"]
     elif "coherence" in a:
         record["coherence"] = a["coherence"]
+    elif "decisions" in a:
+        record["decisions"] = a["decisions"]
     elif "social" in a:
         record["social"] = {"headline": a["social"]["headline"],
                             "parameters": a["social"]["parameters"]}
@@ -167,6 +169,14 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
+    if "decisions" in record:
+        fit = record["decisions"]["fit"]
+        return {
+            **base,
+            "action_bias": fit["theta_balanced"]["mean"],
+            "sensitivity": fit["sensitivity"]["mean"],
+            "kappa": fit["kappa"]["mean"],
+        }
     if "coherence" in record:
         c = record["coherence"]
         return {**base, **{k: c[k] for k in ("alpha", "beta", "tau_c", "mean_gap")}}

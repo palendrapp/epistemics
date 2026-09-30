@@ -874,9 +874,24 @@
       "question": "Are action bias (the threshold for balanced, qualitatively described consequences) and consequence sensitivity general traits across surfaces?",
       "doc": "docs/battery-v3-1-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. Belief and binary decision per scenario; consequences described without numbers in three classes; threshold model P(act) = Phi(kappa (s - theta_k)); primary: split-half surface generality of theta_balanced and delta theta, with the guard.",
-      "outcome": "Awaiting decisions: construct, choice response type, loaded variant dropped, pilot budget (about 6M)."
+      "outcome": "Built model 0.14.0, design 0.15.0, tasks 0.24.0: six 24-trial designs (10 stated beliefs, the 10 matching decisions, 4 balanced anchors at 15/35/65/85%), classes rotated over belief rank so each spans beliefs on both sides of 50%, consequences described without numbers, stakes both ways, a two-option choice answer. Recovery (6 sessions): action bias r 0.96, sensitivity r 0.91, coverage 0.87/0.85. Validated on both seeds. Power running."
+    },
+    {
+      "id": "battery-v3-1-pilot",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Battery v3.1 pilot (implicit threshold decisions)",
+      "question": "How much do action bias, consequence sensitivity and kappa vary between configurations when consequences are described without numbers?",
+      "doc": "docs/battery-v3-1-design.md",
+      "roots": [
+        "output/battery-v31-pilot-20260930"
+      ],
+      "status": "running",
+      "prediction": "Range-finding; sets the power assumptions. Risk: thresholds at 1/2 in every class (consequences ignored) or identical across configurations.",
+      "outcome": "Collecting: Astra, Sol, Luna and Terra on decision-a to decision-c (12 sessions, about 6M tokens)."
     }
   ],
   "next": [

@@ -9,7 +9,7 @@ T5 fits both certainty functions to the stated maximum prices.
 import numpy as np
 
 from epistemics.disposition_tasks import urn
-from epistemics.disposition_tasks.render import V3_MODULES, items_for
+from epistemics.disposition_tasks.render import V3_MODULES, V31_MODULES, items_for
 from epistemics.dispositions import fit, observers
 
 MODELS = {
@@ -168,11 +168,28 @@ def analyze(manifest, observations):
     for observation, index in zip(observations, manifest.order, strict=True):
         # Battery v3 mixes probability and points trials within a session.
         name = str(items["response"][index]) if "response" in items else field
-        responses[index] = getattr(observation.answer, name)
+        value = getattr(observation.answer, name)
+        if name == "choice":
+            # Battery v3.1: 1 if the "act" option was chosen, 0 for "hold".
+            from epistemics.disposition_tasks.surfaces import options
+
+            shown, act = options(items, index)
+            value = 1.0 if value == shown[act] else 0.0
+        responses[index] = value
     rows = [
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in V31_MODULES:
+        from epistemics.dispositions import decisions
+
+        rows_ = decisions.trials(items, responses)
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "decisions": {"trials": rows_, "fit": decisions.fit_thresholds(rows_)},
+            "rows": rows,
+        }
     if manifest.module in V3_MODULES:
         from epistemics.dispositions import coherence
 

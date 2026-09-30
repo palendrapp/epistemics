@@ -72,11 +72,16 @@ class Answer(Model):
         | None
     ) = None
     points: Annotated[int, Field(ge=0, le=100, strict=True)] | None = None
+    # Tasks 0.24: one of the options a choice case lists, copied exactly.
+    choice: Annotated[str, Field(min_length=1, max_length=300)] | None = None
 
     @model_validator(mode="after")
     def one_response(self):
-        if (self.probability is None) == (self.points is None):
-            raise ValueError("Give exactly one of probability or points, as the case requests")
+        given = [v is not None for v in (self.probability, self.points, self.choice)]
+        if sum(given) != 1:
+            raise ValueError(
+                "Give exactly one of probability, points or choice, as the case requests"
+            )
         if (
             self.probability is not None
             and abs(self.probability * 100 - round(self.probability * 100)) > 1e-8
@@ -87,9 +92,40 @@ class Answer(Model):
     def validate_trial(self, trial):
         if getattr(self, trial["response"]) is None:
             raise ValueError(f"This case asks for {trial['response']}")
+        if trial["response"] == "choice" and self.choice not in trial["options"]:
+            raise ValueError("Choose one of the listed options, copied exactly")
+
+
+# Batteries v3 and v3.1 (tasks 0.24): the general instructions match their trials. (The v3 pilot
+# ran with the probability-only instructions above, which conflicted with its points trials,
+# with its unknown accuracies, and in the loaded variant with its references to earlier cases.)
+INTRO_V3 = (
+    "Answer questions about short fictional cases. Each case states what is known about its "
+    "evidence. Some quantities, such as a source's accuracy, are unknown by design; when one is, "
+    "use your own best judgment and still answer."
+)
+LOADED_V3 = (
+    "Names are fictional and no outcomes are revealed during this collection. Some cases refer "
+    "back to a case shown earlier in this session and do not show its evidence again."
+)
+RESPONSE_V3 = (
+    "Some cases ask for a probability (from 0 to 1 in increments of 0.01) and some for a number "
+    "of points (a whole number from 0 to 100); each case says which. Points are fictional, but "
+    "treat them as your own."
+)
+RESPONSE_V31 = (
+    "Some cases ask for a probability (from 0 to 1 in increments of 0.01) and some ask you to "
+    "choose one of two listed actions; each case says which. For a choice, answer with one of "
+    "the options exactly as written."
+)
 
 
 def instructions(module, variant="paired", cover="markets"):
+    if module.startswith("coherence-"):
+        context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
+        return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
+    if module.startswith("decision-"):
+        return " ".join([INTRO_V3, SEPARATE, RULES, RESPONSE_V31])
     context = SHARED[(module, cover)] if variant.startswith("learning") else SEPARATE
     return " ".join([INTRO, context, RULES, POINTS if module == "checks" else PROBABILITY])
 
@@ -107,7 +143,11 @@ def describe(manifest):
 
 
 def present(case, cases, rendered, previous=None):
-    points = rendered["response"] == "points"
+    instruction = {
+        "points": "Answer with whole points.",
+        "probability": "Answer with a probability.",
+        "choice": "Answer with one of the options, copied exactly.",
+    }[rendered["response"]]
     trial = {
         "trial_id": f"case-{case:02d}",
         "case_number": case,
@@ -115,8 +155,10 @@ def present(case, cases, rendered, previous=None):
         "case": rendered["case"],
         "question": rendered["question"],
         "response": rendered["response"],
-        "instruction": "Answer with whole points." if points else "Answer with a probability.",
+        "instruction": instruction,
     }
+    if rendered["response"] == "choice":
+        trial["options"] = rendered["options"]
     if previous is not None:
         trial["previous_case"] = previous
     return trial

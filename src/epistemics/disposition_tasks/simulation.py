@@ -6,7 +6,7 @@ These runs check the rendering, ordering, reveal, answer and analysis pipeline, 
 import numpy as np
 
 from epistemics.disposition_tasks.collection import CollectionService, create, export
-from epistemics.disposition_tasks.render import items_for
+from epistemics.disposition_tasks.render import items_for  # noqa: F401 (also used in simulate)
 from epistemics.dispositions import fit, observers
 from epistemics.dispositions.response import sample_reports, sample_wtp
 from epistemics.source_learning.simulation import PARTICIPANT
@@ -34,6 +34,8 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
     if module.startswith("coherence-"):
         return coherence_responses(items, truth, rng)
+    if module.startswith("decision-"):
+        return decision_responses(items, truth, rng)
     if module in ("advice-peer", "conformity-peer", "relay-peer") or module.startswith("advice-"):
         from epistemics.dispositions import social
 
@@ -106,8 +108,17 @@ def simulate(directory, *, module, cover, order, truth, seed, variant="paired", 
     trial = service.get_trial()["trial"]
     while trial is not None:
         value = answers[service.manifest.order[trial["case_number"] - 1]]
-        points = trial["response"] == "points"
-        answer = {"points": int(value)} if points else {"probability": float(value)}
+        if trial["response"] == "choice":
+            from epistemics.disposition_tasks.surfaces import options
+
+            shown, act = options(
+                items_for(module), service.manifest.order[trial["case_number"] - 1]
+            )
+            answer = {"choice": shown[act] if value >= 0.5 else shown[1 - act]}
+        elif trial["response"] == "points":
+            answer = {"points": int(value)}
+        else:
+            answer = {"probability": float(value)}
         trial = service.submit(trial["trial_id"], answer)["next_trial"]
     service.finish()
     return export(directory)
@@ -140,4 +151,35 @@ def coherence_responses(items, truth, rng):
     for i in np.flatnonzero(kinds == "lottery"):
         ce = coherence.certainty_equivalent(items["lottery_p"][i], truth["rho"])
         out[i] = np.clip(np.round(ce + rng.normal(0, 1.0)), 0, 100)
+    return out
+
+
+def decision_responses(items, truth, rng):
+    """Battery v3.1 respondent: stated beliefs as in v3 (defaults for unstated properties, report
+    noise); decisions act with probability Phi(kappa (s - theta_class)) on the respondent's own
+    belief (the ideal belief for anchors), shifted by `stakes` towards the favoured option."""
+    import math
+
+    from epistemics.dispositions import coherence
+
+    kinds = np.asarray(items["kind"])
+    out = np.zeros(len(kinds))
+    latent = {}
+    for i in np.flatnonzero((kinds == "stated") | (kinds == "anchor")):
+        row = {k: items[k][i] for k in items}
+        fill = {
+            (0, kind, k): truth["default_acc"] if kind == "acc" else truth["default_rate"]
+            for kind, k in coherence.unstated(row)
+        }
+        belief = coherence.observers.composite(coherence._observer_items([row], fill))[0]
+        latent[int(items["scenario"][i])] = belief
+        if kinds[i] == "stated":
+            out[i] = sample_reports(belief, truth["stated_sd"], rng)
+    for i in np.flatnonzero((kinds == "decision") | (kinds == "anchor")):
+        s = latent[int(items["scenario"][i])]
+        theta = truth["thresholds"][int(items["cls"][i])]
+        if int(items["stakes"][i]):
+            theta -= truth.get("stakes", 0.0) * int(items["stakes_dir"][i])
+        p = 0.5 * (1 + math.erf(truth["kappa"] * (s - theta) / math.sqrt(2)))
+        out[i] = float(rng.random() < p)
     return out

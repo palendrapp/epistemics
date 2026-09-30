@@ -55,6 +55,8 @@ from epistemics.disposition_tasks.render import (
     V2_PROBED_MODULES,
     V3_MODULES,
     V3_VARIANTS,
+    V31_MODULES,
+    V31_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
     allowed,
@@ -140,6 +142,7 @@ AUDITED_CASES = (
     + 24 * len(LOAD_MODULES) * len(LOAD_VARIANTS)
     + 24 * sum(len(v) for v in PEER_VARIANTS.values())
     + 24 * len(V3_MODULES) * len(V3_VARIANTS)
+    + 24 * len(V31_MODULES) * len(V31_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -421,6 +424,7 @@ def check_groups(groups):
             + VIG_VARIANTS
             + tuple(v for variants in PEER_VARIANTS.values() for v in variants)
             + V3_VARIANTS
+            + V31_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -724,6 +728,14 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "decisions" in analysis:
+        fit = analysis["decisions"]["fit"]
+        return {
+            "parameter": "thresholds",
+            "action_bias": fit["theta_balanced"]["mean"],
+            "sensitivity": fit["sensitivity"]["mean"],
+            "kappa": fit["kappa"]["mean"],
         }
     if "coherence" in analysis:
         c = analysis["coherence"]
