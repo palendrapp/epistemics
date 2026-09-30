@@ -114,3 +114,14 @@ def test_social_headline_is_the_fitted_parameter():
         "mean": 0.4,
         "interval_90": [0.3, 0.5],
     }
+
+
+def test_runner_accepts_every_module_variant_and_cover_the_audit_renders():
+    from epistemics.disposition_tasks.render import MODULES
+    from epistemics.disposition_tasks.validation import covers_of, variants_of
+
+    for module in MODULES:
+        for variant in variants_of(module):
+            for cover in covers_of(module):
+                group = {"configurations": ["astra"], "modules": [module]}
+                runner.check_groups([{**group, "contexts": [(variant, cover, 1)]}])

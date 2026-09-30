@@ -373,6 +373,7 @@ def check_groups(groups):
             + URN3_RATED_VARIANTS
             + LOAD_VARIANTS
             + VIG_VARIANTS
+            + tuple(v for variants in PEER_VARIANTS.values() for v in variants)
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
