@@ -40,7 +40,11 @@ CUE_MODELS = {
         )
         for suffix in ("", "-asked", "-probed")
     },
+    # Multi-agent battery T2: the copying design with analysts in place of sensors.
+    "copying-peer": "dependence",
 }
+# Multi-agent battery, Stage 1: scripted peers (dispositions.social).
+SOCIAL_MODULES = ("advice-peer", "conformity-peer", "relay-peer")
 # Capacity battery, Part A: fully specified load modules (docs/capacity-battery-design.md).
 LOAD_MODELS = {
     "copying-load": "dependence",
@@ -160,6 +164,23 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in SOCIAL_MODULES:
+        from epistemics.dispositions import social
+
+        if manifest.module == "advice-peer":
+            fitted, headline = social.fit_advice(items, responses), "beta_conf"
+        elif manifest.module == "conformity-peer":
+            fitted, headline = social.fit_conformity(items, responses), "kappa"
+        else:
+            stated = manifest.variant == "chain-stated"
+            fitted = social.fit_relay(items, responses, stated)
+            headline = "omega" if stated else "fidelity"
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "social": {"headline": headline, **fitted},
+            "rows": rows,
+        }
     if manifest.module in LOAD_MODELS:
         return {
             "module": manifest.module,

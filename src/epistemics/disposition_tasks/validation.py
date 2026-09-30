@@ -28,6 +28,8 @@ from epistemics.disposition_tasks.render import (
     LOAD_VARIANTS,
     LONG_LOAD_MODULES,
     MODULES,
+    PEER_MODULES,
+    PEER_VARIANTS,
     PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
@@ -74,6 +76,10 @@ TOLERANCE = {
     "load_eta_rise": 0.1,
     # Audit uptake (tasks 0.17): the fraction of the ideal revision, one context at low noise.
     "uptake": 0.2,
+    # Multi-agent Stage 1 (tasks 0.20): every weight, conformity and exponent within 0.25 of
+    # the truth; implied fidelity within 0.1.
+    "social": 0.25,
+    "fidelity": 0.1,
 }
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
@@ -83,6 +89,27 @@ LONG_LOAD_RESPONDENT = {
     "bias": 0.0,
 }
 UPTAKE_RESPONDENT = {"baseline": 0.05, "uptake": 0.6, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05}
+# Multi-agent battery, Stage 1 (tasks 0.20): respondents with known social parameters.
+SOCIAL_RESPONDENTS = {
+    ("advice-peer", "peer-a"): {
+        "beta_own": 1.0,
+        "beta_rec": 0.8,
+        "beta_conf": 0.4,
+        "bias": 0.0,
+        "report_sd": 0.05,
+    },
+    ("conformity-peer", "peer-a"): {
+        "beta_own": 1.0,
+        "eta": 0.5,
+        "kappa": 0.4,
+        "bias": 0.0,
+        "report_sd": 0.05,
+    },
+    ("relay-peer", "chain-stated"): {"omega": 0.5, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05},
+    ("relay-peer", "chain-open"): {"fidelity": 0.7, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05},
+}
+# The copying-peer texts must never describe copying or passing on calls.
+PEER_MECHANISM = ("copy", "copies", "pass on", "passes on", "passed on", "repeat", "relay")
 REPORT_TRUTHS = [
     {"disposition": 0.15, "gamma": 0.9, "bias": 0.1, "report_sd": 0.15},
     {"disposition": 0.5, "gamma": 1.1, "bias": -0.1, "report_sd": 0.15},
@@ -151,6 +178,8 @@ MECHANISM = (
 
 
 def variants_of(module):
+    if module in PEER_MODULES:
+        return PEER_VARIANTS[module]
     if module in CUE_MODULES:
         return CUE_VARIANTS
     if module in RANGE_MODULES:
@@ -194,6 +223,7 @@ def covers_of(module):
         + V2_ASKED_MODULES
         + V2_PROBED_MODULES
         + LOAD_MODULES
+        + PEER_MODULES
         else COVERS
     )
 
@@ -281,6 +311,10 @@ def audit():
                     )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
+                    if module == "copying-peer" and any(
+                        word in case["case"].lower() for word in PEER_MECHANISM
+                    ):
+                        raise ValueError(f"{where} describes copying")
                     if module in ASKED_MODULES + PROBED_MODULES and not states_only_the_named(
                         module, variant, {"case": case["case"]}
                     ):
@@ -353,6 +387,9 @@ def contexts_to_validate():
             yield module, "markets", variant, LONG_LOAD_RESPONDENT if long else LOAD_RESPONDENT
     for module in URN_MODULES:
         yield module, "markets", "urn2-vig2", UPTAKE_RESPONDENT
+    for (module, variant), truth in SOCIAL_RESPONDENTS.items():
+        yield module, "markets", variant, truth
+    yield "copying-peer", "markets", "urn2-vig2", UPTAKE_RESPONDENT
 
 
 def estimate(module, analysis, truth):
@@ -366,6 +403,12 @@ def estimate(module, analysis, truth):
             and rise >= TOLERANCE["load_eta_rise"]
         )
         return slope, bool(ok)
+    if "social" in analysis:
+        parameters = analysis["social"]["parameters"]
+        checked = [k for k in truth if k in parameters and k not in ("bias", "report_sd")]
+        errors = [abs(parameters[k]["mean"] - truth[k]) for k in checked]
+        tolerance = TOLERANCE["fidelity"] if "fidelity" in truth else TOLERANCE["social"]
+        return max(errors), max(errors) <= tolerance
     if "uptake" in truth:
         row = analysis["uptake"]["parameters"]["uptake"]
         return row["mean"], abs(row["mean"] - truth["uptake"]) <= TOLERANCE["uptake"]

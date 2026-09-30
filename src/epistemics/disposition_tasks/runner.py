@@ -35,6 +35,7 @@ from epistemics.disposition_tasks.render import (
     LOAD_MODULES,
     LOAD_VARIANTS,
     MODULES,
+    PEER_VARIANTS,
     PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
@@ -135,6 +136,7 @@ AUDITED_CASES = (
     + 24 * len(V2_ASKED_MODULES + V2_PROBED_MODULES)
     + 24 * len(URN_MODULES) * len(VIG_VARIANTS)
     + 24 * len(LOAD_MODULES) * len(LOAD_VARIANTS)
+    + 24 * sum(len(v) for v in PEER_VARIANTS.values())
 )
 PRESETS["transfer"] = (
     {
@@ -667,6 +669,9 @@ def headline(analysis):
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
         }
+    if "social" in analysis:
+        social = analysis["social"]
+        return {"parameter": social["headline"], **social["parameters"][social["headline"]]}
     if "uptake" in analysis:
         uptake = analysis["uptake"]
         return {

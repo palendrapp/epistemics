@@ -32,6 +32,27 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         eta = np.asarray(truth["load_eta"])[level]
         sd = np.asarray(truth["load_sd"])[level]
         return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
+    if module in ("advice-peer", "conformity-peer", "relay-peer"):
+        from epistemics.dispositions import social
+
+        if module == "advice-peer":
+            latent = social.advice_answer(
+                items, truth["beta_own"], truth["beta_rec"], truth["beta_conf"]
+            )
+        elif module == "conformity-peer":
+            exact, counted, own, conform = social.conformity_terms(items)
+            latent = (
+                truth["beta_own"] * own
+                + (1 - truth["eta"]) * exact
+                + truth["eta"] * counted
+                + truth["kappa"] * conform
+            )
+        elif "omega" in truth:
+            fidelity = np.asarray(items["fidelity"], dtype=float) ** truth["omega"]
+            latent = social.relay_answer(items, fidelity, truth["gamma"])
+        else:
+            latent = social.relay_answer(items, truth["fidelity"], truth["gamma"])
+        return sample_reports(latent + truth["bias"], truth["report_sd"], rng)
     if "uptake" in truth:
         from epistemics.disposition_tasks.analysis import CUE_MODELS
         from epistemics.disposition_tasks.urn import vig_ideals

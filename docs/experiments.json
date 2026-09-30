@@ -746,13 +746,13 @@
       "question": "Do dependence neglect, weight on evidence from others and evidence-free influence transfer across single-agent and multi-agent tasks?",
       "doc": "docs/multi-agent-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. Stage 1 scripted peers: T1 advice (weight, confidence persuasion), T2 peer dependence, T3 conformity, T4 relay chains; cascades and live channels later.",
-      "outcome": "Awaiting decisions: order, tasks, primary test across levels, configurations and budget (pilot about 9M, Stage 1 about 35M)."
+      "outcome": "Stage 1 built: model 0.11.0, design 0.13.0, tasks 0.20.0 (advice-peer, copying-peer, conformity-peer, relay-peer). Recovery passes at one session per cell for every fit (T1 beta_rec r 0.99, beta_conf 0.98; T3 kappa 0.99; T4 omega 0.96, fidelity 0.97); T2 reuses the copying uptake recovery. Task validation 0.20 passed on both seeds. Next: range-finding pilot (Astra, Sol, Luna, Terra; about 11M tokens)."
     }
   ],
   "next": [
-    "Multi-agent battery: decisions on the design note (order, tasks, cross-level primary test, budget), then build Stage 1.",
+    "Multi-agent Stage 1: range-finding pilot on Astra, Sol, Luna and Terra (20 contexts, about 11M tokens), then all eight configurations at one session per cell (about 22M).",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

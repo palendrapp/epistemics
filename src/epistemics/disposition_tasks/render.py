@@ -48,6 +48,10 @@ MODULES = (
     "mismatch-long-load",
     "composite-load",
     "composite-deep-load",
+    "advice-peer",
+    "copying-peer",
+    "conformity-peer",
+    "relay-peer",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -103,6 +107,14 @@ LOAD_DESIGNS = {
     "composite-deep-load": "composite",
 }
 VIG_VARIANTS = ("urn2-vig", "urn2-vig2")
+# Multi-agent battery, Stage 1 (tasks 0.20): scripted peers (peers.py, dispositions.social).
+PEER_MODULES = ("advice-peer", "copying-peer", "conformity-peer", "relay-peer")
+PEER_VARIANTS = {
+    "advice-peer": ("peer-a",),
+    "copying-peer": ("urn2-vig2",),
+    "conformity-peer": ("peer-a",),
+    "relay-peer": ("chain-stated", "chain-open"),
+}
 URN_DESIGNS = {
     "copying-urn": design.corroboration_unprompted,
     "copying-urn-asked": design.corroboration_asked,
@@ -402,6 +414,15 @@ def items_for(module):
         return design.corroboration_probed()
     if module in URN_DESIGNS:
         return URN_DESIGNS[module]()
+    if module in PEER_MODULES:
+        from epistemics.dispositions import social
+
+        return {
+            "advice-peer": social.advice_design,
+            "copying-peer": design.corroboration_unprompted,
+            "conformity-peer": social.conformity_design,
+            "relay-peer": social.relay_design,
+        }[module]()
     if module == "composite-deep-load":
         return design.composite_deep_design()
     if module in STRUCTURE_LOAD_MODULES:
@@ -714,7 +735,18 @@ RENDERERS = {
     "mismatch-long-load": lambda *a: _urn("mismatch_load", *a),
     "composite-load": lambda *a: _urn("composite_load", *a),
     "composite-deep-load": lambda *a: _urn("composite_load", *a),
+    **{
+        m: (lambda name: lambda *a: _peer(name, *a))(m.split("-")[0])
+        for m in ("advice-peer", "conformity-peer", "relay-peer")
+    },
+    "copying-peer": lambda *a: _peer("copying_peer", *a),
 }
+
+
+def _peer(name, items, i, cover, variant):
+    from epistemics.disposition_tasks import peers
+
+    return getattr(peers, name)(items, i, cover, variant)
 
 
 def _urn(family, items, i, cover, variant):
@@ -730,6 +762,8 @@ def _dossier(kind, items, i, cover, variant):
 
 
 def allowed(module, cover, variant):
+    if module in PEER_MODULES:
+        return cover == "markets" and variant in PEER_VARIANTS[module]
     if module in CUE_MODULES:
         return cover == "markets" and variant in CUE_VARIANTS
     if module in RANGE_MODULES:
@@ -780,6 +814,10 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
+    if module in PEER_MODULES:
+        from epistemics.disposition_tasks.peers import percentages
+
+        return percentages(module, items, index)
     if module in LOAD_DESIGNS:
         from epistemics.disposition_tasks.urn import load_percentages
 

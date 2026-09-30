@@ -70,6 +70,10 @@ Module = Literal[
     "mismatch-long-load",
     "composite-load",
     "composite-deep-load",
+    "advice-peer",
+    "copying-peer",
+    "conformity-peer",
+    "relay-peer",
 ]
 Cover = Literal["markets", "ecology"]
 Variant = Literal[
@@ -94,6 +98,9 @@ Variant = Literal[
     "load-a",
     "urn2-vig",
     "urn2-vig2",
+    "peer-a",
+    "chain-stated",
+    "chain-open",
 ]
 CASES = 24
 
@@ -116,9 +123,9 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.19.1"] = VERSION
-    model_version: Literal["disposition-model/0.10.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.12.0"] = DESIGN_VERSION
+    battery_version: Literal["disposition-tasks/0.20.0"] = VERSION
+    model_version: Literal["disposition-model/0.11.0"] = MODEL_VERSION
+    design_version: Literal["disposition-design/0.13.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest

@@ -176,3 +176,68 @@ About 0.55 million input tokens per 24-case session.
 2. **Tasks:** T1–T4 now, and cascades later (recommended).
 3. **Primary test:** transfer across levels, with single-agent tasks included (recommended), or within the multi-agent tasks only.
 4. **Configurations and budget:** all eight; the pilot at about 9 million tokens first, Stage 1 at about 35 million after recovery.
+
+## Stage 1 built (30 September)
+
+**Decisions taken.** Stage 1 first; T1–T4 now and cascades later; the primary test across levels; all eight configurations.
+
+**Versions.**
+- Model 0.11.0 and design 0.13.0 (`dispositions/social.py`).
+- Tasks 0.20.0: the texts are in `disposition_tasks/peers.py`, and four modules are wired into the battery, runner and ledger.
+
+| Module | Variants | Design | Fit (headline parameter) |
+| --- | --- | --- | --- |
+| `advice-peer` (T1) | `peer-a` | 4 record levels for the phrase used (22, 28, 34, 38 right of 40) × 3 phrases × (no own reading, own reading against the call). The other phrases' records vary, so the phrase used must be matched to its own record. | Weights on the own reading, the record and the phrase, with bias and noise (*β*<sub>conf</sub>) |
+| `copying-peer` (T2) | `urn2-vig2` | The copying design, with analysts in place of sensors and audit records at likelihood ratios 1–65,536 | Uptake against the ideal observer, exactly as for sensor copying |
+| `conformity-peer` (T3) | `peer-a` | 6 cases with the own reading only, then majorities of 1, 3 and 5 analysts under each status (independent, passing on one call, guessing), 2 each | Weight on the own reading, dependence neglect *η*, conformity *κ*, with bias and noise (*κ*) |
+| `relay-peer` (T4) | `chain-stated`, `chain-open` | 0–3 relays × fidelity 60% or 80% × 3 | Stated: the exponent *ω* applied to the stated fidelity. Open: the implied fidelity per relay. Both with the call's weight *γ*, bias and noise |
+
+**What the texts look like:**
+- **T1:** "Analyst P31 phrases each call in one of three ways, and the lab keeps its record for each: "definitely… confirmed" calls right in 28 of its last 40; plain calls right in 34 of its last 40; "I think…" calls right in 22 of its last 40. … Analyst P31's call on urn U101: "I think it is red-majority.""
+- **T3, evidence-free majority:** "Analyst P47, analyst Q47 and analyst R47 did not read the urn and had no other information about it; each guessed, and all three called it red-majority."
+- **T4:** "It reached you through analysts who each passed on what they were told: analyst P51 → analyst Q51 → analyst R51 → analyst S51 → you. The call as it reached you: blue-majority." In `chain-stated` it is preceded by the fidelity sentence; in `chain-open` there is no such sentence.
+- **T2:** calls and an audit of how often analyst Q's call matched P's. The audit checks that the text never mentions copying, passing on, repeating or relaying.
+
+**Checks.**
+- The ideal answers are tested against independent derivations: each phrase's record, each majority status, and relay accuracy by enumerating every garble.
+- Every stated number is displayed.
+- Each fit recovers a low-noise respondent.
+
+**Recovery** (`ledger social-recovery`, 100 respondents per task, the house gates fixed before the study; correlation, 90% coverage):
+
+| Task | Parameter | 1 session | 2 sessions | 3 sessions |
+| --- | --- | --- | --- | --- |
+| T1 | *β*<sub>rec</sub> (primary) | 0.99, 0.95 | 1.00, 0.97 | 1.00, 0.94 |
+| T1 | *β*<sub>conf</sub> (primary) | 0.98, 0.95 | 0.99, 0.97 | 0.99, 0.95 |
+| T1 | *β*<sub>own</sub> | 0.95, 0.98 | 0.97, 0.92 | 0.98, 0.90 |
+| T3 | *κ* (primary) | 0.99, 0.97 | 0.99, 1.00 | 0.99, 0.97 |
+| T3 | *η* | 0.95, 0.98 | 0.98, 0.95 | 0.98, 0.88 |
+| T3 | *β*<sub>own</sub> | 0.98, 0.92 | 0.99, 0.93 | 0.99, 0.93 |
+| T4 stated | *ω* (primary) | 0.96, 0.90 | 0.97, 0.88 | 0.98, 0.87 |
+| T4 open | fidelity (primary) | 0.97, 0.97 | 0.99, 0.99 | 0.99, 0.99 |
+
+- **All four fits pass at one session per cell.** These designs identify their parameters better than the capacity designs did, because each parameter has its own crossing.
+- **T2** passes at one session: it has the same design, ideal observer and fit as sensor copying, which the capacity battery's uptake recovery already covered.
+- **Recovery SHA-256:** `2a92d26e9dd7ce8eecea52cc85c96d3ededa4fad88522a0dfb5efcc4f40b3a8a`.
+
+**Task validation 0.20.** It passed on both seeds: 2,352 cases and 103 contexts. The five peer contexts use respondents with known parameters:
+- T1: *β*<sub>rec</sub> 0.8, *β*<sub>conf</sub> 0.4;
+- T3: *η* 0.5, *κ* 0.4;
+- T4: *ω* 0.5, and fidelity 0.7;
+- T2: uptake 0.6.
+
+All were recovered within tolerance.
+
+The first validation of 0.20 was redone before any collection. The runner's expected case count left out the peer modules, so preparing a collection would have refused the validations. The count is now tested against the audit.
+
+Tasks fingerprint `3e18c2f391fa541f61f045e68df872aa61720dad6a76c71d7dfaf85f12dd3d98`.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.20, seed 20260927 | `f9a772ff8f27610dbae5919ae9e4190bc9b3ea04f0c335a808d61db2d78194c0` |
+| Task validation 0.20, seed 20261027 | `076be901f7f0f3dbce4d399c84c7608ff97c64961ec91f21aa2822e1470600b6` |
+
+**Next: the range-finding pilot.**
+- **Contexts:** the four tasks on Astra, Sol, Luna and Terra, one session each, with T4 in both variants. That is 20 contexts, about 11 million tokens.
+- **What it checks:** that no parameter sits at a grid edge for every configuration, that the texts are read as intended, and how many tokens a session uses.
+- **Then:** Stage 1 at one session per cell (recovery allows it) on all eight configurations. That is 5 contexts × 8 = 40 sessions, about 22 million tokens.
