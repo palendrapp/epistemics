@@ -9,6 +9,7 @@ respondent.
 """
 
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -48,6 +49,8 @@ from epistemics.disposition_tasks.render import (
     V2_ASKED_MODULES,
     V2_MODULES,
     V2_PROBED_MODULES,
+    V3_MODULES,
+    V3_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
     items_for,
@@ -80,6 +83,9 @@ TOLERANCE = {
     # the truth; implied fidelity within 0.1.
     "social": 0.25,
     "fidelity": 0.1,
+    # Battery v3 (tasks 0.23): coherence slope from 10 pairs, risk exponent from 4 lotteries.
+    "v3_beta": 0.25,
+    "v3_rho": 0.2,
 }
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
@@ -134,6 +140,16 @@ SOCIAL_RESPONDENTS = {
     ("relay-peer", "chain-open"): {"fidelity": 0.7, "gamma": 1.0, "bias": 0.0, "report_sd": 0.05},
 }
 # The copying-peer texts must never describe copying or passing on calls.
+# Battery v3 (tasks 0.23): a respondent with known coherence and risk attitude.
+V3_RESPONDENT = {
+    "alpha": 0.2,
+    "beta": 0.8,
+    "tau_c": 0.15,
+    "rho": 0.8,
+    "stated_sd": 0.05,
+    "default_acc": 0.7,
+    "default_rate": 0.4,
+}
 PEER_MECHANISM = ("copy", "copies", "pass on", "passes on", "passed on", "repeat", "relay")
 # Confidence surfaces (tasks 0.22): nothing may say what a confidence level is worth, and the
 # relayer must be said to have no information of its own.
@@ -206,6 +222,8 @@ MECHANISM = (
 
 
 def variants_of(module):
+    if module in V3_MODULES:
+        return V3_VARIANTS
     if module in PEER_MODULES:
         return PEER_VARIANTS[module]
     if module in CUE_MODULES:
@@ -252,6 +270,7 @@ def covers_of(module):
         + V2_PROBED_MODULES
         + LOAD_MODULES
         + PEER_MODULES
+        + V3_MODULES
         else COVERS
     )
 
@@ -314,7 +333,11 @@ def audit():
         for cover in covers_of(module):
             for variant in variants_of(module):
                 cases = [render(module, cover, i, variant) for i in range(CASES)]
-                if len({c["case"] for c in cases}) != CASES:
+                # Battery v3 shows each scenario twice, with different questions.
+                keys = {
+                    (c["case"], c["question"]) if module in V3_MODULES else c["case"] for c in cases
+                }
+                if len(keys) != CASES:
                     raise ValueError(f"Duplicate case text in {module}/{cover}/{variant}")
                 for i, case in enumerate(cases):
                     where = f"{module}/{cover}/{variant}/{i}"
@@ -339,6 +362,16 @@ def audit():
                     )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
+                    if module in V3_MODULES:
+                        shown = set(re.findall(r"\d+%", case["case"]))
+                        if shown - set(stated_percentages(module, i, variant)):
+                            raise ValueError(f"{where} shows a percentage it should not")
+                        if (
+                            variant == "v3-loaded"
+                            and kinds[i] == "revealed"
+                            and "Evidence" in case["case"]
+                        ):
+                            raise ValueError(f"{where} re-shows the evidence")
                     if module in ("advice-relay", "advice-sensor", "advice-agent"):
                         source = "\n\n".join(
                             part
@@ -362,6 +395,12 @@ def audit():
                         if two_way != (variant == "paired"):
                             raise ValueError(f"{where} has the wrong framing")
                 count += CASES
+    # Battery v3: unstated properties and stakes favour neither hypothesis across the battery.
+    from epistemics.dispositions import coherence
+
+    for name, (against, towards) in coherence.balance().items():
+        if abs(against - towards) > max(2, 0.15 * (against + towards)):
+            raise ValueError(f"Battery v3 {name} balance {against}/{towards}")
     return {"modules": len(MODULES), "covers": len(COVERS), "cases": count}
 
 
@@ -428,6 +467,9 @@ def contexts_to_validate():
     for (module, variant), truth in SOCIAL_RESPONDENTS.items():
         yield module, "markets", variant, truth
     yield "copying-peer", "markets", "urn2-vig2", UPTAKE_RESPONDENT
+    for module in V3_MODULES:
+        for variant in V3_VARIANTS:
+            yield module, "markets", variant, V3_RESPONDENT
 
 
 def estimate(module, analysis, truth):
@@ -441,6 +483,13 @@ def estimate(module, analysis, truth):
             and rise >= TOLERANCE["load_eta_rise"]
         )
         return slope, bool(ok)
+    if "coherence" in analysis:
+        c = analysis["coherence"]
+        errors = [
+            abs(c["beta"] - truth["beta"]),
+            abs(c["calibration"]["rho"]["mean"] - truth["rho"]),
+        ]
+        return max(errors), errors[0] <= TOLERANCE["v3_beta"] and errors[1] <= TOLERANCE["v3_rho"]
     if "social" in analysis:
         parameters = analysis["social"]["parameters"]
         checked = [k for k in truth if k in parameters and k not in ("bias", "report_sd")]

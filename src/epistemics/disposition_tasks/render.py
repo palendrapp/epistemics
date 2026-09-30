@@ -55,6 +55,12 @@ MODULES = (
     "advice-relay",
     "advice-sensor",
     "advice-agent",
+    "coherence-a",
+    "coherence-b",
+    "coherence-c",
+    "coherence-d",
+    "coherence-e",
+    "coherence-f",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -122,6 +128,10 @@ PEER_MODULES = (
     "advice-agent",
 )
 CONFIDENCE_MODULES = ("advice-peer", "advice-relay", "advice-sensor", "advice-agent")
+# Battery v3 (tasks 0.23): coherence between stated and revealed belief (surfaces.py,
+# dispositions.coherence).
+V3_MODULES = tuple(f"coherence-{letter}" for letter in "abcdef")
+V3_VARIANTS = ("v3-standard", "v3-loaded")
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -430,6 +440,10 @@ def items_for(module):
         return design.corroboration_probed()
     if module in URN_DESIGNS:
         return URN_DESIGNS[module]()
+    if module in V3_MODULES:
+        from epistemics.dispositions import coherence
+
+        return coherence.design(module.split("-")[1])
     if module in PEER_MODULES:
         from epistemics.dispositions import social
 
@@ -762,7 +776,24 @@ RENDERERS = {
     "advice-relay": lambda *a: _peer("advice_relay", *a),
     "advice-sensor": lambda *a: _peer("advice_sensor", *a),
     "advice-agent": lambda *a: _peer("advice_agent", *a),
+    **{
+        m: (lambda *a: _surfaces(*a))
+        for m in (
+            "coherence-a",
+            "coherence-b",
+            "coherence-c",
+            "coherence-d",
+            "coherence-e",
+            "coherence-f",
+        )
+    },
 }
+
+
+def _surfaces(items, i, cover, variant):
+    from epistemics.disposition_tasks import surfaces
+
+    return surfaces.trial(items, i, cover, variant)
 
 
 def _peer(name, items, i, cover, variant):
@@ -784,6 +815,8 @@ def _dossier(kind, items, i, cover, variant):
 
 
 def allowed(module, cover, variant):
+    if module in V3_MODULES:
+        return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
         return cover == "markets" and variant in PEER_VARIANTS[module]
     if module in CUE_MODULES:
@@ -826,16 +859,20 @@ def render(module, cover, index, variant="paired"):
     if not 0 <= index < len(items["prior"]):
         raise ValueError("Item index outside the design")
     lines, question = RENDERERS[module](items, index, cover, variant)
-    return {
-        "case": "\n\n".join(lines),
-        "question": question,
-        "response": "points" if module == "checks" else "probability",
-    }
+    if module in V3_MODULES:
+        response = str(items["response"][index])
+    else:
+        response = "points" if module == "checks" else "probability"
+    return {"case": "\n\n".join(lines), "question": question, "response": response}
 
 
 def stated_percentages(module, index, variant=None):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
+    if module in V3_MODULES:
+        from epistemics.disposition_tasks.surfaces import percentages
+
+        return percentages(items, index, variant)
     if module in PEER_MODULES:
         from epistemics.disposition_tasks.peers import percentages
 

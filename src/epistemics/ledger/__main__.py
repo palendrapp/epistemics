@@ -26,6 +26,9 @@ uv run python -m epistemics.ledger social-pilot <roots...> --output <file>
 uv run python -m epistemics.ledger confidence-power --output <file>
 uv run python -m epistemics.ledger confidence-transfer <roots...> --output <file>
 uv run python -m epistemics.ledger position --output <file>
+uv run python -m epistemics.ledger battery-v3-recovery --output <file>
+uv run python -m epistemics.ledger battery-v3-power --output <file>
+uv run python -m epistemics.ledger battery-v3 <roots...> --output <file>
 """
 
 import argparse
@@ -150,6 +153,11 @@ def main():
     cr.add_argument("--output", type=Path, required=True)
     cr.add_argument("--respondents", type=int, default=100)
     cr.add_argument("--load-respondents", type=int, default=100)
+    for name in ("battery-v3-recovery", "battery-v3-power"):
+        sub.add_parser(name).add_argument("--output", type=Path, required=True)
+    b3 = sub.add_parser("battery-v3")
+    b3.add_argument("roots", type=Path, nargs="+")
+    b3.add_argument("--output", type=Path, required=True)
     pos = sub.add_parser("position")
     pos.add_argument("--output", type=Path, required=True)
     cfp = sub.add_parser("confidence-power")
@@ -408,6 +416,22 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command in ("battery-v3-recovery", "battery-v3-power", "battery-v3"):
+        from epistemics.ledger import battery_v3
+
+        if a.command == "battery-v3-recovery":
+            run = battery_v3.recovery(configs=100)
+        elif a.command == "battery-v3-power":
+            run = battery_v3.power()
+        else:
+            run = battery_v3.analyse(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(
+            json.dumps(
+                run.get("parameters") or run.get("result") or run.get("generality"), indent=2
+            )
+        )
     elif a.command == "position":
         from epistemics.ledger import position
 

@@ -53,6 +53,8 @@ from epistemics.disposition_tasks.render import (
     V2_ASKED_MODULES,
     V2_MODULES,
     V2_PROBED_MODULES,
+    V3_MODULES,
+    V3_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
     allowed,
@@ -137,6 +139,7 @@ AUDITED_CASES = (
     + 24 * len(URN_MODULES) * len(VIG_VARIANTS)
     + 24 * len(LOAD_MODULES) * len(LOAD_VARIANTS)
     + 24 * sum(len(v) for v in PEER_VARIANTS.values())
+    + 24 * len(V3_MODULES) * len(V3_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -323,6 +326,8 @@ def command(root, entry, config):
 # all suggestive cases first (anchoring). With shared_order, every run in a group gets one order.
 ORDER_POLICIES = (
     "random",
+    # Battery v3, loaded variant: each revealed-belief trial 6-12 trials after its stated trial.
+    "refer-back",
     "irrelevant-first",
     "reassuring-first",
     "suggestive-first",
@@ -330,7 +335,43 @@ ORDER_POLICIES = (
 )
 
 
+REFER_BACK = (6, 12)
+
+
+def refer_back_order(module, rng):
+    """A case order in which each scenario's revealed-belief trial comes 6-12 trials after its
+    stated trial (battery v3, loaded variant)."""
+    items = items_for(module)
+    kinds, scenarios = items["kind"], items["scenario"]
+    stated = {int(scenarios[i]): i for i in range(CASES) if kinds[i] == "stated"}
+    revealed = {int(scenarios[i]): i for i in range(CASES) if kinds[i] == "revealed"}
+    lotteries = [i for i in range(CASES) if kinds[i] == "lottery"]
+    while True:
+        slots = [None] * CASES
+        ok = True
+        for s in rng.permutation(sorted(stated)):
+            free = [
+                (a, b)
+                for a in range(CASES)
+                for b in range(a + REFER_BACK[0], min(a + REFER_BACK[1], CASES - 1) + 1)
+                if slots[a] is None and slots[b] is None
+            ]
+            if not free:
+                ok = False
+                break
+            a, b = free[int(rng.integers(len(free)))]
+            slots[a], slots[b] = stated[int(s)], revealed[int(s)]
+        if not ok:
+            continue
+        rest = [k for k in range(CASES) if slots[k] is None]
+        for k, lottery in zip(rest, rng.permutation(lotteries), strict=True):
+            slots[k] = int(lottery)
+        return slots
+
+
 def arrange(module, policy, rng):
+    if policy == "refer-back":
+        return refer_back_order(module, rng)
     order = list(range(CASES))
     rng.shuffle(order)
     if policy == "random":
@@ -374,6 +415,7 @@ def check_groups(groups):
             + LOAD_VARIANTS
             + VIG_VARIANTS
             + tuple(v for variants in PEER_VARIANTS.values() for v in variants)
+            + V3_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -384,9 +426,17 @@ def check_groups(groups):
                 for variant, cover, repeat in contexts:
                     if not allowed(module, cover, variant):
                         raise ValueError(f"{module} does not offer {variant} in {cover}")
-                    if policy == "comparison-first" and module not in RANGE_MODULES:
+                    v3 = module.startswith("coherence-")
+                    if v3:
+                        if (policy == "refer-back") != (variant == "v3-loaded"):
+                            raise ValueError(
+                                "The loaded v3 variant needs, and only it takes, refer-back"
+                            )
+                    elif policy == "refer-back":
+                        raise ValueError("refer-back is for battery v3 modules")
+                    elif policy == "comparison-first" and module not in RANGE_MODULES:
                         raise ValueError("comparison-first needs a relative-judgement module")
-                    if policy not in ("random", "comparison-first") and module not in CUE_MODULES:
+                    elif policy not in ("random", "comparison-first") and module not in CUE_MODULES:
                         raise ValueError("Order policies other than random need a cue module")
                     key = (config, module, variant, cover, repeat)
                     if key in runs:
@@ -669,6 +719,15 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "coherence" in analysis:
+        c = analysis["coherence"]
+        return {
+            "parameter": "coherence",
+            "beta": c["beta"],
+            "alpha": c["alpha"],
+            "tau_c": c["tau_c"],
+            "rho": c["calibration"]["rho"]["mean"],
         }
     if "social" in analysis:
         social = analysis["social"]

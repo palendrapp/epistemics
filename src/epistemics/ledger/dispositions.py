@@ -68,6 +68,8 @@ for entry in plan["runs"]:
                                   "revealed_rate": a.get("revealed_rate")}
     elif m.module.endswith("-load"):
         record["load"] = a["load"]
+    elif "coherence" in a:
+        record["coherence"] = a["coherence"]
     elif "social" in a:
         record["social"] = {"headline": a["social"]["headline"],
                             "parameters": a["social"]["parameters"]}
@@ -165,6 +167,9 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
+    if "coherence" in record:
+        c = record["coherence"]
+        return {**base, **{k: c[k] for k in ("alpha", "beta", "tau_c", "mean_gap")}}
     implied = [s["implied"]["mean"] for s in record["slot_fits"]]
     # Unprompted modules ask for no stated base rates.
     fits = record["slot_fits"]

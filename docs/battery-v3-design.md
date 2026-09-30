@@ -147,3 +147,66 @@ The loaded condition dominates the cost. It could run on a subset of configurati
 2. **Stakes:** as a light secondary manipulation in weak scenarios (recommended), or deferred.
 3. **Trajectory load:** in the pilot on four configurations (recommended), in the battery on a subset, or deferred until coherence is shown to generalise.
 4. **Budget:** the pilot at about 21–26 million tokens with the loaded sessions, or about 6 million without them.
+
+## Built (30 September)
+
+**Versions.** Model 0.13.0 and design 0.14.0 (`dispositions/coherence.py`); tasks 0.23.0 (`disposition_tasks/surfaces.py`, modules `coherence-a` to `coherence-f`, variants `v3-standard` and `v3-loaded`).
+
+**Changes from the design above.**
+- **Surfaces and session length.** There are 30 surfaces (5 domains × 6 source types, without the urn domain), and 10 scenarios per session, not 12. The collection service's session is 24 trials: 10 scenarios × (stated, revealed) + 4 lotteries. Six designs each hold 10 scenarios, and every surface appears in two designs at two different strengths.
+- **The weak level has no separate payoff framing,** because the certainty-equivalent trial already carries the payoff. Stakes are in 2 of the 4 weak scenarios per design (12 in all), with the goal-congruent hypothesis balanced (6 and 6).
+- **Unstated properties are stated as unknown,** not simply left out: "No accuracy figure is available for sensor B14", "sometimes relays sensor A14's reading".
+
+**Checks built into the design and the audit.**
+- **Situation strength grades how much unstated properties matter.** Over independent completions of every unstated property (accuracies 0.6, 0.75 and 0.9; copy rates 0.2 and 0.5), the ideal answer's span in log-odds is:
+  - strong: 0;
+  - intermediate: median 1.25 (0.20–1.79);
+  - weak: median 2.08 (1.06–3.58).
+- **Balance.** Across the battery, the sources with unstated accuracy report the hypothesis 20 times and its negation 25; copy pairs with an unstated rate, 11 and 10; stakes, 6 and 6. The audit allows a difference of at most 2 or 15% of the total.
+- **Copy pairs agree when their rate is unstated,** so the rate always bears on the answer.
+- **Every trial shows exactly the percentages its scenario states,** and no others.
+- **Loaded revealed-belief trials** show no evidence and refer back by name.
+- **The runner orders loaded sessions** so that each revealed trial comes 6–12 trials after its stated one (the `refer-back` policy, required for and only allowed with `v3-loaded`).
+- **Load size.** A loaded trial carries about 8,500 tokens of unrelated log lines.
+
+**Fits** (`coherence.fit_coherence`, in every v3 analysis):
+- **Calibration:** the risk exponent *ρ* for utility *x*<sup>*ρ*</sup>, from the four lotteries (probabilities 0.2–0.8).
+- **Revealed log-odds:** the certainty equivalent inverted through *ρ*.
+- **The coherence line** (*α*, *β*, *τ*<sub>c</sub>).
+- **Each pair's distance in trials.**
+- **The stated answers' error** against the ideal in strong scenarios.
+
+The ledger pools pairs per configuration (`ledger battery-v3`) and runs the split-half generality test, with Holm correction across *β* and *τ*<sub>c</sub>.
+
+**Recovery** (`ledger battery-v3-recovery`): 100 simulated configurations, six sessions each, with a configuration × surface interaction of 0.1.
+
+| Parameter | Correlation with truth | Mean absolute error |
+| --- | --- | --- |
+| *β* | 0.99 | 0.02 |
+| log *τ*<sub>c</sub> | 0.93 | 0.25 |
+
+Recovery SHA-256: `88f8d325f2d37afa255ce1d631570a7897187c7e4a12a5031ba2af34d8afaf83`.
+
+**Power** (`ledger battery-v3-power`): 8 configurations × 6 sessions, 100 data sets per scenario. The assumed spread between configurations is 0.15 for *β* and 0.4 for log *τ*<sub>c</sub>.
+
+| Scenario | Pass rate | Median split-half *r* (*β*, *τ*<sub>c</sub>) |
+| --- | --- | --- |
+| General (interaction 0.1) | 1.00 | 0.96, 0.82 |
+| General, strong interaction (0.3) | 1.00 | 0.92, 0.46 |
+| Surface-bound (no trait, interaction 0.3) | 0.03 | −0.02, −0.03 |
+| None | 0.03 | 0.05, 0.04 |
+
+Power SHA-256: `f330f96c422479242dcfa64e1d2e008fc73b19155a703d5530b50f34ecebb646`.
+
+**The spreads are assumptions:** nothing is yet known about how much coherence varies between configurations. The pilot measures them.
+
+**The pilot** (awaiting your go-ahead):
+- **Standard:** Astra, Sol, Luna and Terra on designs a–c in `v3-standard`. That is 12 sessions, covering every surface once per configuration, about 6 million tokens.
+- **Loaded:** one `v3-loaded` session each on design d. That is 4 sessions, about 3 million tokens each, so about 12 million, because context reaches about 220 thousand tokens and is resent every turn.
+- **Total:** about 18 million tokens, cap 25 million.
+- **A risk:** if the agent's command-line tool compacts its context near its limit, earlier evidence is summarised. That would itself be a compression load, but it would be recorded as a deviation.
+
+**Task validation 0.23.** It passed on both seeds: 2,760 cases and 120 contexts. Twelve v3 contexts per seed (six designs × two variants, the loaded ones in refer-back order) recover a respondent with known coherence (*β* 0.8) and risk exponent (*ρ* 0.8) within tolerance: the largest error is 0.075.
+- Fingerprint `aaf9f30f9fd571be4039d1f9cd65ec752bec13a90ddeb13227b7d8fa6094ae98`.
+- Seed 20260927: `5bab4739918760ab8d7187d577dbf366c8f701f602da6e9772fb65b73e950cfb`.
+- Seed 20261027: `14bf0ecb68dc2fab31038fc690105be445a96c1889324670f17ceecb8a4f849b`.

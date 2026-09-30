@@ -32,6 +32,8 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         eta = np.asarray(truth["load_eta"])[level]
         sd = np.asarray(truth["load_sd"])[level]
         return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
+    if module.startswith("coherence-"):
+        return coherence_responses(items, truth, rng)
     if module in ("advice-peer", "conformity-peer", "relay-peer") or module.startswith("advice-"):
         from epistemics.dispositions import social
 
@@ -104,7 +106,38 @@ def simulate(directory, *, module, cover, order, truth, seed, variant="paired", 
     trial = service.get_trial()["trial"]
     while trial is not None:
         value = answers[service.manifest.order[trial["case_number"] - 1]]
-        answer = {"points": int(value)} if module == "checks" else {"probability": float(value)}
+        points = trial["response"] == "points"
+        answer = {"points": int(value)} if points else {"probability": float(value)}
         trial = service.submit(trial["trial_id"], answer)["next_trial"]
     service.finish()
     return export(directory)
+
+
+def coherence_responses(items, truth, rng):
+    """Battery v3 respondent: stated beliefs are the ideal answers with unstated accuracies and
+    copy rates completed at the respondent's defaults, plus report noise; revealed beliefs follow
+    r = alpha + beta s + noise(tau_c), turned into certainty equivalents through utility x^rho;
+    lotteries are answered through the same utility."""
+    from epistemics.dispositions import coherence
+
+    kinds = np.asarray(items["kind"])
+    out = np.zeros(len(kinds))
+    stated = {}
+    for i in np.flatnonzero(kinds == "stated"):
+        row = {k: items[k][i] for k in items}
+        fill = {
+            (0, kind, k): truth["default_acc"] if kind == "acc" else truth["default_rate"]
+            for kind, k in coherence.unstated(row)
+        }
+        latent = coherence.observers.composite(coherence._observer_items([row], fill))[0]
+        stated[int(items["scenario"][i])] = latent
+        out[i] = sample_reports(latent, truth["stated_sd"], rng)
+    for i in np.flatnonzero(kinds == "revealed"):
+        s = stated[int(items["scenario"][i])]
+        r = truth["alpha"] + truth["beta"] * s + rng.normal(0, truth["tau_c"])
+        p = 1 / (1 + np.exp(-r))
+        out[i] = np.clip(np.round(coherence.certainty_equivalent(p, truth["rho"])), 0, 100)
+    for i in np.flatnonzero(kinds == "lottery"):
+        ce = coherence.certainty_equivalent(items["lottery_p"][i], truth["rho"])
+        out[i] = np.clip(np.round(ce + rng.normal(0, 1.0)), 0, 100)
+    return out

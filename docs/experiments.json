@@ -846,13 +846,13 @@
       "question": "Is coherence between stated and revealed belief a general trait, measured across many surfaces and situation strengths, and does it decay under trajectory load?",
       "doc": "docs/battery-v3-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. Primary: split-half surface generality of coherence (tau_c or beta) over about 36 surfaces; secondary: configuration variance widening as situations weaken, stakes shifts, decay under load.",
-      "outcome": "Awaiting decisions: construct and frame, stakes, trajectory load in the pilot, budget (about 6M without load, 21-26M with)."
+      "outcome": "Built model 0.13.0, design 0.14.0, tasks 0.23.0: 30 surfaces x 3 strengths in six 24-trial designs (10 scenarios x stated/revealed + 4 calibration lotteries), standard and loaded variants (refer-back order, about 8.5k tokens of filler per trial). Recovery: beta r 0.99, log tau_c r 0.93. Power (assumed spreads): general 1.00, surface-bound 0.03, none 0.03. Validated on both seeds. Pilot awaiting go-ahead (about 18M)."
     }
   ],
   "next": [
-    "Battery v3: decisions on the design note, then build the surface generator, certainty-equivalent trials and calibration lotteries.",
+    "Battery v3 pilot: Astra, Sol, Luna, Terra on designs a-c standard plus one loaded session each (16 sessions, about 18M tokens).",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

@@ -126,6 +126,8 @@ def test_runner_accepts_every_module_variant_and_cover_the_audit_renders():
         for variant in variants_of(module):
             for cover in covers_of(module):
                 group = {"configurations": ["astra"], "modules": [module]}
+                if variant == "v3-loaded":
+                    group["order"] = "refer-back"
                 runner.check_groups([{**group, "contexts": [(variant, cover, 1)]}])
 
 

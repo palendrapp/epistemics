@@ -77,6 +77,12 @@ Module = Literal[
     "advice-relay",
     "advice-sensor",
     "advice-agent",
+    "coherence-a",
+    "coherence-b",
+    "coherence-c",
+    "coherence-d",
+    "coherence-e",
+    "coherence-f",
 ]
 Cover = Literal["markets", "ecology"]
 Variant = Literal[
@@ -105,6 +111,8 @@ Variant = Literal[
     "peer-open",
     "chain-stated",
     "chain-open",
+    "v3-standard",
+    "v3-loaded",
 ]
 CASES = 24
 
@@ -127,9 +135,9 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.22.0"] = VERSION
-    model_version: Literal["disposition-model/0.12.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.13.0"] = DESIGN_VERSION
+    battery_version: Literal["disposition-tasks/0.23.0"] = VERSION
+    model_version: Literal["disposition-model/0.13.0"] = MODEL_VERSION
+    design_version: Literal["disposition-design/0.14.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest
