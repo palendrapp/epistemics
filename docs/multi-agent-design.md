@@ -313,3 +313,102 @@ uv run python -m epistemics.ledger social-pilot output/multi-agent-pilot-2026093
 | plan.json | `308023cc0b95cac826e83ed0b80e4f7c9b301a606437f0ff142b87bbf6b4f1b6` |
 | execution.json | `eaca98778ef565d5f87423aa8c4b8e3c19fa90950c55deb3007a50a6ab230cf5` |
 | Summary | `eb9875dfb638a20992ea9b5065adca8e32f6f8265275247b3e09195d3057bff3` |
+
+## Open variants and the replication (built 30 September)
+
+After the pilot, the peer constructs are measured where nothing is stated, and the T1 ideal is corrected. Model 0.12.0 and tasks 0.21.0; the designs are unchanged (0.13.0).
+
+**T1 open (`advice-peer`, `peer-open`).** The same cases, with no record: the analyst "phrases each call in one of three ways", and only the phrase and the call are given. No ideal answer exists, so the fitted quantities are defaults:
+
+*y* = logit *π* + *β*<sub>own</sub>·*s*<sub>own</sub>·logit *a* + *w*<sub>0</sub>·*s* + *w*<sub>conf</sub>·*s*·*z<sub>h</sub>* + *b* + *ε*
+
+- ***w*<sub>0</sub>:** the log-odds weight given to a plain call from an analyst of unknown record.
+- ***w*<sub>conf</sub>:** the change per step of emphasis. Confidence persuasion, where the phrase is the only cue.
+
+**T3 open (`conformity-peer`, `peer-open`).** The same cases, with the majority's evidence undescribed: "Analyst P, analyst Q and analyst R each made a call on the urn, and all three called it red-majority."
+
+*y* = logit *π* + *β*<sub>own</sub>·*s*<sub>own</sub>·logit *a* + *s*<sub>maj</sub>·*v*·*n*<sup>*ρ*</sup> + *b* + *ε*
+
+- ***v*:** the default weight of one analyst's call.
+- ***ρ*:** how the majority's weight grows with its size. 1 counts every analyst as independent; 0 treats the majority as one source.
+
+**T1's ideal** now uses the hit rate *K*/*N* rather than (*K* + 1)/(*N* + 2) (see the pilot results).
+
+**Recovery** (100 respondents per task, the same pre-set gates; correlation, 90% coverage):
+
+| Task | Parameter | 1 session | 2 sessions | 3 sessions |
+| --- | --- | --- | --- | --- |
+| T1 (hit-rate ideal) | *β*<sub>rec</sub> | 0.99, 0.95 | 1.00, 0.98 | 1.00, 0.94 |
+| T1 (hit-rate ideal) | *β*<sub>conf</sub> | 0.98, 0.95 | 0.99, 0.97 | 0.99, 0.95 |
+| T1 open | *w*<sub>0</sub> | 0.99, 0.93 | 1.00, 0.97 | 1.00, 0.95 |
+| T1 open | *w*<sub>conf</sub> | 0.99, 1.00 | 1.00, 0.97 | 1.00, 0.97 |
+| T3 open | *v* | 0.96, 0.88 | 0.97, 0.82 | 0.98, 0.74 |
+| T3 open | *ρ* | 0.95, 0.92 | 0.96, 0.91 | 0.96, 0.89 |
+
+- **All pass at one session per cell.**
+- ***v*'s coverage falls with pooling** (0.74 at three sessions). Its intervals narrow faster than the grid resolves them, so pooled estimates of *v* would need a finer grid.
+- **Recovery SHA-256:** `d895c300ba1d9689fe92376e5db589d7120808304bb450f13120d2b7785d2778`.
+
+**Task validation 0.21.** It passed on both seeds: 2,400 cases and 105 contexts, including respondents with known defaults (*w*<sub>0</sub> 1.2 and *w*<sub>conf</sub> 0.5; *v* 0.6 and *ρ* 0.5).
+- Seed 20260927: `4e39f9d5af2758c428755bce91c6d8ec897f90d6501ad917f5d8aef8129df945`.
+- Seed 20261027: `6350e0d302323ca85cb2e2d4a80c66066c59597566d722e07604e6c2d8cc9750`.
+
+**Collection** (`output/multi-agent-open-20260930`), 12 contexts:
+- the open variants of T1 and T3 on Astra, Sol, Luna and Terra;
+- the replication of peer copying (`copying-peer`) and sensor copying (`copying-urn`), both on `urn2-vig2`, on Astra and Sol.
+
+### Results (30 September)
+
+All 12 contexts completed with no errors: 6.0 million input tokens, 17 minutes.
+
+```bash
+uv run python -m epistemics.ledger social-pilot output/multi-agent-open-20260930 --output output/multi-agent-open-summary-20260930.json
+```
+
+**Defaults where nothing is stated** (90% intervals):
+
+| | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| T1 open: weight on a plain call from an unknown analyst, *w*<sub>0</sub> | 0.70 (0.70–0.70) | 0.90 (0.90–0.90) | 0.34 (0.2–0.5) | 1.35 (1.2–1.5) |
+| T1 open: extra weight per step of emphasis, *w*<sub>conf</sub> | **0.00** | **0.50 (0.50–0.50)** | 0.06 (−0.1–0.2) | 0.88 (0.7–1.0) |
+| T3 open: weight of one analyst's call, *v* | 0.43 (0.4–0.5) | 1.01 (0.8–1.2) | 0.48 (0.2–0.8) | 0.76 (0.5–1.0) |
+| T3 open: growth with majority size, *ρ* (1 = independent) | 0.84 (0.7–0.9) | 0.52 (0.4–0.7) | 0.70 (0.3–1.1) | 0.78 (0.6–1.0) |
+| Report noise (T1 open) | 0.03 | 0.03 | 0.44 | 0.34 |
+
+- **Confidence moves Sol, not Astra, when there is no record.**
+  - Sol treats emphasis as evidence. A hedged call is worth about 0.4 log-odds (60%) and an emphatic one about 1.4 (80%).
+  - Astra gives every call the same weight, about 0.7 (67%), whatever the phrasing.
+  - Terra is moved more than Sol, but noisily; Luna barely uses the call at all.
+  - Neither is an error: with no record, a confident phrase may or may not carry information. It is a default, the confidence heuristic (Price & Stone 2004), and it separates the two GPT-6 models.
+  - When the record is given, both are exact and neither is moved by the phrase (pilot).
+- **Majorities pull Sol harder but with more discounting of size.**
+  - Sol gives one analyst's call about 1.0 and counts a majority sub-additively (*ρ* 0.52).
+  - Astra gives one call about 0.43 and counts analysts nearly as independent (*ρ* 0.84).
+  - For a majority of five against the agent's own reading, that is about 2.3 log-odds of pull for Sol and 1.7 for Astra.
+
+**The copying replication** (uptake of audit records, second session on each surface):
+
+| | Peer copying, pilot | Peer copying, replication | Sensor copying (30 Sep, tasks 0.17) | Sensor copying, replication |
+| --- | --- | --- | --- | --- |
+| Astra | 0.90 | **0.90** | 0.11 | **0.11** |
+| Sol | 0.15 | 0.21 | 0.41 | 0.06 |
+
+- **Astra's gap between surfaces replicates.** Astra follows the ideal observer almost exactly when the records concern analysts (implied rates 0.10, 0.25, 0.40, 0.55, 0.69 against ideals of 0.03, 0.19, 0.38, 0.52, 0.67). It barely uses the same records when they concern sensors.
+- **Sol's sensor value does not replicate** (0.41, then 0.06); Sol is low on both surfaces in three of four sessions.
+- **The "reversal" was mostly Sol's unstable sensor session.** The robust finding is that Astra is vigilant about dependence among agents and not among instruments, with the same numbers and the same design. The surface, not the structure, sets how Astra reads the evidence. This is the same surface-dependence that kept noticing from transferring in battery v2, now shown within one configuration and replicated.
+
+**What this means for the passport.** In one session per cell, Astra and Sol differ on two defaults:
+- how much a confident phrase counts without a record;
+- how strongly a majority pulls and how much its size is discounted.
+
+The first is also the construct most directly tied to the Hugging Face incident's confident coordinator. These are the first within-GPT-6 differences in any battery that are:
+- tightly estimated (noise 0.03);
+- not a matter of computation.
+
+Whether they are stable traits needs a second session and the other GPT-6 configurations. Recovery already supports one session per cell.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `f94a16325adfa44d22f9a61f233bdcd416a970a568c55bace167315e95a935f2` |
+| execution.json | `235c004f6b38aae6a834aa117da7126aaa32c94da693f8b114ff0c0defbde3ef` |
+| Summary | `a9d3ac129f4244688639b06c698dcef78518eb7238d6c6c55a6ebfb865f8d960` |

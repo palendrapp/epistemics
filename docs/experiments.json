@@ -764,10 +764,25 @@
       "status": "complete",
       "prediction": "Range-finding only: may change design ranges, nothing else.",
       "outcome": "20 contexts, 10.2M tokens, 0 errors (after tasks 0.20.1 fixed the runner's variant list before collection). Stated structure: all four configurations normative (no confidence persuasion, no conformity to guesses, dependent majorities counted once, stated relay fidelity applied); T1's record weight 1.10 reflects use of the raw hit rate rather than the design's smoothed ideal. Unstated relays taken at face value by all (implied fidelity 1.00). Only difference: unprompted peer-copying uptake, Astra 0.90 vs Sol 0.15, Terra 0.11, Luna 0.06, reversing the sensor ordering (Sol 0.41, Astra 0.11)."
+    },
+    {
+      "id": "multi-agent-open",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Multi-agent: default social weights (open variants) and the copying replication",
+      "question": "Where nothing is stated, how much do agents weigh a confident call and a majority? Does Astra's peer-vs-sensor copying gap replicate?",
+      "doc": "docs/multi-agent-design.md",
+      "roots": [
+        "output/multi-agent-open-20260930"
+      ],
+      "status": "complete",
+      "prediction": "Range-finding; one session per cell.",
+      "outcome": "12 contexts, 6.0M tokens, 0 errors. With no record, Sol treats emphasis as evidence (w_conf 0.50) and Astra does not (0.00), both with noise 0.03; Terra 0.88 (noisy), Luna 0.06. Unstated majorities: Sol v 1.01, rho 0.52; Astra v 0.43, rho 0.84. Copying replication: Astra peers 0.90 again vs sensors 0.11 again (surface effect replicates); Sol sensors 0.41 then 0.06 (unstable), peers 0.15 and 0.21."
     }
   ],
   "next": [
-    "Multi-agent: open variants of T1 (no record) and T3 (unstated majority evidence) to measure default social weights; fix T1's ideal to the raw hit rate; replicate T2 and sensor copying on Astra and Sol.",
+    "Multi-agent: test whether the default social weights (confidence persuasion w_conf, majority pull v and rho) are stable traits: second session and the other GPT-6 configurations (low, high effort) on the open variants.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
