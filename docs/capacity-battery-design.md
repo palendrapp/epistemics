@@ -478,3 +478,22 @@ Tasks fingerprint `c9dc9247fa4b2543d61d0629b6dbe5c8356fbdc78fcd6a54362e7bbb96c24
 ### Fixed in passing
 
 `traits.task_of` excluded only variants ending in "vig". Pilot 2's `urn2-vig2` sessions would have entered the next trait reanalysis as ordinary urn sessions. No published analysis was affected: the trait reanalysis predates pilot 2 and the ledger reads its cached file.
+
+## Decisions after the revised design (30 September)
+
+**Misfiling uptake is descriptive only.** It did not pass recovery within three sessions, so it is reported per configuration but not tested for transfer. Uptake is tested on the tasks that passed: copying (one session per cell) and selection (three).
+
+## Pilot 3: the four-level ladders on GPT-6 (built 30 September; range-finding)
+
+**Question.** Does the four-level ladder reach GPT-6? At the top level (16 readings for copying, 12 for misfiling), do the GPT-6 configurations leave ceiling, and does effort order the load slope within each model?
+
+**Contexts** (tasks 0.17.0, fingerprint `c9dc9247…`, validations 0.17 on both seeds; one session each):
+
+| Module | Configurations |
+| --- | --- |
+| `copying-long-load` | Astra-low, Sol-low, Astra, Sol, Astra-high, Sol-high |
+| `mismatch-long-load` | Astra-low, Sol-low (the configurations most likely to hit a limit) |
+
+**Size.** Eight contexts, about 4.5 million tokens, cap 7 million. The groups are passed to the runner directly rather than as a preset, so the validated implementation is unchanged. `plan.json` records them.
+
+**What may change after it.** Only the load levels. The analysis is the joint load curve (*κ*, *λ*) with the per-level exactness as a check. One session per cell is below what recovery requires for copying (two), so the slopes are read as range-finding, not as estimates for the battery.

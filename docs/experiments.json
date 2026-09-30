@@ -649,10 +649,24 @@
       "status": "complete",
       "prediction": "Gates set before the study: correlation 0.9, 90% coverage 0.8 (agent noise band); uptake MAE 0.15 and ignore/take-up classification 0.85; neglect slope correlation 0.85.",
       "outcome": "Built model 0.8.0 (uptake fit against the ideal observer; joint load-curve fit with finer bias and noise grids), design 0.10.0 (copying 2-16 and misfiling 1-12 readings over four levels, misfiling balanced per reading, typical repeats), tasks 0.17.0. Recovery: load curve passes at 2 sessions (copying) and 1 (misfiling); uptake passes at 1 session (copying) and 3 (selection), and misfiling fails within 3 (r 0.89, classification 0.78), limited by noisy respondents and the small range of ideal rates (0.05-0.25). Pilots refitted: uptake GPT-6 high 0.46-0.75, Terra 0.53/0, Luna 0.06/0."
+    },
+    {
+      "id": "capacity-pilot3",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Capacity pilot 3: four-level load ladders on GPT-6 (range-finding)",
+      "question": "At 16 readings (copying) and 12 (misfiling), do the GPT-6 configurations leave ceiling, and does effort order the load slope within each model?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [
+        "output/capacity-pilot3-20260930"
+      ],
+      "status": "running",
+      "prediction": "Range-finding only: may change load levels, nothing else. Misfiling uptake is descriptive only (decided 30 Sep)."
     }
   ],
   "next": [
-    "Decide: misfiling uptake (stronger audits via a higher reference rate and a pilot, more sessions, or descriptive only); a small pilot of the four-level ladders on GPT-6 (does 16 readings bind?); then the full battery's configurations, sessions per cell (Part A 2, Part B 3) and budget.",
+    "Capacity pilot 3 (four-level ladders on GPT-6) running; then the full battery's configurations, sessions per cell (Part A 2, Part B 3 for selection, 1 for copying; misfiling uptake descriptive) and budget.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
