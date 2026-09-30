@@ -412,3 +412,13 @@ Whether they are stable traits needs a second session and the other GPT-6 config
 | plan.json | `f94a16325adfa44d22f9a61f233bdcd416a970a568c55bace167315e95a935f2` |
 | execution.json | `235c004f6b38aae6a834aa117da7126aaa32c94da693f8b114ff0c0defbde3ef` |
 | Summary | `a9d3ac129f4244688639b06c698dcef78518eb7238d6c6c55a6ebfb865f8d960` |
+
+### Stability check (planned 30 September, before collection)
+
+**Question.** Are the default social weights stable traits? Two tests:
+- a second session of both open tasks (T1 and T3 `peer-open`) on Astra and Sol;
+- one session on Astra-low, Sol-low, Astra-high and Sol-high, to see whether effort moves the weights within each model.
+
+**Size.** 12 contexts, about 6.5 million tokens, cap 10 million. Tasks 0.21.0 and its validations are unchanged. The collection is in `output/multi-agent-stability-20260930`.
+
+**Read-out.** The test-retest difference in *w*<sub>conf</sub>, *w*<sub>0</sub>, *v* and *ρ* for Astra and Sol, against the gap between them; and whether Astra and Sol differ at every effort.

@@ -779,6 +779,20 @@
       "status": "complete",
       "prediction": "Range-finding; one session per cell.",
       "outcome": "12 contexts, 6.0M tokens, 0 errors. With no record, Sol treats emphasis as evidence (w_conf 0.50) and Astra does not (0.00), both with noise 0.03; Terra 0.88 (noisy), Luna 0.06. Unstated majorities: Sol v 1.01, rho 0.52; Astra v 0.43, rho 0.84. Copying replication: Astra peers 0.90 again vs sensors 0.11 again (surface effect replicates); Sol sensors 0.41 then 0.06 (unstable), peers 0.15 and 0.21."
+    },
+    {
+      "id": "multi-agent-stability",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Multi-agent: stability of default social weights (retest and effort)",
+      "question": "Are confidence persuasion (w_conf), default call weight (w0) and majority pull (v, rho) stable within Astra and Sol, and do they hold across effort?",
+      "doc": "docs/multi-agent-design.md",
+      "roots": [
+        "output/multi-agent-stability-20260930"
+      ],
+      "status": "running",
+      "prediction": "If they are traits, the retest difference is small against the Astra-Sol gap, and the gap holds at low and high effort."
     }
   ],
   "next": [
