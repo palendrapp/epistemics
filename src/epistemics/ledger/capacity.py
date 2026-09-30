@@ -152,6 +152,66 @@ def pilot(roots):
     }
 
 
+def pooled_load(roots):
+    """Load sessions pooled per configuration and module (the battery's cell): exactness by level,
+    the joint load curve and, for structural modules, errors by structure."""
+    cells = {}
+    for root in roots:
+        for record in dispositions.extract(root):
+            if record.get("verified") and record["module"].endswith("-load"):
+                cells.setdefault((record["configuration"], record["module"]), []).append(record)
+    rows = []
+    for (configuration, module), records in sorted(cells.items()):
+        model = LOAD_MODELS[module]
+        items = {k: np.asarray(v) for k, v in records[0]["items"].items()}
+        reports = np.concatenate([np.asarray(r["responses"], dtype=float) for r in records])
+        both = pooled(items, len(records))
+        exact, _ = observers.load_answers(model, both)
+        truth = 1 / (1 + np.exp(-exact))
+        level = np.asarray(both["load"])
+        close = np.abs(reports - truth) <= 0.015
+        rows.append(
+            {
+                "configuration": configuration,
+                "module": module,
+                "sessions": len(records),
+                "exact_share": [float(close[level == k].mean()) for k in sorted(set(level))],
+                "curve": fit.fit_load_curve(model, both, reports)["parameters"],
+                "errors": fit.load_errors(model, both, reports),
+            }
+        )
+    return {"schema_version": "epistemics.capacity-pooled-load.v1", "cells": rows}
+
+
+def pooled_table(result):
+    lines = [
+        "| Configuration | Module | Sessions | Exact by level | Load slope κ (90%) | "
+        "Neglect slope λ (90%) | Errors attributed |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for r in result["cells"]:
+        k, lam = r["curve"]["load_slope"], r["curve"]["eta_slope"]
+        e = r["errors"]
+        by = (
+            ", ".join(
+                f"{name} {v['errors']}/{v['opportunities']}"
+                for name, v in e["by_structure"].items()
+                if v["errors"]
+            )
+            if e
+            else ""
+        )
+        lines.append(
+            f"| {r['configuration']} | {r['module']} | {r['sessions']} | "
+            + " / ".join(f"{s:.0%}" for s in r["exact_share"])
+            + f" | {k['mean']:.2f} ({k['interval_90'][0]:.1f} to {k['interval_90'][1]:.1f}) | "
+            f"{lam['mean']:.3f} ({lam['interval_90'][0]:.3f} to {lam['interval_90'][1]:.3f}) | "
+            + (f"{e['attributed']} of {e['wrong']} wrong; {by}" if e else "")
+            + " |"
+        )
+    return "\n".join(lines)
+
+
 def tables(result):
     lines = [
         "| Configuration | Module | Readings | Noise τ | Neglect weight η | Exact within 1.5 points | Tokens |",

@@ -713,6 +713,12 @@ def difference(a, b):
         return None
     if a["parameter"] in ("cue_mapping", "range_targets"):
         return float(np.mean(np.abs(np.subtract(a["implied"], b["implied"]))))
+    if a["parameter"] == "load_slope":
+        # Tasks 0.19.1: load headlines carry slopes, not means (first repeated in the extended
+        # ladder pilot, whose summary step failed on this after all runs completed).
+        if a["slope"] is None or b["slope"] is None:
+            return None
+        return abs(a["slope"] - b["slope"])
     return abs(a["mean"] - b["mean"])
 
 

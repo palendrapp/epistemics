@@ -726,3 +726,43 @@ Tasks fingerprint `b40f07aa7c3d8b66ef59ba447ea0092cc8383cf5fc17a56bd81c8127a2a95
 - Across configurations: whether *κ* orders by effort within Astra and within Sol.
 
 This is range-finding for the battery's configurations and budget; only the structural levels may change after it.
+
+### Extended ladder pilot results (30 September)
+
+All 12 sessions completed: 9.3 million input tokens. Astra sessions took about 5 minutes and Sol sessions about 8, at every effort. The runner's end-of-run summary then failed: comparing repeated load sessions assumed a `mean` field, and load headlines carry a slope. The data are unaffected. Tasks 0.19.1 fixes the comparison, and it is re-validated.
+
+```bash
+uv run python -m epistemics.ledger capacity-pooled output/capacity-deep-pilot-20260930 --output output/capacity-deep-pilot-pooled-20260930.json
+```
+
+**Pooled over each configuration's two sessions** (12 cases per level):
+
+| | Level 0 | Level 1 | Level 2 | Level 3 | Load slope *κ* (90%) | Wrong answers (attributed) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra-low | 100% | 67% | 100% | 92% | −0.40 (−0.5 to −0.2) | 5 (2: misfiling ignored) |
+| Astra | 100% | 92% | 100% | 83% | 0.22 (0.0 to 0.4) | 3 (1: copy condition read as unconditional) |
+| Astra-high | 100% | 83% | 83% | 83% | −0.03 (−0.2 to 0.2) | 6 (0) |
+| Sol-low | 92% | 100% | 100% | 100% | −0.48 (−0.5 to −0.4) | 1 (0) |
+| Sol | 100% | 100% | 100% | 100% | −0.42 (−0.5 to −0.2) | 0 |
+| Sol-high | 100% | 100% | 100% | 100% | 0.16 (0.0 to 0.3) | 0 |
+
+- **Sol does not leave ceiling at any effort.** Across 144 cases, it made one wrong answer (Sol-low, level 0, 2 points).
+- **Astra errs at every effort, including high.** It gets 3–6 of 48 cases wrong.
+- **The errors are item-specific and shared across Astra's efforts.** They are not graded by structural level:
+  - Item 6 (level 1: a chain whose conditional link is off, with misfiling on A, C and E): every Astra session that erred there answered 14% against an exact 10%. That is both Astra-low sessions, Astra's first and Astra-high's second.
+  - Item 15 (level 3): all three Astra configurations answered 58–66% against 64%.
+  - Item 18 (level 3): Astra 78% and Astra-high 76%, against 82%.
+  - Sol never erred on these items.
+- **Most errors match no single misreading.** 3 of Astra's 14 wrong answers are attributed: two are misfiling ignored, one a copy condition read as unconditional. Item 6's 14% needs three simultaneous misreadings to reproduce, so it looks like a consistent alternative reading of that case, not a missed structure.
+- **The load slope does not order by effort.** Astra-low −0.40, Astra 0.22, Astra-high −0.03. The errors sit on particular items, not on high levels.
+
+**What this means.** Explicit structural load, like explicit arithmetic load, does not produce a graded capacity limit in GPT-6. Sol is exact throughout. Astra has a stable, effort-independent error rate on particular structural cases, which is a difference between the two GPT-6 models, not a load curve. As a trait candidate it resembles stated–applied fidelity: it separates models, not efforts. Whether it transfers to other structural tasks is untested.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `6d7b4824c163038d8828dc1d1457fdef68d8fdd20163e7248c48e5193e54730a` |
+| execution.json | `5a480c8011c4b102b06b36f048f23ae0cc6976bb9579306cbb4b122b710cb650` |
+| Pooled analysis | `0d84a9ff194ceb44719703bc5255de9ae396d58b045a844dbba6ded6a63a3b4b` |
+| Per-session summary | `97fe0e5706e459dab2a76fa050a476312e3719e991e6adb483468629ea845e94` |
+
+**Task validation 0.19.1** (the summary fix only) passed on both seeds. Fingerprint `3da408d7407d4b6605ff23a6f690950fc56bed6ec38e4cf02edb8a781a302212`. Seed 20260927: `00d2c1dfd760832326067d853651c73b1552088ab81a8eeae4f8f8ae1f2be4d4`; seed 20261027: `edcc245ee7b90ff42735d4f5099b9ff7c1f50020343a9d6034267117bc094174`.

@@ -733,12 +733,13 @@
       "roots": [
         "output/capacity-deep-pilot-20260930"
       ],
-      "status": "running",
-      "prediction": "Range-finding; two sessions per cell pooled; may change the structural levels only."
+      "status": "complete",
+      "prediction": "Range-finding; two sessions per cell pooled; may change the structural levels only.",
+      "outcome": "12 sessions, 9.3M tokens (runner summary failed on a repeat-comparison bug after all runs completed; fixed in tasks 0.19.1). Sol exact at every effort (1 wrong of 144). Astra errs at every effort including high (3-6 of 48), on particular items shared across efforts (item 6: 14% vs 10% in four Astra sessions), not graded by level; 3 of 14 errors attributable to a single misreading. Load slope does not order by effort. Structural load, like arithmetic load, gives no graded capacity limit in GPT-6; it exposes a stable Astra-vs-Sol difference in structural reliability."
     }
   ],
   "next": [
-    "Capacity: pilot the extended structural ladder on the six GPT-6 configurations at two sessions per cell (12 contexts, about 7.5M tokens).",
+    "Capacity: decide what to do with the structural result (Astra-vs-Sol reliability as a model-level trait candidate, test its transfer; or move to Part C, multi-agent). Load curves do not separate GPT-6 configurations.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

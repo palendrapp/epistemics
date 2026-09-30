@@ -253,3 +253,10 @@ def test_structural_load_design_holds_readings_fixed_and_every_structure_bears()
         for p in render.stated_percentages("composite-load", i):
             assert p in case
         assert "Readings in the order they were logged" in case
+
+
+def test_repeated_load_sessions_are_compared_on_their_slopes():
+    a = {"parameter": "load_slope", "slope": 0.5, "eta_slope": 0.0}
+    b = {"parameter": "load_slope", "slope": 0.2, "eta_slope": 0.1}
+    assert abs(runner.difference(a, b) - 0.3) < 1e-12
+    assert runner.difference(a, {**b, "slope": None}) is None
