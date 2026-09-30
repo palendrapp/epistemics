@@ -422,3 +422,59 @@ Whether they are stable traits needs a second session and the other GPT-6 config
 **Size.** 12 contexts, about 6.5 million tokens, cap 10 million. Tasks 0.21.0 and its validations are unchanged. The collection is in `output/multi-agent-stability-20260930`.
 
 **Read-out.** The test-retest difference in *w*<sub>conf</sub>, *w*<sub>0</sub>, *v* and *ρ* for Astra and Sol, against the gap between them; and whether Astra and Sol differ at every effort.
+
+### Stability results (30 September)
+
+All 12 contexts completed with no errors: 6.1 million input tokens, 18 minutes.
+
+```bash
+uv run python -m epistemics.ledger social-pilot output/multi-agent-stability-20260930 --output output/multi-agent-stability-summary-20260930.json
+```
+
+**Confidence persuasion without a record (T1 open).** With the first session from `multi-agent-open-20260930`:
+
+| | Emphasis weight *w*<sub>conf</sub> | Plain-call weight *w*<sub>0</sub> | Noise |
+| --- | --- | --- | --- |
+| Astra, session 1 | 0.00 | 0.70 | 0.03 |
+| Astra, session 2 | 0.10 | 0.70 | 0.05 |
+| Astra-low | 0.00 | 0.70 | 0.01 |
+| Astra-high | 0.00 | 0.87 | 0.05 |
+| Sol, session 1 | 0.50 | 0.90 | 0.03 |
+| Sol, session 2 | 0.34 | 0.94 | 0.23 |
+| Sol-low | 0.29 | 0.99 | 0.15 |
+| Sol-high | 0.50 | 1.20 | 0.05 |
+
+- **Confidence persuasion is a stable trait of the model, not the effort level.**
+  - Every Sol session and effort is moved by emphasis (0.29–0.50 per step); every Astra one is not (0.00–0.10).
+  - The retest differences (0.10 for Astra, 0.16 for Sol) are small against the gap (about 0.3–0.5).
+  - Effort does not change it.
+- **Sol also gives a plain call from an unknown analyst more weight** throughout (0.90–1.20 against 0.70–0.87).
+
+**Majority pull when the majority's evidence is unstated (T3 open).** Per-analyst weight *v* and size growth *ρ*, with the implied pull in log-odds for majorities of three and five:
+
+| | *v* | *ρ* | Pull, 3 analysts | Pull, 5 analysts |
+| --- | --- | --- | --- | --- |
+| Astra, session 1 | 0.43 | 0.84 | 1.08 | 1.66 |
+| Astra, session 2 | 0.80 | 0.40 | 1.24 | 1.52 |
+| Astra-low | 0.83 | 0.58 | 1.57 | 2.11 |
+| Astra-high | 0.40 | 1.00 | 1.20 | 2.00 |
+| Sol, session 1 | 1.01 | 0.52 | 1.79 | 2.33 |
+| Sol, session 2 | 0.79 | 1.04 | 2.48 | 4.21 |
+| Sol-low | 0.39 | 0.94 | 1.10 | 1.77 |
+| Sol-high | 0.64 | 1.06 | 2.05 | 3.52 |
+
+- **The majority defaults are not stable.**
+  - Astra's two sessions give (0.43, 0.84) and (0.80, 0.40); Sol's give (1.01, 0.52) and (0.79, 1.04).
+  - *v* and *ρ* trade off against each other, and even the implied pull varies within a configuration about as much as between models (five analysts: Astra 1.5–2.1, Sol 1.8–4.2).
+  - One session per cell does not pin these defaults down. Recovery had warned that *v*'s intervals become overconfident under pooling.
+
+**What this means.**
+- **The first trait that separates GPT-6 models and holds up:** being persuaded by confident wording when there is no track record. It separates Sol from Astra at every effort, on retest, with the evidence and the arithmetic held fixed.
+- **It is not an error.** Without a record, confidence may carry information. But it is the disposition by which a confident coordinator gains influence, and a reader of the passport would want to know it.
+- **Still to test:** whether it is a general trait, which is the passport's criterion. That means transfer to other formats where only confidence varies, for example a relayed call whose relayer is emphatic, or a sensor display with a confidence flag.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `deee96002bca305528f53f392ff0f34bf6ecbcbdf4654e557e657831bc829ebf` |
+| execution.json | `c97cb4867ad296d55a603b03ff6a4857135e300576c8becf021acf76f2b282d3` |
+| Summary | `8ea1f8dae74e3db164766b9945a15341d579782d8b1894ba9c760aa0013f800e` |
