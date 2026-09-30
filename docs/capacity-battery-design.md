@@ -497,3 +497,35 @@ Tasks fingerprint `c9dc9247fa4b2543d61d0629b6dbe5c8356fbdc78fcd6a54362e7bbb96c24
 **Size.** Eight contexts, about 4.5 million tokens, cap 7 million. The groups are passed to the runner directly rather than as a preset, so the validated implementation is unchanged. `plan.json` records them.
 
 **What may change after it.** Only the load levels. The analysis is the joint load curve (*κ*, *λ*) with the per-level exactness as a check. One session per cell is below what recovery requires for copying (two), so the slopes are read as range-finding, not as estimates for the battery.
+
+### Pilot 3 results (30 September)
+
+All 8 contexts completed with no errors: 5.2 million input tokens (0.58–0.91 million per context), 11 minutes.
+
+```bash
+uv run python -m epistemics.ledger capacity-pilot output/capacity-pilot3-20260930 --output output/capacity-pilot3-summary-20260930.json
+```
+
+**The four-level ladder does not reach GPT-6.**
+- **Five of the six configurations gave identical answers to all 24 copying cases:** Astra-low, Sol-low, Sol, Astra-high and Sol-high. Every answer was the exact posterior to the percent, including 16 readings with 5 copy relations.
+- **Astra at medium effort** missed one 16-reading case by 2 points (89% against 87%). That was an arithmetic slip, not neglect (the neglect answer was 39%).
+- **Misfiling at 12 readings:** Astra-low and Sol-low were also exact on every case.
+- **Every fitted load slope is at the floor.** For the five identical sessions *κ* is −0.29 (−0.5 to 0.1); for Astra it is 0.55 (0.3 to 0.7), from the one miss. Every neglect slope is 0.
+
+**No tools were used.** Each run made only its 27 collection calls. The runner stops any run that takes another action, the shell and exec tools are disabled, and Codex's `code_mode` (the model writing code) is off. `code_mode_host` is only the tool transport. The computation was done unaided, even at low effort.
+
+**What this means.** Explicit arithmetic load of this kind is not a capacity limit for GPT-6 at any reasoning effort we can set. It does bind GPT-5.6 (pilot 2), so Part A as built separates model families, not configurations within GPT-6. Escalating the same arithmetic (32 or 64 readings) is unlikely to change that, and the texts grow with it. The design's risk list anticipated this: the load has to change kind. The candidates are in the decisions below.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `f34f4a1f1cec128aa113c94aa0ddcfbcee3fddd549c07b1aaeee3ef0ec569136` |
+| execution.json | `095666a9622dd3550c3b0ece36bd068442d358b445577ae401563d905381b6e4` |
+| Pilot 3 summary | `c5f20abebea30dca4f9d7cb4f465562867e7bcd2732371fafde4e2605484b65b` |
+
+### Decisions after pilot 3
+
+1. **What kind of load for GPT-6.** Candidates:
+   - **Context load**, planned as the second load dimension (A.5). The same cases, with the relevant readings and copy relations spread among irrelevant records. It tests finding and keeping the right numbers, not computing with them (a lost-in-the-middle limit; Liu et al. 2024). Cheap: new texts over the existing designs.
+   - **Structural load.** Cases that combine structures (a reading that may be both copied and misfiled; copy chains with their own rates). The load is in building the model of the evidence, not in the arithmetic. This is where GPT-5.6 already fails at small sizes, and it is closer to the construct.
+   - **Neither:** accept that Part A separates model families, and look for within-family differences in Part B.
+2. **Part B within GPT-6.** Uptake has so far been measured only at high effort, where Astra and Sol are indistinguishable. Copying and selection at low and medium effort (8 contexts, about 4.5 million tokens) would show whether uptake varies within the family before the full Part B is sized.

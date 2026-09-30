@@ -661,12 +661,13 @@
       "roots": [
         "output/capacity-pilot3-20260930"
       ],
-      "status": "running",
-      "prediction": "Range-finding only: may change load levels, nothing else. Misfiling uptake is descriptive only (decided 30 Sep)."
+      "status": "complete",
+      "prediction": "Range-finding only: may change load levels, nothing else. Misfiling uptake is descriptive only (decided 30 Sep).",
+      "outcome": "8 contexts, 5.2M tokens, 0 errors. GPT-6 at ceiling at every effort: five of six configurations gave identical, exact answers to all 24 copying cases (up to 16 readings, 5 copy relations); Astra (medium) one 2-point slip at 16. Misfiling at 12 readings exact for Astra-low and Sol-low. No tools used (collection calls only; shell, exec and code_mode off). Explicit arithmetic load does not reach GPT-6; Part A as built separates families only."
     }
   ],
   "next": [
-    "Capacity pilot 3 (four-level ladders on GPT-6) running; then the full battery's configurations, sessions per cell (Part A 2, Part B 3 for selection, 1 for copying; misfiling uptake descriptive) and budget.",
+    "Capacity decisions: the kind of load for GPT-6 (context load, structural load, or accept a family-level Part A); uptake on GPT-6 low and medium effort (copying and selection, about 4.5M) before sizing Part B.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
