@@ -480,3 +480,5 @@ uv run python -m epistemics.ledger social-pilot output/multi-agent-stability-202
 | Summary | `8ea1f8dae74e3db164766b9945a15341d579782d8b1894ba9c760aa0013f800e` |
 
 **Next, designed 30 September:** the [confidence persuasion transfer test](confidence-transfer-design.md).
+
+**Transfer test result (30 September):** not supported (gain −0.69, *p* = 0.98). Confidence persuasion is surface-specific; see [the results](confidence-transfer-preregistration.md#results-30-september).

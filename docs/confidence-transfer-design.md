@@ -99,3 +99,5 @@ This is the T1-open model unchanged, so its recovery (correlation 0.99 at one se
 - **Power:** at the values observed so far, the test passes in 100% of simulated data sets if the trait is general, 25% if only the analyst surfaces share it, and 4.5% if no surface does.
 - **Preregistration:** [confidence-transfer-preregistration.md](confidence-transfer-preregistration.md), committed before collection.
 - **Collection** (awaiting your go-ahead): B, C and D on the eight configurations, one session each. That is 24 sessions, about 13 million tokens.
+
+**Transfer test result (30 September):** not supported (gain −0.69, *p* = 0.98). Confidence persuasion is surface-specific; see [the results](confidence-transfer-preregistration.md#results-30-september).

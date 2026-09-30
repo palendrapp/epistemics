@@ -816,13 +816,17 @@
       "title": "Confidence persuasion transfer test",
       "question": "Does w_conf (reliance on expressed confidence without a record) transfer across analyst, relayed, sensor and agent surfaces?",
       "doc": "docs/confidence-transfer-preregistration.md",
-      "roots": [],
-      "status": "planned",
-      "prediction": "Primary: leave-one-surface-out gain > 0 and permutation p < 0.05 over 8 configurations x 4 surfaces. Secondary: Sol above Astra (12 comparisons), uninformed relayer emphasis against zero, social minus non-social."
+      "roots": [
+        "output/confidence-transfer-20260930",
+        "output/confidence-transfer-20260930-2"
+      ],
+      "status": "complete",
+      "prediction": "Primary: leave-one-surface-out gain > 0 and permutation p < 0.05 over 8 configurations x 4 surfaces. Secondary: Sol above Astra (12 comparisons), uninformed relayer emphasis against zero, social minus non-social.",
+      "outcome": "Primary not supported: leave-one-surface-out gain -0.69, p 0.98. Structured confidence (sensor flag, agent field) moves every configuration 0.5-1.0 per step (Terra ignores the sensor); an uninformed relayer's emphasis moves none (all 0); the analyst's verbal confidence separates Sol (0.29-0.50) from Astra (0). Sol above Astra exactly 5 of 12 (3 Astra, 4 ties; the code's 8 counted float ties). No general trait claimed."
     }
   ],
   "next": [
-    "Confidence transfer test: collect surfaces B, C, D on eight configurations (24 sessions, about 13M), then run the preregistered analysis.",
+    "Decide the next direction: confidence persuasion is surface-specific; universal findings (structured confidence used by all, uninformed emphasis ignored by all) are passport-relevant as defaults, not traits.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

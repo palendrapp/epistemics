@@ -184,13 +184,14 @@ def table(result):
 def pilot(roots):
     """Per configuration, module and variant: the fitted social parameters (T1, T3, T4) or the
     audit uptake (T2), with 90% intervals."""
+    from epistemics.disposition_tasks.render import PEER_MODULES
     from epistemics.ledger import capacity, dispositions
 
     rows = []
     for root in roots:
         tokens = capacity.usage(root)
         for record in dispositions.extract(root):
-            if not record.get("verified") or not record["module"].endswith("-peer"):
+            if not record.get("verified") or record["module"] not in PEER_MODULES:
                 continue
             base = {
                 "configuration": record["configuration"],
