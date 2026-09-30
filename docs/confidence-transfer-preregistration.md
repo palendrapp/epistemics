@@ -72,3 +72,18 @@ SHA-256 of the power output: `e1a3c9412f952888f7d8a5efc535b5f0e473af6d0bfa6b89a0
 - **Tasks 0.22.0,** fingerprint `19dbd647335574be6545a2383faae05340c5731d4e30b32bce9a99cfdf21b0f7`. It was validated on both seeds (2,472 cases, 108 contexts), including respondents with known *w*<sub>0</sub> and *w*<sub>conf</sub> on each new surface.
 - **Validation SHA-256s:** seed 20260927 `02e23640c9a3926a012bcfea9890fbd9619b5c5176fc34e49314e0638020d195`; seed 20261027 `3abfe4e63897ecfa72605db7a5bbb831b2f29f86dc4f377ba7751f31bb576a1e`.
 - **The new collection** runs from this implementation and these validations.
+
+## Deviations (written during collection, before the top-up)
+
+**The failure.** The first collection (`output/confidence-transfer-20260930`) stopped after 6 of 24 runs.
+- Sol's sensor session failed after 15 tool calls with a provider error ("Selected model is at capacity"): an infrastructure failure, not a respondent one.
+- The runner admits nothing after a failure, so 18 runs were not attempted.
+- Five sessions completed and are kept.
+
+**The top-up.** As the validity rule above provides, the failed session is re-collected once, in a top-up (`output/confidence-transfer-20260930-2`). The top-up has the same implementation and validations, and contains exactly the failed run and the 18 unattempted ones. The failed attempt's partial answers are not used.
+
+**The analysis command** takes both new roots after the task-A roots:
+
+```bash
+uv run python -m epistemics.ledger confidence-transfer output/multi-agent-open-20260930 output/multi-agent-stability-20260930 output/confidence-transfer-20260930 output/confidence-transfer-20260930-2 --output output/confidence-transfer-20260930.json
+```
