@@ -25,6 +25,7 @@ uv run python -m epistemics.ledger social-recovery --output <file>
 uv run python -m epistemics.ledger social-pilot <roots...> --output <file>
 uv run python -m epistemics.ledger confidence-power --output <file>
 uv run python -m epistemics.ledger confidence-transfer <roots...> --output <file>
+uv run python -m epistemics.ledger position --output <file>
 """
 
 import argparse
@@ -149,6 +150,8 @@ def main():
     cr.add_argument("--output", type=Path, required=True)
     cr.add_argument("--respondents", type=int, default=100)
     cr.add_argument("--load-respondents", type=int, default=100)
+    pos = sub.add_parser("position")
+    pos.add_argument("--output", type=Path, required=True)
     cfp = sub.add_parser("confidence-power")
     cfp.add_argument("--output", type=Path, required=True)
     cft = sub.add_parser("confidence-transfer")
@@ -405,6 +408,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command == "position":
+        from epistemics.ledger import position
+
+        run = position.analyse()
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(run["overall"], indent=2))
     elif a.command in ("confidence-power", "confidence-transfer"):
         from epistemics.ledger import confidence
 

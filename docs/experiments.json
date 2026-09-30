@@ -823,10 +823,36 @@
       "status": "complete",
       "prediction": "Primary: leave-one-surface-out gain > 0 and permutation p < 0.05 over 8 configurations x 4 surfaces. Secondary: Sol above Astra (12 comparisons), uninformed relayer emphasis against zero, social minus non-social.",
       "outcome": "Primary not supported: leave-one-surface-out gain -0.69, p 0.98. Structured confidence (sensor flag, agent field) moves every configuration 0.5-1.0 per step (Terra ignores the sensor); an uninformed relayer's emphasis moves none (all 0); the analyst's verbal confidence separates Sol (0.29-0.50) from Astra (0). Sol above Astra exactly 5 of 12 (3 Astra, 4 ties; the code's 8 counted float ties). No general trait claimed."
+    },
+    {
+      "id": "position-reanalysis",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Serial position within sessions (reanalysis)",
+      "question": "Does error grow with a case's position in the session, as the context grows?",
+      "doc": "docs/battery-v3-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Sizing only, for battery v3's trajectory-load contrast.",
+      "outcome": "52 sessions with normative answers, 1,248 answers: no position effect (GPT-6 slope -0.01 log-odds over 24 cases, p 0.09; GPT-5.6 +0.09, p 0.20; no module reliable). Sessions' final context is of the order of 30 thousand tokens (cumulative input about 0.5M), so trajectory load is untested at scale."
+    },
+    {
+      "id": "battery-v3-design",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Battery v3: general traits in weak situations (design)",
+      "question": "Is coherence between stated and revealed belief a general trait, measured across many surfaces and situation strengths, and does it decay under trajectory load?",
+      "doc": "docs/battery-v3-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Design only. Primary: split-half surface generality of coherence (tau_c or beta) over about 36 surfaces; secondary: configuration variance widening as situations weaken, stakes shifts, decay under load.",
+      "outcome": "Awaiting decisions: construct and frame, stakes, trajectory load in the pilot, budget (about 6M without load, 21-26M with)."
     }
   ],
   "next": [
-    "Decide the next direction: confidence persuasion is surface-specific; universal findings (structured confidence used by all, uninformed emphasis ignored by all) are passport-relevant as defaults, not traits.",
+    "Battery v3: decisions on the design note, then build the surface generator, certainty-equivalent trials and calibration lotteries.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
