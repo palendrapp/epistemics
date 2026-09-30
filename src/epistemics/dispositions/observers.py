@@ -199,9 +199,51 @@ def cue_observer(model, items, dispositions, gamma):
     return np.where(items["kind"] == "rate", stated, latent)
 
 
+def composite(items, ignore_copy=False, ignore_mis=False, conditions="exact"):
+    """Capacity battery, structural load (model 0.9): posterior log-odds when copying, misfiling
+    and conditional copying combine among one set of readings.
+
+    Readings are taken in logging order. A sensor that may copy (src >= 0) repeats its source's
+    logged reading with probability `rate`, wherever that reading came from; with `cond` set it
+    copies only in rounds when the source's reading is red. Otherwise it reads for itself, and a
+    share `mis` of the readings it takes itself come from a different urn. So each reading's
+    likelihood depends only on the urn and its source's logged reading. `conditions` is "exact",
+    or, for the partial answers, "unconditional" (every conditional copy treated as unconditional)
+    or "never" (conditional copiers treated as never copying).
+    """
+    total = logit(np.asarray(items["prior"], dtype=float))
+    width = sum(1 for key in items if key.startswith("acc_"))
+    for k in range(width):
+        present = k < np.asarray(items["n"])
+        acc = np.asarray(items[f"acc_{k}"], dtype=float)
+        rep = np.asarray(items[f"rep_{k}"])
+        mis = 0.0 if ignore_mis else np.asarray(items[f"mis_{k}"], dtype=float)
+        p1 = np.clip(np.where(rep > 0, acc, 1 - acc), EDGE, 1 - EDGE)
+        own1 = (1 - mis) * p1 + mis / 2
+        own0 = (1 - mis) * (1 - p1) + mis / 2
+        src = np.asarray(items[f"src_{k}"])
+        source = np.array([items[f"rep_{s}"][i] if s >= 0 else 0 for i, s in enumerate(src)])
+        conditional = np.asarray(items[f"cond_{k}"]) > 0
+        if conditions == "exact":
+            allowed = ~conditional | (source > 0)
+        elif conditions == "unconditional":
+            allowed = np.ones_like(conditional)
+        else:
+            allowed = ~conditional
+        copies = (src >= 0) & allowed & (not ignore_copy)
+        rate = np.asarray(items[f"rate_{k}"], dtype=float)
+        match = (rep == source).astype(float)
+        l1 = np.where(copies, rate * match + (1 - rate) * own1, own1)
+        l0 = np.where(copies, rate * match + (1 - rate) * own0, own0)
+        total = total + np.where(present, np.log(l1) - np.log(l0), 0.0)
+    return total
+
+
 def load_answers(model, items):
     """Capacity battery, Part A: the exact posterior log-odds of a fully specified case, and the
     answer that neglects the structure (every reading independent and from this urn)."""
+    if model == "composite":
+        return composite(items), composite(items, ignore_copy=True, ignore_mis=True)
     prior = logit(np.asarray(items["prior"], dtype=float))
     exact, neglect = prior.copy(), prior.copy()
     width = sum(1 for key in items if key.startswith("acc_"))

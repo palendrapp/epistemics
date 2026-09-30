@@ -655,13 +655,61 @@ def mismatch_load(items, i, cover, variant):
     return lines, f"What is the probability that {n['urn']} is red-majority?"
 
 
+def composite_load(items, i, cover, variant):
+    """Structural load (tasks 0.18): copying, misfiling and conditional copying among five
+    readings, every relation stated."""
+    n = names(i)
+    count = int(items["n"][i])
+    sensors = load_names(i, count)
+    lines = [
+        brief(n, items["prior"][i], None, "any readings"),
+        "Some sensors copy another sensor's logged reading instead of reading the urn, and some "
+        "readings are filed under the wrong urn. A copied reading repeats the original's logged "
+        "reading exactly, wherever that reading came from. A sensor's stated accuracy applies "
+        "when it reads this urn itself, and a reading from a different urn says nothing about "
+        "this one.",
+        "Stated accuracies: "
+        + "; ".join(f"{s} {base.percent(items[f'acc_{k}'][i])}" for k, s in enumerate(sensors))
+        + ".",
+    ]
+    relations = []
+    for k in range(count):
+        source = int(items[f"src_{k}"][i])
+        if source < 0:
+            continue
+        copied = (
+            f"{cap(sensors[k])} copies {sensors[source]}'s logged reading in "
+            f"{base.percent(items[f'rate_{k}'][i])} of rounds"
+        )
+        if int(items[f"cond_{k}"][i]):
+            copied += (
+                f", but only in rounds when {sensors[source]}'s logged reading is red; when it is "
+                f"blue, {sensors[k]} always reads the urn itself"
+            )
+        relations.append(copied + ".")
+    for k in range(count):
+        if float(items[f"mis_{k}"][i]) > 0:
+            relations.append(
+                f"{base.percent(items[f'mis_{k}'][i])} of the readings {sensors[k]} takes itself "
+                "come from a different urn than the one they are filed under."
+            )
+    lines.append(" ".join(relations))
+    lines.append(
+        "Every other sensor always reads the urn itself, and every other reading is filed under "
+        "the right urn."
+    )
+    log = [f"{s}: {colour(items[f'rep_{k}'][i])}" for k, s in enumerate(sensors)]
+    lines.append("Readings in the order they were logged: " + "; ".join(log) + ".")
+    return lines, f"What is the probability that {n['urn']} is red-majority?"
+
+
 def load_percentages(family, items, i):
     count = int(items["n"][i])
     values = [items["prior"][i]]
     for k in range(count):
         values.append(items[f"acc_{k}"][i])
-        if family == "copying" and int(items[f"src_{k}"][i]) >= 0:
+        if family in ("copying", "composite") and int(items[f"src_{k}"][i]) >= 0:
             values.append(items[f"rate_{k}"][i])
-        if family == "mismatch":
+        if family == "mismatch" or (family == "composite" and float(items[f"mis_{k}"][i]) > 0):
             values.append(items[f"mis_{k}"][i])
     return sorted({base.percent(v) for v in values})

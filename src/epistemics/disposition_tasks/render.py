@@ -46,6 +46,7 @@ MODULES = (
     "mismatch-load",
     "copying-long-load",
     "mismatch-long-load",
+    "composite-load",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -86,13 +87,17 @@ V2_TWINS = {"echo": "copying", "hub": "selection", "stale": "mismatch"}
 # Tasks 0.17 (after pilot 2): four-level ladders reaching 16 (copying) and 12 (misfiling)
 # readings, misfiling balanced for per-reading difficulty (design.long_load_design).
 LONG_LOAD_MODULES = ("copying-long-load", "mismatch-long-load")
-LOAD_MODULES = ("copying-load", "mismatch-load") + LONG_LOAD_MODULES
+# Tasks 0.18 (after pilot 3): structural load, five readings at every level and more structure
+# at each (design.composite_load_design).
+STRUCTURE_LOAD_MODULES = ("composite-load",)
+LOAD_MODULES = ("copying-load", "mismatch-load") + LONG_LOAD_MODULES + STRUCTURE_LOAD_MODULES
 LOAD_VARIANTS = ("load-a",)
 LOAD_DESIGNS = {
     "copying-load": "dependence",
     "mismatch-load": "mismatch",
     "copying-long-load": "dependence",
     "mismatch-long-load": "mismatch",
+    "composite-load": "composite",
 }
 VIG_VARIANTS = ("urn2-vig", "urn2-vig2")
 URN_DESIGNS = {
@@ -394,6 +399,8 @@ def items_for(module):
         return design.corroboration_probed()
     if module in URN_DESIGNS:
         return URN_DESIGNS[module]()
+    if module in STRUCTURE_LOAD_MODULES:
+        return design.composite_load_design()
     if module in LONG_LOAD_MODULES:
         return design.long_load_design(LOAD_DESIGNS[module])
     if module in LOAD_DESIGNS:
@@ -700,6 +707,7 @@ RENDERERS = {
     "mismatch-load": lambda *a: _urn("mismatch_load", *a),
     "copying-long-load": lambda *a: _urn("copying_load", *a),
     "mismatch-long-load": lambda *a: _urn("mismatch_load", *a),
+    "composite-load": lambda *a: _urn("composite_load", *a),
 }
 
 

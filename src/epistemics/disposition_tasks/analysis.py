@@ -47,6 +47,7 @@ LOAD_MODELS = {
     "mismatch-load": "mismatch",
     "copying-long-load": "dependence",
     "mismatch-long-load": "mismatch",
+    "composite-load": "composite",
 }
 RANGE_TARGETS = 5
 

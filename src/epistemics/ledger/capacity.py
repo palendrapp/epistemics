@@ -16,7 +16,12 @@ import numpy as np
 
 from epistemics.disposition_tasks import urn
 from epistemics.disposition_tasks.analysis import CUE_MODELS, LOAD_MODELS
-from epistemics.disposition_tasks.render import LOAD_MODULES, LONG_LOAD_MODULES, items_for
+from epistemics.disposition_tasks.render import (
+    LOAD_MODULES,
+    LONG_LOAD_MODULES,
+    STRUCTURE_LOAD_MODULES,
+    items_for,
+)
 from epistemics.disposition_tasks.urn import VIG_SCALES
 from epistemics.dispositions import fit, observers
 from epistemics.dispositions.response import sample_reports
@@ -349,7 +354,10 @@ def _load_metrics(rows):
     return metrics
 
 
-def load_recovery(respondents=100, seed=20261008, sessions=SESSIONS):
+REVISED_LOAD = LONG_LOAD_MODULES + STRUCTURE_LOAD_MODULES
+
+
+def load_recovery(respondents=100, seed=20261008, sessions=SESSIONS, modules=LOAD_MODULES):
     """Synthetic respondents with known noise and neglect slopes, through each load design (the
     pilot's three-level ladders for comparison, and the four-level ladders). Two estimators: the
     joint curve fit (model 0.8, gated) and the pilot's line through per-level estimates."""
@@ -358,7 +366,7 @@ def load_recovery(respondents=100, seed=20261008, sessions=SESSIONS):
     rng = np.random.default_rng(seed)
     result = {}
     with ProcessPoolExecutor(WORKERS) as pool:
-        for module in LOAD_MODULES:
+        for module in modules:
             levels = int(np.max(items_for(module)["load"])) + 1
             truths = [_load_truth(rng, levels) for _ in range(respondents)]
             seeds = rng.integers(2**31, size=respondents).tolist()
@@ -369,7 +377,7 @@ def load_recovery(respondents=100, seed=20261008, sessions=SESSIONS):
             result[module] = {
                 "levels": levels,
                 "respondents": respondents,
-                "revised": module in LONG_LOAD_MODULES,
+                "revised": module in REVISED_LOAD,
                 "sessions": by_sessions,
                 "sessions_needed": _needed(by_sessions),
             }
@@ -379,7 +387,7 @@ def load_recovery(respondents=100, seed=20261008, sessions=SESSIONS):
 def recovery(respondents=100, load_respondents=100):
     uptake_part = uptake_recovery(respondents)
     load_part = load_recovery(load_respondents)
-    revised = [r for m, r in load_part.items() if m in LONG_LOAD_MODULES]
+    revised = [r for m, r in load_part.items() if m in REVISED_LOAD]
     return {
         "schema_version": "epistemics.capacity-recovery.v2",
         "uptake_gates": UPTAKE_GATES,

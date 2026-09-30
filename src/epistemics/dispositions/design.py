@@ -474,7 +474,11 @@ def _load_case(model, rng, n):
 
 def _load_table(model, cases, loads, repeats, width=None):
     width = width or LOAD_WIDTH[model]
-    fields = ("acc", "rep", "src", "rate") if model == "dependence" else ("acc", "rep", "mis")
+    fields = {
+        "dependence": ("acc", "rep", "src", "rate"),
+        "mismatch": ("acc", "rep", "mis"),
+        "composite": ("acc", "rep", "mis", "src", "rate", "cond"),
+    }[model]
     table = {
         "kind": np.array(["forecast"] * len(cases)),
         "prior": np.array([c["prior"] for c in cases], dtype=float),
@@ -486,7 +490,7 @@ def _load_table(model, cases, loads, repeats, width=None):
         pad = -1 if field == "src" else 0
         for k in range(width):
             values = [c[field][k] if k < len(c["acc"]) else pad for c in cases]
-            dtype = int if field in ("rep", "src") else float
+            dtype = int if field in ("rep", "src", "cond") else float
             table[f"{field}_{k}"] = np.array(values, dtype=dtype)
     return table
 
@@ -586,6 +590,124 @@ def long_load_design(model):
         loads.append(level)
         repeats.append(typical)
     return _load_table(model, cases, loads, repeats, LONG_WIDTH[model])
+
+
+# Design 0.11 (after pilot 3, where GPT-6 computed 16 readings exactly at every effort):
+# structural load. Every case has five readings, so the arithmetic stays about the same, and the
+# level sets how much structure the evidence has:
+#   0: one copy relation;
+#   1: one copy relation and, on another reading, misfiling;
+#   2: a copy relation whose source and copier may both be misfiled, and a conditional copy
+#      relation elsewhere (the copier copies only when its source reads red);
+#   3: a chain (B copies A, C copies B), one link conditional, with misfiling on A, C and one
+#      further reading.
+# Every structure a case states must move its exact answer by at least COMPOSITE_BEARING
+# log-odds: ignoring copying, ignoring misfiling, or misreading a condition (as unconditional
+# when the source reads blue, as never copying when it reads red). Within a level, conditional
+# sources alternate red and blue, so neither misreading of the condition is right in general.
+COMPOSITE_READINGS = 5
+COMPOSITE_LEVELS = 4
+COMPOSITE_BEARING = 0.1
+_COMPOSITE_SEED = 20261009
+_COMPOSITE_ACC = (0.65, 0.7, 0.75, 0.8, 0.85, 0.9)
+_COMPOSITE_MIS = (0.2, 0.3, 0.4, 0.5)
+_COMPOSITE_RATE = (0.3, 0.4, 0.5, 0.6, 0.7)
+
+
+def _composite_case(rng, level, red_source):
+    n = COMPOSITE_READINGS
+    case = {
+        "prior": float(rng.choice([0.3, 0.4, 0.5, 0.6, 0.7])),
+        "acc": rng.choice(_COMPOSITE_ACC, n),
+        "rep": rng.choice([-1, 1], n),
+        "mis": np.zeros(n),
+        "src": np.full(n, -1),
+        "rate": np.zeros(n),
+        "cond": np.zeros(n, dtype=int),
+    }
+
+    def copy(k, s, cond=0):
+        case["src"][k], case["rate"][k], case["cond"][k] = s, rng.choice(_COMPOSITE_RATE), cond
+        if cond:
+            case["rep"][s] = 1 if red_source else -1
+
+    if level == 0:
+        s, k = sorted(rng.choice(n, 2, replace=False))
+        copy(k, s)
+    elif level == 1:
+        s, k, j = rng.choice(n, 3, replace=False)
+        s, k = sorted((s, k))
+        copy(k, s)
+        case["mis"][j] = rng.choice(_COMPOSITE_MIS)
+    elif level == 2:
+        a, b, c, d = rng.choice(n, 4, replace=False)
+        s, k = sorted((a, b))
+        copy(k, s)
+        case["mis"][s], case["mis"][k] = rng.choice(_COMPOSITE_MIS, 2)
+        s2, k2 = sorted((c, d))
+        copy(k2, s2, cond=1)
+    else:
+        a, b, c, d = sorted(rng.choice(n, 4, replace=False))
+        first = int(rng.integers(2))
+        copy(b, a, cond=first)
+        copy(c, b, cond=1 - first)
+        case["mis"][a], case["mis"][c], case["mis"][d] = rng.choice(_COMPOSITE_MIS, 3)
+    return case
+
+
+def composite_bearing(items):
+    """Per case, how far each stated structure moves the exact answer (NaN where absent)."""
+    from epistemics.dispositions import observers
+
+    exact = observers.composite(items)
+    width = sum(1 for key in items if key.startswith("acc_"))
+    has = {
+        "copy": np.any([np.asarray(items[f"src_{k}"]) >= 0 for k in range(width)], axis=0),
+        "mis": np.any([np.asarray(items[f"mis_{k}"]) > 0 for k in range(width)], axis=0),
+        "cond": np.any([np.asarray(items[f"cond_{k}"]) > 0 for k in range(width)], axis=0),
+    }
+    moved = {
+        "copy": np.abs(observers.composite(items, ignore_copy=True) - exact),
+        "mis": np.abs(observers.composite(items, ignore_mis=True) - exact),
+        "cond": np.maximum(
+            np.abs(observers.composite(items, conditions="unconditional") - exact),
+            np.abs(observers.composite(items, conditions="never") - exact),
+        ),
+    }
+    return {name: np.where(has[name], moved[name], np.nan) for name in moved}
+
+
+def composite_load_design():
+    """Twenty-four fully specified cases on four structural levels: five per level plus the
+    level's typical case repeated."""
+    from epistemics.dispositions import observers
+
+    rng = np.random.default_rng(_COMPOSITE_SEED)
+    cases, loads, separations = [], [], []
+    for level in range(COMPOSITE_LEVELS):
+        found = 0
+        while found < LONG_CASES:
+            case = _composite_case(rng, level, red_source=found % 2 == 0)
+            probe = _load_table("composite", [case], [level], [-1], COMPOSITE_READINGS)
+            exact, neglect = observers.load_answers("composite", probe)
+            bearing = [v[0] for v in composite_bearing(probe).values() if not np.isnan(v[0])]
+            if (
+                abs(exact[0]) <= 2.94
+                and abs(exact[0] - neglect[0]) >= 0.25
+                and min(bearing) >= COMPOSITE_BEARING
+            ):
+                cases.append(case)
+                loads.append(level)
+                separations.append(abs(exact[0] - neglect[0]))
+                found += 1
+    repeats = [-1] * len(cases)
+    for level in range(COMPOSITE_LEVELS):
+        members = [i for i, lv in enumerate(loads[: len(separations)]) if lv == level]
+        typical = sorted(members, key=lambda i: separations[i])[len(members) // 2]
+        cases.append(cases[typical])
+        loads.append(level)
+        repeats.append(typical)
+    return _load_table("composite", cases, loads, repeats, COMPOSITE_READINGS)
 
 
 def dependence_load():

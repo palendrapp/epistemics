@@ -31,6 +31,7 @@ from epistemics.disposition_tasks.render import (
     PROBED_MODULES,
     RANGE_MODULES,
     RANGE_VARIANTS,
+    STRUCTURE_LOAD_MODULES,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
     URN2_VARIANTS,
@@ -348,7 +349,7 @@ def contexts_to_validate():
             yield module, "markets", variant, CUE_RESPONDENT
     for module in LOAD_MODULES:
         for variant in LOAD_VARIANTS:
-            long = module in LONG_LOAD_MODULES
+            long = module in LONG_LOAD_MODULES + STRUCTURE_LOAD_MODULES
             yield module, "markets", variant, LONG_LOAD_RESPONDENT if long else LOAD_RESPONDENT
     for module in URN_MODULES:
         yield module, "markets", "urn2-vig2", UPTAKE_RESPONDENT

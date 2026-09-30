@@ -664,10 +664,38 @@
       "status": "complete",
       "prediction": "Range-finding only: may change load levels, nothing else. Misfiling uptake is descriptive only (decided 30 Sep).",
       "outcome": "8 contexts, 5.2M tokens, 0 errors. GPT-6 at ceiling at every effort: five of six configurations gave identical, exact answers to all 24 copying cases (up to 16 readings, 5 copy relations); Astra (medium) one 2-point slip at 16. Misfiling at 12 readings exact for Astra-low and Sol-low. No tools used (collection calls only; shell, exec and code_mode off). Explicit arithmetic load does not reach GPT-6; Part A as built separates families only."
+    },
+    {
+      "id": "capacity-uptake-gpt6",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Capacity: audit uptake within GPT-6 (low and medium effort)",
+      "question": "Does audit uptake vary within GPT-6 across effort, on copying and selection?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [
+        "output/capacity-uptake-20260930"
+      ],
+      "status": "complete",
+      "prediction": "Range-finding; one session per cell.",
+      "outcome": "8 contexts, 4.2M tokens, 0 errors. Selection: all six GPT-6 configurations identical (uptake 0.46). Copying: Sol 0.41, Astra 0.11, Astra-low 0.09, Sol-low 0.01; every configuration corrects for copying, but by a roughly fixed amount whatever the audit strength, sometimes skipping single cases. The linear uptake model misdescribes copying; reported as descriptive."
+    },
+    {
+      "id": "capacity-structural-load",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Capacity: structural load (copying, misfiling and conditional copying among five readings)",
+      "question": "Is the load slope recoverable when load is structure rather than arithmetic, and at how many sessions?",
+      "doc": "docs/capacity-battery-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Same pre-set gates as the revised design.",
+      "outcome": "Built model 0.9.0 (composite observer, checked against full enumeration), design 0.11.0 (four structural levels, five readings each, every structure load-bearing), tasks 0.18.0 (composite-load). Recovery passes at 2 sessions (load slope r 0.94, coverage 0.88; neglect slope r 0.98)."
     }
   ],
   "next": [
-    "Capacity decisions: the kind of load for GPT-6 (context load, structural load, or accept a family-level Part A); uptake on GPT-6 low and medium effort (copying and selection, about 4.5M) before sizing Part B.",
+    "Capacity: pilot the structural load on GPT-6 (and GPT-5.6 as a positive control) to see whether it leaves ceiling; then size the battery.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

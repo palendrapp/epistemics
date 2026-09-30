@@ -529,3 +529,72 @@ uv run python -m epistemics.ledger capacity-pilot output/capacity-pilot3-2026093
    - **Structural load.** Cases that combine structures (a reading that may be both copied and misfiled; copy chains with their own rates). The load is in building the model of the evidence, not in the arithmetic. This is where GPT-5.6 already fails at small sizes, and it is closer to the construct.
    - **Neither:** accept that Part A separates model families, and look for within-family differences in Part B.
 2. **Part B within GPT-6.** Uptake has so far been measured only at high effort, where Astra and Sol are indistinguishable. Copying and selection at low and medium effort (8 contexts, about 4.5 million tokens) would show whether uptake varies within the family before the full Part B is sized.
+
+## Uptake within GPT-6 (30 September)
+
+**Design.** The copying and selection audit tasks (`urn2-vig2`, tasks 0.17.0) on Astra, Sol, Astra-low and Sol-low, one session each. That is 8 contexts: 4.2 million input tokens, no errors, 12 minutes.
+
+**Results** (uptake with its 90% interval; P(ignores); the high-effort values come from the pilot 2 refit):
+
+| | Selection | Copying |
+| --- | --- | --- |
+| Astra-low | 0.46 (0.35–0.60); 0 | 0.09 (0–0.15); 0.34 |
+| Sol-low | 0.46 (0.35–0.60); 0 | 0.01 (0–0.05); 0.95 |
+| Astra | 0.46 (0.35–0.60); 0 | 0.11 (0–0.25); 0.34 |
+| Sol | 0.46 (0.35–0.60); 0 | 0.41 (0.40–0.45); 0 |
+| Astra-high, Sol-high | 0.46 (0.35–0.60); 0 | not measured |
+
+- **Selection does not separate GPT-6 configurations.** All six give the same uptake (0.46), from low to high effort.
+- **Copying does, but the linear model misdescribes it.** Every configuration responds to the copying audits. A forecast of about 0.92 falls to 0.76–0.82, but by roughly the same amount whatever the audit's strength, while the ideal falls to 0.54–0.63 at the strongest audits.
+  - Some configurations also skip the correction on single cases: Sol-low at the two strongest levels, and Astra on one case.
+  - Sol scales furthest, reaching 0.68.
+  - A linear uptake reads this as small *β*. A saturating correction (a fixed discount once copying is suspected), or case-by-case switching, may describe it better. That is a model comparison for later; for now copying uptake is descriptive.
+- **Scope.** One session per cell. Recovery puts copying at one session, but that assumed the linear model.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json | `a5a146f604fd818ed6bd43d2dd135a6c16f80d038d2498284fe5d48f26dc4735` |
+| execution.json | `b6f01c8bd73dc0a0d144d9ee5cd8432823f5554460d0ba553c6bcb7e5305f15a` |
+| Summary | `9dc914a9314ac257f8d13bae1f23072a9a32df69be4e1b4572eb91ea5a22d9a7` |
+
+## Structural load (built 30 September)
+
+After pilot 3 the load changes kind: from how much arithmetic a case needs to how much structure its evidence has. Model 0.9.0 (`observers.composite`), design 0.11.0 (`design.composite_load_design`), tasks 0.18.0 (module `composite-load`).
+
+**Cases.** Every case has five readings from sensors with stated accuracies, so the arithmetic stays about the same from level to level. The level sets the structure:
+
+| Level | Structure |
+| --- | --- |
+| 0 | One copy relation |
+| 1 | One copy relation, and misfiling on another reading |
+| 2 | A copy relation whose source and copier may both be misfiled, and a conditional copy relation elsewhere (the copier copies only when its source reads red) |
+| 3 | A chain (B copies A, C copies B), one link conditional, with misfiling on A, C and one further reading |
+
+- **Case numbers:** five cases per level, plus the level's typical case repeated, 24 in all.
+- **The case text** states every relation and the logging order, and follows the existing copying and misfiling wording.
+- **Every stated structure bears on the answer.** Each moves the exact answer by at least 0.1 log-odds, measured by what an answer that ignored it would give:
+  - ignoring copying;
+  - ignoring misfiling;
+  - misreading a condition, as unconditional when the source reads blue, or as never copying when it reads red.
+- **Conditions cut both ways.** Within a level, conditional sources read red in some cases and blue in others, so neither misreading of a condition is right in general.
+
+**Observer.** Each reading's likelihood depends only on the urn and its source's logged reading. A copier repeats the source's logged reading with the stated probability (only when a condition allows it), and otherwise reads for itself, with its own misfiling rate. On every design case this equals the answer from enumerating every sensor's hidden state (copied, read this urn, read another urn); the test checks this. The neglect answer treats every reading as independent and from this urn. The fits are the per-level fit and the joint load curve, as for the other ladders.
+
+**Recovery** (`ledger capacity-load-recovery --module composite-load`, 100 respondents, the same pre-set gates):
+
+| Sessions | Load slope *κ*: correlation, coverage | Neglect slope *λ*: correlation, coverage | Passes |
+| --- | --- | --- | --- |
+| 1 | 0.89, 0.91 | 0.96, 0.95 | no |
+| 2 | 0.94, 0.88 | 0.98, 0.99 | **yes** |
+| 3 | 0.96, 0.90 | 0.98, 0.98 | yes |
+
+**Result:** two sessions per cell, as for the copying ladder. SHA-256 `6a1da9ae33bfbca34f526a6a0a99f42aa78de91561aaebb485060ded23d5ed99`.
+
+**Task validation 0.18.** It passed on both seeds: 2,208 cases and 97 contexts, adding the structural-load module with the four-level respondent. The pipeline check uses the per-level slope, with a tolerance of 0.6. It came out at 0.16 and 0.49 against a true 0.53. The per-level line is noisy at one session; the recovery study above gates the joint curve.
+
+Tasks fingerprint `6781afa919105ff2f17c8e10c04a2a89935658b1250514319c0b8eff8ee2373a`.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Task validation 0.18, seed 20260927 | `db5773ffcae8e5290b781bebb02ff15b14886b912ab0df76e2a07ecb945e1142` |
+| Task validation 0.18, seed 20261027 | `ce56c7885d64ecaa142f64f0a8d8f243eadca4d6160ae4ddc654a6e387c34c92` |

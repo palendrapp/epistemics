@@ -19,6 +19,7 @@ uv run python -m epistemics.ledger battery-v2 --output <file>
 uv run python -m epistemics.ledger battery-v2-recovery --output <file>
 uv run python -m epistemics.ledger capacity-pilot <roots...> --output <file>
 uv run python -m epistemics.ledger capacity-recovery --output <file>
+uv run python -m epistemics.ledger capacity-load-recovery --module <m> --output <file>
 """
 
 import argparse
@@ -143,6 +144,10 @@ def main():
     cr.add_argument("--output", type=Path, required=True)
     cr.add_argument("--respondents", type=int, default=100)
     cr.add_argument("--load-respondents", type=int, default=100)
+    clr = sub.add_parser("capacity-load-recovery")
+    clr.add_argument("--module", action="append", required=True)
+    clr.add_argument("--respondents", type=int, default=100)
+    clr.add_argument("--output", type=Path, required=True)
     tp = sub.add_parser("traits-power")
     tp.add_argument("--output", type=Path, required=True)
     ihp = sub.add_parser("inclusion-hier-power")
@@ -380,6 +385,17 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command == "capacity-load-recovery":
+        from epistemics.ledger import capacity
+
+        run = {
+            "schema_version": "epistemics.capacity-load-recovery.v1",
+            "load_gates": capacity.LOAD_GATES,
+            "load": capacity.load_recovery(a.respondents, modules=tuple(a.module)),
+        }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(run["load"], indent=2))
     elif a.command == "traits-power":
         from epistemics.ledger import traits
 

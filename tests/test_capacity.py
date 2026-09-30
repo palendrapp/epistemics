@@ -99,3 +99,68 @@ def test_vigilance_headline_is_the_uptake():
         }
     )
     assert headline["parameter"] == "audit_uptake" and headline["mean"] == 0.5
+
+
+def _enumerated(items, i):
+    """Posterior log-odds by summing over every sensor's hidden state: copied, read this urn, or
+    read another urn."""
+    import itertools
+
+    n = int(items["n"][i])
+    rep = [int(items[f"rep_{k}"][i]) for k in range(n)]
+    odds = []
+    for h in (1, 0):
+        total = 0.0
+        for states in itertools.product(range(3), repeat=n):
+            p = 1.0
+            for k, z in enumerate(states):
+                acc, mis = float(items[f"acc_{k}"][i]), float(items[f"mis_{k}"][i])
+                src, rate = int(items[f"src_{k}"][i]), float(items[f"rate_{k}"][i])
+                can = src >= 0 and (not int(items[f"cond_{k}"][i]) or rep[src] > 0)
+                c = rate if can else 0.0
+                if z == 0:
+                    p *= c * float(rep[k] == rep[src]) if can else 0.0
+                elif z == 1:
+                    right = acc if (rep[k] > 0) == (h == 1) else 1 - acc
+                    p *= (1 - c) * (1 - mis) * right
+                else:
+                    p *= (1 - c) * mis * 0.5
+            total += p
+        odds.append(total)
+    prior = float(items["prior"][i])
+    return np.log(prior / (1 - prior)) + np.log(odds[0]) - np.log(odds[1])
+
+
+def test_structural_load_observer_matches_full_enumeration():
+    items = items_for("composite-load")
+    exact, _ = observers.load_answers("composite", items)
+    for i in range(len(exact)):
+        assert abs(exact[i] - _enumerated(items, i)) < 1e-9
+
+
+def test_structural_load_design_holds_readings_fixed_and_every_structure_bears():
+    items = items_for("composite-load")
+    assert np.bincount(items["load"]).tolist() == [6, 6, 6, 6]
+    assert set(items["n"].tolist()) == {design.COMPOSITE_READINGS}
+    exact, neglect = observers.load_answers("composite", items)
+    assert np.all(np.abs(exact - neglect) >= 0.25) and np.all(np.abs(exact) <= 2.95)
+    bearing = design.composite_bearing(items)
+    present = {name: ~np.isnan(v) for name, v in bearing.items()}
+    for name, values in bearing.items():
+        assert np.all(values[present[name]] >= design.COMPOSITE_BEARING)
+    level = items["load"]
+    assert not present["mis"][level == 0].any() and not present["cond"][level <= 1].any()
+    assert present["cond"][level >= 2].all() and present["mis"][level >= 1].all()
+    # Conditional copies' sources read red in some cases and blue in others at each level.
+    for lv in (2, 3):
+        reds = []
+        for i in np.flatnonzero((level == lv) & (items["repeat_of"] < 0)):
+            for k in range(5):
+                if int(items[f"cond_{k}"][i]):
+                    reds.append(int(items[f"rep_{int(items[f'src_{k}'][i])}"][i]) > 0)
+        assert 0 < sum(reds) < len(reds)
+    for i in range(24):
+        case = render.render("composite-load", "markets", i, "load-a")["case"]
+        for p in render.stated_percentages("composite-load", i):
+            assert p in case
+        assert "Readings in the order they were logged" in case
