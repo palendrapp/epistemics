@@ -905,6 +905,19 @@
       "status": "complete",
       "prediction": "Design and build. Five classes (mildly cheap, balanced, mildly costly, welfare act, welfare hold), two per design, conditional texts without numbers; traits action bias, sensitivity, welfare weight; split-half generality with a kappa adjustment.",
       "outcome": "Built model 0.15.0, design 0.16.0, tasks 0.25.0 (v3.1 kept intact). Recovery: 6 sessions per configuration miss the sensitivity gate (r 0.86); 12 sessions pass (action bias 0.95, sensitivity 0.91, welfare weight 0.98; coverage 0.88-0.92). Model 0.15: theta grid 0.125 with cell-edge intervals; the kappa leak in v3.1's power came from the coarse grid (null 0.03 on the new grid), and a kappa adjustment is kept as a safeguard. Power (6 sessions, 8 configurations): general 0.93, strong interaction 0.81, surface-bound 0.01, none 0.06. Validated on both seeds. Pilot awaiting go-ahead (about 6M)."
+    },
+    {
+      "id": "open-inference-screen-design",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Open-inference screen (design)",
+      "question": "In which task families that leave the generative model to the agent (hypotheses, speakers, other agents, unlisted causes, functions) do configurations differ reliably, before any is built into a trait battery?",
+      "doc": "docs/open-inference-screen-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Design only. Five families (generalisation from examples, reading reported numbers, inference from others' choices, unlisted alternatives, extrapolation), each with a rational model, an openness audit and determinate anchors. Stage A: spread across 6 configurations (1 session each); stage B: retest on a parallel form for passing families. Exploratory: a shared hypothesis-commitment trait across families.",
+      "outcome": "Awaiting decisions: families, configurations, two stages, budget (about 11-15M for stage A), battery v3.2 pilot timing."
     }
   ],
   "next": [
