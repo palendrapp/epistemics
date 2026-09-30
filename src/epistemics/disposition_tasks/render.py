@@ -67,6 +67,12 @@ MODULES = (
     "decision-d",
     "decision-e",
     "decision-f",
+    "decision2-a",
+    "decision2-b",
+    "decision2-c",
+    "decision2-d",
+    "decision2-e",
+    "decision2-f",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -142,6 +148,10 @@ V3_VARIANTS = ("v3-standard", "v3-loaded")
 # dispositions.decisions).
 V31_MODULES = tuple(f"decision-{letter}" for letter in "abcdef")
 V31_VARIANTS = ("v31-standard",)
+# Battery v3.2 (tasks 0.25): the same frame with redesigned consequence texts and five classes
+# (surfaces.CONSEQUENCES_V32, decisions.SCHEMES["v32"]).
+V32_MODULES = tuple(f"decision2-{letter}" for letter in "abcdef")
+V32_VARIANTS = ("v32-standard",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -454,10 +464,11 @@ def items_for(module):
         from epistemics.dispositions import coherence
 
         return coherence.design(module.split("-")[1])
-    if module in V31_MODULES:
+    if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
-        return decisions.design(module.split("-")[1])
+        scheme = "v32" if module in V32_MODULES else "v31"
+        return decisions.design(module.split("-")[1], scheme)
     if module in PEER_MODULES:
         from epistemics.dispositions import social
 
@@ -810,6 +821,12 @@ RENDERERS = {
             "decision-d",
             "decision-e",
             "decision-f",
+            "decision2-a",
+            "decision2-b",
+            "decision2-c",
+            "decision2-d",
+            "decision2-e",
+            "decision2-f",
         )
     },
 }
@@ -848,6 +865,8 @@ def _dossier(kind, items, i, cover, variant):
 def allowed(module, cover, variant):
     if module in V31_MODULES:
         return cover == "markets" and variant in V31_VARIANTS
+    if module in V32_MODULES:
+        return cover == "markets" and variant in V32_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -892,7 +911,7 @@ def render(module, cover, index, variant="paired"):
     if not 0 <= index < len(items["prior"]):
         raise ValueError("Item index outside the design")
     lines, question = RENDERERS[module](items, index, cover, variant)
-    if module in V3_MODULES + V31_MODULES:
+    if module in V3_MODULES + V31_MODULES + V32_MODULES:
         response = str(items["response"][index])
     else:
         response = "points" if module == "checks" else "probability"
@@ -907,7 +926,7 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index, variant=None):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
-    if module in V3_MODULES + V31_MODULES:
+    if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 
         return percentages(items, index, variant)

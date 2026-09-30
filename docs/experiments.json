@@ -892,6 +892,19 @@
       "status": "complete",
       "prediction": "Range-finding; sets the power assumptions. Risk: thresholds at 1/2 in every class (consequences ignored) or identical across configurations.",
       "outcome": "12 sessions, 6.3M tokens, 0 errors. All four configurations decide identically: balanced threshold exactly 1/2 (act iff stated belief > 50%, no exception in 88 decisions), always act when acting is described as cheap (beliefs 8-95%), always hold when described as costly (up to 95%); thresholds censored at the design's range, delta theta >= 5.4 log-odds. Stakes: 1 departure in 24 (Luna). Spread 0.005/0.07; guard applies, generality not interpretable. The consequence texts made a strong situation; next: milder or incommensurable consequences."
+    },
+    {
+      "id": "battery-v3-2-design",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Battery v3.2: redesigned consequence texts (design and build)",
+      "question": "With graded asymmetries and trade-offs between harms to people or nature and commercial costs, do action bias, consequence sensitivity and welfare weight vary between configurations and generalise across surfaces?",
+      "doc": "docs/battery-v3-2-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Design and build. Five classes (mildly cheap, balanced, mildly costly, welfare act, welfare hold), two per design, conditional texts without numbers; traits action bias, sensitivity, welfare weight; split-half generality with a kappa adjustment.",
+      "outcome": "Built model 0.15.0, design 0.16.0, tasks 0.25.0 (v3.1 kept intact). Recovery: 6 sessions per configuration miss the sensitivity gate (r 0.86); 12 sessions pass (action bias 0.95, sensitivity 0.91, welfare weight 0.98; coverage 0.88-0.92). Model 0.15: theta grid 0.125 with cell-edge intervals; the kappa leak in v3.1's power came from the coarse grid (null 0.03 on the new grid), and a kappa adjustment is kept as a safeguard. Power (6 sessions, 8 configurations): general 0.93, strong interaction 0.81, surface-bound 0.01, none 0.06. Validated on both seeds. Pilot awaiting go-ahead (about 6M)."
     }
   ],
   "next": [

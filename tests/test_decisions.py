@@ -152,3 +152,85 @@ def test_analysis_and_headline_read_choices_as_act_or_hold(tmp_path):
     anchors = {round(1 / (1 + np.exp(-r["stated"])), 2): r["act"] for r in rows if r["anchor"]}
     assert anchors == {0.15: 0, 0.35: 0, 0.65: 1, 0.85: 1}  # threshold 0, kappa 8
     assert headline(report.analysis)["parameter"] == "thresholds"
+
+
+# Battery v3.2: redesigned consequence texts and five classes.
+
+
+def test_v32_designs_have_two_scenarios_per_class_spanning_the_median_belief():
+    names = decisions.SCHEMES["v32"]["classes"]
+    anchors_seen = Counter()
+    for letter in decisions.DESIGNS:
+        items = decisions.design(letter, "v32")
+        assert Counter(items["kind"].tolist()) == {"stated": 10, "decision": 10, "anchor": 4}
+        stated = np.flatnonzero(items["kind"] == "stated")
+        decided = np.flatnonzero(items["kind"] == "decision")
+        assert Counter(items["cls"][decided].tolist()) == {k: 2 for k in range(len(names))}
+        rows = [{k: items[k][i] for k in items} for i in stated]
+        means = coherence.ideal_range(rows)[1]
+        median = np.median(means)
+        for k in range(len(names)):
+            chosen = means[items["cls"][stated] == k]
+            assert chosen.min() < median < chosen.max()
+        anchors = np.flatnonzero(items["kind"] == "anchor")
+        assert sorted(items["anchor_p"][anchors].round(2).tolist()) == [0.2, 0.4, 0.6, 0.8]
+        anchors_seen.update(items["cls"][anchors].tolist())
+        # The v3.1 frame is unchanged: same scenarios, surfaces and stated trials.
+        v31 = decisions.design(letter, "v31")
+        for key in ("scenario", "domain", "source", "strength", "stakes", "stakes_dir", "prior"):
+            assert items[key][stated].tolist() == v31[key][v31["kind"] == "stated"].tolist()
+    assert sorted(anchors_seen.values()) == [4, 5, 5, 5, 5]
+
+
+def test_v32_texts_are_graded_conditional_and_show_their_class():
+    words = re.compile(r"\b(" + "|".join(surfaces.NUMBER_WORDS) + r")\b", re.IGNORECASE)
+    for texts in surfaces.CONSEQUENCES_V32.values():
+        assert len(texts) == 5 and len(set(texts)) == 5
+        for text in texts:
+            assert not re.search(r"\d", text) and not words.search(text)
+            assert text.count("If ") == 2  # what each mistake would cost, conditionally
+        assert "somewhat more" in texts[0] and "somewhat less" in texts[2]
+        assert "about equally bad" in texts[1]
+        # The balanced and graded texts share the cost of acting unnecessarily as the reference.
+        assert texts[0].split(". ")[0] == texts[1].split(". ")[0] == texts[2].split(". ")[0]
+    for letter in decisions.DESIGNS:
+        module = f"decision2-{letter}"
+        items = decisions.design(letter, "v32")
+        for i in np.flatnonzero(items["kind"] != "stated"):
+            trial = render(module, "markets", int(i), "v32-standard")
+            assert validation.v32_consequences_match(module, int(i), trial)
+            assert validation.v31_consequences_clean(trial)
+    with pytest.raises(ValueError, match="Unknown variant"):
+        render("decision2-a", "markets", 1, "v31-standard")
+
+
+def test_v32_welfare_weight_is_recovered_and_its_sign_follows_the_classes():
+    base = {"kappa": 8.0, "stakes": 0.0, "stated_sd": 0.05, "default_acc": 0.7}
+    rng = np.random.default_rng(8)
+    fits = {}
+    for weight in (-0.75, 0.75):
+        truth = {
+            **base,
+            "default_rate": 0.4,
+            "thresholds": [-0.5, 0.0, 0.5, -weight, weight],
+        }
+        rows = []
+        for _ in range(2):
+            rows += battery_v31.simulate_config(truth, rng, 0.0, scheme="v32")
+        fits[weight] = decisions.fit_thresholds(rows, scheme="v32")
+    assert fits[-0.75]["welfare_weight"]["mean"] < -0.4
+    assert fits[0.75]["welfare_weight"]["mean"] > 0.4
+    for fit in fits.values():
+        lo, hi = fit["theta_balanced"]["interval_90"]
+        assert lo <= 0 <= hi
+
+
+def test_kappa_adjustment_removes_what_decisiveness_explains():
+    """Split-half values are residualised on each configuration's pooled log kappa: a trait
+    estimate that only tracks kappa leaves nothing to correlate."""
+    log_kappa = np.log([0.5, 1.0, 2.0, 4.0, 8.0, 16.0])
+    tracking = 1.5 - 0.3 * log_kappa
+    assert np.allclose(battery_v31._residual(tracking, log_kappa), 0)
+    independent = np.array([0.4, -0.2, 0.1, 0.3, -0.5, 0.2])
+    residual = battery_v31._residual(independent, log_kappa)
+    assert abs(residual @ log_kappa) < 1e-9 and abs(residual.sum()) < 1e-9

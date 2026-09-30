@@ -34,7 +34,7 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return sample_reports((1 - eta) * exact + eta * neglect + truth["bias"], sd, rng)
     if module.startswith("coherence-"):
         return coherence_responses(items, truth, rng)
-    if module.startswith("decision-"):
+    if module.startswith(("decision-", "decision2-")):
         return decision_responses(items, truth, rng)
     if module in ("advice-peer", "conformity-peer", "relay-peer") or module.startswith("advice-"):
         from epistemics.dispositions import social

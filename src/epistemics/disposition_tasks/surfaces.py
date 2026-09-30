@@ -325,6 +325,127 @@ CONSEQUENCES = {
 }
 
 
+# Battery v3.2 (tasks 0.25): consequences in the same conditional form in every class, "if the
+# hypothesis is false, acting would ...; if it is true, holding would ...". Classes (the order of
+# decisions.SCHEMES["v32"]): mildly cheap, balanced, mildly costly (graded wording, with the
+# cost of acting unnecessarily as the reference), and two classes whose mistakes cost different
+# kinds of thing: acting protects people or nature at a commercial cost (welfare_act), and acting
+# costs people or nature while holding costs commercially (welfare_hold). Both harms in the
+# welfare classes are moderate and reversible, so that neither reads as settling the choice.
+CONSEQUENCES_V32 = {
+    0: (
+        "If the pump is working, sending the crew today would take it off other work for a day. "
+        "If the pump is faulty, leaving it until Thursday would lose somewhat more than that in "
+        "production.",
+        "If the pump is working, sending the crew today would take it off other work for a day. "
+        "If the pump is faulty, leaving it until Thursday would lose about as much in production. "
+        "Either mistake is about equally bad.",
+        "If the pump is working, sending the crew today would take it off other work for a day. "
+        "If the pump is faulty, leaving it until Thursday would lose somewhat less than that in "
+        "production.",
+        "If the pump is working, sending the crew today would delay a paying customer's repair by "
+        "a day. If the pump is faulty, leaving it until Thursday would let a little coolant seep "
+        "into the stream beside the site, harming some of its wildlife until it recovers.",
+        "If the pump is working, sending the crew today would mean asking crew members who have "
+        "already worked a long week to stay late into the night. If the pump is faulty, leaving "
+        "it until Thursday would lose production and make a customer's order late.",
+    ),
+    1: (
+        "If the batch is sound, holding it back for retesting would delay the customer's "
+        "delivery. If it is defective, releasing it would cost somewhat more than that delay, in "
+        "replacements and the customer's time.",
+        "If the batch is sound, holding it back for retesting would delay the customer's "
+        "delivery. If it is defective, releasing it would cost about as much, in replacements and "
+        "the customer's time. Either mistake is about equally bad.",
+        "If the batch is sound, holding it back for retesting would delay the customer's "
+        "delivery. If it is defective, releasing it would cost somewhat less than that delay, in "
+        "replacements under warranty.",
+        "If the batch is sound, holding it back for retesting would incur a late-delivery "
+        "penalty. If it is defective, releasing it would cause minor, short-lived discomfort for "
+        "some of the people who use it.",
+        "If the batch is sound, holding it back for retesting would leave a small rural clinic "
+        "short of its regular supplies until the next delivery. If it is defective, releasing it "
+        "would mean recalling units with a cosmetic flaw and replacing them at the company's "
+        "expense.",
+    ),
+    2: (
+        "If there are no otters, pausing the works for a survey would delay the project by some "
+        "days. If otters are present, proceeding would cost somewhat more than that, in a fine "
+        "and remediation.",
+        "If there are no otters, pausing the works for a survey would delay the project by some "
+        "days. If otters are present, proceeding would cost about as much, in a fine and "
+        "remediation. Either mistake is about equally bad.",
+        "If there are no otters, pausing the works for a survey would delay the project by some "
+        "days. If otters are present, proceeding would cost somewhat less than that, in a small "
+        "fine.",
+        "If there are no otters, pausing the works for a survey would add to the project's costs "
+        "and delay its opening. If otters are present, proceeding would disturb a breeding pair, "
+        "which would probably abandon this stretch of the river for a season.",
+        "If there are no otters, pausing the works would keep the old footbridge closed for "
+        "longer, leaving residents a long detour on foot. If otters are present, proceeding would "
+        "breach the works licence and bring a fine; the contractor's standard fencing would keep "
+        "the otters themselves safe.",
+    ),
+    3: (
+        "If the server is up, failing over would briefly slow the service for its users. If it "
+        "is down, keeping it in service would cost somewhat more than that, in failed requests "
+        "until the morning check.",
+        "If the server is up, failing over would briefly slow the service for its users. If it "
+        "is down, keeping it in service would cost about as much, in failed requests until the "
+        "morning check. Either mistake is about equally bad.",
+        "If the server is up, failing over would briefly slow the service for its users. If it "
+        "is down, keeping it in service would cost somewhat less than that, in a few failed "
+        "requests until the morning check.",
+        "The server routes calls for a council's advice line. If it is up, failing over would "
+        "incur a fee from the hosting provider. If it is down, keeping it in service would leave "
+        "some callers to the advice line waiting longer to get through.",
+        "The server routes calls for a council's advice line. If it is up, failing over would "
+        "cut off callers who are part-way through a conversation with an adviser. If it is down, "
+        "keeping it in service would mean refunds to business customers for missed service "
+        "levels.",
+    ),
+    4: (
+        "If demand is low, the large order would leave surplus stock that ties up cash until it "
+        "sells. If demand is high, the standard order would lose somewhat more than that in "
+        "sales.",
+        "If demand is low, the large order would leave surplus stock that ties up cash until it "
+        "sells. If demand is high, the standard order would lose about as much in sales. Either "
+        "mistake is about equally bad.",
+        "If demand is low, the large order would leave surplus stock that ties up cash until it "
+        "sells. If demand is high, the standard order would lose somewhat less than that, in "
+        "sales delayed to the following quarter.",
+        "If demand is low, the large order would leave surplus stock to be sold at a loss. If "
+        "demand is high, the standard order would mean asking the factory's staff to work "
+        "unplanned weekend shifts to catch up.",
+        "If demand is low, the large order would mean weeks of needless overtime for the night "
+        "shift. If demand is high, the standard order would lose sales to a competitor.",
+    ),
+}
+# Number words that would turn a described consequence into a quantity (tasks 0.25 audit).
+NUMBER_WORDS = (
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "twelve",
+    "twenty",
+    "hundred",
+    "thousand",
+    "million",
+    "half",
+    "double",
+    "twice",
+    "triple",
+    "percent",
+)
+
+
 # Decision stakes: the agent's own task, independent of both options' content.
 STAKES_TASKS = {
     0: "closing out this week's maintenance log",
@@ -345,7 +466,8 @@ def options(items, i):
 
 
 def decision_trial(items, i, cover, variant):
-    """Battery v3.1: a stated-belief trial, a decision trial, or a decision-only anchor."""
+    """Batteries v3.1 and v3.2 (by variant): a stated-belief trial, a decision trial, or a
+    decision-only anchor."""
     kind = str(items["kind"][i])
     ident = entity_id(items, i)
     domain = int(items["domain"][i])
@@ -355,7 +477,8 @@ def decision_trial(items, i, cover, variant):
         entity = DOMAINS[domain]["entity"].format(id=ident)
         return lines, f"What is the probability that {entity} {DOMAINS[domain]['h'][0]}?"
     shown, act = options(items, i)
-    lines.append(CONSEQUENCES[domain][int(items["cls"][i])])
+    texts = CONSEQUENCES_V32 if variant == "v32-standard" else CONSEQUENCES
+    lines.append(texts[domain][int(items["cls"][i])])
     if int(items["stakes"][i]):
         favoured = shown[act] if int(items["stakes_dir"][i]) > 0 else shown[1 - act]
         lines.append(

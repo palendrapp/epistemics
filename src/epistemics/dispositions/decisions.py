@@ -1,14 +1,19 @@
-"""Battery v3.1 (model 0.14, design 0.15): implicit threshold decisions with qualitatively
-described consequences (docs/battery-v3-1-design.md).
+"""Batteries v3.1 and v3.2: implicit threshold decisions with consequences described in words
+(docs/battery-v3-1-design.md, docs/battery-v3-2-design.md).
 
 Each design reuses battery v3's ten scenarios and surfaces (coherence._battery). Every scenario is
 asked twice: the probability of its hypothesis (stated belief), and a binary decision in the
-domain whose consequences are described in words only, in one of three classes:
-  0 acting is cheap (normative threshold below 1/2),
-  1 balanced (normative threshold 1/2),
-  2 acting is costly (normative threshold above 1/2).
-Four decision-only anchors per design (balanced class, one stated source, ideal beliefs 15%,
-35%, 65% and 85%) pin the balanced threshold. Sessions have 24 trials.
+domain whose consequences are described in words only, in one of the scheme's classes. Four
+decision-only anchors per design (one source with a stated accuracy, fixed ideal beliefs) add
+decisions at known beliefs. Sessions have 24 trials.
+
+Schemes:
+  v31 (model 0.14): cheap / balanced / costly. The pilot found the cheap and costly texts so
+      asymmetric that they acted as rules at every belief.
+  v32 (model 0.15): mildly cheap / balanced / mildly costly (graded wording), and two classes
+      whose mistakes cost different kinds of thing: acting protects people or nature at a
+      commercial cost (welfare_act), or acting costs people or nature while holding costs
+      commercially (welfare_hold). The welfare classes have no normative threshold.
 
 The threshold model: P(act) = lapse/2 + (1 - lapse) Phi(kappa (s - theta_class)), with s the
 stated log-odds (the ideal log-odds for anchors).
@@ -23,24 +28,49 @@ from epistemics.dispositions import coherence
 from epistemics.dispositions.response import logit
 
 DESIGNS = coherence.DESIGNS
-CLASSES = ("cheap", "balanced", "costly")
-ANCHORS = ((0.85, 1), (0.65, 1), (0.65, -1), (0.85, -1))  # (accuracy, report): 85, 65, 35, 15%
 LAPSE = 0.02
+SCHEMES = {
+    "v31": {
+        "classes": ("cheap", "balanced", "costly"),
+        # (accuracy, report): ideal beliefs 85, 65, 35 and 15%.
+        "anchors": ((0.85, 1), (0.65, 1), (0.65, -1), (0.85, -1)),
+        "anchor_classes": "balanced",
+        # Contrasts: name -> (plus class, minus class, scale).
+        "contrasts": {"sensitivity": ("costly", "cheap", 1.0)},
+    },
+    "v32": {
+        "classes": ("mild_cheap", "balanced", "mild_costly", "welfare_act", "welfare_hold"),
+        # Ideal beliefs 80, 60, 40 and 20%.
+        "anchors": ((0.8, 1), (0.6, 1), (0.6, -1), (0.8, -1)),
+        "anchor_classes": "rotate",
+        "contrasts": {
+            "sensitivity": ("mild_costly", "mild_cheap", 1.0),
+            # Half the difference: the log of the implicit ratio of the harm to people or nature
+            # to the commercial harm (positive weighs people or nature more).
+            "welfare_weight": ("welfare_hold", "welfare_act", 0.5),
+        },
+    },
+}
+# Battery v3.1 names, kept for its analyses.
+CLASSES = SCHEMES["v31"]["classes"]
+ANCHORS = SCHEMES["v31"]["anchors"]
 
 
-def consequence_class(design_index, rank):
+def consequence_class(design_index, rank, classes=3):
     """Classes rotate over the scenarios ranked by ideal belief (the mean over completions for
     weaker scenarios), so each class spans the range of beliefs in every design (crossed with
-    the evidence); each design has 4/3/3 and the class with four rotates across designs."""
-    return (rank + design_index) % 3
+    the evidence); the classes with an extra scenario rotate across designs."""
+    return (rank + design_index) % classes
 
 
-def design(letter):
-    return {k: v.copy() for k, v in _design(letter).items()}
+def design(letter, scheme="v31"):
+    return {k: v.copy() for k, v in _design(letter, scheme).items()}
 
 
 @functools.cache
-def _design(letter):
+def _design(letter, scheme="v31"):
+    spec = SCHEMES[scheme]
+    classes = len(spec["classes"])
     index = DESIGNS.index(letter)
     base = coherence.design(letter)
     rows = []
@@ -51,7 +81,7 @@ def _design(letter):
         slot = int(row["scenario"])
         row.update(
             {
-                "cls": consequence_class(index, int(rank)),
+                "cls": consequence_class(index, int(rank), classes),
                 "act_first": slot % 2,
                 "anchor_p": 0.0,
             }
@@ -59,7 +89,8 @@ def _design(letter):
         rows.append({**row, "kind": "stated", "response": "probability"})
         rows.append({**row, "kind": "decision", "response": "choice"})
     template = rows[0]
-    for k, (accuracy, report) in enumerate(ANCHORS):
+    balanced = spec["classes"].index("balanced")
+    for k, (accuracy, report) in enumerate(spec["anchors"]):
         row = {**template}
         row.update(
             {
@@ -73,7 +104,7 @@ def _design(letter):
                 "stakes_dir": 0,
                 "prior": 0.5,
                 "n": 1,
-                "cls": 1,
+                "cls": balanced if spec["anchor_classes"] == "balanced" else (index + k) % classes,
                 "act_first": k % 2,
             }
         )
@@ -93,7 +124,9 @@ def _design(letter):
 
 
 # Threshold fit.
-THETA = np.round(np.arange(-3.0, 3.001, 0.25), 2)
+# Model 0.15: step 0.125 (0.25 before); intervals run to the edges of their grid cells, since a
+# sharp posterior otherwise sits on one grid point that the truth lies between.
+THETA = np.round(np.arange(-3.0, 3.001, 0.125), 3)
 KAPPA = np.array([0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 64.0])
 # Stakes shift: added to the stated log-odds on stakes decisions, signed so that positive moves
 # the decision towards the option the agent's own task needs.
@@ -142,28 +175,37 @@ def _logsumexp(x, axis):
     return np.squeeze(m, axis) + np.log(np.sum(np.exp(x - m), axis=axis))
 
 
-def _summary(weights, grid):
+def _summary(weights, grid, cell=0.0):
+    """Posterior mean and 90% interval; with `cell`, the interval runs to the edges of the grid
+    cells (half a step either side of the grid points)."""
     cdf = np.cumsum(weights)
     lo, hi = np.searchsorted(cdf, [0.05, 0.95])
     return {
         "mean": float(weights @ grid),
-        "interval_90": [float(grid[min(lo, len(grid) - 1)]), float(grid[min(hi, len(grid) - 1)])],
+        "interval_90": [
+            float(grid[min(lo, len(grid) - 1)] - cell / 2),
+            float(grid[min(hi, len(grid) - 1)] + cell / 2),
+        ],
     }
 
 
-def fit_thresholds(rows, stakes=False):
-    """Grid posterior over (theta_cheap, theta_balanced, theta_costly, kappa), uniform priors,
-    and with `stakes` a stakes shift delta. Given kappa (and delta) the classes are independent,
-    so the posterior is computed class by class. Returns each threshold, kappa, action bias
-    (theta_balanced) and consequence sensitivity (theta_costly - theta_cheap) with 90% intervals."""
+def fit_thresholds(rows, stakes=False, scheme="v31"):
+    """Grid posterior over the scheme's class thresholds and kappa, uniform priors, and with
+    `stakes` a stakes shift delta. Given kappa (and delta) the classes are independent, so the
+    posterior is computed class by class. Returns each threshold (theta_<class>), kappa, and the
+    scheme's contrasts (for example consequence sensitivity, theta_costly - theta_cheap) with
+    90% intervals."""
+    spec = SCHEMES[scheme]
+    names = spec["classes"]
     s = np.array([r["stated"] for r in rows], dtype=float)
     act = np.array([r["act"] for r in rows])
     cls = np.array([r["cls"] for r in rows])
     signed = np.array([r["stakes"] * r["stakes_dir"] for r in rows], dtype=float)
     deltas = DELTA if stakes else np.zeros(1)
+    step = float(THETA[1] - THETA[0])
     # Per class: log-likelihood over (delta, theta, kappa).
     ll = []
-    for k in range(3):
+    for k in range(len(names)):
         m = cls == k
         shifted = s[m][None, :] + deltas[:, None] * signed[m][None, :]  # (delta, n)
         z = KAPPA[None, None, :, None] * (shifted[:, None, None, :] - THETA[None, :, None, None])
@@ -175,23 +217,25 @@ def fit_thresholds(rows, stakes=False):
     w /= w.sum()  # posterior over (delta, kappa)
     conditional = [np.exp(x - m[:, None, :]) for x, m in zip(ll, marginal, strict=True)]
     out = {
-        name: _summary(np.einsum("dtk,dk->t", conditional[k], w), THETA)
-        for k, name in enumerate(("theta_cheap", "theta_balanced", "theta_costly"))
+        f"theta_{name}": _summary(np.einsum("dtk,dk->t", conditional[k], w), THETA, step)
+        for k, name in enumerate(names)
     }
     out["kappa"] = _summary(w.sum(axis=0), KAPPA)
+    n = len(THETA)
     if stakes:
         out["stakes_shift"] = _summary(w.sum(axis=1), deltas)
         out["stakes_decisions"] = int(np.sum(signed != 0))
-    # Consequence sensitivity: theta_costly - theta_cheap, independent given (delta, kappa).
-    n = len(THETA)
-    grid = np.round((np.arange(2 * n - 1) - (n - 1)) * (THETA[1] - THETA[0]), 2)
-    weights = np.zeros(len(grid))
-    for d in range(len(deltas)):
-        for j in range(len(KAPPA)):
-            if w[d, j] > 1e-12:
-                costly, cheap = conditional[2][d, :, j], conditional[0][d, :, j]
-                weights += w[d, j] * np.convolve(costly, cheap[::-1])
-    out["sensitivity"] = _summary(weights, grid)
+    # Contrasts: theta_plus - theta_minus (scaled), independent given (delta, kappa).
+    for contrast, (plus, minus, scale) in spec["contrasts"].items():
+        grid = np.round((np.arange(2 * n - 1) - (n - 1)) * step * scale, 3)
+        weights = np.zeros(len(grid))
+        a, b = conditional[names.index(plus)], conditional[names.index(minus)]
+        for d in range(len(deltas)):
+            for j in range(len(KAPPA)):
+                if w[d, j] > 1e-12:
+                    weights += w[d, j] * np.convolve(a[d, :, j], b[d, ::-1, j])
+        out[contrast] = _summary(weights, grid, step * scale)
+    out["scheme"] = scheme
     out["decisions"] = len(rows)
     out["act_share"] = float(act.mean()) if len(act) else None
     return out

@@ -53,6 +53,8 @@ from epistemics.disposition_tasks.render import (
     V3_VARIANTS,
     V31_MODULES,
     V31_VARIANTS,
+    V32_MODULES,
+    V32_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
     items_for,
@@ -90,6 +92,8 @@ TOLERANCE = {
     "v3_rho": 0.2,
     # Battery v3.1: the balanced threshold within 0.6 log-odds from one session's decisions.
     "v31_theta": 0.6,
+    # Battery v3.2: share of a session's 14 decisions agreeing with the respondent's thresholds.
+    "v32_agreement": 0.85,
 }
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
@@ -163,6 +167,9 @@ V31_RESPONDENT = {
     "default_acc": 0.7,
     "default_rate": 0.4,
 }
+# Battery v3.2 (tasks 0.25): thresholds for mildly cheap, balanced, mildly costly, welfare_act
+# and welfare_hold (welfare weight 0.5, no action offset in the welfare classes).
+V32_RESPONDENT = {**V31_RESPONDENT, "thresholds": [-0.7, 0.0, 0.7, -0.5, 0.5]}
 # Verdict words that an option's label must not contain (it would presuppose the answer).
 VERDICTS = (
     "faulty",
@@ -256,9 +263,22 @@ def v31_consequences_clean(case):
     return len(paragraphs) > last + 1 and not re.search(r"\d", tail)
 
 
+def v32_consequences_match(module, index, case):
+    """Battery v3.2: the decision shows its class's text for its domain, and no text states a
+    quantity in number words."""
+    from epistemics.disposition_tasks import surfaces
+
+    items = items_for(module)
+    text = surfaces.CONSEQUENCES_V32[int(items["domain"][index])][int(items["cls"][index])]
+    words = re.compile(r"\b(" + "|".join(surfaces.NUMBER_WORDS) + r")\b", re.IGNORECASE)
+    return text in case["case"] and not words.search(text)
+
+
 def variants_of(module):
     if module in V31_MODULES:
         return V31_VARIANTS
+    if module in V32_MODULES:
+        return V32_VARIANTS
     if module in V3_MODULES:
         return V3_VARIANTS
     if module in PEER_MODULES:
@@ -309,6 +329,7 @@ def covers_of(module):
         + PEER_MODULES
         + V3_MODULES
         + V31_MODULES
+        + V32_MODULES
         else COVERS
     )
 
@@ -373,7 +394,9 @@ def audit():
                 cases = [render(module, cover, i, variant) for i in range(CASES)]
                 # Battery v3 shows each scenario twice, with different questions.
                 keys = {
-                    (c["case"], c["question"]) if module in V3_MODULES + V31_MODULES else c["case"]
+                    (c["case"], c["question"])
+                    if module in V3_MODULES + V31_MODULES + V32_MODULES
+                    else c["case"]
                     for c in cases
                 }
                 if len(keys) != CASES:
@@ -401,12 +424,14 @@ def audit():
                     )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
-                    if module in V31_MODULES and case["response"] == "choice":
+                    if module in V31_MODULES + V32_MODULES and case["response"] == "choice":
                         if not v31_consequences_clean(case):
                             raise ValueError(f"{where} states a number in its consequences")
+                        if module in V32_MODULES and not v32_consequences_match(module, i, case):
+                            raise ValueError(f"{where} shows the wrong consequences")
                         if any(w in o.lower() for o in case["options"] for w in VERDICTS):
                             raise ValueError(f"{where} has an option that presupposes a verdict")
-                    if module in V3_MODULES + V31_MODULES:
+                    if module in V3_MODULES + V31_MODULES + V32_MODULES:
                         shown = set(re.findall(r"\d+%", case["case"]))
                         if shown - set(stated_percentages(module, i, variant)):
                             raise ValueError(f"{where} shows a percentage it should not")
@@ -516,6 +541,8 @@ def contexts_to_validate():
             yield module, "markets", variant, V3_RESPONDENT
     for module in V31_MODULES:
         yield module, "markets", "v31-standard", V31_RESPONDENT
+    for module in V32_MODULES:
+        yield module, "markets", "v32-standard", V32_RESPONDENT
 
 
 def estimate(module, analysis, truth):
@@ -529,6 +556,15 @@ def estimate(module, analysis, truth):
             and rise >= TOLERANCE["load_eta_rise"]
         )
         return slope, bool(ok)
+    if "decisions" in analysis and analysis["decisions"]["fit"]["scheme"] == "v32":
+        # Five classes leave two or three decisions per class in a session: check instead that
+        # the decisions agree with the respondent's thresholds applied to its stated beliefs,
+        # which fails if choices, classes or anchors are mapped wrongly.
+        rows = analysis["decisions"]["trials"]
+        agree = np.mean(
+            [(r["stated"] > truth["thresholds"][r["cls"]]) == bool(r["act"]) for r in rows]
+        )
+        return float(agree), bool(agree >= TOLERANCE["v32_agreement"])
     if "decisions" in analysis:
         # One session has 14 decisions, 7-8 of them balanced (the anchors pin that threshold);
         # the ordering of classes needs pooled sessions and is checked by recovery.

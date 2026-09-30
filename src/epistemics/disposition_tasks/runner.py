@@ -57,6 +57,8 @@ from epistemics.disposition_tasks.render import (
     V3_VARIANTS,
     V31_MODULES,
     V31_VARIANTS,
+    V32_MODULES,
+    V32_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
     allowed,
@@ -143,6 +145,7 @@ AUDITED_CASES = (
     + 24 * sum(len(v) for v in PEER_VARIANTS.values())
     + 24 * len(V3_MODULES) * len(V3_VARIANTS)
     + 24 * len(V31_MODULES) * len(V31_VARIANTS)
+    + 24 * len(V32_MODULES) * len(V32_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -425,6 +428,7 @@ def check_groups(groups):
             + tuple(v for variants in PEER_VARIANTS.values() for v in variants)
             + V3_VARIANTS
             + V31_VARIANTS
+            + V32_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -731,12 +735,15 @@ def headline(analysis):
         }
     if "decisions" in analysis:
         fit = analysis["decisions"]["fit"]
-        return {
+        headline = {
             "parameter": "thresholds",
             "action_bias": fit["theta_balanced"]["mean"],
             "sensitivity": fit["sensitivity"]["mean"],
             "kappa": fit["kappa"]["mean"],
         }
+        if "welfare_weight" in fit:
+            headline["welfare_weight"] = fit["welfare_weight"]["mean"]
+        return headline
     if "coherence" in analysis:
         c = analysis["coherence"]
         return {

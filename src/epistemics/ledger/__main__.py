@@ -32,6 +32,9 @@ uv run python -m epistemics.ledger battery-v3 <roots...> --output <file>
 uv run python -m epistemics.ledger battery-v31-recovery --output <file>
 uv run python -m epistemics.ledger battery-v31-power --output <file>
 uv run python -m epistemics.ledger battery-v31 <roots...> --output <file>
+uv run python -m epistemics.ledger battery-v32-recovery --output <file>
+uv run python -m epistemics.ledger battery-v32-power --output <file>
+uv run python -m epistemics.ledger battery-v32 <roots...> --output <file>
 """
 
 import argparse
@@ -161,11 +164,12 @@ def main():
     b3 = sub.add_parser("battery-v3")
     b3.add_argument("roots", type=Path, nargs="+")
     b3.add_argument("--output", type=Path, required=True)
-    for name in ("battery-v31-recovery", "battery-v31-power"):
-        sub.add_parser(name).add_argument("--output", type=Path, required=True)
-    b31 = sub.add_parser("battery-v31")
-    b31.add_argument("roots", type=Path, nargs="+")
-    b31.add_argument("--output", type=Path, required=True)
+    for version in ("v31", "v32"):
+        for name in (f"battery-{version}-recovery", f"battery-{version}-power"):
+            sub.add_parser(name).add_argument("--output", type=Path, required=True)
+        b31 = sub.add_parser(f"battery-{version}")
+        b31.add_argument("roots", type=Path, nargs="+")
+        b31.add_argument("--output", type=Path, required=True)
     pos = sub.add_parser("position")
     pos.add_argument("--output", type=Path, required=True)
     cfp = sub.add_parser("confidence-power")
@@ -424,15 +428,16 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
-    elif a.command in ("battery-v31-recovery", "battery-v31-power", "battery-v31"):
+    elif a.command.startswith(("battery-v31", "battery-v32")):
         from epistemics.ledger import battery_v31
 
-        if a.command == "battery-v31-recovery":
-            run = battery_v31.recovery()
-        elif a.command == "battery-v31-power":
-            run = battery_v31.power()
+        scheme = a.command.split("-")[1]
+        if a.command.endswith("-recovery"):
+            run = battery_v31.recovery(scheme=scheme)
+        elif a.command.endswith("-power"):
+            run = battery_v31.power(scheme=scheme)
         else:
-            run = battery_v31.analyse(a.roots)
+            run = battery_v31.analyse(a.roots, scheme=scheme)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(
