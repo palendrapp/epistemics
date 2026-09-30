@@ -705,12 +705,13 @@
         "output/capacity-structure-pilot-20260930",
         "output/capacity-structure-pilot-20260930-2"
       ],
-      "status": "running",
-      "prediction": "Range-finding only; one session per cell; may change the structural levels, nothing else."
+      "status": "complete",
+      "prediction": "Range-finding only; one session per cell; may change the structural levels, nothing else.",
+      "outcome": "8 contexts over two collections (5 + a 3-context top-up after Sol-high hit the 900 s limit; tasks 0.18.1 made the limit settable), 4.7M recorded tokens. GPT-6: Astra-low and Astra err on one case in six at the top levels (both missed the same level-3 case by treating a conditional copy as unconditional); Astra-high and Sol at every effort exact. Sol sessions ran 2-4x longer. GPT-5.6 fails from level 0 (Luna exact 0-50%; Terra worst at low levels), so the ladder does not grade it. Structure is the first manipulation to move GPT-6 off ceiling, but only Astra below high effort, one case per level."
     }
   ],
   "next": [
-    "Capacity: pilot the structural load on GPT-6 (and GPT-5.6 as a positive control) to see whether it leaves ceiling; then size the battery.",
+    "Capacity: decide whether to extend the structural ladder upward (two conditional links, conditions on misfiling) and count errors by structure, then run two sessions per cell on GPT-6; or accept family-level Part A.",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",

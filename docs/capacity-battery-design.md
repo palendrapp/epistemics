@@ -612,3 +612,45 @@ Tasks fingerprint `6781afa919105ff2f17c8e10c04a2a89935658b1250514319c0b8eff8ee23
 - **Kept:** the five completed contexts (Astra-low, Sol-low, Astra, Astra-high, Luna). The partial Sol-high attempt has no report and is not used.
 - **The fix:** tasks 0.18.1 makes the per-run limit a setting of the runner's plan (default 900 seconds). Nothing else changed: no texts, designs, observers or fits. It was re-validated on both seeds.
 - **The top-up:** Sol-high, Sol and Terra, collected in `output/capacity-structure-pilot-20260930-2` with a 1,800-second limit. The per-run limit cuts a run short but does not change its answers.
+
+### Structural pilot results (30 September)
+
+All 8 contexts completed across the two collections (5 + 3), with 4.7 million input tokens recorded. The timed-out Sol-high attempt used an unrecorded amount.
+
+```bash
+uv run python -m epistemics.ledger capacity-pilot output/capacity-structure-pilot-20260930 output/capacity-structure-pilot-20260930-2 --output output/capacity-structure-pilot-summary-20260930.json
+```
+
+**Answers within 1.5 points of exact, by structural level** (6 cases per level), with the joint load slope *κ* and its 90% interval:
+
+| | Level 0 | Level 1 | Level 2 | Level 3 | *κ* | Time |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra-low | 100% | 100% | 100% | 83% | 0.58 (0.4 to 0.7) | 2.6 min |
+| Astra | 100% | 100% | 83% | 83% | 0.81 (0.5 to 1.1) | 3.2 min |
+| Astra-high | 100% | 100% | 100% | 100% | −0.29 (−0.5 to 0.1) | 2.6 min |
+| Sol-low | 100% | 100% | 100% | 100% | −0.29 (−0.5 to 0.1) | 4.9 min |
+| Sol | 100% | 100% | 100% | 100% | −0.28 (−0.5 to 0.1) | 5.6 min |
+| Sol-high | 100% | 100% | 100% | 100% | −0.29 (−0.5 to 0.1) | 10.4 min |
+| Luna | 50% | 17% | 0% | 17% | 0.29 (0.0 to 0.6) | 3.2 min |
+| Terra | 33% | 67% | 83% | 100% | −0.48 (−0.5 to −0.4) | 2.6 min |
+
+- **Structure reaches GPT-6, where arithmetic did not, but only just.**
+  - Astra at low and medium effort errs at the top levels, one case in six per level.
+  - Both missed the same level-3 case, answering 83% where the exact answer is 80%. That is the answer you get by treating the conditional copy as unconditional when its source read blue: a structural error (a missed condition), not a slip.
+  - Astra's level-2 miss (70% against 75%) matches no single ignored structure.
+  - Astra-high is exact, as is Sol at every effort.
+- **Sol takes longer.** Sol's sessions ran two to four times as long as Astra's, the longest at high effort. Wall time depends on server load and is not a fitted quantity, but it points to Sol spending more computation to stay exact.
+- **GPT-5.6 fails from the first level.** Luna is exact on 0–50% of cases at every level, with high noise and neglect. Terra errs most at the lowest levels and least at the highest. For GPT-5.6 the task is hard from one copy relation onwards, so the ladder does not grade their failures.
+- **Scope:** one session per cell, against the two that recovery requires. A single miss moves *κ* from −0.29 to about 0.6, so these slopes are range-finding only.
+
+**What this means.** Structure is the first manipulation to move any GPT-6 configuration off ceiling, and its errors are interpretable (a missed condition). As built, though, the ladder reaches only Astra below high effort, and only in one case per level. Before a battery it would need:
+- **A higher top level**, so that Sol and high effort are reached. For example: two conditional links in one chain, or conditions on misfiling.
+- **Errors counted by structure** (missed conditions, ignored copying, ignored misfiling) as well as the load slope. The single-structure answers already identify which structure an error ignored.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| plan.json (first collection) | `3966391165594067bb583a45b60ff77d6f2df0f76ad5700659f74e70245205d4` |
+| execution.json (first collection) | `54e2cc6dac7fccad6246960bf57c5fb66a20d2d5467bd0eb1c704cd96e1d0c30` |
+| plan.json (top-up) | `d7a5a8e0e34cad7cb60536eec57549e7b542592a5c8c4b93945fa29525c3e234` |
+| execution.json (top-up) | `207921dbf62c2d4f72eb6ac3ad8b285383fb009e877c8bf5fc86f466323bd228` |
+| Summary | `531dbae72fcdc1491967250b63e2ac84dff42d4c426b1b8c6c384a704d012f5e` |
