@@ -478,3 +478,5 @@ uv run python -m epistemics.ledger social-pilot output/multi-agent-stability-202
 | plan.json | `deee96002bca305528f53f392ff0f34bf6ecbcbdf4654e557e657831bc829ebf` |
 | execution.json | `c97cb4867ad296d55a603b03ff6a4857135e300576c8becf021acf76f2b282d3` |
 | Summary | `8ea1f8dae74e3db164766b9945a15341d579782d8b1894ba9c760aa0013f800e` |
+
+**Next, designed 30 September:** the [confidence persuasion transfer test](confidence-transfer-design.md).

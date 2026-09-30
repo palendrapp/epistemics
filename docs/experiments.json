@@ -794,10 +794,23 @@
       "status": "complete",
       "prediction": "If they are traits, the retest difference is small against the Astra-Sol gap, and the gap holds at low and high effort.",
       "outcome": "12 contexts, 6.1M tokens, 0 errors. Confidence persuasion without a record is stable and model-level: Sol 0.29-0.50 per step of emphasis at every effort and on retest, Astra 0.00-0.10; plain-call weight also higher for Sol (0.90-1.20 vs 0.70-0.87). Majority defaults (v, rho) are not stable: within-configuration variation as large as between models."
+    },
+    {
+      "id": "confidence-transfer-design",
+      "date": "2026-09-30",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Confidence persuasion: transfer test design",
+      "question": "Does reliance on expressed confidence without a record (w_conf) transfer across surfaces: analyst phrase, relayed emphasis from an uninformed relayer, sensor confidence flag, agent structured message?",
+      "doc": "docs/confidence-transfer-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Design only. Same 24 cases on four surfaces; leave-one-task-out over 8 configurations; secondary: Sol above Astra per surface and effort, relayed emphasis against zero, social vs non-social.",
+      "outcome": "Awaiting decisions: surfaces (optional record-present control), configurations, budget (about 13M), preregistration."
     }
   ],
   "next": [
-    "Multi-agent: test whether confidence persuasion transfers to other formats where only confidence varies (an emphatic relayer, a sensor display with a confidence flag), as the passport's criterion for a general trait.",
+    "Confidence persuasion transfer test: decisions on the design note, then build (three surfaces), power simulation, preregistration, collection (about 13M).",
     "Reading guide 0.4.0 done: fidelity as a tested family-level trait; precision and noticing per task.",
     "Decide the next trait search: more model families (between-family variance is where traits appeared), or new within-family candidates.",
     "Structure checks stay as a product fallback (offer for named structures).",
