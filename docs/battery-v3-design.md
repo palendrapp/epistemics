@@ -210,3 +210,19 @@ Power SHA-256: `f330f96c422479242dcfa64e1d2e008fc73b19155a703d5530b50f34ecebb646
 - Fingerprint `aaf9f30f9fd571be4039d1f9cd65ec752bec13a90ddeb13227b7d8fa6094ae98`.
 - Seed 20260927: `5bab4739918760ab8d7187d577dbf366c8f701f602da6e9772fb65b73e950cfb`.
 - Seed 20261027: `14bf0ecb68dc2fab31038fc690105be445a96c1889324670f17ceecb8a4f849b`.
+
+### Pilot (planned 30 September, before collection)
+
+**Sessions.** Tasks 0.23.0, validations 0.23 on both seeds.
+- **Standard:** Astra, Sol, Luna and Terra on `coherence-a`, `-b` and `-c` (`v3-standard`, random order). That is 12 sessions, covering all 30 surfaces once per configuration.
+- **Loaded:** one session each on `coherence-d` (`v3-loaded`, refer-back order). That is 4 sessions.
+
+**Limits.** 3,600 seconds per run and a cap of 25 million tokens. The collection is in `output/battery-v3-pilot-20260930`.
+
+**Read-out** (range-finding, not the preregistered battery):
+- the spread of *β*, *τ*<sub>c</sub> and *α* between configurations, which sets the power assumptions;
+- coherence by strength, and the stakes shifts;
+- coherence under load against standard;
+- whether the calibration mapping is stable;
+- tokens per session;
+- whether any loaded session's context was compacted.
