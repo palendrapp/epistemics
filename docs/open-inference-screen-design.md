@@ -425,3 +425,58 @@ It reports per family:
 
 **Stage B** would use the groups `screen-a` writes: form `b` for the families that pass, about 2–3 million tokens each.
 
+### Stage A results (1 October)
+
+All 30 sessions completed with no errors: 14.1 million input tokens (about 0.47 million per session), 27 minutes. The collection is in `output/screen-stage-a-20261001`.
+
+```bash
+uv run python -m epistemics.ledger screen-a output/screen-stage-a-20261001 --output output/screen-stage-a-summary-20261001.json
+```
+
+**By the criteria fixed in advance, four families pass: F1, F2, F4 and F5.** In no family did all six configurations give the same answer to any open item (shared-answer share 0.00 everywhere).
+
+| Family | Contrast | Spread | Noise | *δ* | Departing | Passed |
+| --- | --- | --- | --- | --- | --- | --- |
+| F1 | rule reliance | 1.06 | 0.69 | 0.78 | 3 | no (spread) |
+| F1 | tightening | 0.59 | 0.24 | 0.31 | 3 | **yes** |
+| F2 | halo, people | 0.41 | 0.29 | 0.27 | 1 | no |
+| F2 | halo, instruments | 0.72 | 0.22 | 0.28 | 4 | **yes** |
+| F3 | skip informativeness | 0.70 | 0.06 | 0.49 | 3 | checks pass, but anchors fail |
+| F3 | knowledge attribution | 0.42 | 0.12 | 0.30 | 1 | no (guard) |
+| F4 | residual mass | 0.94 | 0.17 | 0.29 | 4 | **yes** |
+| F4 | source | 0.64 | 0.29 | 0.30 | 3 | **yes** |
+| F5 | linearity | 1.43 | 0.09 | 0.27 | 3 | **yes** |
+| F5 | conservatism | 1.64 | 0.11 | 0.25 | 3 | **yes** |
+
+**F3 fails on an anchor, through its wording, not comprehension.**
+- All six configurations answered the two "already knew" anchors (a test recorded "an hour earlier") at 0.94–0.97, not 1.00: an hour leaves a little room for change.
+- Astra-low's 0.94 is 6 points off, against a tolerance of 5, so by the rule F3 does not go to stage B.
+- The fix is wording that makes the anchor determinate (for example, the check finished moments before). That needs a new implementation and its own collection of F3.
+
+**What differs:**
+- **Luna is at an extreme in most families:**
+  - the highest rule reliance (F1, 3.85);
+  - the most literal reading of people's round numbers (F2);
+  - the most closed-world reading of lists (F4, residual −3.11);
+  - certainty in every extrapolation (F5: 1.00 on 19 of 20 items).
+- **Within GPT-6:**
+  - Sol and Sol-low treat a colleague's list as much less complete than a manual's (F4 source 1.44 and 1.51, against 0.43 and −0.12 for Astra and Astra-low);
+  - Sol is the most conservative extrapolator (F5);
+  - low effort reads instruments less literally (F2: −2.38 and −2.45, against −3.15 and −3.19 at medium effort).
+
+**Profile fits (descriptive, form a only; not part of the stage A criteria).** Each family's observer was fitted to each session. The fitted report noise is the check on whether the observer describes the answers: simulated respondents had 0.1–0.5.
+
+| Family | Report noise (6 configurations) | Reading |
+| --- | --- | --- |
+| F3 | 0.28–0.31 (Luna 0.78) | Fits. Attributed rationality *β*: Astra 3.1, others about 7.6, Luna 12. Knowledge prior *κ*: 0.20–0.28, Luna 0.58 |
+| F4 | 0.29–0.80 | Fits moderately. Open-world prior for manuals 0.06–0.29, for colleagues 0.21–0.38 |
+| F1, F2, F5 | 0.72–0.80 (the grid's top is 0.8) | Do not fit. Parameters sit at the grid's edges: F5's likelihood weight about 5 for five of six, F1's sampling near 0 |
+
+The differences are there, but in F1, F2 and F5 the observers as specified do not describe how these configurations answer, so their parameters are not yet usable as profiles. This is the limit stated under [Profile recovery](#profile-recovery-tasks-027): recovery holds only if agents answer like the observers. The misfit has two visible forms:
+- **Compression:** GPT-6's F5 answers sit between 0.55 and 0.85 whatever the item.
+- **Certainty:** Luna's F5 answers are 1.00.
+
+Neither is a pattern the F5 observer can produce.
+
+**The exploratory commitment index was mis-oriented for F5.** It counted the straight line as the simplest model. On geometric series, though, the compact rule that fits is the exponential; Luna committed to it completely, which the index scored as low commitment. With six configurations and Luna at an extreme in most families, the cross-family correlations (−0.93 to 0.85) are not interpretable.
+

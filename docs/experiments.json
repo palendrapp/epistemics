@@ -927,10 +927,12 @@
       "title": "Open-inference screen, stage A (spread)",
       "question": "In which of five open-inference families do six configurations differ by more than session noise, with at least three departing from the median and no shared rule?",
       "doc": "docs/open-inference-screen-design.md",
-      "roots": [],
-      "status": "planned",
+      "roots": [
+        "output/screen-stage-a-20261001"
+      ],
+      "status": "complete",
       "prediction": "Screening, criteria fixed before collection (ledger/screen.py). CogGym's shared failures suggest few families will pass; differences, if any, most likely between GPT-6 and GPT-5.6. Exploratory: commitment scores correlated across families.",
-      "outcome": "Planned: preset screen-a (tasks 0.27.0), 30 sessions, cap 20M tokens."
+      "outcome": "30 sessions, 14.1M tokens, 0 errors. By the preregistered criteria F1 (tightening), F2 (instruments' halo), F4 (both) and F5 (both) pass; F3 fails on an anchor whose wording is not fully determinate (all six answered 0.94-0.97 to 'tested an hour earlier'; Astra-low 6 points off). No item answered identically by all six. Luna at an extreme in most families; within GPT-6, Sol treats colleagues' lists as more incomplete and extrapolates most conservatively. Descriptive profile fits: F3 fits (report noise 0.28-0.31), F4 moderately, F1/F2/F5 do not (report noise 0.72-0.80, parameters at grid edges), so those observers need revision before their parameters are profiles. Commitment index mis-oriented for F5."
     }
   ],
   "next": [
