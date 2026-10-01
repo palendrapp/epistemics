@@ -36,6 +36,10 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return coherence_responses(items, truth, rng)
     if module.startswith(("decision-", "decision2-")):
         return decision_responses(items, truth, rng)
+    if module.startswith("announced-"):
+        from epistemics.dispositions import announced
+
+        return announced.respond(items, truth, rng)
     if module.startswith("followup-"):
         from epistemics.dispositions import followup
 

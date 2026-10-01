@@ -24,6 +24,8 @@ import numpy as np
 from epistemics.benchmark.runner import DISABLED_FEATURES, codex_version, read_usage
 from epistemics.disposition_tasks.collection import CASES, create, export, fingerprint, load_report
 from epistemics.disposition_tasks.render import (
+    ANNOUNCED_MODULES,
+    ANNOUNCED_VARIANTS,
     ASKED_MODULES,
     ASKED_VARIANTS,
     COHERE_MODULES,
@@ -165,6 +167,7 @@ AUDITED_CASES = (
     + 24 * len(STATEMENT_MODULES + STATEMENT_PROBE_MODULES) * len(STATEMENT_VARIANTS)
     + 24 * len(DELIBERATION_MODULES) * len(DELIBERATION_VARIANTS)
     + 24 * len(FOLLOWUP_MODULES) * len(FOLLOWUP_VARIANTS)
+    + 24 * len(ANNOUNCED_MODULES) * len(ANNOUNCED_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -372,6 +375,15 @@ PRESETS["followup-advice"] = (
         "order": "sequences",
     },
 )
+# Announced count: one change reported in statements declared to differ in 1, 3 or 6 places; the
+# default-effort configurations of each variant on all four forms (random order).
+PRESETS["announced-count"] = (
+    {
+        "configurations": ("astra", "sol", "luna", "terra"),
+        "modules": ANNOUNCED_MODULES,
+        "contexts": (("announced", "markets", 1),),
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -568,6 +580,7 @@ def check_groups(groups):
             + STATEMENT_VARIANTS
             + DELIBERATION_VARIANTS
             + FOLLOWUP_VARIANTS
+            + ANNOUNCED_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -889,6 +902,8 @@ def headline(analysis):
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
         }
+    if "announced" in analysis:
+        return {"parameter": "announced", **analysis["announced"]["mean_step"]}
     if "followup" in analysis:
         g = analysis["followup"]["grain"]
         return {

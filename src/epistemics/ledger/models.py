@@ -333,6 +333,7 @@ def session(record, experiment, designs):
             "statement_probe",
             "deliberation",
             "followup",
+            "announced",
         )
     ):
         return (

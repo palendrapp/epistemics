@@ -76,6 +76,8 @@ for entry in plan["runs"]:
         record["screen"] = a["screen"]
     elif "cohere" in a:
         record["cohere"] = a["cohere"]
+    elif "announced" in a:
+        record["announced"] = a["announced"]
     elif "followup" in a:
         record["followup"] = a["followup"]
     elif "deliberation" in a:
@@ -181,6 +183,8 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
+    if "announced" in record:
+        return {**base, **record["announced"]["mean_step"]}
     if "followup" in record:
         g = record["followup"]["grain"]
         return {

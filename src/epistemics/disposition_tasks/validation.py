@@ -17,6 +17,8 @@ import numpy as np
 
 from epistemics.disposition_tasks.collection import CASES, fingerprint, load_report, public_trial
 from epistemics.disposition_tasks.render import (
+    ANNOUNCED_MODULES,
+    ANNOUNCED_VARIANTS,
     ASKED_MODULES,
     ASKED_VARIANTS,
     COHERE_MODULES,
@@ -122,6 +124,8 @@ TOLERANCE = {
     # weight from one anchor session within 0.1 (against the respondent's own answers).
     "deliberation_rho": 0.35,
     "deliberation_a": 0.1,
+    # Announced count: each condition's mean step within 0.15 log-odds of the respondent's.
+    "announced_step": 0.15,
 }
 # A Bayesian combiner with distinct readings per slot (the pipeline check).
 STATEMENT_RESPONDENT = {
@@ -140,6 +144,13 @@ PROBE_RESPONDENT = {"periods": [0.15, 0.3, 0.35, 0.2]}
 DELIBERATION_RESPONDENT = {"rho": 0.5, "a": 0.3, "tau": 0.05}
 # Follow-up rounding: fresh answers to the point, follow-ups rounded to 5 points.
 FOLLOWUP_RESPONDENT = {"rho_fresh": 0.0, "rho_followup": 1.0, "tau": 0.05}
+# Announced count: a budget by count (k 0.5, rewordings counted).
+ANNOUNCED_RESPONDENT = {
+    "w": {"activity": 0.8, "inflation": 1.0, "risks": 0.8, "guidance": 1.6, "vote": 0.8},
+    "k": 0.5,
+    "rewordings": 1.0,
+    "tau": 0.05,
+}
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
 LONG_LOAD_RESPONDENT = {
@@ -537,6 +548,42 @@ def deliberation_audit():
     }
 
 
+def announced_audit():
+    """Announced count: every case under every condition once across the four forms; the count a
+    case declares is the number of changes its new statement holds, each a valid move of a slot
+    or a rewording, and the three-said cases' other two changes are rewordings."""
+    from epistemics.disposition_tasks.announced_texts import SAID
+    from epistemics.dispositions import announced
+    from epistemics.dispositions import statements as st
+
+    seen = {}
+    for module in ANNOUNCED_MODULES:
+        items = items_for(module)
+        for i in range(CASES):
+            k, condition = int(items["item"][i]), str(items["condition"][i])
+            seen.setdefault(k, []).append(condition)
+            spec = announced.items_spec()[k]
+            held = announced.changes(spec, condition)
+            if len(held) != int(items["declared"][i]) or len({name for name, _ in held}) != len(
+                held
+            ):
+                raise ValueError(f"{module}/{i}: the declared count is not the changes held")
+            for name, d in held:
+                if name in st.STYLES:
+                    if d != 0:
+                        raise ValueError(f"{module}/{i}: a rewording with a direction")
+                elif d not in (-1, 1) or not -1 <= spec["levels"][name] + d <= 1:
+                    raise ValueError(f"{module}/{i}: an invalid change")
+            if condition == "three-said" and any(name not in st.STYLES for name, _ in held[1:]):
+                raise ValueError(f"{module}/{i}: a disclosed rewording is not a rewording")
+            case = render(module, "markets", i, "announced")["case"]
+            if (SAID in case) != (condition == "three-said"):
+                raise ValueError(f"{module}/{i}: the rewording disclosure is wrong")
+    if any(sorted(v) != sorted(announced.CONDITIONS) for v in seen.values()) or len(seen) != 24:
+        raise ValueError("Announced count: not a Latin square")
+    return {"cases": len(seen)}
+
+
 def followup_audit():
     """Follow-up modules: each pair consecutive in a "sequences" order and its first case the
     likely-or-unlikely form of the follow-up's question; every base case fresh in one form and a
@@ -570,6 +617,8 @@ def followup_audit():
 
 
 def variants_of(module):
+    if module in ANNOUNCED_MODULES:
+        return ANNOUNCED_VARIANTS
     if module in FOLLOWUP_MODULES:
         return FOLLOWUP_VARIANTS
     if module in DELIBERATION_MODULES:
@@ -641,6 +690,7 @@ def covers_of(module):
         + STATEMENT_PROBE_MODULES
         + DELIBERATION_MODULES
         + FOLLOWUP_MODULES
+        + ANNOUNCED_MODULES
         else COVERS
     )
 
@@ -810,6 +860,7 @@ def audit():
         "statements": statement_audit(),
         "deliberation": deliberation_audit(),
         "followup": followup_audit(),
+        "announced": announced_audit(),
     }
 
 
@@ -898,6 +949,8 @@ def contexts_to_validate():
         yield module, "markets", "deliberation", truth
     for module in FOLLOWUP_MODULES:
         yield module, "markets", "followup", FOLLOWUP_RESPONDENT
+    for module in ANNOUNCED_MODULES:
+        yield module, "markets", "announced", ANNOUNCED_RESPONDENT
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -908,6 +961,23 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "announced" in analysis:
+        # Each condition's mean step against the respondent's noiseless steps.
+        from epistemics.dispositions import announced
+
+        items = items_for(module)
+        expected = {}
+        for i in range(CASES):
+            spec = announced.items_spec()[int(items["item"][i])]
+            slot, _ = spec["target"]
+            condition = str(items["condition"][i])
+            n = announced.DECLARED[condition]
+            if condition == "three-said":
+                n = 1 + (n - 1) * truth["rewordings"]
+            expected.setdefault(condition, []).append(truth["w"][slot] / (1 + truth["k"] * (n - 1)))
+        means = analysis["announced"]["mean_step"]
+        error = max(abs(means[c] - float(np.mean(v))) for c, v in expected.items())
+        return float(error), bool(error <= TOLERANCE["announced_step"])
     if "followup" in analysis:
         # Follow-ups rounded and fresh answers not, as simulated; the stated variant's fresh
         # answers within 0.2 log-odds of the exact answers on average.
