@@ -516,3 +516,56 @@ F1 and F2 remain poorly fitted for most GPT-6 configurations.
 
 The stage B reliability test of the contrasts is as preregistered, and is independent of these models.
 
+### Stage B results (1 October)
+
+All 24 sessions completed with no errors: 11.3 million input tokens, 24 minutes, on the frozen implementation (`4491e2d5`). The collection is in `output/screen-stage-b-20261001`.
+
+```bash
+uv run python -m epistemics.ledger screen-b output/screen-stage-a-20261001 output/screen-stage-b-20261001 --output output/screen-stage-b-summary-20261001.json
+```
+
+**By the preregistered test, F5 passes** on linearity: ICC 0.80, *p*<sub>Holm</sub> 0.011, retest *r* 0.78.
+
+| Family | Contrast | ICC | *p* | *p*<sub>Holm</sub> | Retest *r* |
+| --- | --- | --- | --- | --- | --- |
+| F1 | rule reliance | 0.35 | 0.27 | 0.53 | 0.35 |
+| F1 | tightening | 0.48 | 0.17 | 0.50 | 0.48 |
+| F2 | halo, people | 0.98 | 0.020 | 0.14 | 0.98 |
+| F2 | halo, instruments | 0.78 | 0.038 | 0.19 | 0.74 |
+| F4 | residual mass | 0.90 | 0.031 | 0.19 | 0.89 |
+| F4 | source | −0.13 | 0.68 | 0.68 | −0.24 |
+| F5 | linearity | **0.80** | **0.0014** | **0.011** | 0.78 |
+| F5 | conservatism | 0.90 | 0.049 | 0.20 | 0.89 |
+
+- **Consistent but not certified:** four more contrasts rank the configurations consistently across forms (ICC 0.78–0.98), but do not survive the correction.
+- **Why the bar is high:** with six configurations, the permutation test's smallest possible *p* is 1/720, and Holm across eight contrasts then requires an almost perfect ordering.
+- **Not consistent:**
+  - F1, whose stage A differences did not hold across forms;
+  - F4's source contrast: Sol's stage A difference (colleagues' lists treated as less complete) did not replicate (1.44 → 0.51, Sol-low 1.51 → 0.03).
+
+**Revised observers on the held-out form.** Each observer was fitted to form a and predicted form b (log-odds RMSE; the evaluation fixed before stage B was analysed):
+
+| Family | Revised better | RMSE, original → revised |
+| --- | --- | --- |
+| F1 | 5 of 6 | 0.81–2.91 → 0.72–2.53 |
+| F2 | 6 of 6 | 1.09–1.40 → 0.72–1.15 |
+| F4 | 3 of 6 | unchanged (0.52–1.00) |
+| F5 | 6 of 6 | 0.90–4.15 → 0.45–2.49 |
+
+The revision generalises rather than overfits: it predicts unseen items better. But the fits to both forms still leave large misfit for most configurations in F1 and F2, and for three in F5 (report noise at the grid's top, 0.8).
+
+**Recovery of the revised observers** (`output/screen-revised-recovery-20261001.json`, 150 configurations). The mixture trades off against the family parameters, and several fail the profile criteria with both forms:
+
+| Family | Failures |
+| --- | --- |
+| F3 | trust *r* 0.40; knowledge prior *r* 0.70, confused with the fallback (0.42) |
+| F5 | likelihood weight *r* 0.49; fallback *r* 0.34 |
+| F2 | fallback *r* 0.60; people's exact prior *r* 0.74 |
+| F1 and F4 | hold (0.78–0.95) |
+
+**Where this leaves separable profiles:**
+1. **Reliable differences exist:** a certified one for F5 (exponential growth bias), and consistent ones (ICC 0.78–0.98) for F2's two halos, F4's open-world prior and F5's conservatism.
+2. **The original observers are separable but do not describe the answers.** The revised ones describe them better, including on unseen items, but are not separable from two sessions.
+3. **The missing ingredient is information about the fallback process itself.** Open-looking items whose observer answer is nearly fixed whatever the parameters (low openness, no stated rule) would show how much a configuration falls back on a default, and would pin trust and fallback separately from the family parameters.
+4. **Six configurations from two model families are few for stage B.** Adding the high-effort GPT-6 configurations would make eight.
+

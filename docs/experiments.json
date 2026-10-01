@@ -933,6 +933,21 @@
       "status": "complete",
       "prediction": "Screening, criteria fixed before collection (ledger/screen.py). CogGym's shared failures suggest few families will pass; differences, if any, most likely between GPT-6 and GPT-5.6. Exploratory: commitment scores correlated across families.",
       "outcome": "30 sessions, 14.1M tokens, 0 errors. By the preregistered criteria F1 (tightening), F2 (instruments' halo), F4 (both) and F5 (both) pass; F3 fails on an anchor whose wording is not fully determinate (all six answered 0.94-0.97 to 'tested an hour earlier'; Astra-low 6 points off). No item answered identically by all six. Luna at an extreme in most families; within GPT-6, Sol treats colleagues' lists as more incomplete and extrapolates most conservatively. Descriptive profile fits: F3 fits (report noise 0.28-0.31), F4 moderately, F1/F2/F5 do not (report noise 0.72-0.80, parameters at grid edges), so those observers need revision before their parameters are profiles. Commitment index mis-oriented for F5."
+    },
+    {
+      "id": "open-inference-screen-stage-b",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Open-inference screen, stage B (reliability)",
+      "question": "Are the stage A differences between configurations reliable on a parallel form (different data and surfaces) for F1, F2, F4 and F5?",
+      "doc": "docs/open-inference-screen-design.md",
+      "roots": [
+        "output/screen-stage-b-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Preregistered: per contrast, consistency ICC across forms >= 0.5 with permutation p < .05 (Holm across the 8 contrasts entering), retest r > 0.",
+      "outcome": "24 sessions, 11.3M tokens, 0 errors. Preregistered: F5 passes (linearity ICC 0.80, p_holm 0.011, r 0.78). Consistent but not certified after Holm with six configurations: F2 halo people 0.98, F2 instruments 0.78, F4 residual 0.90, F5 conservatism 0.90. Not consistent: F1 (0.35/0.48), F4 source (-0.13; Sol's stage A difference did not replicate). Revised observers predict held-out form b better (F2 6/6, F5 6/6, F1 5/6, F4 3/6) but still misfit, and their mixture makes several parameters unrecoverable (F3 trust 0.40, F5 likelihood weight 0.49, F2 fallback 0.60). Next: items that pin the fallback; more configurations."
     }
   ],
   "next": [
