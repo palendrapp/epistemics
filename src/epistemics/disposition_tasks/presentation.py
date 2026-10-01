@@ -118,6 +118,22 @@ INTRO_SCREEN = (
     "Answer questions about short fictional cases. Cases give limited information; answer each "
     "question with your best judgement of the probability."
 )
+# Central-bank statements (tasks 0.30): sequences of cases about one statement continue each other.
+INTRO_STATEMENTS = (
+    "Answer questions about policy statements from a central bank's policy committee. The central "
+    "bank is not named, and the statements were written for this collection in the style of real "
+    "ones. In each case a colleague compares a new statement with the committee's previous one "
+    "and reports the changes, either one per case or all at once. Cases about the same statement "
+    "are consecutive, and a later case continues the earlier ones: answer using the previous "
+    "statement, the market pricing and every change reported so far for that statement. "
+    "Different statements are separate, and no outcomes are revealed during this collection."
+)
+INTRO_STATEMENT_PROBE = (
+    "Each case shows two consecutive policy statements from a central bank's policy committee; "
+    "the central bank is not named. Judge from the wording when statements like these would most "
+    "plausibly have been written. Cases are separate, and no answers are revealed during this "
+    "collection."
+)
 RESPONSE_V31 = (
     "Some cases ask for a probability (from 0 to 1 in increments of 0.01) and some ask you to "
     "choose one of two listed actions; each case says which. For a choice, answer with one of "
@@ -129,6 +145,10 @@ def instructions(module, variant="paired", cover="markets"):
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
+    if module.startswith("statement-probe-"):
+        return " ".join([INTRO_STATEMENT_PROBE, RULES, PROBABILITY])
+    if module.startswith("statement-"):
+        return " ".join([INTRO_STATEMENTS, RULES, PROBABILITY])
     if module.startswith(("screen-", "cohere-")):
         return " ".join([INTRO_SCREEN, SEPARATE, RULES, PROBABILITY])
     if module.startswith(("decision-", "decision2-")):

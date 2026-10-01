@@ -92,6 +92,14 @@ MODULES = (
     "cohere-lists-e",
     "cohere-trend-d",
     "cohere-trend-e",
+    "statement-a1",
+    "statement-a2",
+    "statement-a3",
+    "statement-b1",
+    "statement-b2",
+    "statement-b3",
+    "statement-probe-a",
+    "statement-probe-b",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -185,6 +193,12 @@ COHERE_MODULES = tuple(
     f"cohere-{family}-{form}" for family in ("num", "lists", "trend") for form in "de"
 )
 COHERE_VARIANTS = ("cohere",)
+# Central-bank statements as sequential evidence (tasks 0.30): form a or b, session 1-3 of a Latin
+# square (dispositions.statements, statement_texts); each sequence's cases consecutive. The probe
+# modules ask when statements worded like these were written (the datability check).
+STATEMENT_MODULES = tuple(f"statement-{form}{r}" for form in "ab" for r in (1, 2, 3))
+STATEMENT_PROBE_MODULES = ("statement-probe-a", "statement-probe-b")
+STATEMENT_VARIANTS = ("statement",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -507,6 +521,10 @@ def items_for(module):
 
         _, family, form = module.split("-")
         return cohere.design(family, form)
+    if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
+        from epistemics.dispositions import statements
+
+        return statements.module_design(module)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -874,7 +892,14 @@ RENDERERS = {
     },
     **{m: (lambda *a: _screen(*a)) for m in SCREEN_MODULES},
     **{m: (lambda *a: _cohere(*a)) for m in COHERE_MODULES},
+    **{m: (lambda *a: _statement(*a)) for m in STATEMENT_MODULES + STATEMENT_PROBE_MODULES},
 }
+
+
+def _statement(items, i, cover, variant):
+    from epistemics.disposition_tasks import statement_texts
+
+    return statement_texts.trial(items, i, cover, variant)
 
 
 def _cohere(items, i, cover, variant):
@@ -928,6 +953,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in SCREEN_VARIANTS
     if module in COHERE_MODULES:
         return cover == "markets" and variant in COHERE_VARIANTS
+    if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
+        return cover == "markets" and variant in STATEMENT_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -989,6 +1016,10 @@ def stated_percentages(module, index, variant=None):
     items = items_for(module)
     if module in SCREEN_MODULES + COHERE_MODULES:
         return []  # Screen and coherence-set cases state no percentages.
+    if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
+        from epistemics.disposition_tasks.statement_texts import stated
+
+        return stated(items, index)  # the market prior
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 

@@ -114,6 +114,14 @@ Module = Literal[
     "cohere-lists-e",
     "cohere-trend-d",
     "cohere-trend-e",
+    "statement-a1",
+    "statement-a2",
+    "statement-a3",
+    "statement-b1",
+    "statement-b2",
+    "statement-b3",
+    "statement-probe-a",
+    "statement-probe-b",
 ]
 Cover = Literal["markets", "ecology"]
 Variant = Literal[
@@ -148,6 +156,7 @@ Variant = Literal[
     "v32-standard",
     "screen",
     "cohere",
+    "statement",
 ]
 CASES = 24
 
@@ -170,9 +179,9 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.29.0"] = VERSION
-    model_version: Literal["disposition-model/0.19.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.20.0"] = DESIGN_VERSION
+    battery_version: Literal["disposition-tasks/0.30.0"] = VERSION
+    model_version: Literal["disposition-model/0.20.0"] = MODEL_VERSION
+    design_version: Literal["disposition-design/0.21.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest

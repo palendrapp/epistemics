@@ -38,6 +38,10 @@ uv run python -m epistemics.ledger battery-v32 <roots...> --output <file>
 uv run python -m epistemics.ledger cohere-validation --output <file>
 uv run python -m epistemics.ledger cohere-a <roots...> --output <file>
 uv run python -m epistemics.ledger cohere-b <roots...> --output <file>
+uv run python -m epistemics.ledger statements-validation --output <file>
+uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
+uv run python -m epistemics.ledger statements-a <roots...> --output <file>
+uv run python -m epistemics.ledger statements-b <roots...> --output <file>
 uv run python -m epistemics.ledger screen-validation --output <file>
 uv run python -m epistemics.ledger screen-a <roots...> --output <file>
 uv run python -m epistemics.ledger screen-b <roots...> --output <file>
@@ -172,6 +176,11 @@ def main():
     b3.add_argument("--output", type=Path, required=True)
     sub.add_parser("screen-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("cohere-validation").add_argument("--output", type=Path, required=True)
+    sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
+    for name in ("statements-probe", "statements-a", "statements-b"):
+        sp = sub.add_parser(name)
+        sp.add_argument("roots", type=Path, nargs="+")
+        sp.add_argument("--output", type=Path, required=True)
     for name in ("cohere-a", "cohere-b"):
         ca = sub.add_parser(name)
         ca.add_argument("roots", type=Path, nargs="+")
@@ -444,6 +453,29 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command.startswith("statements-"):
+        from epistemics.ledger import statements as statements_ledger
+
+        if a.command == "statements-validation":
+            run = statements_ledger.validation()
+            summary = {"passed": run["passed"], "law_rates": run["law_rates"]}
+        elif a.command == "statements-probe":
+            run = statements_ledger.probe(a.roots)
+            summary = {"flagged": run["flagged"]}
+        elif a.command == "statements-a":
+            run = statements_ledger.stage_a(a.roots)
+            summary = {
+                "incomplete": run["incomplete"],
+                "H1": {k: v["departing"] for k, v in run["H1_readings_differ"]["slots"].items()},
+                "H2": {law: run["H2_order_or_path"][law]["departing"] for law in ("order", "path")},
+                "H3": run["H3_content"]["departing"],
+            }
+        else:
+            run = statements_ledger.stage_b(a.roots)
+            summary = {"passed": run["passed"]}
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(summary, indent=2))
     elif a.command in ("cohere-validation", "cohere-a", "cohere-b"):
         from epistemics.ledger import cohere_sets
 

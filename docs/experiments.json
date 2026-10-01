@@ -1004,7 +1004,7 @@
       "roots": [],
       "status": "complete",
       "prediction": "Design only. Readings (one weight per slot) are open and expected to differ. The order and path laws may be at ceiling. Stepwise cases show only the newest change, so the path law tests integration across the trajectory.",
-      "outcome": "Design note written; nothing built. Composite statements from a public-domain FOMC sentence bank, unnamed central bank. Changes to the previous statement as the evidence unit. Stepwise (two orders) and whole conditions in a Latin square over 3 sessions per configuration. Model: readings, prior use gamma, averaging eta, step gain beta, retention alpha. Six decisions pending; stage A about 15M plus a 1M datability probe."
+      "outcome": "Built model 0.20.0, design 0.21.0, tasks 0.30.0 (fingerprint 02afef8e) with the recommended defaults: modules statement-{a,b}{1,2,3} (Latin square: each sequence stepwise in orders A and B and whole across a configuration's three sessions), statement-probe-{a,b}, 'sequences' order, presets statements-a/b (24 runs) and statements-probe-a/b (Luna, Astra). 24 cases per session (sequences of 1-6 changes paired by size, 2 anchors); dilution zeta added to the model. Validation (300 simulated configurations): readings r 0.86-0.88, prior use 0.95, retention 0.93, step gain and averaging 0.80 (at the threshold, exploratory in stage A), dilution 0.57; law tests' false departures 3-6%, power 0.61-0.84 against fading, averaging, over-reaction and dilution. Task validation passed on both seeds (3,696 cases, 159 contexts). Next: datability probe (about 1M), then stage A (24 sessions, about 15M); awaiting go-ahead."
     }
   ],
   "next": [

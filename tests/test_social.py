@@ -130,6 +130,8 @@ def test_runner_accepts_every_module_variant_and_cover_the_audit_renders():
                     group["order"] = "refer-back"
                 if variant == "cohere":
                     group["order"] = "sets"
+                if module.startswith("statement-") and not module.startswith("statement-probe"):
+                    group["order"] = "sequences"
                 runner.check_groups([{**group, "contexts": [(variant, cover, 1)]}])
 
 

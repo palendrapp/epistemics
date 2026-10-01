@@ -76,6 +76,10 @@ for entry in plan["runs"]:
         record["screen"] = a["screen"]
     elif "cohere" in a:
         record["cohere"] = a["cohere"]
+    elif "statement" in a:
+        record["statement"] = a["statement"]
+    elif "statement_probe" in a:
+        record["statement_probe"] = a["statement_probe"]
     elif "social" in a:
         record["social"] = {"headline": a["social"]["headline"],
                             "parameters": a["social"]["parameters"]}
@@ -173,6 +177,17 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
+    if "statement" in record:
+        s = record["statement"]
+        steps = s["stylistic_steps"]
+        return {
+            **base,
+            "rotation": s["rotation"],
+            "stylistic_step": float(np.mean(np.abs(steps))) if steps else None,
+            "anchors_ok": s["anchors_ok"],
+        }
+    if "statement_probe" in record:
+        return {**base, "flagged": record["statement_probe"]["flagged"]}
     if "cohere" in record:
         c = record["cohere"]
         return {

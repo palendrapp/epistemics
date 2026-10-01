@@ -38,6 +38,9 @@ from epistemics.disposition_tasks.render import (
     RANGE_VARIANTS,
     SCREEN_MODULES,
     SCREEN_VARIANTS,
+    STATEMENT_MODULES,
+    STATEMENT_PROBE_MODULES,
+    STATEMENT_VARIANTS,
     STRUCTURE_LOAD_MODULES,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
@@ -103,7 +106,25 @@ TOLERANCE = {
     "screen_contrast": 0.3,
     # Coherence sets: the shrinkage d within 0.05 of the respondent's from one session (low noise).
     "cohere_d": 0.05,
+    # Statements: each slot's mean step (beta times its reading) within 0.25 log-odds of the
+    # respondent's from one session at report noise 0.05; stylistic steps within 0.1 on average.
+    "statement_step": 0.25,
+    "statement_content": 0.1,
+    # Statement probe: each period's probability as answered.
+    "statement_probe": 0.011,
 }
+# A Bayesian combiner with distinct readings per slot (the pipeline check).
+STATEMENT_RESPONDENT = {
+    "w": {"activity": 0.6, "inflation": 0.8, "risks": 0.5, "guidance": 1.0, "vote": 0.4},
+    "tilt": 0.0,
+    "c": 0.0,
+    "gamma": 1.0,
+    "eta": 0.0,
+    "beta": 1.0,
+    "alpha": 1.0,
+    "tau": 0.05,
+}
+PROBE_RESPONDENT = {"periods": [0.15, 0.3, 0.35, 0.2]}
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
 LONG_LOAD_RESPONDENT = {
@@ -374,7 +395,57 @@ def cohere_audit():
     return out
 
 
+def statement_audit():
+    """Statements: the Latin square (every sequence in every condition once per form); in a
+    "sequences" order each sequence's cases are consecutive and in step order; a stepwise case
+    shows exactly its one change and a whole case all of them; no case names a year or a rate
+    level; the probe's four questions about a statement share its case text."""
+    import random
+
+    from epistemics.dispositions import statements
+
+    for form in statements.FORMS:
+        seen = {}
+        for r in statements.ROTATIONS:
+            items = statements.design(form, r)
+            for k, c in set(
+                zip(items["sequence"].tolist(), items["condition"].tolist(), strict=True)
+            ):
+                if k >= 0:
+                    seen.setdefault(k, []).append(c)
+        if any(sorted(v) != sorted(statements.CONDITIONS) for v in seen.values()) or len(seen) != 6:
+            raise ValueError(f"Statements form {form}: not a Latin square")
+    for module in STATEMENT_MODULES:
+        items = items_for(module)
+        order = statements.sequences_order(items, random.Random(1))
+        for k in set(items["sequence"].tolist()) - {-1}:
+            spots = [p for p, i in enumerate(order) if items["sequence"][i] == k]
+            steps = [int(items["step"][order[p]]) for p in spots]
+            if spots != list(range(spots[0], spots[0] + len(spots))) or steps != sorted(steps):
+                raise ValueError(f"{module}: a sequence is split or out of step order")
+        for i in range(CASES):
+            case = render(module, "markets", i, "statement")
+            text = case["case"]
+            shown = len(re.findall(r"now reads", text))
+            expected = {"step": 1, "whole": int(items["n"][i])}.get(str(items["kind"][i]), 0)
+            if shown != expected:
+                raise ValueError(f"{module}/{i}: shows {shown} changes, not {expected}")
+            if re.search(r"\b(19|20)\d\d\b", text) or "percent" in text.lower():
+                raise ValueError(f"{module}/{i}: names a year or a rate level")
+    for module in STATEMENT_PROBE_MODULES:
+        items = items_for(module)
+        for k in range(6):
+            idx = np.flatnonzero(items["sequence"] == k)
+            if len({render(module, "markets", int(i), "statement")["case"] for i in idx}) != 1:
+                raise ValueError(f"{module}: a statement's questions do not share its case")
+    from epistemics.disposition_tasks.statement_texts import STYLE_TEXT
+
+    return {"latin_square": True, "stylistic_pairs": {k: list(v) for k, v in STYLE_TEXT.items()}}
+
+
 def variants_of(module):
+    if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
+        return STATEMENT_VARIANTS
     if module in COHERE_MODULES:
         return COHERE_VARIANTS
     if module in SCREEN_MODULES:
@@ -436,6 +507,8 @@ def covers_of(module):
         + V32_MODULES
         + SCREEN_MODULES
         + COHERE_MODULES
+        + STATEMENT_MODULES
+        + STATEMENT_PROBE_MODULES
         else COVERS
     )
 
@@ -502,7 +575,12 @@ def audit():
                 keys = {
                     (c["case"], c["question"])
                     if module
-                    in V3_MODULES + V31_MODULES + V32_MODULES + SCREEN_MODULES + COHERE_MODULES
+                    in V3_MODULES
+                    + V31_MODULES
+                    + V32_MODULES
+                    + SCREEN_MODULES
+                    + COHERE_MODULES
+                    + STATEMENT_PROBE_MODULES
                     else c["case"]
                     for c in cases
                 }
@@ -595,6 +673,7 @@ def audit():
         "cases": count,
         "screen_openness": screen_audit(),
         "cohere_openness": cohere_audit(),
+        "statements": statement_audit(),
     }
 
 
@@ -674,6 +753,10 @@ def contexts_to_validate():
         family = module.split("-")[1]
         truth = {"params": screen.observer_mid(family), "d": 0.08, "tau": 0.05}
         yield module, "markets", "cohere", truth
+    for module in STATEMENT_MODULES:
+        yield module, "markets", "statement", STATEMENT_RESPONDENT
+    for module in STATEMENT_PROBE_MODULES:
+        yield module, "markets", "statement", PROBE_RESPONDENT
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -684,6 +767,26 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "statement" in analysis:
+        # A Bayesian combiner's mean step on each slot's changes is its reading (beta 1, tilt 0);
+        # stylistic changes move nothing; anchors at their answers.
+        s = analysis["statement"]
+        errors = [abs(v - truth["w"][slot]) for slot, v in s["step_readings"].items()]
+        content = float(np.mean(np.abs(s["stylistic_steps"]))) if s["stylistic_steps"] else 0.0
+        ok = (
+            s["anchors_ok"]
+            and len(errors) == len(truth["w"])
+            and max(errors) <= TOLERANCE["statement_step"]
+            and content <= TOLERANCE["statement_content"]
+        )
+        return float(max(errors)), bool(ok)
+    if "statement_probe" in analysis:
+        errors = [
+            abs(p - truth["periods"][k])
+            for row in analysis["statement_probe"]["statements"]
+            for k, p in enumerate(row["periods"].values())
+        ]
+        return float(max(errors)), bool(max(errors) <= TOLERANCE["statement_probe"])
     if "cohere" in analysis:
         # The respondent's shrinkage recovered from all its sets, anchors at their answers.
         from epistemics.dispositions import cohere

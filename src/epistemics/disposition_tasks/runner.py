@@ -43,6 +43,9 @@ from epistemics.disposition_tasks.render import (
     RANGE_VARIANTS,
     SCREEN_MODULES,
     SCREEN_VARIANTS,
+    STATEMENT_MODULES,
+    STATEMENT_PROBE_MODULES,
+    STATEMENT_VARIANTS,
     UNPROMPTED_MODULES,
     UNPROMPTED_VARIANTS,
     URN2_VARIANTS,
@@ -152,6 +155,7 @@ AUDITED_CASES = (
     + 24 * len(V32_MODULES) * len(V32_VARIANTS)
     + 24 * len(SCREEN_MODULES) * len(SCREEN_VARIANTS)
     + 24 * len(COHERE_MODULES) * len(COHERE_VARIANTS)
+    + 24 * len(STATEMENT_MODULES + STATEMENT_PROBE_MODULES) * len(STATEMENT_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -296,6 +300,25 @@ PRESETS["cohere-a"] = (
         "order": "sets",
     },
 )
+# Central-bank statements (docs/statement-updating-design.md): each configuration takes the three
+# sessions of a form's Latin square, in "sequences" order; the datability probe first, on two
+# configurations.
+for _form in "ab":
+    PRESETS[f"statements-{_form}"] = (
+        {
+            "configurations": SCREEN_EIGHT,
+            "modules": tuple(f"statement-{_form}{r}" for r in (1, 2, 3)),
+            "contexts": (("statement", "markets", 1),),
+            "order": "sequences",
+        },
+    )
+    PRESETS[f"statements-probe-{_form}"] = (
+        {
+            "configurations": ("luna", "astra"),
+            "modules": (f"statement-probe-{_form}",),
+            "contexts": (("statement", "markets", 1),),
+        },
+    )
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -382,6 +405,8 @@ ORDER_POLICIES = (
     "comparison-first",
     # Coherence sets: members of each set at least 4 cases apart.
     "sets",
+    # Statements: each sequence's cases consecutive and in step order.
+    "sequences",
 )
 
 
@@ -431,6 +456,10 @@ def arrange(module, policy, rng):
         from epistemics.dispositions import cohere
 
         return cohere.sets_order(items_for(module), rng)
+    if policy == "sequences":
+        from epistemics.dispositions import statements
+
+        return statements.sequences_order(items_for(module), rng)
     order = list(range(CASES))
     rng.shuffle(order)
     if policy == "random":
@@ -479,6 +508,7 @@ def check_groups(groups):
             + V32_VARIANTS
             + SCREEN_VARIANTS
             + COHERE_VARIANTS
+            + STATEMENT_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -492,6 +522,8 @@ def check_groups(groups):
                     v3 = module.startswith("coherence-")
                     if (policy == "sets") != (module in COHERE_MODULES):
                         raise ValueError("Coherence-set modules need, and only they take, sets")
+                    if (policy == "sequences") != (module in STATEMENT_MODULES):
+                        raise ValueError("Statement modules need, and only they take, sequences")
                     if v3:
                         if (policy == "refer-back") != (variant == "v3-loaded"):
                             raise ValueError(
@@ -502,7 +534,7 @@ def check_groups(groups):
                     elif policy == "comparison-first" and module not in RANGE_MODULES:
                         raise ValueError("comparison-first needs a relative-judgement module")
                     elif (
-                        policy not in ("random", "comparison-first", "sets")
+                        policy not in ("random", "comparison-first", "sets", "sequences")
                         and module not in CUE_MODULES
                     ):
                         raise ValueError("Order policies other than random need a cue module")
@@ -788,6 +820,17 @@ def headline(analysis):
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
         }
+    if "statement" in analysis:
+        s = analysis["statement"]
+        steps = s["stylistic_steps"]
+        return {
+            "parameter": "statement",
+            "rotation": s["rotation"],
+            "stylistic_step": float(np.mean(np.abs(steps))) if steps else None,
+            "anchors_ok": s["anchors_ok"],
+        }
+    if "statement_probe" in analysis:
+        return {"parameter": "statement-probe", "flagged": analysis["statement_probe"]["flagged"]}
     if "cohere" in analysis:
         c = analysis["cohere"]
         return {

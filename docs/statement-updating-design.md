@@ -1,6 +1,6 @@
 # Central-bank statements as sequential evidence (design note)
 
-Design, 1 October 2026. Nothing is built or collected. The coherence-set work is parked after its stage A ([results](screen-coherence-design.md#stage-a-results-1-october)).
+Design, 1 October 2026; built the same day with the recommended defaults (model 0.20.0, design 0.21.0, tasks 0.30.0; see [Built](#built)). Nothing is collected yet. The coherence-set work is parked after its stage A ([results](screen-coherence-design.md#stage-a-results-1-october)).
 
 ## Why
 
@@ -71,9 +71,9 @@ Write ℓ for the log-odds of a cut at the next meeting, ℓ₀ for the stated m
 
 **Stepwise:**
 
-  ℓₜ = ℓₜ₋₁ + *β*·λₑₜ − (1 − *α*)·(ℓₜ₋₁ − ℓ₍₀₎) + noise
+  ℓₜ = ℓₜ₋₁ + *β*·λₑₜ − (1 − *α*)·(ℓₜ₋₁ − ℓ₍₀₎) − *ζ*·ℓₜ₋₁·[stylistic change] + noise
 
-where ℓ₍₀₎ = *c* + *γ*·ℓ₀ + noise is the agent's own answer before any change. With *α* = *β* = 1 and *η* = 0, the final stepwise answer equals the whole-statement answer.
+where ℓ₍₀₎ = *c* + *γ*·ℓ₀ + noise is the agent's own answer before any change. With *α* = *β* = 1 and *η* = *ζ* = 0, the final stepwise answer equals the whole-statement answer.
 
 | Parameter | What it is | Bayesian value |
 | --- | --- | --- |
@@ -82,11 +82,12 @@ where ℓ₍₀₎ = *c* + *γ*·ℓ₀ + noise is the agent's own answer before
 | Averaging *η* | 0 adds the evidence; 1 averages it, so more changes do not move the answer further, and stylistic changes dilute it (Anderson 1981; Nisbett, Zukier & Lemley 1981) | 0 |
 | Step gain *β* | Stepwise steps relative to the agent's own whole-statement reading | 1 |
 | Retention *α* | 1 keeps earlier evidence; below 1 it fades, giving recency | 1 |
+| Dilution *ζ* | A pull towards 50% on a change that carries no information (added in the build, so that the model separates it from fading) | 0 |
 | Noise *τ* | Report noise on the log-odds scale | — |
 
 **Identification.**
 - Readings and prior use come mainly from the whole-statement answers. The changes vary across sequences, and the stated prior is varied (15, 30, 50 and 70%).
-- *η* comes from sequences with different numbers of changes (2, 4 and 6).
+- *η* comes from sequences with different numbers of changes (1 to 6).
 - *β* and *α* come from comparing the steps with the agent's own whole-statement reading, and from the two orders.
 
 This is the key move: **there is no true λ for natural text, so the agent's own whole-statement answers define its reading, and the stepwise process is measured against them.** Accuracy is never needed. *β* and the readings are separated because both orders and the whole statement share the same λ.
@@ -99,7 +100,7 @@ This is the key move: **there is no true λ for natural text, so the agent's own
 
 - **Six sequences per form.** Each has a previous statement, a new statement, and its own stated prior.
 - **Statements are composites.** They are built from a bank of sentences adapted from real FOMC statements (US government works, so public domain). The committee belongs to an unnamed central bank; dates, rate levels and named events are removed; and a phrase tied to one period is paraphrased. See [Contamination](#contamination).
-- **Changes per sequence:** 2, 4 or 6 (two sequences each). Each sequence has at least one stylistic change. About half have conflicting directions.
+- **Changes per sequence:** 1 to 6, one sequence each (changed from 2, 4 or 6 in the build, because the runner fixes sessions at 24 cases). Every sequence but the one-change sequence has at least one stylistic change. Half have conflicting directions.
 - **Slots** (changed in the dovish or hawkish direction):
   - economic activity;
   - inflation;
@@ -107,8 +108,8 @@ This is the key move: **there is no true λ for natural text, so the agent's own
   - forward guidance;
   - the vote (a dissent preferring a cut or a rise).
 - **Sessions:** three per configuration per form.
-  - Each session has two sequences in order A, two in order B and two whole, rotating across the three sessions.
-  - The pairing keeps every session at 24 sequence cases, plus 2 anchors, so 26 cases.
+  - The sequences are paired by size ({1, 6}, {2, 5}, {3, 4}: 7 changes per pair). Each session has one pair in order A, one in order B and one whole, rotating across the three sessions.
+  - Every session therefore has 9 + 9 stepwise cases, 4 whole-condition cases and 2 anchors: 24.
   - Each sequence's cases are consecutive, and the anchors sit between sequences.
 - **Anchors:** "the probability that the committee changed its policy rate at this meeting", where the statement says it held (0), or that it lowered (1). They check comprehension.
 - **Two parallel forms**, `a` and `b`, with different statements, for the retest.
@@ -120,17 +121,30 @@ This is the key move: **there is no true λ for natural text, so the agent's own
 
 The models will know what followed famous statements, so the "update" could be recall.
 - **Composites** match no real statement, so there is no outcome to recall.
-- **A datability probe** (validation): for each previous statement, the probability that it was issued in each of four periods (before 2005, 2005–2012, 2013–2019, 2020 or later). Any statement that a configuration places in one period with more than 0.6 is rewritten.
+- **A datability probe** (validation): each sequence's previous and new statements together, with the probability that statements worded like these were written in each of four periods (before 2005, 2005–2012, 2013–2019, 2020 or later). Any statement pair that a configuration places in one period with more than 0.6 is rewritten. (Built with both statements, so that every changed phrase is probed.)
 - **No market truth** exists for composites. The task measures the laws and the differences between configurations, not accuracy. A benchmark against market reactions would need real statement pairs with published surprise series (Kuttner 2001; Gürkaynak, Sack & Swanson 2005). Those are exposed to recall, so this is left as an optional later stage (decision 2).
 
 ## Analysis (to be preregistered before collection)
 
-**Per configuration:** the three laws, each against the noise floor, and the model's parameters by grid posterior. The readings and *γ* enter linearly given (*η*, *β*, *α*, *τ*), so they are integrated analytically on a grid over the other four.
+**Per configuration:** a configuration's three sessions are pooled.
+- **The model's parameters** by grid posterior. The readings, tilt, *ζ*, *c* and *γ* enter linearly given (*η*, *β*, *α*, *τ*), so they are integrated analytically on a grid over the other four.
+- **The three laws, model-free:**
+  - order: the mean absolute difference between the final answers in orders A and B, over the five multi-change sequences;
+  - path: the mean absolute difference between each order's final answer and the whole-statement answer;
+  - content: the mean absolute step on stylistic changes.
+- **Calibration of each law.** A law's statistic is set against simulations of a Bayesian combiner (*η* = *ζ* = 0, *β* = *α* = 1) with the configuration's own fitted readings, prior use and report noise, answering the same three sessions 1,000 times. A configuration departs if *p* < 0.05 and the statistic is at least a practical threshold: 0.2 log-odds for order and path, 0.1 for content.
+- **Reported alongside:**
+  - the recency index (the final-answer difference signed by the last change's direction against the first's; positive is recency, negative primacy);
+  - the overshoot (stepwise beyond the whole-statement answer);
+  - dilution (stylistic steps towards 50%);
+  - the retest of the one-change sequence, whose two stepwise presentations are identical.
 
-**Stage A hypotheses (form `a`):**
-1. **Readings differ.** For at least one slot, configurations' readings spread by at least twice the noise, and at least three configurations depart from the median by *δ* (1/8 of the plausible range), as in the screen's stage A.
-2. **Laws.** At least one configuration departs from the order or path law beyond the calibrated noise. If none does, path-independent integration is at ceiling, and that is reported as a finding.
-3. **Content.** Whether any configuration moves on stylistic changes beyond noise.
+**Stage A hypotheses (form `a`), preregistered:**
+1. **Readings differ.** For at least one slot, at least three configurations depart from the configurations' median reading by *δ* = 0.25 log-odds (1/8 of the plausible range, 0–2), with their 90% interval excluding the median.
+2. **Laws.** At least one configuration departs from the order or the path law (Holm across the eight configurations, per law). If none does, path-independent integration is at ceiling, and that is reported as a finding.
+3. **Content.** Whether any configuration departs from the content law (Holm across configurations).
+
+Configurations missing one of their three sessions are listed and analysed on what they have.
 
 **Stage B (form `b`):** consistency ICC across forms for each parameter and law, permutation test, Holm across them.
 
@@ -158,7 +172,7 @@ The models will know what followed famous statements, so the "update" could be r
 
 ## Cost (provisional)
 
-- **Stage A:** 8 configurations × 3 sessions = 24 sessions of 26 cases. The cases are longer than the screen's (a full previous statement each), so about 15 million tokens.
+- **Stage A:** 8 configurations × 3 sessions = 24 sessions of 24 cases. The cases are longer than the screen's (a full previous statement each), so about 15 million tokens.
 - **Datability probe:** 2 sessions, about 1 million.
 - **Stage B:** the same as stage A.
 
@@ -177,7 +191,7 @@ The models will know what followed famous statements, so the "update" could be r
 - **Interacting readings** would show as misfit of the additive model. The laws are unaffected.
 - **Seeing earlier answers.** In stepwise sessions the agent sees its own earlier answers; that is intended. The whole-statement condition is always in a different session from the same sequence's stepwise conditions.
 
-## Decisions for you
+## Decisions (taken 1 October: the recommendations)
 
 1. **Unit of evidence:** changes to the previous statement (recommended), or the new statement streamed sentence by sentence. Streaming is closer to your first idea, but its order cannot be varied naturally and it has no clean stylistic controls.
 2. **Source:** composite statements from a public-domain sentence bank, with an unnamed central bank (recommended). Or edited real statements, or real consecutive pairs with a market benchmark (exposed to recall; an optional later stage).
@@ -188,3 +202,82 @@ The models will know what followed famous statements, so the "update" could be r
    - a trade after the final change, which tests stated against revealed belief.
 5. **Datability probe:** two configurations (recommended, about 1 million), all eight, or none.
 6. **Budget:** about 16 million for stage A with the probe.
+
+## Built
+
+Built on 1 October 2026 as model 0.20.0, design 0.21.0, tasks 0.30.0, with the recommended defaults.
+
+**Code:**
+- **Designs, model, fit, laws and simulated respondents:** `dispositions/statements.py`.
+- **Sentence bank and rendering:** `disposition_tasks/statement_texts.py`.
+- **Ledger:** `ledger/statements.py`, with the commands `statements-validation`, `statements-probe`, `statements-a` and `statements-b`.
+- **Modules:**
+  - `statement-a1` to `statement-a3` and `statement-b1` to `statement-b3`: form `a` or `b`, session 1–3 of the Latin square;
+  - `statement-probe-a` and `statement-probe-b`;
+  - variant `statement`.
+- **Order policy `sequences`:** each sequence's cases are consecutive and in step order; sequences and anchors come in random order. The runner requires it for the statement modules and refuses it elsewhere.
+- **Presets:**
+  - `statements-a` and `statements-b`: 24 runs each, the eight configurations × three sessions;
+  - `statements-probe-a` and `statements-probe-b`: Luna and Astra, 2 runs each.
+
+**Deviations from the note above:**
+- **24 cases, not 26.** The runner fixes sessions at 24 cases. The six sequences have 1 to 6 changes and are paired by size (7 changes per pair), with 2 anchors.
+- **Dilution *ζ*** was added to the model. Without it, a pull towards 50% on stylistic changes would be read as fading.
+- **Orders.** In every multi-change sequence, the first and last changes of order A differ in direction, so the recency index is defined for all five. In the first draft, most started and ended with the same direction.
+- **The probe shows both statements of a sequence**, so that every changed phrase is probed.
+- **Grids.** The grids are finer (*η* and *α* in steps of 0.05, *β* in steps of 0.0625), and grid intervals are widened by half a step. With *α* in steps of 0.1, its 90% intervals covered the truth only 63% of the time.
+
+**Validation** (`output/statements-validation-20261001.json`, sha256 `88d7aaa7…`).
+
+Recovery used 300 simulated configurations: three sessions of form `a` each, drawn across the plausible ranges, with report noise 0.1–0.5.
+
+| Parameter | *r* | 90% coverage |
+| --- | --- | --- |
+| Readings (five slots) | 0.86–0.88 | 0.89–0.92 |
+| Prior use *γ* | 0.95 | 0.89 |
+| Retention *α* | 0.93 | 0.94 |
+| Step gain *β* | 0.80 | 0.89 |
+| Averaging *η* | 0.80 | 0.93 |
+| Dilution *ζ* | 0.57 | 0.87 |
+| Tilt | 0.93 | 0.91 |
+
+- **The readings and prior use pass clearly.** They carry the stage A hypotheses.
+- ***β* and *η* are at the threshold.** They are identified by only six whole-statement answers per configuration. They are exploratory in stage A, and their reliability is stage B's question.
+- ***ζ* recovers poorly** (only 12 stylistic steps per configuration), so it is reported but not interpreted on its own.
+- **Confusion** among the combining parameters, and with the readings' scale and prior use, is at most 0.22 (*β* with *ζ*).
+
+**Law tests** (200 simulated configurations per row, each test calibrated with 200 null simulations): the rate at which a configuration is called departing.
+
+| Simulated configurations | Order | Path | Content |
+| --- | --- | --- | --- |
+| Bayesian (false departures) | 0.06 | 0.05 | 0.03 |
+| Fading (*α* 0.6) | 0.64 | 0.80 | 0.84 |
+| Averaging (*η* 0.6) | 0.05 | 0.82 | 0.01 |
+| Over-reacting (*β* 1.6) | 0.02 | 0.61 | 0.00 |
+| Diluting (*ζ* 0.3) | 0.43 | 0.36 | 0.83 |
+
+False departures are at most 6%.
+
+Each law answers to different departures:
+- **The order law** detects fading.
+- **The path law** detects fading, averaging and over-reaction.
+- **The content law** detects fading and dilution.
+
+Fading also moves stylistic steps, towards the agent's own starting answer. The fit separates fading (*α*) from dilution (*ζ*).
+
+**Task validation 0.30.** It passed on both seeds: 3,696 cases and 159 contexts.
+- A Bayesian respondent's step readings were recovered within 0.10 log-odds in every statement session (tolerance 0.25).
+- The probe sessions were recovered exactly.
+- The Latin square, the `sequences` order, one change per stepwise case and the absence of years were all audited.
+
+Hashes:
+- Fingerprint `02afef8ec8985fa2588d19993f0d2f2d5f468bde0c14bb44394299be54c2515c`.
+- Seed 20260927: `518dead1e640fb99e64514a96b5d2afe21b7154151ea1d931654535e10cdf33c`.
+- Seed 20261027: `51fe000d0e0ae16ff14ae08d8923fddcf86141a64317790301311c1e967cbe44`.
+
+### Stage A (planned, awaiting your go-ahead)
+
+1. **Datability probe:** preset `statements-probe-a`, Luna and Astra, about 1 million tokens. Any statement pair placed in one period above 0.6 is rewritten before stage A (a new version).
+2. **Stage A:** preset `statements-a`, 24 sessions, cap 20 million tokens (about 15 million expected), 1,800 seconds per run.
+   - Analysis: `uv run python -m epistemics.ledger statements-a <roots...> --output <file>`.
+   - It reports per configuration the fitted parameters, the three laws with their calibrated tests, the recency index, overshoot and dilution, and hypotheses 1–3.

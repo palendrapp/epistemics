@@ -36,6 +36,12 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return coherence_responses(items, truth, rng)
     if module.startswith(("decision-", "decision2-")):
         return decision_responses(items, truth, rng)
+    if module.startswith("statement-"):
+        from epistemics.dispositions import statements
+
+        if module.startswith("statement-probe-"):
+            return statements.respond_probe(items, truth, rng)
+        return statements.respond(items, truth, rng)
     if module.startswith("cohere-"):
         from epistemics.dispositions import cohere
 
