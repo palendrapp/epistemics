@@ -976,6 +976,22 @@
       "status": "complete",
       "prediction": "Design only. Motivation: in F4, GPT-5.6 is subadditive (direct none 0.10-0.17, listed answers leave 0.00-0.14) while GPT-6 is coherent (gaps -0.11 to +0.06). Model: Bayesian sampler (shrinkage d, precision N), with support theory as the rival; open against computable sets; bias, variance and coherent bias separated.",
       "outcome": "Built model 0.19.0, design 0.20.0, tasks 0.29.0 (fingerprint e3e31a91): modules cohere-{num,lists,trend}-{d,e}, 20 set members and 4 anchors each, 'sets' order (members at least 4 apart). Law-based fit: atoms ~ Dirichlet(alpha) with alpha integrated out (alpha fixed at 1 read even beliefs as shrinkage: 30-45% false incoherence in F4). Validation: d recovery r 0.92-0.96, coverage 0.91-0.95, false incoherence 0-7%. Task validation passed on both seeds. Stage A (preset cohere-a, 24 sessions, about 11M) awaiting go-ahead."
+    },
+    {
+      "id": "cohere-stage-a",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Coherence sets, stage A",
+      "question": "Do configurations violate the laws of probability on open sets (Bayesian-sampler shrinkage d > 0), more than on computable sets, and are GPT-5.6 configurations more incoherent than GPT-6?",
+      "doc": "docs/screen-coherence-design.md",
+      "roots": [
+        "output/cohere-stage-a-20261001",
+        "output/cohere-stage-a-20261001-topup"
+      ],
+      "status": "complete",
+      "prediction": "Preregistered (design note): H1 some configurations' open-set d has its 90% interval above 0; H2 open d > computable d for most; H4 Luna and Terra above every GPT-6 configuration in each family.",
+      "outcome": "24 sessions (12 plus a 12-session top-up after the machine slept: two runs passed their wall-clock deadline and admission stopped; the partial sessions are discarded), 11.4M tokens counted, no tool errors, all anchors passed. H1: Terra (F4), Sol and Sol-low (F5); none in F2. H2 holds in F2 and F5 (8/8) and fails in F4 (2/8), mostly reflecting how informative the computable sets are. H4 fails in every family. Most answers are coherent (13 of 24 sessions within 0.02 on every open partition; disjunctions exact; nesting never violated). The incoherence is not sampler shrinkage: in F4, Terra and Sol-low give listed causes exactly 1/n and answer 'none' on top, so the excess equals the 'none' answer and falls with k (Terra 0.30, 0.24, 0.20), the reverse of (k-2)d, with a disjunction residual of 0 (partition dependence, Fox & Rottenstreich 2003). In F5, 3-bin partitions sum to 1 while 5-bin ones over-sum (Sol 1.37, Sol-low 1.24). Sol-low is the only configuration above d 0.04 in all three families."
     }
   ],
   "next": [

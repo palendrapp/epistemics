@@ -192,9 +192,83 @@ All pass (*r* ≥ 0.8, coverage ≥ 0.8, confusion ≤ 0.3, false incoherence �
 - Seed 20260927: `318c799259c570631d1c875f9597be8a93556b43b95d17c48cb21abb632b9c69`.
 - Seed 20261027: `ca31e578339d7ff5dad8ef3991a8192429efe21f374ebefa600340ed74c3c042`.
 
-### Stage A (planned, awaiting your go-ahead)
+### Stage A
 
 - **Sessions:** preset `cohere-a`, 24 sessions (eight configurations × F2, F4 and F5, form `d`, `sets` order).
 - **Limits:** cap 15 million tokens (about 11 million expected), 1,800 seconds per run.
 - **Analysis:** `uv run python -m epistemics.ledger cohere-a <root> --output <file>`. It reports per configuration and family: *d* for open and computable sets, *τ*, each law's residual, and hypotheses 1, 2 and 4.
+
+## Stage A results (1 October)
+
+**Collection.** The first collection (`output/cohere-stage-a-20261001`) stopped after 12 of 24 sessions. The machine slept, two runs passed their wall-clock deadline after 82 seconds of activity, and admission stopped. The other 12 sessions were collected unchanged (same fingerprint and validations) in `output/cohere-stage-a-20261001-topup`; the two partial sessions are discarded.
+- 24 sessions; 11.4 million tokens counted, plus the two partial runs, whose usage was not recorded.
+- No tool errors. Every session passed its anchors.
+- Summary: `output/cohere-stage-a-summary-20261001.json`.
+
+**Preregistered hypotheses (form `d`):**
+
+| Hypothesis | F2 | F4 | F5 |
+| --- | --- | --- | --- |
+| H1: open *d*'s 90% interval above 0 | none | Terra | Sol, Sol-low |
+| H2: open *d* above computable *d* | 8 of 8 (holds) | 2 of 8 (fails) | 8 of 8 (holds) |
+| H4: Luna and Terra above every GPT-6 configuration | fails (neither) | fails (Terra only) | fails (neither) |
+
+H2 compares posterior means, so its verdict mostly reflects how informative the computable sets are:
+- In F2 and F5, every configuration answers the computable sets exactly. Computable *d* is pinned at 0, and any open *d* above 0, even Luna's 0.002, passes.
+- F4 has one computable set. It leaves *d* weakly identified (posterior mean 0.02–0.05, from the prior), so coherent configurations fail.
+- Where *d* is clearly above 0 (Terra in F4; Sol and Sol-low in F5), open *d* is above computable *d*.
+
+**Open-set *d* (posterior mean):**
+
+| Configuration | F2 | F4 | F5 |
+| --- | --- | --- | --- |
+| Astra | 0.003 | 0.010 | 0.026 |
+| Astra-low | 0.032 | 0.003 | 0.042 |
+| Astra-high | 0.017 | 0.008 | 0.031 |
+| Sol | 0.022 | 0.011 | **0.103** |
+| Sol-low | 0.053 | 0.041 | **0.078** |
+| Sol-high | 0.037 | 0.011 | 0.019 |
+| Luna | 0.002 | 0.018 | 0.000 |
+| Terra | 0.018 | **0.078** | 0.008 |
+
+Bold: 90% interval above 0.
+
+**What the answers show.** The model-free residuals tell more than *d*.
+1. **Most answers are coherent.**
+   - In 13 of 24 sessions every open partition sums to 1 within 0.02. One more, Astra's F4 session, has a single 0.05 excess.
+   - Disjunctions hold exactly in every F4 session.
+   - Nesting is never violated: the narrow window is never above the wide one.
+   - Computable sets hold within 0.01, except Luna and Terra in F2 (0.03–0.05).
+2. **F4: listed causes at 1/*n*, with "none of these" answered on top.**
+   - Terra and Sol-low give each listed cause exactly 1/*n* of the listed causes (0.5, 0.33, 0.2), so the listed causes alone sum to 1.
+   - They then answer "none of these" separately: Terra 0.30, 0.25, 0.20; Sol-low 0.20, 0.15, 0.10. Luna does the same with 0.05.
+   - The excess therefore equals the "none" answer. It falls as more causes are listed (Terra 0.30, 0.24, 0.20 for 3, 4 and 6 parts), the reverse of the sampler's (*k* − 2)·*d*.
+   - The sampler also predicts a disjunction residual of *d*. Terra's is 0 at a fitted *d* of 0.08.
+   - Other GPT-6 configurations keep the sum in one of two ways. Astra shrinks the listed causes, leaving 0.25–0.40 for "none". Sol and Sol-high, with five causes listed, give 0.2 each and "none" 0.
+   - This is partition dependence: answers biased towards 1/*n* over the options the question names (Fox & Rottenstreich 2003; Fox & Clemen 2005). Here *n* is the listed causes, and the residual category is judged on its own.
+3. **F5 (and F2 for some): fine partitions over-sum where coarse ones do not.**
+   - 3-bin partitions sum to 1 in every F5 session, but 5-bin partitions over-sum: Sol 1.37, Sol-low 1.24, Luna 1.15. In F2: Sol-low 1.20, Sol-high 1.11.
+   - The sampler predicts the 3-bin excess at a third of the 5-bin excess, here 0.08–0.12; it is 0.
+   - The identity sets stay near 0 for Sol and Sol-low in F5 (0.01, −0.04), so this is not general subadditivity of disjunctions. Sol-low's F2 identity is the exception (0.16).
+4. **Other departures.**
+   - Terra's F2 partitions under-sum (0.91, 0.93). The sampler cannot produce this, since *d* ≥ 0.
+   - Luna's F2 departures go both ways: 3-bin +0.15, 5-bin +0.06, identity −0.10, computable complement +0.05, with report noise *τ* 0.39. This is noise more than a systematic bias.
+
+**Exploratory (H5, descriptive).**
+- Open *d* correlates weakly across families: *r* 0.13 for F2–F4, 0.49 for F2–F5, −0.17 for F4–F5.
+- Sol-low is the only configuration above 0.04 in all three families (mean 0.057, the highest).
+
+**Reading.** These results are conditional on these sets and wordings.
+- Under the battery instructions, most configurations keep their answers to open questions coherent. The laws hold within 0.02 for Astra-low and Astra-high in every family; for Astra except one 0.05; and for Sol in F2 and F4.
+- Incoherence appears in specific configuration × family cells: Terra and Sol-low in F4; Sol, Sol-low and Luna in F5's fine partitions.
+- H4 fails: in these sets, GPT-5.6 is not generally less coherent than GPT-6. Low reasoning effort (Sol-low) shows the clearest incoherence.
+- The incoherence is not mainly Bayesian-sampler shrinkage. Its signatures are absent: excess growing linearly with *k*, and a disjunction residual of *d*.
+- The fitted *d* summarises excess, not a process parameter. The model-free residuals, read per law, are the measurements that separate configurations here. Whether they are reliable is stage B's question.
+
+**Model consequence: the sampler is a special case of partition dependence.**
+- The sampler's mean, (1 − 2*d*)·*p* + *d*, equals (1 − *w*)·*p* + *w*·½ with *w* = 2*d*. That is shrinkage towards the ignorance prior of the binary partition {A, not A}.
+- Partition dependence generalises it: each answer shrinks towards 1/*n* for the partition the question suggests.
+- Two candidate parameters follow: a weight *w* and which partition is salient. In F4, *n* is the listed causes; for a single event, *n* = 2, which is the sampler.
+- With *w* = 1 over the listed causes and "none" answered from the case, a partition sums to 1 + *p*(none). That is Terra's pattern exactly.
+- F5's fine-partition excess is not explained by this yet.
 
