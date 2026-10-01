@@ -687,3 +687,41 @@ These are similar to the stage B figures for F2 and F4, and mixed for F5.
   - some configurations believe in deterministic processes.
 - **The next model:** (a) a fallback whose weight grows with the observer's own uncertainty on the item, and (b) in F5, a prior probability that the process is exact. Both can be fitted to the data already collected and judged by held-out prediction across forms. But they are being developed on these data, so a fresh form would be needed to confirm them.
 
+### Observers v3 (1 October, developed on the collected data; exploratory)
+
+`ledger/screen_fit3.py`; results in `output/screen-observers-v3-20261001.json` and `output/screen-observers-hybrid-20261001.json`. These models were developed after seeing the fallback round, so their fit to these data is exploratory, and confirming any of them needs a fresh form.
+
+**Two changes, tested separately.**
+
+**1. Uncertainty-triggered fallback (rejected).** The weight on the fallback is *m*·*o*<sub>*i*</sub>/(*o*<sub>*i*</sub> + 1), where *o*<sub>*i*</sub> is item *i*'s openness, so fixed items get none.
+- **F2:** worse for all eight configurations (log evidence −25 to −46; held-out RMSE up).
+- **F4:** marginal (+1 to +3; held-out unchanged).
+- **Recovery:** with the fallback confined to open items, it trades off against the family parameters again (F2 fallback *r* 0.63; F5 trust 0.63 and linear prior 0.64).
+
+The descriptive finding stands (configurations do not hedge on fixed-answer items), but F2's misfit on open items is not a pull towards a common default. The F2 observer itself misses something, for example GPT-6's nearly flat answers on sharp numbers.
+
+**2. Deterministic processes in F5 (supported).** With prior *δ*, the process is taken as exact: a point mass at the projection of the function family that fits the readings exactly, so "above" is strictly false at the projection itself.
+
+Combined with the constant fallback of model 0.18 (the "hybrid"):
+
+| Configuration | *δ* | Report noise, v2 → hybrid |
+| --- | --- | --- |
+| Luna | 1.00 | 0.80 → 0.50 |
+| Sol-low | 0.72 | 0.80 → 0.80 |
+| Terra | 0.63 | 0.80 → 0.80 |
+| Astra-low | 0.60 | 0.58 → 0.50 |
+| Astra-high | 0.56 | 0.50 → 0.50 |
+| Astra | 0.53 | 0.52 → 0.50 |
+| Sol-high | 0.43 | 0.80 → 0.79 |
+| Sol | 0.41 | 0.80 → 0.80 |
+
+- **Fit:** log evidence improves for all eight configurations (+2.1 to +79.1). Held-out RMSE improves for 5 of 8 on form a and 4 of 8 on form b.
+- **Recovery (200 configurations):** *δ* *r* 0.86, trust 0.98, fallback 0.96, all passing. But the linear prior (0.67) and process noise (0.71) fail: determinism absorbs part of what they explained.
+
+**Where profiles stand after v3:**
+- **F4:** fitted and separable (open-world priors and fallback), for 7 of 8 configurations.
+- **F5 (hybrid):** a separable determinism parameter and fallback; the linear prior and noise are not separable.
+- **F2:** separable in simulation, but not fitted (report noise 0.8 for 7 of 8).
+
+The candidate traits with reliable differences remain the four stage B contrasts.
+
