@@ -1122,6 +1122,19 @@
       "status": "complete",
       "prediction": "Exploratory: sixteen peer-advice cases, eight fresh and eight follow-ups mixed per session, forms swapping them; open and stated variants.",
       "outcome": "24 of 24 sessions (six GPT-6 configurations x four modules), 12.9M input tokens, no failures; tasks 0.35.0. Stated (computable): every configuration exact, fresh or follow-up (error 0.01). Open: Astra's follow-ups rounder than its fresh answers (pooled 25% to 42%), much less than on the trend cases (28% to 72%); Sol's not (35% to 23%); Astra's follow-ups mostly repeat its fresh answer (matched gap 0.08-0.12, Astra-high 0.58). Family and the mixed session are confounded."
+    },
+    {
+      "id": "passport-framing",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Framing sensitivity in the passport (readout against content)",
+      "question": "How should the split between changing how precisely a configuration reports and changing what it reports read in the passport?",
+      "doc": "docs/deliberation-style-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Record: a reading-guide topic computed from the deliberation and follow-up collections.",
+      "outcome": "Reading guide 0.5.0 adds 'How a question's framing changes its numbers'; the passport carries frame_sensitivity per configuration; the dashboard's passport table shows round answers fresh against follow-up. Rules: readout changes when round answers differ by at least 25 points, content when follow-ups sit at least 0.25 log-odds further from the configuration's own ladder than its fresh answers. Readings: the three Astra configurations rounder as follow-ups with the same answers; Sol-low the same precision with answers that move; Sol, Sol-high and Terra unchanged; Luna finer as a follow-up. Each reading marked exploratory; computed answers exact either way. The passport note lists framing sensitivity as a dimension."
     }
   ],
   "next": [

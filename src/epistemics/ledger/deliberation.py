@@ -372,14 +372,15 @@ def followups(roots):
     against the exact answer, fresh against follow-up."""
     from epistemics.ledger import dispositions
 
-    collected = {}
+    collected, sessions_ = {}, {}
     for root in roots:
         for record in dispositions.extract(root):
             if not record.get("verified") or "followup" not in record:
                 continue
             f = record["followup"]
-            entry = collected.setdefault((record["configuration"], f["variant"]), [])
-            entry += f["answers"]
+            key = (record["configuration"], f["variant"])
+            collected.setdefault(key, []).extend(f["answers"])
+            sessions_[key] = sessions_.get(key, 0) + 1
     out = {}
     for (c, variant), answers in sorted(collected.items()):
 
@@ -405,6 +406,7 @@ def followups(roots):
             if both
             else None,
             "matched": len(both),
+            "sessions": sessions_[(c, variant)],
         }
         if variant == "stated":
             for kind in ("fresh", "followup"):
@@ -416,6 +418,76 @@ def followups(roots):
         "configurations": out,
         "scope": "Exploratory: follow-up rounding on the peer-advice cases.",
     }
+
+
+FRAME_EXPERIMENTS = ("deliberation-pilot", "deliberation-followup", "deliberation-frames",
+                     "followup-advice")  # fmt: skip
+
+
+def passport_frames(roots):
+    """The passport's frame sensitivity, per configuration, from the deliberation and follow-up
+    collections:
+      readout   share of mid-range answers at multiples of 5, fresh (the ladder and the same
+                thresholds asked directly) against follow-ups (estimates after a first question:
+                the pilot's comparisons and the four frames);
+      content   distance from the configuration's own ladder, direct against follow-up answers,
+                and the follow-ups' retest (deliberation_quality);
+      computed  on the stated peer-advice cases, the error against the exact answer, fresh and
+                follow-up (followups), where measured;
+      advice    the same readout comparison on the open peer-advice cases, where measured."""
+    rows = sessions(roots)
+    anchored = {(s, dl.thresholds(s)[r]) for s in range(len(dl.SERIES)) for r in dl.ANCHORED}
+    fresh, follow, count = {}, {}, {}
+    for r in rows:
+        c = r["configuration"]
+        count[c] = count.get(c, 0) + 1
+        if r["module"] == "ladder":
+            fresh.setdefault(c, []).extend(
+                v
+                for x in r["ladders"]
+                for t, v in zip(x["thresholds"], x["answers"], strict=True)
+                if (x["series"], t) in anchored
+            )
+        elif r["module"] == "bare":
+            fresh.setdefault(c, []).extend(
+                b["answer"] for b in r["bare"] if (b["series"], b["threshold"]) in anchored
+            )
+        elif r["module"] in ("anchor", "frames"):
+            follow.setdefault(c, []).extend(p["estimate"] for p in r["pairs"])
+
+    def share(values):
+        mid = [v for v in values if dl.MID[0] <= v <= dl.MID[1]]
+        return {
+            "share_5": sum(round(v * 100) % 5 == 0 for v in mid) / len(mid) if mid else None,
+            "n": len(mid),
+        }
+
+    quality_ = quality(roots)["configurations"]
+    advice = followups(roots)["configurations"]
+    out = {}
+    for c in sorted(set(fresh) & set(follow)):
+        q = quality_.get(c, {})
+        entry = {
+            "fresh": share(fresh[c]),
+            "follow_up": share(follow[c]),
+            "distance_direct": q.get("distance_direct"),
+            "distance_follow_up": q.get("distance_follow_up"),
+            "retest_follow_up": q.get("retest_follow_up"),
+            "sessions": count[c] + sum(v["sessions"] for v in advice.get(c, {}).values()),
+        }
+        a = advice.get(c, {})
+        if "stated" in a:
+            entry["computed_error"] = {
+                "fresh": a["stated"]["error_fresh"],
+                "follow_up": a["stated"]["error_followup"],
+            }
+        if "open" in a:
+            entry["advice"] = {
+                "fresh": a["open"]["fresh"]["share_5"],
+                "follow_up": a["open"]["followup"]["share_5"],
+            }
+        out[c] = entry
+    return out
 
 
 # Validation before collection.

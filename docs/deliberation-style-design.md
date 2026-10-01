@@ -399,3 +399,25 @@ The stated variant's 25% is the share of the exact answers themselves that are m
 - **Astra's follow-ups mostly repeat its fresh answer.** The matched gap is 0.08–0.12, except Astra-high's 0.58.
 - **Two differences from the trend tests, which these data cannot separate:** the family, and mixing fresh and follow-up cases in one session. On the trend cases every estimate in the session was a follow-up. If part of Astra's switch is set by the session rather than the pair, mixing would weaken it.
 - **Summary so far.** Astra's round follow-ups are a property of open answers, and strongest in a session made of follow-ups. It is not a general readout habit, since computed answers are exempt.
+
+## In the passport (1 October)
+
+**Where it lives.** The split is a reading in the reading guide (`ledger/guide.py`, version 0.5.0, topic "How a question's framing changes its numbers"), computed when the ledger is built (`deliberation.passport_frames`). It uses the four collections: the pilot, the direct follow-up, the frames and the peer-advice follow-ups. The passport carries the numbers as `frame_sensitivity` per configuration, and [the passport note](epistemic-passport.md#profile-dimensions) lists framing sensitivity as a dimension.
+
+**The two axes:**
+- **Readout:** the share of mid-range answers at multiples of 5, fresh (the ladder and the same thresholds asked directly) against follow-ups (every estimate after a first question). It changes when they differ by at least 25 points.
+- **Content:** how far follow-ups sit from the configuration's own ladder answers, against how far its fresh single answers sit. It changes when follow-ups are at least 0.25 log-odds further.
+
+**The resulting readings:**
+
+| Configuration | Reading | Basis (round fresh → follow-up; distance direct / follow-up) |
+| --- | --- | --- |
+| Astra, Astra-low, Astra-high | Rounder as a follow-up; the same answers | 12–25% → 67–85%; 0.35–0.60 / 0.22–0.32 |
+| Sol-low | Same precision; the answers move | 0.52 / 1.19 |
+| Sol, Sol-high | Unchanged | 0.41 / 0.53; 0.76 / 0.69 |
+| Luna | Finer as a follow-up (from the pilot's comparisons only) | 69% → 32% |
+| Terra | Unchanged | — |
+
+**The readings are narrower than the summary "Astra changes how it reports, Sol what it reports".** On the content axis only Sol-low passes the threshold. Sol and Sol-high shift less: the frame shift of the pilot is real for them, but smaller than a passport claim needs.
+
+**Caution on every reading:** exploratory, from one form of each case set. Answers that can be computed exactly were exact either way.

@@ -36,3 +36,28 @@ def test_simulated_rounding_and_exact_errors_are_measured():
     assert s["grain"]["followup"]["share_5"] == 1.0
     assert s["grain"]["fresh"]["share_5"] < 0.5
     assert max(r["error"] for r in s["answers"] if r["kind"] == "fresh") < 0.05
+
+
+def test_guide_reads_the_split_from_the_frame_sensitivity():
+    from epistemics.ledger import guide
+
+    def frames(fresh, follow, direct, follow_distance):
+        return {
+            "frame_sensitivity": {
+                "fresh": {"share_5": fresh, "n": 24},
+                "follow_up": {"share_5": follow, "n": 40},
+                "distance_direct": direct,
+                "distance_follow_up": follow_distance,
+                "retest_follow_up": 0.3,
+                "sessions": 10,
+                "computed_error": {"fresh": 0.01, "follow_up": 0.01},
+            }
+        }
+
+    readout = guide.framing(frames(0.25, 0.85, 0.6, 0.22))
+    assert readout["topic"] == "framing" and "round numbers" in readout["claim"]
+    assert "exact either way" in readout["caution"]
+    content = guide.framing(frames(0.2, 0.2, 0.5, 1.2))
+    assert content["fact"]["value"] == "Same precision; answers move"
+    assert guide.framing(frames(0.2, 0.25, 0.5, 0.55))["fact"]["value"] == "Unchanged"
+    assert guide.framing({}) is None

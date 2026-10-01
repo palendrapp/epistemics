@@ -45,6 +45,7 @@ These are proposed product dimensions, not a claim that all are already measured
 | Dependence and causal reasoning | Does it count repeated coverage as fresh evidence, and can it distinguish evidence about a company from evidence about its explanation? | Company provenance and auxiliary-hypothesis probes; expand beyond one authored discovery mechanism. |
 | Uncertainty and calibration | Do stated probabilities and intervals match demonstrated predictive performance? | Existing proper scores and interval reports; ensure enough independent outcomes for each strength of claim. |
 | Judgment-to-decision consistency | Do choices follow the judgments it reports under stated payoffs, and how does uncertainty affect action? | Existing company decision probes; keep payoff comprehension, preference and inconsistency distinct. |
+| Framing sensitivity | Does how a question is put change how precisely it reports a probability (readout), or which probability it reports (content)? | Measured exploratorily on growth-trend and peer-advice cases ([deliberation-style design](deliberation-style-design.md)). It is in the reading guide as a readout axis (round answers as follow-ups) and a content axis (follow-ups moving away from fresh answers). Needs a fresh form and more families before it counts as supported. |
 
 Stability across repetitions, wording and contexts accompanies every dimension. It is a property of the evidence supporting the profile, not a separate claim that an agent has one immutable trait.
 

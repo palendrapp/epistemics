@@ -6,7 +6,16 @@ from pathlib import Path
 
 import numpy as np
 
-from epistemics.ledger import VERSION, dispositions, guide, models, roots, transfer, variance
+from epistemics.ledger import (
+    VERSION,
+    deliberation,
+    dispositions,
+    guide,
+    models,
+    roots,
+    transfer,
+    variance,
+)
 
 CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
 
@@ -275,6 +284,15 @@ def build(registry_path="docs/experiments.json"):
     }
     records = [r for rs in extracted.values() for r in rs]
     analyses = {"transfer": transfer.analyse(records), "noticing": transfer.noticing(records)}
+    frame_roots = [
+        r
+        for entry in registry["experiments"]
+        if entry["id"] in deliberation.FRAME_EXPERIMENTS
+        for r in entry.get("roots", [])
+        if Path(r, "plan.json").exists()
+    ]
+    if frame_roots:
+        analyses["frame_sensitivity"] = deliberation.passport_frames(frame_roots)
     result = {
         "schema_version": "epistemics.ledger.v1",
         "ledger_version": VERSION,
@@ -290,5 +308,11 @@ def build(registry_path="docs/experiments.json"):
         "analyses": analyses,
         "scope": "Recomputed from frozen plans, executions and verified reports; model revisions are requested aliases and execution is operator-asserted.",
     }
+    # The passport carries the frame sensitivity too; configurations measured only there get an
+    # entry of their own.
+    for config, frames in analyses.get("frame_sensitivity", {}).items():
+        result["passport"].setdefault(config, {"contexts": frames["sessions"]})[
+            "frame_sensitivity"
+        ] = frames
     result["guide"] = guide.guide(result, models.descriptors())
     return result

@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.4.0"
+VERSION = "reading-guide/0.5.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -25,7 +25,17 @@ TOPICS = (
     ("structures", "Which hidden structures it considers"),
     ("evidence", "How it weighs evidence"),
     ("decisions", "How it values information"),
+    ("framing", "How a question's framing changes its numbers"),
     ("reliability", "How far to trust its numbers"),
+)
+# Frame sensitivity (docs/deliberation-style-design.md): a follow-up changes the readout when the
+# share of round answers differs by at least READOUT_SHIFT, and the content when follow-ups sit at
+# least CONTENT_SHIFT log-odds further from the configuration's own ladder than its fresh answers.
+READOUT_SHIFT = 0.25
+CONTENT_SHIFT = 0.25
+FRAME_EVIDENCE = (
+    "Growth-trend cases asked fresh (as a set of thresholds, or one at a time) and as follow-ups "
+    "to another question about the same case; peer-advice cases, open and with the record stated"
 )
 # Short forms of the set-A descriptions, strongly reassuring to strongly suggestive.
 SHORT = {
@@ -830,6 +840,85 @@ def undetermined_checks(config, checks):
     return lines
 
 
+def framing(p):
+    """Readout against content: does a follow-up change how precisely it reports, or what?"""
+    f = p.get("frame_sensitivity")
+    if not f or f["fresh"]["share_5"] is None or f["follow_up"]["share_5"] is None:
+        return None
+    fresh, follow = f["fresh"]["share_5"], f["follow_up"]["share_5"]
+    readout = follow - fresh
+    content = (
+        f["distance_follow_up"] - f["distance_direct"]
+        if f.get("distance_follow_up") is not None and f.get("distance_direct") is not None
+        else 0.0
+    )
+    computed = f.get("computed_error")
+    exact = computed is not None and max(computed.values()) <= 0.05
+    if readout >= READOUT_SHIFT and content < CONTENT_SHIFT:
+        claim = (
+            "Asked for a probability as a follow-up to another question about the same case, it "
+            f"answers in round numbers ({pct(follow)} at multiples of 5, against {pct(fresh)} "
+            "asked fresh), but the answers stay where its fresh answers put them."
+        )
+        fact = f"Rounder ({pct(follow)} against {pct(fresh)}); same answers"
+    elif readout <= -READOUT_SHIFT and content < CONTENT_SHIFT:
+        claim = (
+            f"Its answers are rounder asked fresh ({pct(fresh)} at multiples of 5) than as a "
+            f"follow-up to another question about the same case ({pct(follow)}), and stay about "
+            "where they were."
+        )
+        fact = f"Finer as a follow-up ({pct(follow)} against {pct(fresh)})"
+    elif content >= CONTENT_SHIFT and abs(readout) < READOUT_SHIFT:
+        claim = (
+            "Asked as a follow-up to another question about the same case, its probabilities move "
+            "away from its fresh answers, though they keep their precision."
+        )
+        fact = "Same precision; answers move"
+    elif content >= CONTENT_SHIFT:
+        claim = (
+            "Asked as a follow-up to another question about the same case, both the precision "
+            "of its probabilities and the probabilities themselves change."
+        )
+        fact = "Precision and answers change"
+    else:
+        claim = (
+            "Its probabilities keep their precision and stay about where they were whether asked "
+            "fresh or as a follow-up to another question about the same case."
+        )
+        fact = "Unchanged"
+    detail = (
+        f"Round answers (multiples of 5, mid-range): {pct(fresh)} fresh, {pct(follow)} as "
+        f"follow-ups. Distance from its own answers on a ladder of thresholds: "
+        f"{f['distance_direct']:.2f} log-odds for fresh single questions, "
+        f"{f['distance_follow_up']:.2f} for follow-ups; two follow-up answers to one question "
+        f"differ by {f['retest_follow_up']:.2f}."
+    )
+    if f.get("advice"):
+        a = f["advice"]
+        detail += (
+            f" On open peer-advice cases, {pct(a['fresh'])} round fresh and "
+            f"{pct(a['follow_up'])} as follow-ups."
+        )
+    caution = "Exploratory: one form of each case set, not yet replicated."
+    if exact:
+        caution += " Answers it can compute exactly were exact either way."
+    return reading(
+        "framing",
+        "framing",
+        claim,
+        detail,
+        f"{FRAME_EVIDENCE}; {count(f['sessions'])}.",
+        f["sessions"],
+        {
+            "kind": "values",
+            "values": [fresh, follow],
+            "labels": ["round, fresh", "round, follow-up"],
+        },
+        caution=caution,
+        fact=("Asked as a follow-up", fact),
+    )
+
+
 def guide(ledger, descriptors):
     """Readings per configuration from a built ledger (passport and analyses)."""
     analyses = ledger.get("analyses", {})
@@ -855,6 +944,7 @@ def guide(ledger, descriptors):
             fidelity_trait(config, (ledger.get("models") or {}).get("battery_v2")),
             sessions_vary(p),
             coherence(p),
+            framing(p),
         ]
         readings = [r for r in readings if r]
         measured = {r["key"] for r in readings}
@@ -875,6 +965,7 @@ def guide(ledger, descriptors):
                 ("relative", "whether it judges sources relative to each other"),
                 ("documents", "whether it behaves the same in realistic documents"),
                 ("sessions", "how much its judgements vary between sessions"),
+                ("framing", "whether a question's framing changes its numbers"),
             )
             if not any(m.startswith(key) if key.endswith("-") else m == key for m in measured)
         ] + undetermined_checks(config, (ledger.get("models") or {}).get("structure_checks"))
