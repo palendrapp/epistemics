@@ -39,8 +39,10 @@ uv run python -m epistemics.ledger cohere-validation --output <file>
 uv run python -m epistemics.ledger cohere-a <roots...> --output <file>
 uv run python -m epistemics.ledger cohere-b <roots...> --output <file>
 uv run python -m epistemics.ledger statements-validation --output <file>
+uv run python -m epistemics.ledger sweep --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
+uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
 uv run python -m epistemics.ledger statements-b <roots...> --output <file>
 uv run python -m epistemics.ledger screen-validation --output <file>
 uv run python -m epistemics.ledger screen-a <roots...> --output <file>
@@ -177,7 +179,8 @@ def main():
     sub.add_parser("screen-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("cohere-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
-    for name in ("statements-probe", "statements-a", "statements-b"):
+    sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
+    for name in ("statements-probe", "statements-a", "statements-b", "statements-explore"):
         sp = sub.add_parser(name)
         sp.add_argument("roots", type=Path, nargs="+")
         sp.add_argument("--output", type=Path, required=True)
@@ -453,6 +456,15 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command == "sweep":
+        from epistemics.ledger import sweep
+
+        run = sweep.sweep()
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps({k: run[k] for k in ("answers", "runs")}, indent=2))
+        for sig, v in run["stability"].items():
+            print(sig, v["collections"], v["pairs"], v["mean_rho"])
     elif a.command.startswith("statements-"):
         from epistemics.ledger import statements as statements_ledger
 
@@ -462,6 +474,9 @@ def main():
         elif a.command == "statements-probe":
             run = statements_ledger.probe(a.roots)
             summary = {"flagged": run["flagged"]}
+        elif a.command == "statements-explore":
+            run = statements_ledger.explore(a.roots)
+            summary = {k: run[k] for k in ("step_by_announced", "first_step_by_announced")}
         elif a.command == "statements-a":
             run = statements_ledger.stage_a(a.roots)
             summary = {

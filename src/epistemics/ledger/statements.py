@@ -376,3 +376,96 @@ def validation(agents=300, calibration=200, sims=200, seed=20261117, workers=4):
         "law_rates": rates,
         "passed": passed,
     }
+
+
+def explore(roots):
+    """Exploratory (post hoc), from one form's sessions: the step on each substantive change by
+    the number of changes the case announces, the first such step alone, the same slot across
+    announced counts, a regression of each configuration's steps on 1/n, and agreement between
+    configurations on identical cases."""
+    from itertools import combinations
+
+    rows = [r for r in sessions(roots) if "sequences" in r]
+    steps = []
+    for r in rows:
+        for q in r["sequences"]:
+            if q["condition"] == "whole":
+                continue
+            ell = st.logit(q["answers"])
+            first = True
+            for t, (name, d) in enumerate(q["changes"], 1):
+                if name not in st.SLOTS:
+                    continue
+                steps.append(
+                    {
+                        "configuration": r["configuration"],
+                        "slot": name,
+                        "n": q["n"],
+                        "first": first,
+                        "step": float((ell[t] - ell[t - 1]) * d),
+                        "p_before": float(q["answers"][t - 1]),
+                    }
+                )
+                first = False
+
+    def mean(v):
+        return float(np.mean(v)) if v else None
+
+    by_n = {n: mean([s["step"] for s in steps if s["n"] == n]) for n in range(1, 7)}
+    first_by_n = {
+        n: mean([s["step"] for s in steps if s["first"] and s["n"] == n]) for n in range(1, 7)
+    }
+    slot_by_n = {
+        slot: {
+            n: mean([s["step"] for s in steps if s["slot"] == slot and s["n"] == n])
+            for n in range(1, 7)
+            if any(s["slot"] == slot and s["n"] == n for s in steps)
+        }
+        for slot in st.SLOTS
+    }
+    fits = {}
+    for c in sorted({s["configuration"] for s in steps}):
+        mine = [s for s in steps if s["configuration"] == c]
+        x = np.column_stack(
+            [
+                np.ones(len(mine)),
+                [1 / s["n"] for s in mine],
+                [s["p_before"] * (1 - s["p_before"]) for s in mine],
+            ]
+        )
+        y = np.array([s["step"] for s in mine])
+        b = np.linalg.lstsq(x, y, rcond=None)[0]
+        fits[c] = {
+            "constant": float(b[0]),
+            "per_inverse_n": float(b[1]),
+            "per_p_variance": float(b[2]),
+            "r2": float(1 - np.sum((y - x @ b) ** 2) / np.sum((y - y.mean()) ** 2)),
+            "steps": len(mine),
+        }
+    answers = {}
+    for r in rows:
+        for q in r["sequences"]:
+            for k, v in enumerate(q["answers"]):
+                answers.setdefault(r["configuration"], {})[(r["rotation"], q["sid"], k)] = v
+    agreement = {}
+    for a, b in combinations(sorted(answers), 2):
+        keys = sorted(set(answers[a]) & set(answers[b]))
+        va = np.array([answers[a][k] for k in keys])
+        vb = np.array([answers[b][k] for k in keys])
+        za = np.log(np.clip(va, 0.01, 0.99) / (1 - np.clip(va, 0.01, 0.99)))
+        zb = np.log(np.clip(vb, 0.01, 0.99) / (1 - np.clip(vb, 0.01, 0.99)))
+        agreement[f"{a}|{b}"] = {
+            "identical": float(np.mean(va == vb)),
+            "mean_gap": float(np.mean(np.abs(za - zb))),
+            "cases": len(keys),
+        }
+    return {
+        "schema_version": "epistemics.statements-explore.v1",
+        "scope": "Exploratory, post hoc: one form, six statements; each announced count is one "
+        "statement, so count and content are partly confounded.",
+        "step_by_announced": by_n,
+        "first_step_by_announced": first_by_n,
+        "slot_by_announced": slot_by_n,
+        "fits": fits,
+        "agreement": agreement,
+    }
