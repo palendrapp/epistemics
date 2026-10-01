@@ -65,10 +65,24 @@ def analyse(rows, seed=20261121):
     }
 
 
+def by_slot(rows):
+    """Mean signed step per kind of change and condition."""
+    out = {}
+    for r in rows:
+        out.setdefault(r["slot"], {}).setdefault(r["condition"], []).append(r["step"])
+    return {
+        slot: {c: {"mean": float(np.mean(v)), "n": len(v)} for c, v in conditions.items()}
+        for slot, conditions in sorted(out.items())
+    }
+
+
 def summary(roots):
+    rows = cases(roots)
     return {
         "schema_version": "epistemics.announced-count.v1",
-        "configurations": {c: analyse(rows) for c, rows in sorted(cases(roots).items())},
+        "configurations": {c: analyse(r) for c, r in sorted(rows.items())},
+        "by_slot": by_slot([x for r in rows.values() for x in r]),
+        "by_slot_configuration": {c: by_slot(r) for c, r in sorted(rows.items())},
         "scope": "Exploratory: one reported change, the declared number of changes varied; steps "
         "from the stated market prior.",
     }

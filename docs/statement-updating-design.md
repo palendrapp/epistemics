@@ -371,3 +371,39 @@ These are small differences (a few points of probability) and not a preregistere
   - they adopt a stated market prior exactly;
   - they ignore content-free rewording;
   - they treat several same-direction changes as little more informative than one.
+
+## Announced count (2 October)
+
+**The question.** The exploration of stage A found steps shrinking with the number of changes a case announced: 1.93 log-odds with one change announced, 0.51 with six. But each count was a single statement, so count and content were confounded ([exploration log](exploration-log.md), idea 1). This experiment controls content.
+
+**Modules `announced-a` to `-d`** (design 0.26.0, tasks 0.36.0). One substantive change is reported, in statements that truly differ in one, three or six places:
+
+| Condition | What the case says | What the new statement holds |
+| --- | --- | --- |
+| one | "differs in 1 place" | the change alone |
+| three | "differs in 3 places" | the change and two rewordings, not said to be rewordings |
+| three-said | "differs in 3 places; two of the three only reword a sentence", and the change shown is the one that is not a rewording | the same statement |
+| six | "differs in 6 places" | the change, two rewordings and three other substantive changes |
+
+**Design.** 24 cases cover the five slots in both directions, with stated priors of 30, 50 and 70%. Each case appears under every condition across the four forms. The step is measured from the stated market prior, which every configuration adopted exactly in stage A.
+
+**Collection.** Astra, Sol, Luna and Terra at default effort took all four forms: root `output/announced-count-20261001`, 16 sessions, 8.8 million input tokens, no failures.
+- Task validation 0.36 passed on both seeds (4,032 cases, 173 contexts). Fingerprint `e997ab74692d722e784dc82527594cba9cf3714c1bdb0b0bc253db377a3777aa`; seeds `f7897d0d…` and `53e8b666…`.
+- The analysis: `uv run python -m epistemics.ledger announced-count output/announced-count-20261001 --output output/announced-count-summary-20261001.json`.
+
+**Mean signed step from the prior** (log-odds; 24 cases per condition; bootstrap 90% intervals):
+
+| Configuration | One | Three | Three-said | Six | Three / one | Six / one | Drop restored by disclosure |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Astra | 0.62 [0.57, 0.68] | 0.54 [0.49, 0.59] | 0.62 [0.57, 0.68] | 0.49 [0.44, 0.55] | 0.87 | 0.79 | 1.00 [0.68, 1.46] |
+| Sol | 0.59 [0.53, 0.66] | 0.48 [0.43, 0.54] | 0.57 [0.52, 0.63] | 0.48 [0.42, 0.54] | 0.82 | 0.81 | 0.85 [0.46, 1.61] |
+| Luna | 0.87 [0.74, 1.02] | 0.66 [0.54, 0.77] | 0.79 [0.64, 0.92] | 0.66 [0.56, 0.76] | 0.76 | 0.76 | 0.61 [0.20, 1.85] |
+| Terra | 0.63 [0.51, 0.79] | 0.63 [0.52, 0.77] | 0.61 [0.52, 0.73] | 0.62 [0.48, 0.82] | 1.00 | 0.98 | (no drop) |
+
+**By kind of change** (all four configurations): guidance moves most, 0.91 alone against 0.66–0.79 among others. The other slots move 0.54–0.67 alone and 0.48–0.65 among others.
+
+**Reading.**
+- **Stage A's large effect was mostly content.** Its one-change statement moved neutral guidance to "a further rise in the policy rate may be needed", with a 30% prior on a cut. That is the strongest signal against a cut in the bank, and it moved answers to 2–10%. With content controlled, a single change moves 0.6–0.9 log-odds, and the same change among others about 20% less.
+- **The count effect that remains is modest** (three or six against one: 0.76–0.87) and absent for Terra.
+- **For the GPT-6 configurations it is pragmatic, not a budget.** Disclosing that the other two changes are rewordings restores the full single-change step (Astra 1.00, Sol 0.85): only changes that might carry content dilute a change's weight. Luna's estimate is less certain (0.61, interval 0.20–1.85).
+- **What remains to explain the sub-additivity in stage A.** A change counts for less when other substantive changes may come, which a reader who expects the committee's changes to hang together could justify. And four changes in one direction move the answer about as much as one strong guidance change, so changes are not added as independent evidence.

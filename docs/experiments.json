@@ -1135,6 +1135,21 @@
       "status": "complete",
       "prediction": "Record: a reading-guide topic computed from the deliberation and follow-up collections.",
       "outcome": "Reading guide 0.5.0 adds 'How a question's framing changes its numbers'; the passport carries frame_sensitivity per configuration; the dashboard's passport table shows round answers fresh against follow-up. Rules: readout changes when round answers differ by at least 25 points, content when follow-ups sit at least 0.25 log-odds further from the configuration's own ladder than its fresh answers. Readings: the three Astra configurations rounder as follow-ups with the same answers; Sol-low the same precision with answers that move; Sol, Sol-high and Terra unchanged; Luna finer as a follow-up. Each reading marked exploratory; computed answers exact either way. The passport note lists framing sensitivity as a dimension."
+    },
+    {
+      "id": "announced-count",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Statements: announced count, with content controlled",
+      "question": "Does the number of changes a statement is declared to hold set the weight of one reported change, and is that a budget by count or a pragmatic reading?",
+      "doc": "docs/statement-updating-design.md",
+      "roots": [
+        "output/announced-count-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory test of exploration idea 1: one change reported in statements declared to differ in 1, 3 or 6 places, the rewordings disclosed in one condition; a budget predicts three-said = three, the pragmatic reading three-said = one.",
+      "outcome": "16 of 16 sessions (Astra, Sol, Luna, Terra x four forms), 8.8M input tokens, no failures; tasks 0.36.0. With content controlled, a single change moves 0.59-0.87 log-odds and the same change among three or six about 20% less (ratios 0.76-0.87; Terra 1.00): stage A's 1.93 came mostly from its one-change statement's content (guidance to a further rise). For Astra and Sol, disclosing the rewordings restores the full step (1.00, 0.85): pragmatic, not a budget. Guidance moves most (0.91 alone)."
     }
   ],
   "next": [

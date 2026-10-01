@@ -236,3 +236,21 @@ See [the results](deliberation-style-design.md#follow-up-rounding-on-another-fam
 **Ideas:**
 18. **Session against pair, on one family.** Trend cases in mixed sessions (fresh and follow-up interleaved). If Astra's follow-ups fall from 72% towards 42%, the session sets the mode; if they stay at 72%, the family does.
 19. **Stop here?** The effect is real for Astra on open trend cases but modest elsewhere, and it never costs accuracy (follow-ups are not worse; computed answers are exact). As a passport claim it may matter less than the readout and content split itself.
+
+## 2 October: announced count, tested (idea 1)
+
+See [the experiment](statement-updating-design.md#announced-count-2-october).
+
+**The exploratory finding largely dissolves under control.** With the content held fixed:
+- a single change moves 0.6–0.9 log-odds;
+- the same change among three or six moves about 20% less (none less for Terra).
+
+Stage A's 1.93 for its one-change statement came from that statement's change: neutral guidance became a further rise, the strongest signal against a cut.
+
+**What remains is pragmatic, not a budget.** For Astra and Sol, disclosing that the other changes are rewordings restores the full step.
+
+**Lesson for exploration.** A regularity across six statements, each with its own count, was mostly the statements' content. Factors confounded one-for-one with items need a controlled test before they are believed, as the entry's caveat said.
+
+**Ideas:**
+20. **Guidance as its own reading.** Guidance changes carry the most weight in every configuration. "Which kind of central-bank language moves it most" is a passport reading, but it may be a shared reading rather than a trait.
+21. **Expected correlation among changes.** A change counts for less when other substantive changes may come. Do agents treat a statement's changes as correlated? That could be tested by revealing a second change that agrees or disagrees with the first.
