@@ -1049,6 +1049,19 @@
       "status": "complete",
       "prediction": "Exploratory; no test.",
       "outcome": "Statements: the announced number of changes sets the weight of each change (first step 1.93 log-odds when one change is announced, 0.51 among six; step = const + b/n, R2 0.78-0.87), which neither an independent- nor a correlated-evidence Bayesian predicts; configurations nearly interchangeable (36-52% identical answers, Luna apart). Sweep (44 collections, 755 sessions, 17,728 answers): output per case tracks effort (rho 0.81); GPT-5.6 departs from the consensus and answers more boldly (rho 0.39, 0.30); within GPT-6, Astra answers open cases in round numbers and Sol in fine-grained ones at every effort (13 of 13 comparisons), with about half Sol's output per case. Ideas: vary the announced count; redundant against independent sources; deliberation style (judge against compute) and its link to incoherence; roundness as an uncertainty report; GPT-5.6 boldness as a general trait. Roundness check (screen F2, F4, F5; 72 sessions): roundness does not rise with openness within open cases for any configuration, and its relation to determinate cases depends on the configuration; extremity confounds it (checked on mid-range answers). In the Sol family, round answers sit 0.3-1.1 log-odds nearer the fitted fallback than fine-grained ones (a round answer flags a default), the reverse in Terra and Luna; the fitted trust varies too little to calibrate against. Supports the deliberation-style reading more than roundness as a general uncertainty report."
+    },
+    {
+      "id": "deliberation-style-design",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Deliberation style: judging against computing (design)",
+      "question": "Do the GPT-6 variants differ in how they answer open questions, Astra by judgement (coarse readout, anchorable) and Sol by computation (fine readout, fuller adjustment)?",
+      "doc": "docs/deliberation-style-design.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Design only. Two modules on the screen's trend cases: ladders (six nearby thresholds per series) for readout grain rho and plateaus; comparative anchors (low and high, 30 points either side of the observer's middle answer) for the anchoring weight a against the agent's own unanchored answer. Predictions: Astra's rho above Sol's at each effort; more plateaus; a differs (Astra higher); a falls with effort; Sol slower per case.",
+      "outcome": "Design note written; nothing built. Exploratory pilot with predictions written down; a fresh form confirms if they show. 24 sessions (one ladder and two anchor sessions per configuration), about 13M. Five decisions pending."
     }
   ],
   "next": [
