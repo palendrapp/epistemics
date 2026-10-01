@@ -221,6 +221,62 @@ def followup(roots):
     }
 
 
+def frames(roots, baseline_roots=()):
+    """The second follow-up: the share of mid-range estimates at multiples of 5, and their mean
+    |log-odds|, after each kind of first question; per configuration and pooled over each GPT-6
+    variant's three efforts. baseline_roots add the same thresholds asked directly (bare) and on
+    the ladder, for reference."""
+    rows = sessions(list(roots) + list(baseline_roots))
+    families = {
+        "astra": ("astra", "astra-low", "astra-high"),
+        "sol": ("sol", "sol-low", "sol-high"),
+    }
+    anchored = {(s, dl.thresholds(s)[r]) for s in range(len(dl.SERIES)) for r in dl.ANCHORED}
+
+    def summary(values):
+        v = np.array(values, dtype=float)
+        if not len(v):
+            return None
+        mid = v[(v >= dl.MID[0]) & (v <= dl.MID[1])]
+        return {
+            "share_5": float(np.mean(np.round(mid * 100) % 5 == 0)) if len(mid) else None,
+            "extremity": float(np.mean(np.abs(screen.logit(v)))),
+            "n": len(v),
+            "n_mid": len(mid),
+        }
+
+    collected = {}
+    for r in rows:
+        bucket = collected.setdefault(r["configuration"], {})
+        if r["module"] == "frames":
+            for p in r["pairs"]:
+                bucket.setdefault(p["frame"], []).append(p["estimate"])
+        elif r["module"] == "bare":
+            for b in r["bare"]:
+                if (b["series"], b["threshold"]) in anchored:
+                    bucket.setdefault("direct", []).append(b["answer"])
+        elif r["module"] == "ladder":
+            for x in r["ladders"]:
+                for t, v in zip(x["thresholds"], x["answers"], strict=True):
+                    if (x["series"], t) in anchored:
+                        bucket.setdefault("ladder", []).append(v)
+    names = ("ladder", "direct", *dl.FRAMES)
+    per = {c: {f: summary(b.get(f, [])) for f in names} for c, b in sorted(collected.items())}
+    pooled = {
+        name: {
+            f: summary([v for c in cs if c in collected for v in collected[c].get(f, [])])
+            for f in names
+        }
+        for name, cs in families.items()
+    }
+    return {
+        "schema_version": "epistemics.deliberation-frames.v1",
+        "configurations": per,
+        "families": pooled,
+        "scope": "Exploratory second follow-up: which first question switches Astra's readout.",
+    }
+
+
 # Validation before collection.
 def _draw(rng):
     return {

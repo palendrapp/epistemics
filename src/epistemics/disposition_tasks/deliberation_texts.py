@@ -25,7 +25,19 @@ def trial(items, i, cover, variant):
     if kind in ("ladder", "bare"):
         return [line], f"What is the probability that {predicate}?"
     anchor = int(items["anchor"][i])
-    if kind == "choice":
+    frame = str(items["frame"][i]) if "frame" in items else ""
+    if kind == "frame" and frame == "verbal":
+        return [line], f"Is it likely or unlikely that {predicate}?"
+    if kind == "frame" and frame == "model":
+        return [line], (
+            "Judging from the three readings, does it grow by about the same amount each step "
+            "or by a growing amount each step?"
+        )
+    if kind == "estimate" and frame in ("comparison-plain", "verbal", "model"):
+        return [line, "The previous case asked about the same readings."], (
+            f"What is the probability that {predicate}?"
+        )
+    if kind in ("choice", "frame"):
         return [line, f"Consider {anchor}%, {NO_INFORMATION}."], (
             f"Is the probability that {predicate} above or below {anchor}%?"
         )
@@ -37,6 +49,10 @@ def trial(items, i, cover, variant):
 
 def stated(items, i):
     """The anchor a comparison or estimate case displays."""
-    if str(items["kind"][i]) in ("choice", "estimate"):
+    kind = str(items["kind"][i])
+    frame = str(items["frame"][i]) if "frame" in items else ""
+    if kind in ("choice", "frame") and frame in ("", "comparison", "comparison-plain"):
+        return [f"{int(items['anchor'][i])}%"]
+    if kind == "estimate" and frame in ("", "comparison"):
         return [f"{int(items['anchor'][i])}%"]
     return []

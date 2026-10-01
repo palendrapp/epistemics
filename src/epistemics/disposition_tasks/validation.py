@@ -25,6 +25,7 @@ from epistemics.disposition_tasks.render import (
     CUE_MODULES,
     CUE_VARIANTS,
     DELIBERATION_ANCHOR,
+    DELIBERATION_FRAMES,
     DELIBERATION_MODULES,
     DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
@@ -502,6 +503,28 @@ def deliberation_audit():
     }
     if not anchored <= asked or len(asked) != CASES:
         raise ValueError("Deliberation bare: not the anchored thresholds asked once each")
+    frames = {}
+    for module in DELIBERATION_FRAMES:
+        items = items_for(module)
+        order = statements.sequences_order(items, random.Random(1))
+        for k in set(items["sequence"].tolist()):
+            spots = [p for p, i in enumerate(order) if items["sequence"][i] == k]
+            if spots != [spots[0], spots[0] + 1] or items["kind"][order[spots[0]]] != "frame":
+                raise ValueError(f"{module}: a frame pair is split or out of order")
+        first = items["kind"] == "frame"
+        counts = {f: int(np.sum(items["frame"][first] == f)) for f in deliberation.FRAMES}
+        if set(counts.values()) != {3}:
+            raise ValueError(f"{module}: frames are not balanced")
+        for i in np.flatnonzero(first):
+            frames.setdefault(int(items["threshold"][i]), []).append(str(items["frame"][i]))
+            if str(items["frame"][i]).startswith("comparison"):
+                case = render(module, "markets", int(i), "deliberation")["case"]
+                if "chosen for this exercise" not in case or "carries no information" not in case:
+                    raise ValueError(f"{module}/{i}: the anchor is not described as uninformative")
+    if any(sum(f.startswith("comparison") for f in v) != 1 for v in frames.values()):
+        raise ValueError(
+            "Deliberation frames: a threshold lacks one comparison and one other frame"
+        )
     return {
         "thresholds": {
             s: list(deliberation.thresholds(s)) for s in range(len(deliberation.SERIES))
@@ -848,6 +871,10 @@ def estimate(module, analysis, truth):
         from epistemics.dispositions import deliberation
 
         d = analysis["deliberation"]
+        if d["module"] == "frames":
+            error = abs(d["grain"]["rho"]["mean"] - truth["rho"])
+            consistent = all(r["consistent"] for r in d["pairs"] if "consistent" in r)
+            return float(error), bool(error <= TOLERANCE["deliberation_rho"] and consistent)
         if d["module"] == "bare":
             error = abs(d["grain"]["rho"]["mean"] - truth["rho"])
             return float(error), bool(error <= TOLERANCE["deliberation_rho"])

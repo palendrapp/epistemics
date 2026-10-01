@@ -54,6 +54,12 @@ SHIFT = 30  # anchor distance from the broad observer's answer, in points
 MID = (0.06, 0.94)
 MODULES = ("deliberation-ladder", "deliberation-anchor-a", "deliberation-anchor-b")
 BARE = "deliberation-bare"  # the anchored thresholds asked directly, with no comparison
+# Second follow-up (design 0.24): what else switches the readout? Each pair is a first question
+# about the series, then the estimate. comparison replicates the pilot (the estimate case restates
+# the anchor); comparison-plain does not restate it; verbal asks "likely or unlikely"; model asks
+# whether the series grows by about the same amount or a growing amount each step.
+FRAMES = ("comparison", "comparison-plain", "verbal", "model")
+FRAME_MODULES = ("deliberation-frames-a", "deliberation-frames-b")
 
 
 def _data(s, t):
@@ -93,8 +99,30 @@ def _side(s, k, form):
     return "low" if low else "high"
 
 
+def _frame_of(j, form):
+    """Threshold j (series * 3 + anchored rank index) gets frames j % 4 in form a and (j + 2) % 4
+    in form b: each threshold one comparison frame and one other, three thresholds per frame and
+    session."""
+    return FRAMES[(j + (0 if form == "a" else 2)) % len(FRAMES)]
+
+
 def _rows(module):
     rows = []
+    if module in FRAME_MODULES:
+        form = module[-1]
+        pair = 0
+        for s in range(len(SERIES)):
+            for k, rank in enumerate(ANCHORED):
+                frame = _frame_of(s * len(ANCHORED) + k, form)
+                comparison = frame.startswith("comparison")
+                side = _side(s, k, "a") if comparison else ""
+                base = {"set": -1, "series": s, "rank": rank, "threshold": thresholds(s)[rank],
+                        "sequence": pair, "anchor": anchor_value(s, rank, side) if comparison else 0,
+                        "side": side, "form": f"frames-{form}", "frame": frame}  # fmt: skip
+                rows.append({**base, "kind": "frame", "step": 0, "response": "choice"})
+                rows.append({**base, "kind": "estimate", "step": 1, "response": "probability"})
+                pair += 1
+        return rows
     if module == BARE:
         for s in range(len(ALL_SERIES)):
             for rank in ANCHORED:
@@ -132,6 +160,8 @@ def design(module):
 def _design(module):
     rows = _rows(module)
     assert len(rows) == 24, module
+    for r in rows:
+        r.setdefault("frame", "")
     return {k: np.array([r[k] for r in rows]) for k in rows[0]}
 
 
@@ -149,8 +179,19 @@ def ladder_order(items, rng):
     return [queues[s][r] for r in range(len(queues[series[0]])) for s in series]
 
 
+FRAME_OPTIONS = {
+    "verbal": (["Likely", "Unlikely"], 0),
+    "model": (["By about the same amount each step", "By a growing amount each step"], 1),
+}
+
+
 def options(items, i):
-    """A comparison case's options; "Above" is option 0 and is coded 1."""
+    """A first question's options and the option coded 1: "Above" for comparisons, "Likely" for
+    the verbal frame, "By a growing amount" for the model frame."""
+    frame = str(items["frame"][i]) if "frame" in items else ""
+    if frame in FRAME_OPTIONS:
+        shown, act = FRAME_OPTIONS[frame]
+        return list(shown), act
     a = int(items["anchor"][i])
     return [f"Above {a}%", f"Below {a}%"], 0
 
@@ -169,11 +210,18 @@ def respond(items, truth, rng):
         s, t = int(items["series"][i]), int(items["threshold"][i])
         own = observer(s, t, truth["params"])
         kind = str(items["kind"][i])
-        if kind == "choice":
+        frame = str(items["frame"][i]) if "frame" in items else ""
+        if kind == "frame" and frame == "verbal":
+            out[i] = 1.0 if own > 0.5 else 0.0
+            continue
+        if kind == "frame" and frame == "model":
+            out[i] = 1.0 if truth["params"]["linear_weight"] < 0.5 else 0.0
+            continue
+        if kind in ("choice", "frame"):
             out[i] = 1.0 if own > items["anchor"][i] / 100 else 0.0
             continue
         z = float(screen.logit(own))
-        if kind == "estimate":
+        if kind == "estimate" and frame in ("", "comparison", "comparison-plain"):
             z = (1 - truth["a"]) * z + truth["a"] * float(screen.logit(items["anchor"][i] / 100))
         z += rng.normal(0, truth["tau"])
         out[i] = _report(float(screen._sigmoid(z)), truth["rho"], rng)
@@ -251,6 +299,8 @@ def session(items, responses):
         float(responses[i]) for i in range(len(responses)) if items["response"][i] == "probability"
     ]
     module = {"ladder": "ladder", "bare": "bare"}.get(form, "anchor")
+    if form.startswith("frames"):
+        module = "frames"
     out = {"module": module, "form": form,
            "grain": grain(probability), "responses": [float(v) for v in responses]}  # fmt: skip
     if form == "bare":
@@ -263,6 +313,29 @@ def session(items, responses):
             }  # fmt: skip
             for i in range(len(responses))
         ]
+    elif form.startswith("frames"):
+        rows = []
+        for k in sorted(set(int(v) for v in items["sequence"])):
+            idx = sorted(
+                np.flatnonzero(items["sequence"] == k), key=lambda i: int(items["step"][i])
+            )
+            first, estimate = float(responses[idx[0]]), float(responses[idx[1]])
+            frame = str(items["frame"][idx[0]])
+            anchor = int(items["anchor"][idx[0]])
+            row = {"series": int(items["series"][idx[0]]), "rank": int(items["rank"][idx[0]]),
+                   "threshold": int(items["threshold"][idx[0]]), "frame": frame,
+                   "first": first, "estimate": estimate}  # fmt: skip
+            if frame.startswith("comparison"):
+                above = first >= 0.5
+                row["anchor"] = anchor
+                row["consistent"] = bool(
+                    estimate >= anchor / 100 if above else estimate <= anchor / 100
+                )
+            rows.append(row)
+        out["pairs"] = rows
+        out["by_frame"] = {
+            f: grain([r["estimate"] for r in rows if r["frame"] == f]) for f in FRAMES
+        }
     elif form == "ladder":
         rows = ladders(items, responses)
         out["ladders"] = rows

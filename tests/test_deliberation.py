@@ -98,3 +98,26 @@ def test_bare_module_asks_every_anchored_threshold_directly():
         case = render(dl.BARE, "markets", i, "deliberation")
         assert "%" not in case["case"] and "previous case" not in case["case"]
     assert len(runner.check_groups(runner.PRESETS["deliberation-bare"])) == 8
+
+
+def test_frame_modules_balance_their_first_questions_and_simulate_consistently():
+    from collections import Counter
+
+    rng = np.random.default_rng(8)
+    truth = {"params": screen.observer_mid("trend"), "rho": 0.0, "a": 0.0, "tau": 0.05}
+    seen = {}
+    for module in dl.FRAME_MODULES:
+        items = dl.design(module)
+        first = items["kind"] == "frame"
+        assert Counter(items["frame"][first].tolist()) == {f: 3 for f in dl.FRAMES}
+        for t, f in zip(items["threshold"][first], items["frame"][first], strict=True):
+            seen.setdefault(int(t), []).append(str(f))
+        s = dl.session(items, dl.respond(items, truth, rng))
+        assert s["module"] == "frames" and set(s["by_frame"]) == set(dl.FRAMES)
+        assert all(r["consistent"] for r in s["pairs"] if "consistent" in r)
+        case = render(
+            module, "markets", int(np.flatnonzero(items["frame"] == "verbal")[0]), "deliberation"
+        )
+        assert case["options"] == ["Likely", "Unlikely"] and "%" not in case["case"]
+    assert all(sum(f.startswith("comparison") for f in v) == 1 for v in seen.values())
+    assert len(runner.check_groups(runner.PRESETS["deliberation-frames"])) == 12

@@ -32,6 +32,7 @@ from epistemics.disposition_tasks.render import (
     CUE_MODULES,
     CUE_VARIANTS,
     DELIBERATION_ANCHOR,
+    DELIBERATION_FRAMES,
     DELIBERATION_LADDER,
     DELIBERATION_MODULES,
     DELIBERATION_VARIANTS,
@@ -348,6 +349,16 @@ PRESETS["deliberation-bare"] = (
         "contexts": (("deliberation", "markets", 1),),
     },
 )
+# Deliberation, second follow-up: what else switches Astra's readout? The six GPT-6 configurations
+# on both frame forms ("sequences": each pair consecutive).
+PRESETS["deliberation-frames"] = (
+    {
+        "configurations": ("astra", "astra-low", "astra-high", "sol", "sol-low", "sol-high"),
+        "modules": DELIBERATION_FRAMES,
+        "contexts": (("deliberation", "markets", 1),),
+        "order": "sequences",
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -559,7 +570,7 @@ def check_groups(groups):
                             "Coherence-set and ladder modules need, and only they take, sets"
                         )
                     if (policy == "sequences") != (
-                        module in STATEMENT_MODULES + DELIBERATION_ANCHOR
+                        module in STATEMENT_MODULES + DELIBERATION_ANCHOR + DELIBERATION_FRAMES
                     ):
                         raise ValueError(
                             "Statement and anchor modules need, and only they take, sequences"

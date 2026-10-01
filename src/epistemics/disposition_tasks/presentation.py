@@ -142,6 +142,13 @@ INTRO_ANCHOR = (
     "this exercise and carry no information about the case. Names are fictional, and no outcomes "
     "are revealed during this collection."
 )
+INTRO_FRAMES = (
+    "Answer questions about short fictional cases. Cases give limited information; answer with "
+    "your best judgement. Some cases first ask a question about a case; the next case then asks "
+    "for a probability about the same case. Any number given for comparison was chosen for this "
+    "exercise and carries no information about the case. Names are fictional, and no outcomes "
+    "are revealed during this collection."
+)
 RESPONSE_CHOICE = (
     "Some cases ask for a probability (from 0 to 1 in increments of 0.01) and some ask you to "
     "choose one of two listed options; each case says which. For a choice, answer with one of "
@@ -158,6 +165,8 @@ def instructions(module, variant="paired", cover="markets"):
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
+    if module.startswith("deliberation-frames-"):
+        return " ".join([INTRO_FRAMES, RULES, RESPONSE_CHOICE])
     if module.startswith("deliberation-anchor-"):
         return " ".join([INTRO_ANCHOR, RULES, RESPONSE_CHOICE])
     if module.startswith("deliberation-"):
