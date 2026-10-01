@@ -957,10 +957,12 @@
       "title": "Open-inference screen: fallback items and eight configurations",
       "question": "With fallback items (form c) pinning trust and fallback, are F2, F4 and F5 profiles separable on real configurations; is the fallback constant or triggered by open cases; are the stage B differences reliable with eight configurations?",
       "doc": "docs/open-inference-screen-design.md",
-      "roots": [],
-      "status": "planned",
+      "roots": [
+        "output/screen-fallback-20261001"
+      ],
+      "status": "complete",
       "prediction": "Preregistered (doc, 'Fallback round'): stage B with 8 configurations (Holm across 6 contrasts); constant against open-triggered fallback; profiles where report noise <= 0.5; held-out a+c -> b. Recovery gate passed for 13/14 parameters (F5 linear prior r 0.79).",
-      "outcome": "Planned: preset screen-c, 36 sessions, cap 25M."
+      "outcome": "36 sessions, 17.0M tokens, 0 errors. Stage B with 8 configurations: F2 halo people (ICC 0.97, p_holm 0.019), F4 residual (0.88, 0.021), F5 linearity (0.79, 0.004) and conservatism (0.91, 0.032) pass; F2 instruments and F4 source do not. Fallback test: on fixed-answer items trust is 0.00-0.11 in all 24 cells against 0.20-0.81 on open items, so the fallback is triggered by open cases (9 triggered, 11 undetermined at the grid edge, 4 no fallback, 0 constant). F5: Luna and Sol-low treat proportional lines as exact (P(above projection) 0.00-0.16). Profiles fitted (report noise <= 0.5) for F4 in 7/8 configurations (open-world prior 0.05-0.30 for manuals; colleagues' lists always less complete), F2 1/8, F5 2/8. Next: uncertainty-triggered fallback and a deterministic-process prior, judged on held-out forms, confirmed on a fresh form."
     }
   ],
   "next": [

@@ -620,3 +620,70 @@ The fallback items look like the open items but have a fixed answer under the re
 3. **Profiles.** The revised observers fitted to forms a+b+c per configuration, with parameters, intervals and report noise. A profile is reported as fitted where report noise is at most 0.5.
 4. **Held-out check.** Fit to forms a and c, predict form b (log-odds RMSE), against the stage B held-out figures.
 
+### Fallback round results (1 October)
+
+All 36 sessions completed with no errors: 17.0 million input tokens, 41 minutes. The collection is in `output/screen-fallback-20261001`. The analyses are in `output/screen-fallback-analysis-20261001.json`, from `ledger.screen.stage_b(..., families=("num", "lists", "trend"))`, `screen_fit.fallback_test`, `screen_fit.profiles(..., fit_forms=("a", "b", "c"))` and the held-out fit a+c → b.
+
+**1. Stage B with eight configurations: four contrasts pass (Holm across six).**
+
+| Family | Contrast | ICC | *p*<sub>Holm</sub> | Retest *r* | Passed |
+| --- | --- | --- | --- | --- | --- |
+| F2 | halo, people (literal reading of people's round numbers) | 0.97 | 0.019 | 0.97 | **yes** |
+| F2 | halo, instruments | 0.71 | 0.057 | 0.68 | no |
+| F4 | residual mass (open-world prior) | 0.88 | 0.021 | 0.87 | **yes** |
+| F4 | source | −0.05 | 0.63 | −0.14 | no |
+| F5 | linearity (exponential growth bias) | 0.79 | 0.004 | 0.78 | **yes** |
+| F5 | conservatism (extrapolation spread) | 0.91 | 0.032 | 0.90 | **yes** |
+
+These are the screen's positive findings: reliable differences between configurations, on two forms with different surfaces, in three families.
+
+**2. The fallback is triggered by open cases, not constant.**
+- **On the fallback items:** trust is 0.00–0.11 in all 24 configuration-family cells. Configurations answer fixed-answer items as the observer does: exactly *j*/*k* in F4; 0.5, 0.95–0.99 and 0.01–0.04 in F2.
+- **On the open items:** forms a and b show trust of 0.20–0.81 in most cells.
+- **Verdicts:**
+  - 9 "triggered by open cases";
+  - 11 "undetermined": fixed-item trust is about 0.1, its interval reaching down to 0.05; this is an edge of the grid's resolution, and the substance is the same as triggered;
+  - 4 "no fallback on open items";
+  - none constant.
+
+The mixture model with a constant trust is therefore wrong in form: the configurations hedge towards a default only when the case leaves the model open.
+
+**An unforeseen reading in F5.** Asked whether a proportional line will be above its own projection at 3.5, the observer says 0.5 whatever its noise. But:
+- Luna answered 0.00, and Sol-low about 0.16: they treat the line as exact, so the reading will be exactly the projection and "above" is false;
+- Terra, Sol and Sol-high answered 0.48–0.50.
+
+This is a belief in a deterministic process (a point mass), which an observer with continuous noise cannot express.
+
+**3. Profiles (forms a+b+c, revised observers).** Report noise is at most 0.5 for:
+- F4, 7 of 8 configurations (not Sol: 0.80);
+- F2, 1 of 8 (Luna);
+- F5, 2 of 8 (Astra-high 0.50, Astra 0.52).
+
+So only F4 yields fitted profiles:
+
+| Configuration | Open-world prior, manuals | Open-world prior, colleagues |
+| --- | --- | --- |
+| Luna | 0.05 | 0.11 |
+| Terra | 0.12 | 0.31 |
+| Sol-high | 0.13 | 0.35 |
+| Sol-low | 0.20 | 0.34 |
+| Astra | 0.22 | 0.35 |
+| Astra-high | 0.28 | 0.37 |
+| Astra-low | 0.30 | 0.37 |
+
+Every configuration treats a colleague's list as less complete than a manual's, by 0.07–0.19. That shared difference is why F4's source contrast shows no differences between configurations. The level of the open-world prior differs: Luna closed, the Astra family most open.
+
+**4. Held-out (fit forms a+c, predict form b; log-odds RMSE):**
+- F4: 0.53–0.85;
+- F2: 0.78–1.13;
+- F5: 0.00 (Luna) to 1.81.
+
+These are similar to the stage B figures for F2 and F4, and mixed for F5.
+
+**Where this leaves profiles:**
+- **Reliable differences:** four contrasts in three families.
+- **Bayesian profiles:** fitted for F4 only. In F2 and F5 the observers, even with a fallback, do not describe the answers, for two reasons the fallback round identified:
+  - the fallback depends on how open the case is;
+  - some configurations believe in deterministic processes.
+- **The next model:** (a) a fallback whose weight grows with the observer's own uncertainty on the item, and (b) in F5, a prior probability that the process is exact. Both can be fitted to the data already collected and judged by held-out prediction across forms. But they are being developed on these data, so a fresh form would be needed to confirm them.
+
