@@ -196,3 +196,15 @@ See [the follow-up](deliberation-style-design.md#follow-up-which-frame-does-it-1
 **Ideas:**
 11. **Astra's readout mode as a switch.** What else switches it, beyond a binary comparison? For example, a verbal estimate first ("likely or unlikely?"), or a range question. A switch between computed and judged reports, set by the frame, is a candidate trait of how a configuration reads a question.
 12. **Extremity by frame, with enough answers.** Several answers per threshold and frame, to characterise each configuration's frame sensitivity, if it seems worth it. On present evidence it is configuration-specific and noisy.
+
+## 1 October: what switches Astra's readout
+
+See [the second follow-up](deliberation-style-design.md#second-follow-up-what-else-switches-astra-1-october).
+
+- Any preceding question about the same case switches Astra to round answers: a comparison, "likely or unlikely", or a question about the growth model (67–72% pooled, against 28% asked directly and 11% on ladders). Astra-high is the least affected. Sol never rounds.
+- The trigger is being asked as a follow-up, not the content of the first question.
+
+**Ideas:**
+13. **Follow-up within a pair, or a session made of pairs?** Mix paired and fresh estimates in one session.
+14. **Does a follow-up change only the readout, or also the reasoning?** Astra's rounded follow-up answers might be cheaper second looks. Compare them with the same configuration's fresh answers threshold by threshold, and check whether a follow-up's error relative to the ladder curve grows.
+15. **Multi-turn use.** If round follow-up answers are a general Astra trait, it matters for agents in conversations: the second probability in an exchange is coarser. Test it on other families (screen F2 and F4) as fresh against follow-up questions.

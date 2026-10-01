@@ -294,3 +294,39 @@ Hashes:
   - Astra reports round probabilities after a comparison and fine ones otherwise;
   - Sol reports fine probabilities in every frame;
   - how extreme an answer is depends on the frame for every configuration, in ways not yet characterised.
+
+## Second follow-up: what else switches Astra? (1 October)
+
+**Modules `deliberation-frames-a` and `-b`** (design 0.24.0, tasks 0.34.0). Each session has twelve pairs: a first question about a series, then the probability for one threshold. There are four kinds of first question, three pairs each:
+- **comparison:** as in the pilot ("above or below 29%?"), with the estimate case restating the anchor;
+- **comparison, plain:** the same comparison, with the estimate case saying only that the previous case asked about the same readings;
+- **verbal:** "is it likely or unlikely that…?";
+- **model:** "does it grow by about the same amount each step, or by a growing amount?"
+
+The two forms rotate the kinds over the thresholds.
+
+**Collection.** The six GPT-6 configurations took both forms: root `output/deliberation-frames-20261001`, 12 sessions, 6.1 million input tokens, no failures.
+- Task validation 0.34 passed on both seeds (3,840 cases, 165 contexts). Fingerprint `954461748d9fe24718ca4e8ed2370a024f122d6b439e2ff5e2b1bde6aae7c35d`; seeds `4a0bf133…` and `500f9b71…`.
+- The comparison: `uv run python -m epistemics.ledger deliberation-frames output/deliberation-frames-20261001 --baseline output/deliberation-pilot-20261001 output/deliberation-bare-20261001 --output output/deliberation-frames-summary-20261001.json`.
+
+**Share of mid-range estimates at multiples of 5** (the same twelve thresholds; mid-range answers in brackets):
+
+| | Ladder | Asked directly | After a comparison | After a comparison, plain | After "likely or unlikely" | After the model question |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra | 17% (12) | 33% (12) | 100% (6) | 83% (6) | 83% (6) | 67% (6) |
+| Astra-low | 8% (12) | 33% (12) | 83% (6) | 83% (6) | 83% (6) | 100% (6) |
+| Astra-high | 8% (12) | 17% (12) | 33% (6) | 50% (6) | 50% (6) | 33% (6) |
+| Sol | 25% (12) | 8% (12) | 0% (6) | 0% (6) | 0% (6) | 0% (6) |
+| Sol-low | 18% (11) | 25% (12) | 17% (6) | 50% (6) | 17% (6) | 33% (6) |
+| Sol-high | 9% (11) | 17% (12) | 17% (6) | 33% (6) | 17% (6) | 17% (6) |
+| **Astra, pooled** | 11% (36) | 28% (36) | 72% (18) | 72% (18) | 72% (18) | 67% (18) |
+| **Sol, pooled** | 18% (34) | 17% (36) | 11% (18) | 28% (18) | 11% (18) | 17% (18) |
+
+**Reading.**
+- **Any preceding question about the same case switches Astra to round answers.** The rate is the same after a numerical comparison, a verbal judgement and a question about the growth model (67–72% pooled), against 28% asked directly and 11% on the ladder.
+- **It is not the comparison, the anchor or judgement framing.** It is being asked for the probability as a follow-up.
+- **Astra-high is the least affected** (33–50%).
+- **Sol stays fine-grained in every frame.**
+- **What this does not separate.** Every estimate in these sessions followed a first question, and the direct baseline comes from other sessions. So a follow-up within a pair cannot be told apart from a session made of pairs.
+- **Extremity.** It does not move consistently with the frame for Astra. Sol-low's answers are more moderate after any first question (|log-odds| 0.57–0.94, against 1.61 on the ladder and 1.27 asked directly).
+- **For the passport** (for these cases): Astra reports round probabilities when asked as a follow-up to another question about the same case, and fine ones when asked fresh or for a curve; Sol's precision does not depend on the frame. The consumer action, for Astra in a multi-step exchange: ask for a probability fresh, or as part of a set of thresholds, when precision matters.

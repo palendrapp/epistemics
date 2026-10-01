@@ -1092,6 +1092,21 @@
       "status": "complete",
       "prediction": "Exploratory: if the comparison is the cause, bare answers resemble the ladder's in grain and extremity.",
       "outcome": "8 of 8 sessions, 3.8M input tokens, no failures; tasks 0.33.0. The comparison switches Astra to round answers (67-92% after a comparison, 17-33% asked directly, 8-17% on ladders); Sol is fine-grained in every frame. The extremity shift is not one effect: the comparison moderates Sol and Terra; for Luna and Sol-high the six-threshold ladder is the extreme frame; for the Astra family a lone direct question gives the most extreme answers. Twelve single answers per configuration and frame: noisy."
+    },
+    {
+      "id": "deliberation-frames",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Deliberation: which first question switches Astra's readout",
+      "question": "Is it the comparison, the restated anchor, judgement framing or any preceding question that switches Astra to round answers?",
+      "doc": "docs/deliberation-style-design.md",
+      "roots": [
+        "output/deliberation-frames-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory: four first questions (comparison with and without the anchor restated, likely or unlikely, the growth model) before the estimate.",
+      "outcome": "12 of 12 sessions (six GPT-6 configurations x two forms), 6.1M input tokens, no failures; tasks 0.34.0. Any preceding question switches Astra to round answers (pooled 67-72% after each kind, against 28% asked directly and 11% on ladders); Astra-high is the least affected (33-50%); Sol stays fine-grained (11-28%). The trigger is being asked as a follow-up, not the first question's content; a follow-up within a pair cannot yet be told from a session made of pairs."
     }
   ],
   "next": [
