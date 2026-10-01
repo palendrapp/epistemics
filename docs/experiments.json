@@ -1106,7 +1106,7 @@
       ],
       "status": "complete",
       "prediction": "Exploratory: four first questions (comparison with and without the anchor restated, likely or unlikely, the growth model) before the estimate.",
-      "outcome": "12 of 12 sessions (six GPT-6 configurations x two forms), 6.1M input tokens, no failures; tasks 0.34.0. Any preceding question switches Astra to round answers (pooled 67-72% after each kind, against 28% asked directly and 11% on ladders); Astra-high is the least affected (33-50%); Sol stays fine-grained (11-28%). The trigger is being asked as a follow-up, not the first question's content; a follow-up within a pair cannot yet be told from a session made of pairs."
+      "outcome": "12 of 12 sessions (six GPT-6 configurations x two forms), 6.1M input tokens, no failures; tasks 0.34.0. Any preceding question switches Astra to round answers (pooled 67-72% after each kind, against 28% asked directly and 11% on ladders); Astra-high is the least affected (33-50%); Sol stays fine-grained (11-28%). The trigger is being asked as a follow-up, not the first question's content; a follow-up within a pair cannot yet be told from a session made of pairs. Quality (exploratory, against each configuration's own ladder): Astra's round follow-ups are not worse; they are nearer its own curve (0.22-0.32 log-odds) than its fresh direct answers (0.35-0.60), discriminate between thresholds like the ladder, never violate monotonicity and repeat best (0.26-0.38). Sol's follow-ups move further from its curve (Sol-low 1.19 against 0.52 direct) and repeat less well (0.49-0.62): Astra changes how it reports, Sol what it reports."
     }
   ],
   "next": [

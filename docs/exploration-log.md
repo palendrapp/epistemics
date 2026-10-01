@@ -208,3 +208,19 @@ See [the second follow-up](deliberation-style-design.md#second-follow-up-what-el
 13. **Follow-up within a pair, or a session made of pairs?** Mix paired and fresh estimates in one session.
 14. **Does a follow-up change only the readout, or also the reasoning?** Astra's rounded follow-up answers might be cheaper second looks. Compare them with the same configuration's fresh answers threshold by threshold, and check whether a follow-up's error relative to the ladder curve grows.
 15. **Multi-turn use.** If round follow-up answers are a general Astra trait, it matters for agents in conversations: the second probability in an exchange is coarser. Test it on other families (screen F2 and F4) as fresh against follow-up questions.
+
+## 1 October: are Astra's follow-ups worse? (idea 14)
+
+See [the analysis](deliberation-style-design.md#are-astras-follow-ups-worse-1-october).
+
+**No.** Judged against Astra's own ladder curves:
+- its round follow-up answers are closer to the curve than its fresh direct answers;
+- they discriminate between thresholds as well as the ladder;
+- they have no monotonicity violations;
+- they repeat better than any other configuration's.
+
+The switch is a change of readout, not of content. Sol's follow-ups instead move away from its own curve and repeat less well.
+
+**Ideas:**
+16. **Two styles of frame sensitivity.** Astra changes how it reports (precision) and keeps what it reports; Sol keeps its precision and changes what it reports. A frame-sensitivity profile with two axes, readout and content, is a candidate passport entry for both variants.
+17. **Why are Astra's fresh direct answers the outliers?** A lone question gave Astra its most extreme answers, further from its ladder than its follow-ups. Is a cold, single question Astra's least considered answer?

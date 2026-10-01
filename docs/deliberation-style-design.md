@@ -330,3 +330,40 @@ The two forms rotate the kinds over the thresholds.
 - **What this does not separate.** Every estimate in these sessions followed a first question, and the direct baseline comes from other sessions. So a follow-up within a pair cannot be told apart from a session made of pairs.
 - **Extremity.** It does not move consistently with the frame for Astra. Sol-low's answers are more moderate after any first question (|log-odds| 0.57–0.94, against 1.61 on the ladder and 1.27 asked directly).
 - **For the passport** (for these cases): Astra reports round probabilities when asked as a follow-up to another question about the same case, and fine ones when asked fresh or for a curve; Sol's precision does not depend on the frame. The consumer action, for Astra in a multi-step exchange: ask for a probability fresh, or as part of a set of thresholds, when precision matters.
+
+## Are Astra's follow-ups worse? (1 October)
+
+Command: `uv run python -m epistemics.ledger deliberation-quality output/deliberation-pilot-20261001 output/deliberation-bare-20261001 output/deliberation-frames-20261001 --output output/deliberation-quality-20261001.json`.
+
+**Measures.** There is no ground truth, so each configuration is judged against its own answers on the twelve anchored thresholds:
+- **follow-up answers:** the estimates after a first question (the pilot's anchor sessions and both frame sessions; 48 per GPT-6 configuration, 24 for Luna and Terra);
+- **fresh answers:** the same thresholds asked directly (12), and on the ladder.
+
+| Configuration | Distance from own ladder: direct / follow-up / rounding alone | Fall from rank 1 to rank 5: ladder / direct / follow-up | Follow-up retest |
+| --- | --- | --- | --- |
+| Astra | 0.60 / 0.22 / 0.08 | 1.57 / 1.27 / 1.45 | 0.26 |
+| Astra-low | 0.56 / 0.32 / 0.06 | 1.36 / 1.05 / 1.35 | 0.38 |
+| Astra-high | 0.35 / 0.22 / 0.08 | 1.20 / 1.07 / 1.19 | 0.33 |
+| Sol | 0.41 / 0.53 / 0.08 | 1.66 / 1.01 / 1.30 | 0.49 |
+| Sol-low | 0.52 / 1.19 / 0.11 | 1.62 / 1.17 / 2.21 | 0.62 |
+| Sol-high | 0.76 / 0.69 / 0.11 | 1.40 / 1.29 / 1.61 | 0.57 |
+| Luna | 1.07 / 1.10 / 0.06 | 2.54 / 1.26 / 1.37 | 0.62 |
+| Terra | 0.56 / 0.63 / 0.13 | 1.54 / 1.29 / 1.50 | 0.71 |
+
+How to read the table:
+- **Distance:** mean |log-odds| from the configuration's own ladder answer at the same threshold. "Rounding alone" is the distance that rounding the ladder answer to 5 points would cause.
+- **Fall:** within a session, the drop in log-odds from a series' lowest anchored threshold to its highest; flatter is less discriminating.
+- **Retest:** mean |log-odds| between two follow-up answers to one threshold, which come from different sessions and different first questions.
+- **Monotonicity:** violations within a session are 0 everywhere, except Luna's direct answers (25%) and Terra's follow-ups (6%).
+
+**Reading** (on these measures, against each configuration's own answers):
+- **Astra's rounded follow-ups are not worse.**
+  - They sit nearer its own ladder curve (0.22–0.32) than its fresh direct answers do (0.35–0.60). That is beyond what rounding alone would cause (0.06–0.08), but less than a fresh answer moves.
+  - They discriminate between thresholds as much as the ladder does, and have no monotonicity violations.
+  - They repeat better than any other configuration's (0.26–0.38).
+  - The switch to round numbers is a change of readout with no visible cost to content.
+- **Sol's follow-ups move further from its own curve** than its fresh answers do (Sol 0.53 against 0.41; Sol-low 1.19 against 0.52) and repeat less well (0.49–0.62). This is the same frame sensitivity in what Sol reports that the pilot found.
+- **Caveats.**
+  - The ladder is itself a frame, not a truth.
+  - The direct answers are twelve single answers from one session.
+  - The follow-up retest mixes first questions.

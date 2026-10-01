@@ -277,6 +277,93 @@ def frames(roots, baseline_roots=()):
     }
 
 
+def quality(roots):
+    """Exploratory: are follow-up answers (estimates after a first question: the pilot's anchor
+    sessions and the frame sessions) worse than fresh ones (the ladder; the same thresholds asked
+    directly), judged against the configuration's own answers? Per configuration, on the twelve
+    anchored thresholds:
+      distance     mean |log-odds - the own ladder answer|, for direct and for follow-up answers,
+                   against the distance rounding the ladder answer to 5 points alone would give;
+      discrimination  within a session, the fall in log-odds from a series' lowest to its highest
+                   anchored threshold (ranks 1 and 5), by answer set;
+      violations   within a session, a higher threshold answered with a higher probability (two
+                   chances per series);
+      retest       mean |log-odds difference| between two follow-up answers to one threshold."""
+    rows = sessions(roots)
+    anchored = {(s, dl.thresholds(s)[r]) for s in range(len(dl.SERIES)) for r in dl.ANCHORED}
+    z = screen.logit
+    out = {}
+    for c in sorted({r["configuration"] for r in rows}):
+        mine = [r for r in rows if r["configuration"] == c]
+        ladder, sessions_ = {}, []
+        for r in mine:
+            if r["module"] == "ladder":
+                for x in r["ladders"]:
+                    for t, v in zip(x["thresholds"], x["answers"], strict=True):
+                        if (x["series"], t) in anchored:
+                            ladder[(x["series"], t)] = v
+                sessions_.append(("ladder", {(x["series"], rk): v for x in r["ladders"]
+                                             for rk, v in enumerate(x["answers"])}))  # fmt: skip
+            elif r["module"] == "bare":
+                sessions_.append(
+                    ("direct", {(b["series"], b["rank"]): b["answer"] for b in r["bare"]})
+                )
+            elif r["module"] in ("anchor", "frames"):
+                sessions_.append(
+                    ("follow-up", {(p["series"], p["rank"]): p["estimate"] for p in r["pairs"]})
+                )
+        if not ladder:
+            continue
+        direct, follow = [], []
+        by_threshold = {}
+        for r in mine:
+            if r["module"] == "bare":
+                direct += [
+                    (b["series"], b["threshold"], b["answer"])
+                    for b in r["bare"]
+                    if (b["series"], b["threshold"]) in anchored
+                ]
+            elif r["module"] in ("anchor", "frames"):
+                for p in r["pairs"]:
+                    follow.append((p["series"], p["threshold"], p["estimate"]))
+                    by_threshold.setdefault((p["series"], p["threshold"]), []).append(p["estimate"])
+
+        def distance(answers, ladder=ladder):
+            d = [abs(float(z(v)) - float(z(ladder[(s, t)]))) for s, t, v in answers]
+            return float(np.mean(d)) if d else None
+
+        floor = [abs(float(z(round(v * 20) / 20)) - float(z(v))) for v in ladder.values()]
+        discrimination, violations = {}, {}
+        for kind, answers in sessions_:
+            for s in range(len(dl.SERIES)):
+                ranks = [answers.get((s, r)) for r in dl.ANCHORED]
+                if any(v is None for v in ranks):
+                    continue
+                discrimination.setdefault(kind, []).append(float(z(ranks[0])) - float(z(ranks[-1])))
+                violations.setdefault(kind, []).extend([ranks[1] > ranks[0], ranks[2] > ranks[1]])
+        retest = [
+            abs(float(z(a)) - float(z(b)))
+            for vs in by_threshold.values()
+            for i, a in enumerate(vs)
+            for b in vs[i + 1 :]
+        ]
+        out[c] = {
+            "distance_direct": distance(direct),
+            "distance_follow_up": distance(follow),
+            "distance_rounding_only": float(np.mean(floor)),
+            "discrimination": {k: float(np.mean(v)) for k, v in discrimination.items()},
+            "violations": {k: float(np.mean(v)) for k, v in violations.items()},
+            "retest_follow_up": float(np.mean(retest)) if retest else None,
+            "answers": {"direct": len(direct), "follow_up": len(follow)},
+        }
+    return {
+        "schema_version": "epistemics.deliberation-quality.v1",
+        "configurations": out,
+        "scope": "Exploratory: follow-up against fresh answers, judged against each "
+        "configuration's own ladder; no ground truth.",
+    }
+
+
 # Validation before collection.
 def _draw(rng):
     return {

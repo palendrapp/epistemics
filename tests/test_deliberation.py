@@ -121,3 +121,37 @@ def test_frame_modules_balance_their_first_questions_and_simulate_consistently()
         assert case["options"] == ["Likely", "Unlikely"] and "%" not in case["case"]
     assert all(sum(f.startswith("comparison") for f in v) == 1 for v in seen.values())
     assert len(runner.check_groups(runner.PRESETS["deliberation-frames"])) == 12
+
+
+def test_quality_measures_follow_ups_against_the_own_ladder(monkeypatch):
+    from epistemics.ledger import deliberation as ledger
+
+    ts = [dl.thresholds(s) for s in range(4)]
+    ladder = [
+        {"series": s, "thresholds": list(ts[s]), "answers": [0.9, 0.8, 0.7, 0.6, 0.5, 0.4]}
+        for s in range(4)
+    ]
+    bare = [
+        {"series": s, "threshold": ts[s][r], "rank": r, "answer": 0.85 - 0.1 * r}
+        for s in range(4)
+        for r in dl.ANCHORED
+    ]
+    pairs = [
+        {
+            "series": s,
+            "threshold": ts[s][r],
+            "rank": r,
+            "estimate": [0.9, 0.8, 0.7, 0.6, 0.5, 0.4][r],
+        }
+        for s in range(4)
+        for r in dl.ANCHORED
+    ]
+    rows = [
+        {"configuration": "astra", "module": "ladder", "ladders": ladder},
+        {"configuration": "astra", "module": "bare", "bare": bare},
+        {"configuration": "astra", "module": "frames", "pairs": pairs},
+    ]
+    monkeypatch.setattr(ledger, "sessions", lambda roots: rows)
+    q = ledger.quality([])["configurations"]["astra"]
+    assert q["distance_follow_up"] == 0 and q["distance_direct"] > 0
+    assert q["violations"]["follow-up"] == 0 and q["discrimination"]["follow-up"] > 0

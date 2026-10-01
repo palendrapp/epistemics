@@ -45,6 +45,7 @@ uv run python -m epistemics.ledger deliberation-validation --output <file>
 uv run python -m epistemics.ledger deliberation-pilot <roots...> --output <file>
 uv run python -m epistemics.ledger deliberation-followup <roots...> --output <file>
 uv run python -m epistemics.ledger deliberation-frames <roots...> [--baseline <roots...>] --output <file>
+uv run python -m epistemics.ledger deliberation-quality <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -187,7 +188,12 @@ def main():
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
     sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
     sub.add_parser("deliberation-validation").add_argument("--output", type=Path, required=True)
-    for name in ("deliberation-pilot", "deliberation-followup", "deliberation-frames"):
+    for name in (
+        "deliberation-pilot",
+        "deliberation-followup",
+        "deliberation-frames",
+        "deliberation-quality",
+    ):
         dp = sub.add_parser(name)
         dp.add_argument("roots", type=Path, nargs="+")
         dp.add_argument("--output", type=Path, required=True)
@@ -474,12 +480,16 @@ def main():
         "deliberation-pilot",
         "deliberation-followup",
         "deliberation-frames",
+        "deliberation-quality",
     ):
         from epistemics.ledger import deliberation as deliberation_ledger
 
         if a.command == "deliberation-validation":
             run = deliberation_ledger.validation()
             summary = {k: run[k] for k in ("rho", "a", "confusion", "a_on_own", "passed")}
+        elif a.command == "deliberation-quality":
+            run = deliberation_ledger.quality(a.roots)
+            summary = {"configurations": len(run["configurations"])}
         elif a.command == "deliberation-frames":
             run = deliberation_ledger.frames(a.roots, a.baseline)
             summary = run["families"]
