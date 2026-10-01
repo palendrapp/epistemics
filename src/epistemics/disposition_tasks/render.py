@@ -83,6 +83,9 @@ MODULES = (
     "screen-lists-b",
     "screen-trend-a",
     "screen-trend-b",
+    "screen-num-c",
+    "screen-lists-c",
+    "screen-trend-c",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -168,7 +171,7 @@ SCREEN_MODULES = tuple(
     f"screen-{family}-{form}"
     for family in ("gen", "num", "choice", "lists", "trend")
     for form in "ab"
-)
+) + ("screen-num-c", "screen-lists-c", "screen-trend-c")
 SCREEN_VARIANTS = ("screen",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),

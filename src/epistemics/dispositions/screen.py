@@ -208,6 +208,8 @@ def _choice(d, p):
 
 
 def _lists(d, p):
+    if d["question"] == "conditional":
+        return d["parts"] / d["k"]  # given a listed cause, by symmetry
     rho = p["residual_colleague"] if d["source"] == "colleague" else p["residual_manual"]
     return rho if d["question"] == "none" else (1 - rho) / d["k"]
 
@@ -269,6 +271,92 @@ def _trend(d, p):
 
 
 MODELS = {"gen": _gen, "num": _num, "choice": _choice, "lists": _lists, "trend": _trend}
+
+
+# Revised observers (model 0.18; docs/open-inference-screen-design.md, "Revised observers"): F2
+# rounds in proportion to the number; F5's process noise is a parameter. The answer reported on
+# a non-anchor item is (1 - trust) x the observer's probability + trust x fallback (fitted in
+# ledger.screen_fit), so a configuration can fall back on a default when a case is open.
+NUM_GRAIN = 0.2
+
+
+def _num_revised(d, p):
+    u = d["value"]
+    lo, hi = d["window"]
+    sd = max(p["precision"] * u, 1e-9)
+    literal = float(_phi((hi - u) / sd) - _phi((lo - u) / sd))
+    if d["sharp"]:
+        return literal
+    exact = p["instrument_exact"] if d["source"] == "instrument" else p["person_exact"]
+    width = NUM_GRAIN * u
+    overlap = max(0.0, min(hi, u + width / 2) - max(lo, u - width / 2)) / width
+    return exact * literal + (1 - exact) * overlap
+
+
+def _trend_revised(d, p):
+    xs, ys, x_star = d["xs"], d["ys"], d["x"]
+    b, noise = p.get("likelihood_weight", 1.0), p["noise"]
+    fits = _trend_fits(xs, ys)
+    weights, probs = [], []
+    for name in TREND_FAMILIES:
+        design, target, coef, log = fits[name]
+        sd = noise if log else noise * float(np.mean(ys))
+        ssr = float(np.sum((target - design @ coef) ** 2))
+        prior = p["linear_weight"] if name == "linear" else (1 - p["linear_weight"]) / 2
+        weights.append(math.log(prior) - b * ssr / (2 * sd**2))
+        row = np.array([1.0, math.log(x_star) if name == "power" else x_star])
+        leverage = float(row @ np.linalg.inv(design.T @ design) @ row)
+        spread = sd * math.sqrt(1 + leverage / b)
+        mean = float(row @ coef)
+        scale = math.log if log else (lambda v: v)
+        if d["question"] == "above":
+            prob = 1 - float(_phi((scale(d["threshold"]) - mean) / spread))
+        else:
+            lo, hi = d["window"]
+            prob = float(_phi((scale(hi) - mean) / spread) - _phi((scale(lo) - mean) / spread))
+        probs.append(prob)
+    w = np.exp(np.array(weights) - max(weights))
+    return float(w @ np.array(probs) / w.sum())
+
+
+OBSERVERS = {**MODELS, "num": _num_revised, "trend": _trend_revised}
+OBSERVER_PARAMS = {
+    **{f: dict(spec["params"]) for f, spec in SPEC.items()},
+    # F5's diagnosticity is the assumed process noise alone (the likelihood weight is 1): with both
+    # free, the two were not separable (revised recovery, forms a+b+c: likelihood weight r 0.35).
+    "trend": {"linear_weight": (0.2, 0.9), "noise": ("log", 0.01, 0.3)},
+}
+# Form c (tasks 0.28): fallback items for F2, F4 and F5. Their observer answer is fixed whatever
+# the parameters (openness at most FIXED_OPENNESS), at several levels, so what a configuration
+# answers on them shows how much it falls back on a default.
+FIXED_FORM = "c"
+FIXED_FAMILIES = ("num", "lists", "trend")
+FIXED_OPENNESS = 0.3
+
+
+def forms(family):
+    return FORMS + ((FIXED_FORM,) if family in FIXED_FAMILIES else ())
+
+
+def observer_draw(family, rng, n):
+    out = [{} for _ in range(n)]
+    for name, spec in OBSERVER_PARAMS[family].items():
+        if spec[0] == "log":
+            values = np.exp(rng.uniform(math.log(spec[1]), math.log(spec[2]), n))
+        else:
+            values = rng.uniform(spec[0], spec[1], n)
+        for k in range(n):
+            out[k][name] = float(values[k])
+    return out
+
+
+def observer_mid(family):
+    out = {}
+    for name, spec in OBSERVER_PARAMS[family].items():
+        out[name] = (
+            float(math.sqrt(spec[1] * spec[2])) if spec[0] == "log" else (spec[0] + spec[1]) / 2
+        )
+    return out
 
 
 # Designs.
@@ -635,6 +723,218 @@ def _trend_rows(form):
     return rows
 
 
+# Form c: fallback items. Each row: (value, quantity, kind, window or None for "more than").
+NUM_C = {
+    "fixed": [
+        # 0.5: "more than the stated value" (symmetric under the observer)
+        (30, 0, "person", None),
+        (200, 3, "person", None),
+        (50, 4, "person", None),
+        (47, 1, "sharp", None),
+        (60, 1, "instrument", None),
+        (400, 2, "instrument", None),
+        # about 1: windows of +/-50%
+        (40, 0, "person", (20, 60)),
+        (300, 5, "person", (150, 450)),
+        (80, 2, "instrument", (40, 120)),
+        (58, 3, "sharp", (29, 87)),
+        (600, 4, "person", (300, 900)),
+        # about 0: windows far from the stated value
+        (30, 2, "person", (45, 55)),
+        (500, 3, "instrument", (800, 900)),
+        (43, 4, "sharp", (20, 30)),
+        (70, 5, "person", (100, 120)),
+        (90, 0, "instrument", (130, 150)),
+    ],
+    "open": [(20, 1, "person"), (400, 3, "person"), (60, 4, "person"), (300, 0, "instrument")],
+    "anchors": [
+        ("rounds", 60, 1, ("between", 54, 66), 1.0),
+        ("rounds", 60, 1, ("above", 70), 0.0),
+        ("exact", 53, 3, ("between", 52, 54), 1.0),
+        ("exact", 53, 3, ("below", 45), 0.0),
+    ],
+}
+MORE_THAN = 1e9  # the upper bound of a "more than" window
+
+
+def _num_rows_c():
+    rows = []
+    for j, (value, quantity, kind, window) in enumerate(NUM_C["fixed"]):
+        data = {
+            "value": value,
+            "sharp": kind == "sharp",
+            "source": "instrument" if kind == "instrument" else "person",
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": window if window else (value, MORE_THAN),
+            "speaker": j % 4,
+        }
+        rows.append(_row("fixed", quantity, data))
+    for j, (value, quantity, source) in enumerate(NUM_C["open"]):
+        data = {
+            "value": value,
+            "sharp": False,
+            "source": source,
+            "quantity": quantity,
+            "unit": _unit(value),
+            "window": _unit_window(value),
+            "speaker": (j + 1) % 4,
+        }
+        rows.append(_row("open", quantity, data))
+    for kind, value, quantity, bounds, answer in NUM_C["anchors"]:
+        data = {"value": value, "anchor": kind, "quantity": quantity, "bounds": bounds}
+        rows.append(_row("anchor", quantity, data, answer=answer))
+    return rows
+
+
+# (k, parts): the probability that a listed cause was one of `parts` named ones, given that the
+# cause was listed, is parts / k.
+LISTS_C = [
+    (5, 1),
+    (3, 1),
+    (5, 2),
+    (2, 1),
+    (5, 3),
+    (3, 2),
+    (5, 4),
+    (4, 1),
+    (4, 3),
+    (4, 2),
+    (5, 1),
+    (3, 2),
+    (2, 1),
+    (5, 4),
+    (3, 1),
+    (5, 3),
+]
+
+
+def _lists_rows_c():
+    rows = []
+    for j, (k, parts) in enumerate(LISTS_C):
+        data = {
+            "domain": j % 5,
+            "source": ("manual", "colleague")[j % 2],
+            "question": "conditional",
+            "k": k,
+            "parts": parts,
+            "rotate": (j * 2) % 5,
+            "form": "c",
+        }
+        rows.append(_row("fixed", j % 5, data))
+    for domain, source, question, k in (
+        (0, "manual", "listed", 3),
+        (1, "colleague", "none", 2),
+        (2, "manual", "none", 5),
+        (3, "colleague", "listed", 2),
+    ):
+        data = {
+            "domain": domain,
+            "source": source,
+            "question": question,
+            "k": k,
+            "rotate": domain,
+            "form": "c",
+        }
+        rows.append(
+            _row("open", domain, data, transform="residual" if question == "listed" else "logit")
+        )
+    for domain, k, question, answer in (
+        (1, 3, "listed", 1 / 3),
+        (1, 3, "none", 0.0),
+        (4, 2, "listed", 0.5),
+        (4, 2, "none", 0.0),
+    ):
+        data = {
+            "domain": domain,
+            "k": k,
+            "question": question,
+            "exhaustive": True,
+            "rotate": 0,
+            "form": "c",
+            "source": "record",
+        }
+        rows.append(_row("anchor", domain, data, answer=answer))
+    return rows
+
+
+TREND_C = {
+    # (series, time, threshold, surface): about 1, about 0, about 0.5 (proportional lines asked
+    # about their own projection at 3.5)
+    "fixed": [
+        ((4, 8, 16), 8, 10, 0),
+        ((3, 6, 12), 8, 8, 1),
+        ((10, 20, 30), 5, 20, 2),
+        ((6, 12, 24), 8, 15, 3),
+        ((4, 8, 16), 8, 5000, 1),
+        ((6, 12, 24), 8, 8000, 2),
+        ((10, 20, 30), 5, 500, 3),
+        ((20, 30, 45), 8, 20000, 4),
+        ((10, 20, 30), 3.5, 35, 0),
+        ((12, 24, 36), 3.5, 42, 1),
+        ((8, 16, 24), 3.5, 28, 2),
+        ((20, 40, 60), 3.5, 70, 3),
+    ],
+    # Linearity items: geometric series asked about 1.5x (as in forms a and b) and 2x the linear
+    # projection at 8.
+    "open": [
+        ((17, 34, 68), 1.5),
+        ((44, 66, 99), 1.5),
+        ((19, 38, 76), 1.5),
+        ((52, 78, 117), 1.5),
+        ((5, 10, 20), 2.0),
+        ((8, 12, 18), 2.0),
+        ((3, 6, 12), 2.0),
+        ((16, 24, 36), 2.0),
+    ],
+    "anchors": [
+        (4, (20, 25, 30), 8, 50, 1.0),
+        (4, (20, 25, 30), 8, 60, 0.0),
+        (2, (14, 21, 28), 10, 70, 1.0),
+        (2, (14, 21, 28), 10, 80, 0.0),
+    ],
+}
+
+
+def _trend_rows_c():
+    rows = []
+    for ys, x_star, threshold, surface in TREND_C["fixed"]:
+        data = {
+            "xs": (1, 2, 3),
+            "ys": ys,
+            "x": x_star,
+            "question": "above",
+            "threshold": threshold,
+            "surface": surface,
+        }
+        rows.append(_row("fixed", surface, data))
+    for j, (ys, factor) in enumerate(TREND_C["open"]):
+        linear = trend_projection((1, 2, 3), ys, 8, "linear")
+        data = {
+            "xs": (1, 2, 3),
+            "ys": ys,
+            "x": 8,
+            "question": "above",
+            "threshold": _nice(factor * linear),
+            "surface": (j + 1) % 5,
+        }
+        rows.append(_row("open", (j + 1) % 5, data))
+    for surface, ys, x_star, threshold, answer in TREND_C["anchors"]:
+        data = {
+            "xs": (1, 2, 3),
+            "ys": ys,
+            "x": x_star,
+            "question": "above",
+            "threshold": threshold,
+            "surface": surface,
+            "exact": True,
+        }
+        rows.append(_row("anchor", surface, data, answer=answer))
+    return rows
+
+
+FIXED_ROWS = {"num": _num_rows_c, "lists": _lists_rows_c, "trend": _trend_rows_c}
+
 ROWS = {
     "gen": _gen_rows,
     "num": _num_rows,
@@ -650,7 +950,7 @@ def design(family, form):
 
 @functools.cache
 def _design(family, form):
-    rows = _pairs_halves(ROWS[family](form))
+    rows = _pairs_halves(FIXED_ROWS[family]() if form == FIXED_FORM else ROWS[family](form))
     assert len(rows) == 24 and sum(r["kind"] == "anchor" for r in rows) == 4
     items = {k: np.array([r[k] for r in rows]) for k in rows[0] if k != "data"}
     items["data"] = np.array([json.dumps(r["data"]) for r in rows])
@@ -665,13 +965,15 @@ def data(items, i):
 
 
 def predict(family, items, params):
-    """Predicted probability for every item (anchors: their determinate answers)."""
+    """Predicted probability for every item (anchors: their determinate answers). Form c is
+    predicted by the revised observers; forms a and b by the observers they were designed with."""
+    models = OBSERVERS if str(items["form"][0]) == FIXED_FORM else MODELS
     out = np.zeros(len(items["kind"]))
     for i in range(len(out)):
         if items["kind"][i] == "anchor":
             out[i] = items["answer"][i]
         else:
-            out[i] = MODELS[family](data(items, i), params)
+            out[i] = models[family](data(items, i), params)
     return out
 
 
@@ -679,7 +981,8 @@ def predict(family, items, params):
 def _openness(family, form, draws=200):
     items = _design(family, form)
     rng = np.random.default_rng(20261101 + FAMILIES.index(family))
-    preds = np.array([predict(family, items, p) for p in draw(family, rng, draws)])
+    sampler = observer_draw if form == FIXED_FORM else draw
+    preds = np.array([predict(family, items, p) for p in sampler(family, rng, draws)])
     z = logit(preds)
     return np.percentile(z, 90, axis=0) - np.percentile(z, 10, axis=0)
 
@@ -745,7 +1048,8 @@ def session(items, responses):
         "contrasts": contrast_scores(items, responses),
         "anchor_errors": [float(e) for e in errors],
         "anchors_ok": bool(np.all(errors <= ANCHOR_TOLERANCE + 1e-9)),
-        "open_responses": [float(v) for v in responses[~anchors]],
+        "open_responses": [float(v) for v in responses[np.asarray(items["kind"]) == "open"]],
+        "fixed_responses": [float(v) for v in responses[np.asarray(items["kind"]) == "fixed"]],
     }
 
 

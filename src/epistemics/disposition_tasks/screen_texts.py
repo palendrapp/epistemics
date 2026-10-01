@@ -129,7 +129,7 @@ def _num(items, i, d):
         else:
             lines = [person.format(who=SPEAKERS[d["speaker"]], v=d["value"])]
         lo, hi = d["window"]
-        span = f"between {lo} and {hi}"
+        span = f"more than {lo}" if hi >= screen.MORE_THAN else f"between {lo} and {hi}"
     return lines, f"What is the probability that {predicate.format(range=span)}?"
 
 
@@ -349,6 +349,14 @@ def _lists(items, i, d):
     lines = [event.format(id=ident(i)), f"{source}: {listing(causes)}."]
     if d["question"] == "none":
         return lines, "What is the probability that the cause was none of these?"
+    if d["question"] == "conditional":
+        start = d["rotate"] % d["k"]
+        named = [causes[(start + j) % d["k"]] for j in range(d["parts"])]
+        joined = named[0] if len(named) == 1 else ", ".join(named[:-1]) + " or " + named[-1]
+        return lines, (
+            f"If the cause was one of the listed causes, what is the probability that it was "
+            f"{joined}?"
+        )
     asked = causes[d["rotate"] % d["k"]]
     return lines, f"What is the probability that the cause was {asked}?"
 

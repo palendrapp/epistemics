@@ -25,73 +25,22 @@ import numpy as np
 
 from epistemics.dispositions import screen
 
-NUM_GRAIN = 0.2
-TRUST = np.array([0.0, 0.1, 0.25, 0.5, 0.75, 1.0])
-FALLBACK = np.array([0.05, 0.25, 0.5, 0.7, 0.85, 0.99])
+# Mixture grids fine enough that true values between grid points do not bias the family
+# parameters (with 6 x 6, F5's noise coverage fell to 0.70).
+TRUST = np.round(np.linspace(0.0, 1.0, 11), 2)
+FALLBACK = np.array([0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 0.99])
 REPORT_NOISE = np.array([0.1, 0.2, 0.3, 0.5, 0.8])
 
-
-def _num(d, p):
-    u = d["value"]
-    lo, hi = d["window"]
-    sd = max(p["precision"] * u, 1e-9)
-    literal = float(screen._phi((hi - u) / sd) - screen._phi((lo - u) / sd))
-    if d["sharp"]:
-        return literal
-    exact = p["instrument_exact"] if d["source"] == "instrument" else p["person_exact"]
-    width = NUM_GRAIN * u
-    overlap = max(0.0, min(hi, u + width / 2) - max(lo, u - width / 2)) / width
-    return exact * literal + (1 - exact) * overlap
-
-
-def _trend(d, p):
-    xs, ys, x_star = d["xs"], d["ys"], d["x"]
-    b, noise = p["likelihood_weight"], p["noise"]
-    fits = screen._trend_fits(xs, ys)
-    weights, probs = [], []
-    for name in screen.TREND_FAMILIES:
-        design, target, coef, log = fits[name]
-        sd = noise if log else noise * float(np.mean(ys))
-        ssr = float(np.sum((target - design @ coef) ** 2))
-        prior = p["linear_weight"] if name == "linear" else (1 - p["linear_weight"]) / 2
-        weights.append(math.log(prior) - b * ssr / (2 * sd**2))
-        row = np.array([1.0, math.log(x_star) if name == "power" else x_star])
-        leverage = float(row @ np.linalg.inv(design.T @ design) @ row)
-        spread = sd * math.sqrt(1 + leverage / b)
-        mean = float(row @ coef)
-        scale = math.log if log else (lambda v: v)
-        if d["question"] == "above":
-            prob = 1 - float(screen._phi((scale(d["threshold"]) - mean) / spread))
-        else:
-            lo, hi = d["window"]
-            prob = float(
-                screen._phi((scale(hi) - mean) / spread) - screen._phi((scale(lo) - mean) / spread)
-            )
-        probs.append(prob)
-    w = np.exp(np.array(weights) - max(weights))
-    return float(w @ np.array(probs) / w.sum())
-
-
-MODELS = {**screen.MODELS, "num": _num, "trend": _trend}
+# The revised observers are canonical in dispositions.screen (model 0.18).
+MODELS = screen.OBSERVERS
 GRID = {
     **screen.FIT_GRID,
-    "trend": {
-        "linear_weight": np.linspace(0.2, 0.9, 8),
-        "likelihood_weight": np.geomspace(0.2, 5.0, 8),
-        "noise": np.geomspace(0.01, 0.3, 6),
-    },
+    "trend": {"linear_weight": np.linspace(0.2, 0.9, 15), "noise": np.geomspace(0.01, 0.3, 15)},
 }
-PARAMS = {
-    **{f: dict(screen.SPEC[f]["params"]) for f in screen.FAMILIES},
-    "trend": {
-        "linear_weight": (0.2, 0.9),
-        "likelihood_weight": ("log", 0.2, 5.0),
-        "noise": ("log", 0.01, 0.3),
-    },
-}
+PARAMS = screen.OBSERVER_PARAMS
 PROFILE = {
     **screen.PROFILE,
-    "trend": ("linear_weight", "likelihood_weight", "noise"),
+    "trend": ("linear_weight", "noise"),
 }
 MIXTURE = ("trust", "fallback")
 
@@ -130,7 +79,7 @@ def _table(family, forms, revised=True):
     columns = []
     for form in forms:
         items = screen._design(family, form)
-        rows = [i for i in range(len(items["kind"])) if items["kind"][i] == "open"]
+        rows = [i for i in range(len(items["kind"])) if items["kind"][i] != "anchor"]
         table = np.empty((size, len(rows)))
         for g in range(size):
             params = {n: float(points[n][g]) for n in names}
@@ -144,7 +93,7 @@ def _observed(family, responses, forms):
     for form in forms:
         items = screen._design(family, form)
         y = np.asarray(responses[form], dtype=float)
-        z.append(screen.logit(y[np.asarray(items["kind"]) == "open"]))
+        z.append(screen.logit(y[np.asarray(items["kind"]) != "anchor"]))
     return np.concatenate(z)
 
 
@@ -214,8 +163,8 @@ def predict_form(family, fitted, form):
     items = screen._design(family, form)
     params = {k: v["mean"] for k, v in fitted["parameters"].items()}
     p = predict(family, items, params)
-    open_items = np.asarray(items["kind"]) == "open"
-    return (1 - params["trust"]) * p[open_items] + params["trust"] * params["fallback"]
+    rows = np.asarray(items["kind"]) != "anchor"
+    return (1 - params["trust"]) * p[rows] + params["trust"] * params["fallback"]
 
 
 def draw(family, rng, n):
@@ -276,67 +225,132 @@ def _recovery_family(args):
     return family, "+".join(forms), out
 
 
-def recovery(configs=150, seed=20261106):
+def recovery(configs=150, seed=20261106, families=screen.FIXED_FAMILIES):
+    """Revised-observer recovery with forms a, b and c (the gate for collecting form c), and with
+    a and b only for comparison."""
     from concurrent.futures import ProcessPoolExecutor
 
-    seeds = np.random.SeedSequence(seed).spawn(2 * len(screen.FAMILIES))
+    seeds = np.random.SeedSequence(seed).spawn(2 * len(families))
     jobs = []
-    for k, family in enumerate(screen.FAMILIES):
-        jobs.append((family, configs, ("a", "b"), seeds[2 * k]))
-        jobs.append((family, configs, ("a",), seeds[2 * k + 1]))
+    for k, family in enumerate(families):
+        jobs.append((family, configs, screen.forms(family), seeds[2 * k]))
+        jobs.append((family, configs, screen.FORMS, seeds[2 * k + 1]))
     with ProcessPoolExecutor(8) as pool:
         results = list(pool.map(_recovery_family, jobs))
     out = {}
     for family, forms, params in results:
         out.setdefault(family, {})[forms] = params
+    full = {f: "+".join(screen.forms(f)) for f in families}
     return {
-        "schema_version": "epistemics.screen-revised-recovery.v1",
+        "schema_version": "epistemics.screen-revised-recovery.v2",
         "configs": configs,
         "families": out,
-        "passed": all(p["passed"] for v in out.values() for p in v["a+b"].values()),
+        "passed": all(p["passed"] for f, v in out.items() for p in v[full[f]].values()),
     }
 
 
-def profiles(roots, fit_forms=("a",), predict_form_=None):
+def profiles(roots, fit_forms=("a",), predict_form_=None, families=screen.FAMILIES):
     """Fits of the original and revised observers to each configuration's sessions on the given
     forms: evidence, report noise, parameters; with predict_form_, the held-out prediction error
-    (log-odds RMSE) of each model on that form's open items."""
-    from epistemics.ledger import screen as ledger
+    (log-odds RMSE) of each model on that form's non-anchor items. The original observers are
+    fitted only to forms a and b."""
+    from epistemics.ledger import dispositions
 
-    rows = ledger.sessions(roots)
     by = {}
-    for r in rows:
-        by.setdefault((r["family"], r["configuration"]), {})[r["form"]] = r
+    for root in roots:
+        for record in dispositions.extract(root):
+            if not record.get("verified") or "screen" not in record:
+                continue
+            s = record["screen"]
+            by.setdefault((s["family"], record["configuration"]), {})[s["form"]] = np.asarray(
+                record["responses"], dtype=float
+            )
     out = {}
-    for (family, config), sessions in sorted(by.items()):
-        if not all(f in sessions for f in fit_forms):
+    for (family, config), responses in sorted(by.items()):
+        if family not in families or not all(f in responses for f in fit_forms):
             continue
-        responses = {}
-        for form, s in sessions.items():
-            items = screen._design(family, form)
-            y = np.zeros(len(items["kind"]))
-            y[np.asarray(items["kind"]) == "open"] = s["open_responses"]
-            responses[form] = y
         entry = {}
         for label, revised in (("original", False), ("revised", True)):
+            if not revised and screen.FIXED_FORM in fit_forms:
+                continue
             fitted = fit(family, responses, fit_forms, revised)
             result = {
                 "evidence": fitted["evidence"],
                 "report_noise": fitted["report_noise"],
                 "parameters": {k: v["mean"] for k, v in fitted["parameters"].items()},
+                "intervals": {k: v["interval_90"] for k, v in fitted["parameters"].items()},
             }
-            if predict_form_ and predict_form_ in sessions:
-                observed = screen.logit(np.asarray(sessions[predict_form_]["open_responses"]))
+            if predict_form_ and predict_form_ in responses:
+                items = screen._design(family, predict_form_)
+                rows = np.asarray(items["kind"]) != "anchor"
+                observed = screen.logit(responses[predict_form_][rows])
                 if revised:
                     predicted = predict_form(family, fitted, predict_form_)
                 else:
-                    items = screen._design(family, predict_form_)
                     params = {k: v["mean"] for k, v in fitted["parameters"].items()}
-                    p = screen.predict(family, items, params)
-                    predicted = p[np.asarray(items["kind"]) == "open"]
+                    predicted = screen.predict(family, items, params)[rows]
                 result["held_out_rmse"] = float(
                     np.sqrt(np.mean((screen.logit(predicted) - observed) ** 2))
                 )
             entry[label] = result
         out.setdefault(family, {})[config] = entry
+    return out
+
+
+def fallback_test(roots):
+    """Preregistered (fallback round): per configuration and family, trust and fallback fitted to
+    form c's fallback items alone (the observer's answer there is fixed, so only the mixture and
+    the report noise are fitted), against the trust fitted to forms a and b under the revised
+    observer. Constant fallback: the fixed-item trust's 90% interval lies above 0.1 where forms a
+    and b show trust above 0.25. Triggered by open cases: fixed-item trust near 0 (interval
+    reaching 0) while forms a and b show trust above 0.25."""
+    from epistemics.ledger import dispositions
+
+    by = {}
+    for root in roots:
+        for record in dispositions.extract(root):
+            if not record.get("verified") or "screen" not in record:
+                continue
+            s = record["screen"]
+            if s["family"] in screen.FIXED_FAMILIES:
+                by.setdefault((s["family"], record["configuration"]), {})[s["form"]] = np.asarray(
+                    record["responses"], dtype=float
+                )
+    out = {}
+    for (family, config), responses in sorted(by.items()):
+        if not all(f in responses for f in screen.forms(family)):
+            continue
+        items = screen.design(family, screen.FIXED_FORM)
+        fixed = np.asarray(items["kind"]) == "fixed"
+        p = screen.predict(family, items, screen.observer_mid(family))[fixed]
+        z = screen.logit(responses[screen.FIXED_FORM][fixed])
+        mixed = (1 - TRUST[:, None, None]) * p[None, None, :] + TRUST[:, None, None] * FALLBACK[
+            None, :, None
+        ]
+        loglik = _loglik(z, mixed)  # (trust, fallback, noise)
+        post = np.exp(loglik - loglik.max())
+        post /= post.sum()
+        trust = post.sum(axis=(1, 2))
+        fallback = post.sum(axis=(0, 2))
+        ab = fit(family, responses, screen.FORMS)["parameters"]["trust"]
+        fixed_trust = {"mean": float(trust @ TRUST), "interval_90": _interval(trust, TRUST)}
+        verdict = "no fallback on open items"
+        if ab["mean"] > 0.25:
+            if fixed_trust["interval_90"][0] > 0.1:
+                verdict = "constant"
+            elif fixed_trust["interval_90"][0] <= 0.0 + 1e-9:
+                verdict = "triggered by open cases"
+            else:
+                verdict = "undetermined"
+        out.setdefault(family, {})[config] = {
+            "fixed_items": {
+                "trust": fixed_trust,
+                "fallback": {"mean": float(fallback @ FALLBACK)},
+                "report_noise": float(post.sum(axis=(0, 1)) @ REPORT_NOISE),
+                "answers": [float(v) for v in responses[screen.FIXED_FORM][fixed]],
+                "observer": [float(v) for v in p],
+            },
+            "forms_ab_trust": ab,
+            "verdict": verdict,
+        }
     return out

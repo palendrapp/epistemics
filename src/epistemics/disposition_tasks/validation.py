@@ -310,7 +310,8 @@ def screen_case_clean(module, index, case):
 
 def screen_audit():
     """Openness per family and form: open items open (median at least OPEN_MEDIAN log-odds),
-    anchors determinate (openness 0)."""
+    anchors determinate (openness 0); form c's fallback items fixed under the revised observers
+    (at most FIXED_OPENNESS)."""
     from epistemics.dispositions import screen
 
     out = {}
@@ -323,6 +324,15 @@ def screen_audit():
             if median < screen.OPEN_MEDIAN or np.any(openness[anchors] > 1e-9):
                 raise ValueError(f"screen-{family}-{form} fails the openness audit ({median:.2f})")
             out[f"{family}-{form}"] = round(median, 3)
+    for family in screen.FIXED_FAMILIES:
+        items = screen.design(family, screen.FIXED_FORM)
+        openness = screen.openness(family, screen.FIXED_FORM)
+        fixed = items["kind"] == "fixed"
+        if np.max(openness[fixed]) > screen.FIXED_OPENNESS or np.any(
+            openness[items["kind"] == "anchor"] > 1e-9
+        ):
+            raise ValueError(f"screen-{family}-c has a fallback item that is not fixed")
+        out[f"{family}-c (largest fixed)"] = round(float(np.max(openness[fixed])), 3)
     return out
 
 
@@ -609,7 +619,11 @@ def contexts_to_validate():
 
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
-        yield module, "markets", "screen", {"params": screen.mid(family), "noise": 0.05}
+        if module.endswith("-c"):
+            params = screen.observer_mid(family)
+        else:
+            params = screen.mid(family)
+        yield module, "markets", "screen", {"params": params, "noise": 0.05}
 
 
 def estimate(module, analysis, truth):
@@ -620,6 +634,14 @@ def estimate(module, analysis, truth):
 
         s = analysis["screen"]
         items = items_for(module)
+        if s["form"] == screen.FIXED_FORM:
+            # Fallback items: answers within tolerance of the observer's fixed predictions.
+            fixed = np.asarray(items["kind"]) == "fixed"
+            predicted = screen.predict(s["family"], items, truth["params"])[fixed]
+            error = float(
+                np.max(np.abs(screen.logit(s["fixed_responses"]) - screen.logit(predicted)))
+            )
+            return error, bool(s["anchors_ok"] and error <= TOLERANCE["screen_contrast"])
         clean = screen.contrast_scores(items, screen.predict(s["family"], items, truth["params"]))
         error = max(abs(c["score"] - clean[n]["score"]) for n, c in s["contrasts"].items())
         return float(error), bool(s["anchors_ok"] and error <= TOLERANCE["screen_contrast"])

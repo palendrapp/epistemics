@@ -169,11 +169,13 @@ def holm(ps):
     return out
 
 
-def stage_b(roots, seed=20261102):
+def stage_b(roots, seed=20261102, families=screen.FAMILIES):
+    """Holm runs across the contrasts of `families` (the fallback round restricts them to F2, F4
+    and F5)."""
     rows = sessions(roots)
     rng = np.random.default_rng(seed)
     results, ps = {}, {}
-    for family in screen.FAMILIES:
+    for family in families:
         by_config = {}
         for r in rows:
             if r["family"] == family:

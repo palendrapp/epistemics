@@ -569,3 +569,54 @@ The revision generalises rather than overfits: it predicts unseen items better. 
 3. **The missing ingredient is information about the fallback process itself.** Open-looking items whose observer answer is nearly fixed whatever the parameters (low openness, no stated rule) would show how much a configuration falls back on a default, and would pin trust and fallback separately from the family parameters.
 4. **Six configurations from two model families are few for stage B.** Adding the high-effort GPT-6 configurations would make eight.
 
+### Fallback round: design and preregistration (1 October, before collection)
+
+**You agreed:** add fallback items for F2, F4 and F5, and two more configurations. Model 0.18.0, design 0.19.0, tasks 0.28.0.
+
+**Form c** (`screen-num-c`, `screen-lists-c`, `screen-trend-c`). Each has fallback items, a few open items and 4 anchors.
+
+The fallback items look like the open items but have a fixed answer under the revised observer, whatever its parameters (openness at most 0.3; largest 0.21):
+
+| Family | Fallback items | Open items |
+| --- | --- | --- |
+| F2 | 16, at 0.5 ("more than the stated value", symmetric under the speaker model), about 1 (windows of ±50%) and about 0 (windows far from the stated value) | 4 |
+| F4 | 16, at 0.2–0.8: "if the cause was one of the listed causes, what is the probability that it was X (or X or Y…)?", which is *j*/*k* by symmetry | 4 |
+| F5 | 12, at about 1, about 0 and 0.5 (proportional lines asked about their projection at 3.5) | 8 geometric series at 1.5× and 2× the linear projection |
+
+**Canonical observers (model 0.18).** The revised observers now live in `dispositions/screen.py`:
+- **F2:** rounding proportional to the number;
+- **F5:** diagnosticity is the assumed process noise alone (likelihood weight 1). With both free, the likelihood weight was not recoverable (*r* 0.35, confused 0.46 with noise).
+- **Fallback:** the trust and fallback mixture is fitted in `ledger/screen_fit.py` on 11 × 11 grids. With 6 × 6, values falling between grid points biased F5's noise (coverage 0.70).
+
+**Recovery gate** (`output/screen-revised-recovery-c-20261001.json`, 200 configurations, forms a+b+c; criteria *r* ≥ 0.8, coverage ≥ 0.8, confusion ≤ 0.3). It passes for 13 of 14 parameters:
+
+| Family | Parameters | *r* | Coverage | Largest confusion |
+| --- | --- | --- | --- | --- |
+| F2 | *π*, *π*<sub>I</sub>, *ε* | 0.89–0.93 | 0.92–0.93 | ≤ 0.16 |
+| F2 | trust, fallback | 0.99, 0.96 | 0.92 | ≤ 0.18 |
+| F4 | *ρ*<sub>M</sub>, *ρ*<sub>C</sub> | 0.93, 0.96 | 0.94–0.95 | ≤ 0.16 |
+| F4 | trust, fallback | 0.97, 0.93 | 0.91–0.94 | ≤ 0.13 |
+| F5 | process noise | 0.98 | 0.85 | 0.15 |
+| F5 | trust, fallback | 0.98, 0.97 | 0.84–0.89 | ≤ 0.10 |
+| F5 | linear prior *w* | **0.79** (fails, against 0.8) | 0.86 | 0.10 |
+
+- **What form c adds:** without it (forms a and b only), trust and fallback recover at 0.56–0.79 for F2 and F5. Form c is what makes the mixture separable.
+- **F5's linear prior** is borderline (0.79 here; 0.86 in a 120-configuration check). It is recorded as a failure, and its profile values will carry that caveat; the design was not tuned further to pass it.
+
+**Task validation 0.28.** It passed on both seeds: 3,360 cases and 145 contexts. The fallback contexts are within 0.3 of the observer's fixed answers; the largest error is 0.13.
+- Fingerprint `a709e539ab70c4a7a5b48be3c96dd4e163bc8f8abb8ebd1c332d6b4afc836883`.
+- Seed 20260927: `407c65979598646e1128dab4a9e6a09fa110ca98d3bf54e3a7e7487b2c6abc6e`.
+- Seed 20261027: `29e179dc62ebfba1bb3ace57249ec4dd65f46c0db76528c7a197e6be704145cc`.
+
+**Collection** (preset `screen-c`, 36 sessions, cap 25 million tokens):
+- **New configurations:** Astra-high and Sol-high on forms a and b of F2, F4 and F5 (12 sessions);
+- **Form c:** all eight configurations (24 sessions).
+
+**Analyses fixed now:**
+1. **Stage B with eight configurations.** For F2, F4 and F5, the stage B test (consistency ICC across forms a and b, configuration labels permuted within forms) on all eight configurations, Holm across these families' six contrasts. Pass: ICC ≥ 0.5, *p*<sub>Holm</sub> < 0.05, retest *r* > 0.
+2. **Is the fallback constant?** For each configuration and family, trust and fallback are fitted to the form c fallback items alone (where the observer's answer is fixed), and separately to forms a and b under the revised observer.
+   - Fallback on the fixed items (trust's 90% interval above 0.1) where forms a and b show it means a constant fallback.
+   - Trust near 0 on the fixed items while forms a and b show trust > 0.25 means the fallback is triggered only by open cases, and the mixture model is wrong in form.
+3. **Profiles.** The revised observers fitted to forms a+b+c per configuration, with parameters, intervals and report noise. A profile is reported as fitted where report noise is at most 0.5.
+4. **Held-out check.** Fit to forms a and c, predict form b (log-odds RMSE), against the stage B held-out figures.
+

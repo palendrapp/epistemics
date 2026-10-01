@@ -47,11 +47,13 @@ def test_texts_state_data_only_and_anchors_fix_their_answers():
             trial = render(module, "markets", i, "screen")
             assert stated_percentages(module, i) == [] and "%" not in trial["case"]
             assert validation.screen_case_clean(module, i, trial)
-            assert trial["question"].startswith("What is the probability that")
+            assert trial["question"].startswith(
+                ("What is the probability that", "If the cause was one of the listed causes")
+            )
             seen.add((trial["case"], trial["question"]))
             cases += 1
         assert len(seen) == 24
-    assert cases == 240
+    assert cases == 24 * len(SCREEN_MODULES)
     # Examples of the families' texts.
     gen = render("screen-gen-a", "markets", 0, "screen")
     assert gen["case"].startswith("A process produced these values: 20, 30, 40.")
@@ -148,3 +150,44 @@ def test_num_and_trend_contrasts_track_their_own_parameters():
         for name, (names, sign) in screen.SPEC[family]["drivers"].items():
             r = ledger._spearman([d[names[0]] for d in draws], [c[name]["score"] for c in clean])
             assert sign * r >= 0.75, (family, name, r)
+
+
+@pytest.mark.parametrize("family", screen.FIXED_FAMILIES)
+def test_fallback_items_are_fixed_at_several_levels_and_read_like_open_items(family):
+    items = screen.design(family, screen.FIXED_FORM)
+    expected = {"fixed": 12, "open": 8} if family == "trend" else {"fixed": 16, "open": 4}
+    assert Counter(items["kind"].tolist()) == {**expected, "anchor": 4}
+    openness = screen.openness(family, screen.FIXED_FORM)
+    fixed = items["kind"] == "fixed"
+    assert np.max(openness[fixed]) <= screen.FIXED_OPENNESS
+    levels = set(np.round(screen.predict(family, items, screen.observer_mid(family))[fixed], 1))
+    assert len(levels) >= 3
+    module = f"screen-{family}-c"
+    for i in np.flatnonzero(fixed):
+        trial = render(module, "markets", int(i), "screen")
+        assert validation.screen_case_clean(module, int(i), trial)
+    if family == "lists":
+        trial = render(module, "markets", 2, "screen")
+        assert trial["question"].startswith("If the cause was one of the listed causes")
+        assert " or " in trial["question"]
+    if family == "num":
+        assert "more than 30 minutes" in render(module, "markets", 0, "screen")["question"]
+
+
+def test_revised_fit_reads_trust_and_fallback_from_fixed_items():
+    """A respondent who falls back heavily: the fit to forms a, b and c finds high trust and its
+    fallback answer."""
+    from epistemics.ledger import screen_fit
+
+    rng = np.random.default_rng(2)
+    truth = {**screen.observer_mid("num"), "trust": 0.6, "fallback": 0.85}
+    responses = {
+        f: screen_fit.respond("num", screen.design("num", f), truth, rng, 0.2)
+        for f in screen.forms("num")
+    }
+    fitted = screen_fit.fit("num", responses, screen.forms("num"))["parameters"]
+    assert fitted["trust"]["mean"] > 0.4 and abs(fitted["fallback"]["mean"] - 0.85) < 0.15
+    assert (
+        runner.check_groups(runner.PRESETS["screen-c"])
+        and len(runner.check_groups(runner.PRESETS["screen-c"])) == 36
+    )

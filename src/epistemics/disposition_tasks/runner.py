@@ -267,6 +267,22 @@ PRESETS["screen-a"] = (
         "contexts": (("screen", "markets", 1),),
     },
 )
+# Open-inference screen, fallback round (tasks 0.28): the two high-effort GPT-6 configurations on
+# forms a and b of F2, F4 and F5 (eight configurations in all), and form c (fallback items) of the
+# same families on all eight.
+SCREEN_EIGHT = V2_CONFIGURATIONS + ("astra-high", "sol-high")
+PRESETS["screen-c"] = (
+    {
+        "configurations": ("astra-high", "sol-high"),
+        "modules": tuple(f"screen-{f}-{x}" for f in ("num", "lists", "trend") for x in "ab"),
+        "contexts": (("screen", "markets", 1),),
+    },
+    {
+        "configurations": SCREEN_EIGHT,
+        "modules": ("screen-num-c", "screen-lists-c", "screen-trend-c"),
+        "contexts": (("screen", "markets", 1),),
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
