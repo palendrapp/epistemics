@@ -46,3 +46,13 @@ def test_open_grain_compares_astra_with_sol_at_the_same_effort():
     table = sweep.signatures(_rows("screen-stage-a-20261001", values), [])
     result = sweep.open_grain(table)
     assert result["of"] == 1 and result["astra_rounder"] == 1
+
+
+def test_roundness_helpers_class_cases_and_keep_mid_range_answers():
+    from epistemics.ledger import roundness
+
+    classes = roundness._tertiles("num", "a")
+    assert len(classes) == 24 and {"low", "middle", "high"} <= set(classes)
+    assert roundness._round(0.35) and not roundness._round(0.37)
+    assert roundness._keep(0.5, True) and not roundness._keep(0.98, True)
+    assert roundness._keep(0.98, False)

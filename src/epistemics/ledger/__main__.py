@@ -40,6 +40,7 @@ uv run python -m epistemics.ledger cohere-a <roots...> --output <file>
 uv run python -m epistemics.ledger cohere-b <roots...> --output <file>
 uv run python -m epistemics.ledger statements-validation --output <file>
 uv run python -m epistemics.ledger sweep --output <file>
+uv run python -m epistemics.ledger roundness --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -180,6 +181,7 @@ def main():
     sub.add_parser("cohere-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
+    sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
     for name in ("statements-probe", "statements-a", "statements-b", "statements-explore"):
         sp = sub.add_parser(name)
         sp.add_argument("roots", type=Path, nargs="+")
@@ -456,6 +458,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command == "roundness":
+        from epistemics.ledger import roundness
+
+        run = roundness.analyse()
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps({k: run[k] for k in ("sessions", "sessions_with_current_design")}))
     elif a.command == "sweep":
         from epistemics.ledger import sweep
 
