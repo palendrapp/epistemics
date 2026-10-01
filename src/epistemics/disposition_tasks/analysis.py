@@ -12,6 +12,7 @@ from epistemics.disposition_tasks import urn
 from epistemics.disposition_tasks.render import (
     COHERE_MODULES,
     DELIBERATION_MODULES,
+    FOLLOWUP_MODULES,
     SCREEN_MODULES,
     STATEMENT_MODULES,
     STATEMENT_PROBE_MODULES,
@@ -190,6 +191,15 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in FOLLOWUP_MODULES:
+        from epistemics.dispositions import followup
+
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "followup": followup.session(items, responses),
+            "rows": rows,
+        }
     if manifest.module in DELIBERATION_MODULES:
         from epistemics.dispositions import deliberation
 

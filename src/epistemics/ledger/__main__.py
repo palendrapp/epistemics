@@ -46,6 +46,7 @@ uv run python -m epistemics.ledger deliberation-pilot <roots...> --output <file>
 uv run python -m epistemics.ledger deliberation-followup <roots...> --output <file>
 uv run python -m epistemics.ledger deliberation-frames <roots...> [--baseline <roots...>] --output <file>
 uv run python -m epistemics.ledger deliberation-quality <roots...> --output <file>
+uv run python -m epistemics.ledger followups <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -193,6 +194,7 @@ def main():
         "deliberation-followup",
         "deliberation-frames",
         "deliberation-quality",
+        "followups",
     ):
         dp = sub.add_parser(name)
         dp.add_argument("roots", type=Path, nargs="+")
@@ -481,12 +483,16 @@ def main():
         "deliberation-followup",
         "deliberation-frames",
         "deliberation-quality",
+        "followups",
     ):
         from epistemics.ledger import deliberation as deliberation_ledger
 
         if a.command == "deliberation-validation":
             run = deliberation_ledger.validation()
             summary = {k: run[k] for k in ("rho", "a", "confusion", "a_on_own", "passed")}
+        elif a.command == "followups":
+            run = deliberation_ledger.followups(a.roots)
+            summary = run["configurations"]
         elif a.command == "deliberation-quality":
             run = deliberation_ledger.quality(a.roots)
             summary = {"configurations": len(run["configurations"])}

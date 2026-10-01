@@ -106,6 +106,10 @@ MODULES = (
     "deliberation-bare",
     "deliberation-frames-a",
     "deliberation-frames-b",
+    "followup-advice-open-a",
+    "followup-advice-open-b",
+    "followup-advice-stated-a",
+    "followup-advice-stated-b",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -216,6 +220,10 @@ DELIBERATION_MODULES = (
     DELIBERATION_LADDER + DELIBERATION_ANCHOR + DELIBERATION_BARE + DELIBERATION_FRAMES
 )
 DELIBERATION_VARIANTS = ("deliberation",)
+# Follow-up rounding on the peer-advice cases (tasks 0.35): fresh and follow-up cases mixed
+# ("sequences"), open and stated variants (dispositions.followup).
+FOLLOWUP_MODULES = tuple(f"followup-advice-{v}-{f}" for v in ("open", "stated") for f in "ab")
+FOLLOWUP_VARIANTS = ("followup",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -546,6 +554,10 @@ def items_for(module):
         from epistemics.dispositions import deliberation
 
         return deliberation.design(module)
+    if module in FOLLOWUP_MODULES:
+        from epistemics.dispositions import followup
+
+        return followup.design(module)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -915,7 +927,14 @@ RENDERERS = {
     **{m: (lambda *a: _cohere(*a)) for m in COHERE_MODULES},
     **{m: (lambda *a: _statement(*a)) for m in STATEMENT_MODULES + STATEMENT_PROBE_MODULES},
     **{m: (lambda *a: _deliberation(*a)) for m in DELIBERATION_MODULES},
+    **{m: (lambda *a: _followup(*a)) for m in FOLLOWUP_MODULES},
 }
+
+
+def _followup(items, i, cover, variant):
+    from epistemics.disposition_tasks import followup_texts
+
+    return followup_texts.trial(items, i, cover, variant)
 
 
 def _deliberation(items, i, cover, variant):
@@ -931,6 +950,10 @@ def choice_options(module, items, index):
         from epistemics.dispositions import deliberation
 
         return deliberation.options(items, index)
+    if module in FOLLOWUP_MODULES:
+        from epistemics.dispositions import followup
+
+        return followup.options(items, index)
     from epistemics.disposition_tasks.surfaces import options
 
     return options(items, index)
@@ -997,6 +1020,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in STATEMENT_VARIANTS
     if module in DELIBERATION_MODULES:
         return cover == "markets" and variant in DELIBERATION_VARIANTS
+    if module in FOLLOWUP_MODULES:
+        return cover == "markets" and variant in FOLLOWUP_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -1041,7 +1066,7 @@ def render(module, cover, index, variant="paired"):
     if not 0 <= index < len(next(iter(items.values()))):
         raise ValueError("Item index outside the design")
     lines, question = RENDERERS[module](items, index, cover, variant)
-    if module in V3_MODULES + V31_MODULES + V32_MODULES + DELIBERATION_MODULES:
+    if module in V3_MODULES + V31_MODULES + V32_MODULES + DELIBERATION_MODULES + FOLLOWUP_MODULES:
         response = str(items["response"][index])
     else:
         response = "points" if module == "checks" else "probability"
@@ -1064,6 +1089,10 @@ def stated_percentages(module, index, variant=None):
         from epistemics.disposition_tasks.deliberation_texts import stated
 
         return stated(items, index)  # the anchor
+    if module in FOLLOWUP_MODULES:
+        from epistemics.disposition_tasks.followup_texts import stated
+
+        return stated(items, index)  # the base case's
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 

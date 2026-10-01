@@ -38,6 +38,8 @@ from epistemics.disposition_tasks.render import (
     DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
+    FOLLOWUP_MODULES,
+    FOLLOWUP_VARIANTS,
     LEARNING_RATES,
     LOAD_MODULES,
     LOAD_VARIANTS,
@@ -162,6 +164,7 @@ AUDITED_CASES = (
     + 24 * len(COHERE_MODULES) * len(COHERE_VARIANTS)
     + 24 * len(STATEMENT_MODULES + STATEMENT_PROBE_MODULES) * len(STATEMENT_VARIANTS)
     + 24 * len(DELIBERATION_MODULES) * len(DELIBERATION_VARIANTS)
+    + 24 * len(FOLLOWUP_MODULES) * len(FOLLOWUP_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -356,6 +359,16 @@ PRESETS["deliberation-frames"] = (
         "configurations": ("astra", "astra-low", "astra-high", "sol", "sol-low", "sol-high"),
         "modules": DELIBERATION_FRAMES,
         "contexts": (("deliberation", "markets", 1),),
+        "order": "sequences",
+    },
+)
+# Follow-up rounding on the peer-advice cases: the six GPT-6 configurations on both variants and
+# both forms ("sequences": each follow-up pair consecutive, fresh cases between).
+PRESETS["followup-advice"] = (
+    {
+        "configurations": ("astra", "astra-low", "astra-high", "sol", "sol-low", "sol-high"),
+        "modules": FOLLOWUP_MODULES,
+        "contexts": (("followup", "markets", 1),),
         "order": "sequences",
     },
 )
@@ -554,6 +567,7 @@ def check_groups(groups):
             + COHERE_VARIANTS
             + STATEMENT_VARIANTS
             + DELIBERATION_VARIANTS
+            + FOLLOWUP_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -570,7 +584,11 @@ def check_groups(groups):
                             "Coherence-set and ladder modules need, and only they take, sets"
                         )
                     if (policy == "sequences") != (
-                        module in STATEMENT_MODULES + DELIBERATION_ANCHOR + DELIBERATION_FRAMES
+                        module
+                        in STATEMENT_MODULES
+                        + DELIBERATION_ANCHOR
+                        + DELIBERATION_FRAMES
+                        + FOLLOWUP_MODULES
                     ):
                         raise ValueError(
                             "Statement and anchor modules need, and only they take, sequences"
@@ -870,6 +888,13 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "followup" in analysis:
+        g = analysis["followup"]["grain"]
+        return {
+            "parameter": f"followup-{analysis['followup']['variant']}",
+            "fresh_share_5": g["fresh"]["share_5"],
+            "followup_share_5": g["followup"]["share_5"],
         }
     if "deliberation" in analysis:
         d = analysis["deliberation"]

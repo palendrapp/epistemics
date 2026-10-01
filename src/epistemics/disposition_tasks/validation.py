@@ -30,6 +30,8 @@ from epistemics.disposition_tasks.render import (
     DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
+    FOLLOWUP_MODULES,
+    FOLLOWUP_VARIANTS,
     LEARNING_RATES,
     LOAD_MODULES,
     LOAD_VARIANTS,
@@ -136,6 +138,8 @@ PROBE_RESPONDENT = {"periods": [0.15, 0.3, 0.35, 0.2]}
 # Deliberation style: a respondent with the screen's middle trend observer, half its answers
 # rounded to 5 points, anchoring weight 0.3, low report noise.
 DELIBERATION_RESPONDENT = {"rho": 0.5, "a": 0.3, "tau": 0.05}
+# Follow-up rounding: fresh answers to the point, follow-ups rounded to 5 points.
+FOLLOWUP_RESPONDENT = {"rho_fresh": 0.0, "rho_followup": 1.0, "tau": 0.05}
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
 LONG_LOAD_RESPONDENT = {
@@ -533,7 +537,41 @@ def deliberation_audit():
     }
 
 
+def followup_audit():
+    """Follow-up modules: each pair consecutive in a "sequences" order and its first case the
+    likely-or-unlikely form of the follow-up's question; every base case fresh in one form and a
+    follow-up in the other."""
+    import random
+
+    from epistemics.disposition_tasks.followup_texts import ASK, FIRST
+    from epistemics.dispositions import followup, statements
+
+    kinds = {}
+    for module in FOLLOWUP_MODULES:
+        items = items_for(module)
+        variant, form = followup.parse(module)
+        order = statements.sequences_order(items, random.Random(1))
+        for k in set(items["sequence"].tolist()):
+            idx = [i for i in order if items["sequence"][i] == k]
+            spots = [order.index(i) for i in idx]
+            if spots != list(range(spots[0], spots[0] + len(spots))):
+                raise ValueError(f"{module}: a follow-up pair is split")
+            if len(idx) == 2:
+                first = render(module, "markets", idx[0], "followup")
+                second = render(module, "markets", idx[1], "followup")
+                if first["question"] != FIRST + second["question"][len(ASK) :]:
+                    raise ValueError(f"{module}: a first question does not match its follow-up")
+        for i in range(CASES):
+            if items["kind"][i] != "first":
+                kinds.setdefault((variant, int(items["base"][i])), set()).add(str(items["kind"][i]))
+    if any(v != {"fresh", "followup"} for v in kinds.values()):
+        raise ValueError("Follow-up modules: a case is not asked fresh and as a follow-up")
+    return {"cases": len(kinds)}
+
+
 def variants_of(module):
+    if module in FOLLOWUP_MODULES:
+        return FOLLOWUP_VARIANTS
     if module in DELIBERATION_MODULES:
         return DELIBERATION_VARIANTS
     if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
@@ -602,6 +640,7 @@ def covers_of(module):
         + STATEMENT_MODULES
         + STATEMENT_PROBE_MODULES
         + DELIBERATION_MODULES
+        + FOLLOWUP_MODULES
         else COVERS
     )
 
@@ -675,6 +714,7 @@ def audit():
                     + COHERE_MODULES
                     + STATEMENT_PROBE_MODULES
                     + DELIBERATION_MODULES
+                    + FOLLOWUP_MODULES
                     else c["case"]
                     for c in cases
                 }
@@ -769,6 +809,7 @@ def audit():
         "cohere_openness": cohere_audit(),
         "statements": statement_audit(),
         "deliberation": deliberation_audit(),
+        "followup": followup_audit(),
     }
 
 
@@ -855,6 +896,8 @@ def contexts_to_validate():
     for module in DELIBERATION_MODULES:
         truth = {**DELIBERATION_RESPONDENT, "params": screen.observer_mid("trend")}
         yield module, "markets", "deliberation", truth
+    for module in FOLLOWUP_MODULES:
+        yield module, "markets", "followup", FOLLOWUP_RESPONDENT
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -865,6 +908,15 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "followup" in analysis:
+        # Follow-ups rounded and fresh answers not, as simulated; the stated variant's fresh
+        # answers within 0.2 log-odds of the exact answers on average.
+        f = analysis["followup"]
+        g = f["grain"]
+        gap = g["followup"]["share_5"] - g["fresh"]["share_5"]
+        errors = [r["error"] for r in f["answers"] if r["kind"] == "fresh" and "error" in r]
+        ok = gap >= 0.5 and (not errors or float(np.mean(errors)) <= 0.2)
+        return float(gap), bool(ok)
     if "deliberation" in analysis:
         # Ladders: the readout grain; anchors: the anchoring weight against the respondent's own
         # (noiseless) answers, and every comparison consistent with its estimate.

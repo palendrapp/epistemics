@@ -364,6 +364,60 @@ def quality(roots):
     }
 
 
+def followups(roots):
+    """Follow-up rounding on the peer-advice cases: per configuration and variant, the share of
+    mid-range answers at multiples of 5 for fresh and follow-up cases (pooled over both forms,
+    mixed within sessions); for each case answered fresh in one form and as a follow-up in the
+    other, the mean |log-odds| between the two answers; for the stated variant, the mean error
+    against the exact answer, fresh against follow-up."""
+    from epistemics.ledger import dispositions
+
+    collected = {}
+    for root in roots:
+        for record in dispositions.extract(root):
+            if not record.get("verified") or "followup" not in record:
+                continue
+            f = record["followup"]
+            entry = collected.setdefault((record["configuration"], f["variant"]), [])
+            entry += f["answers"]
+    out = {}
+    for (c, variant), answers in sorted(collected.items()):
+
+        def share(kind, answers=answers):
+            v = [a["answer"] for a in answers if a["kind"] == kind]
+            mid = [x for x in v if dl.MID[0] <= x <= dl.MID[1]]
+            return {
+                "share_5": sum(round(x * 100) % 5 == 0 for x in mid) / len(mid) if mid else None,
+                "n": len(mid),
+            }
+
+        fresh = {a["base"]: a["answer"] for a in answers if a["kind"] == "fresh"}
+        follow = {a["base"]: a["answer"] for a in answers if a["kind"] == "followup"}
+        both = sorted(set(fresh) & set(follow))
+        entry = {
+            "fresh": share("fresh"),
+            "followup": share("followup"),
+            "matched_gap": float(
+                np.mean(
+                    [abs(float(screen.logit(fresh[b]) - screen.logit(follow[b]))) for b in both]
+                )
+            )
+            if both
+            else None,
+            "matched": len(both),
+        }
+        if variant == "stated":
+            for kind in ("fresh", "followup"):
+                e = [a["error"] for a in answers if a["kind"] == kind and "error" in a]
+                entry[f"error_{kind}"] = float(np.mean(e)) if e else None
+        out.setdefault(c, {})[variant] = entry
+    return {
+        "schema_version": "epistemics.followups.v1",
+        "configurations": out,
+        "scope": "Exploratory: follow-up rounding on the peer-advice cases.",
+    }
+
+
 # Validation before collection.
 def _draw(rng):
     return {
