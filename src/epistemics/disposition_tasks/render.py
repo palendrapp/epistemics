@@ -86,6 +86,12 @@ MODULES = (
     "screen-num-c",
     "screen-lists-c",
     "screen-trend-c",
+    "cohere-num-d",
+    "cohere-num-e",
+    "cohere-lists-d",
+    "cohere-lists-e",
+    "cohere-trend-d",
+    "cohere-trend-e",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -173,6 +179,12 @@ SCREEN_MODULES = tuple(
     for form in "ab"
 ) + ("screen-num-c", "screen-lists-c", "screen-trend-c")
 SCREEN_VARIANTS = ("screen",)
+# Coherence sets (tasks 0.29): F2, F4 and F5 in two parallel forms (dispositions.cohere,
+# cohere_texts); members of a set share a case and are ordered at least 4 cases apart.
+COHERE_MODULES = tuple(
+    f"cohere-{family}-{form}" for family in ("num", "lists", "trend") for form in "de"
+)
+COHERE_VARIANTS = ("cohere",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -490,6 +502,11 @@ def items_for(module):
 
         _, family, form = module.split("-")
         return screen.design(family, form)
+    if module in COHERE_MODULES:
+        from epistemics.dispositions import cohere
+
+        _, family, form = module.split("-")
+        return cohere.design(family, form)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -856,7 +873,14 @@ RENDERERS = {
         )
     },
     **{m: (lambda *a: _screen(*a)) for m in SCREEN_MODULES},
+    **{m: (lambda *a: _cohere(*a)) for m in COHERE_MODULES},
 }
+
+
+def _cohere(items, i, cover, variant):
+    from epistemics.disposition_tasks import cohere_texts
+
+    return cohere_texts.trial(items, i, cover, variant)
 
 
 def _screen(items, i, cover, variant):
@@ -902,6 +926,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in V32_VARIANTS
     if module in SCREEN_MODULES:
         return cover == "markets" and variant in SCREEN_VARIANTS
+    if module in COHERE_MODULES:
+        return cover == "markets" and variant in COHERE_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -961,8 +987,8 @@ def render(module, cover, index, variant="paired"):
 def stated_percentages(module, index, variant=None):
     """Every probability the case must display, for the rendering audit."""
     items = items_for(module)
-    if module in SCREEN_MODULES:
-        return []  # Screen cases state no percentages.
+    if module in SCREEN_MODULES + COHERE_MODULES:
+        return []  # Screen and coherence-set cases state no percentages.
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 

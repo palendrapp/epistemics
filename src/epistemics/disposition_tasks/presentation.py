@@ -129,7 +129,7 @@ def instructions(module, variant="paired", cover="markets"):
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
-    if module.startswith("screen-"):
+    if module.startswith(("screen-", "cohere-")):
         return " ".join([INTRO_SCREEN, SEPARATE, RULES, PROBABILITY])
     if module.startswith(("decision-", "decision2-")):
         return " ".join([INTRO_V3, SEPARATE, RULES, RESPONSE_V31])

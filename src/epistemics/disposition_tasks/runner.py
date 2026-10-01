@@ -26,6 +26,8 @@ from epistemics.disposition_tasks.collection import CASES, create, export, finge
 from epistemics.disposition_tasks.render import (
     ASKED_MODULES,
     ASKED_VARIANTS,
+    COHERE_MODULES,
+    COHERE_VARIANTS,
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
@@ -149,6 +151,7 @@ AUDITED_CASES = (
     + 24 * len(V31_MODULES) * len(V31_VARIANTS)
     + 24 * len(V32_MODULES) * len(V32_VARIANTS)
     + 24 * len(SCREEN_MODULES) * len(SCREEN_VARIANTS)
+    + 24 * len(COHERE_MODULES) * len(COHERE_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -283,6 +286,16 @@ PRESETS["screen-c"] = (
         "contexts": (("screen", "markets", 1),),
     },
 )
+# Coherence sets, stage A (docs/screen-coherence-design.md): form d of F2, F4 and F5 on the eight
+# configurations, in "sets" order.
+PRESETS["cohere-a"] = (
+    {
+        "configurations": SCREEN_EIGHT,
+        "modules": ("cohere-num-d", "cohere-lists-d", "cohere-trend-d"),
+        "contexts": (("cohere", "markets", 1),),
+        "order": "sets",
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -367,6 +380,8 @@ ORDER_POLICIES = (
     "reassuring-first",
     "suggestive-first",
     "comparison-first",
+    # Coherence sets: members of each set at least 4 cases apart.
+    "sets",
 )
 
 
@@ -412,6 +427,10 @@ def refer_back_order(module, rng):
 def arrange(module, policy, rng):
     if policy == "refer-back":
         return refer_back_order(module, rng)
+    if policy == "sets":
+        from epistemics.dispositions import cohere
+
+        return cohere.sets_order(items_for(module), rng)
     order = list(range(CASES))
     rng.shuffle(order)
     if policy == "random":
@@ -459,6 +478,7 @@ def check_groups(groups):
             + V31_VARIANTS
             + V32_VARIANTS
             + SCREEN_VARIANTS
+            + COHERE_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -470,6 +490,8 @@ def check_groups(groups):
                     if not allowed(module, cover, variant):
                         raise ValueError(f"{module} does not offer {variant} in {cover}")
                     v3 = module.startswith("coherence-")
+                    if (policy == "sets") != (module in COHERE_MODULES):
+                        raise ValueError("Coherence-set modules need, and only they take, sets")
                     if v3:
                         if (policy == "refer-back") != (variant == "v3-loaded"):
                             raise ValueError(
@@ -479,7 +501,10 @@ def check_groups(groups):
                         raise ValueError("refer-back is for battery v3 modules")
                     elif policy == "comparison-first" and module not in RANGE_MODULES:
                         raise ValueError("comparison-first needs a relative-judgement module")
-                    elif policy not in ("random", "comparison-first") and module not in CUE_MODULES:
+                    elif (
+                        policy not in ("random", "comparison-first", "sets")
+                        and module not in CUE_MODULES
+                    ):
                         raise ValueError("Order policies other than random need a cue module")
                     key = (config, module, variant, cover, repeat)
                     if key in runs:
@@ -762,6 +787,14 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "cohere" in analysis:
+        c = analysis["cohere"]
+        return {
+            "parameter": f"cohere-{c['family']}",
+            "d_open": c["open"]["d"]["mean"],
+            "d_computable": c["computable"]["d"]["mean"],
+            "anchors_ok": c["anchors_ok"],
         }
     if "screen" in analysis:
         s = analysis["screen"]

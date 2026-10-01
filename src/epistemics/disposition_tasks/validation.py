@@ -19,6 +19,8 @@ from epistemics.disposition_tasks.collection import CASES, fingerprint, load_rep
 from epistemics.disposition_tasks.render import (
     ASKED_MODULES,
     ASKED_VARIANTS,
+    COHERE_MODULES,
+    COHERE_VARIANTS,
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
@@ -99,6 +101,8 @@ TOLERANCE = {
     # Open-inference screen: each contrast within 0.3 log-odds of the respondent's noiseless score
     # at report noise 0.05 (log-odds), anchors within 5 points.
     "screen_contrast": 0.3,
+    # Coherence sets: the shrinkage d within 0.05 of the respondent's from one session (low noise).
+    "cohere_d": 0.05,
 }
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
@@ -336,7 +340,43 @@ def screen_audit():
     return out
 
 
+def cohere_audit():
+    """Coherence sets: members of a set share their case text and differ in their question; the
+    computable sets are fixed under the family observers (openness at most FIXED_OPENNESS); a
+    "sets" order keeps members at least MIN_DISTANCE apart."""
+    import random
+
+    from epistemics.dispositions import cohere, screen
+
+    out = {}
+    for module in COHERE_MODULES:
+        _, family, form = module.split("-")
+        items = cohere.design(family, form)
+        for _, idx, _, _, _ in cohere.sets(items):
+            cases = [render(module, "markets", i, "cohere") for i in idx]
+            if len({c["case"] for c in cases}) != 1 or len({c["question"] for c in cases}) != len(
+                idx
+            ):
+                raise ValueError(f"{module}: a set's members do not share one case")
+        openness = cohere.openness(family, form)
+        computable = (items["computable"] == 1) & (items["kind"] == "member")
+        if np.max(openness[computable]) > screen.FIXED_OPENNESS:
+            raise ValueError(f"{module}: a computable set is not fixed")
+        order = cohere.sets_order(items, random.Random(1))
+        position = {item: k for k, item in enumerate(order)}
+        for _, idx, _, _, _ in cohere.sets(items):
+            gap = min(abs(position[a] - position[b]) for a in idx for b in idx if a != b)
+            if gap < cohere.MIN_DISTANCE:
+                raise ValueError(f"{module}: set members too close in a sets order")
+        out[module] = round(
+            float(np.median(openness[(items["computable"] == 0) & (items["kind"] == "member")])), 3
+        )
+    return out
+
+
 def variants_of(module):
+    if module in COHERE_MODULES:
+        return COHERE_VARIANTS
     if module in SCREEN_MODULES:
         return SCREEN_VARIANTS
     if module in V31_MODULES:
@@ -395,6 +435,7 @@ def covers_of(module):
         + V31_MODULES
         + V32_MODULES
         + SCREEN_MODULES
+        + COHERE_MODULES
         else COVERS
     )
 
@@ -460,7 +501,8 @@ def audit():
                 # Battery v3 shows each scenario twice, with different questions.
                 keys = {
                     (c["case"], c["question"])
-                    if module in V3_MODULES + V31_MODULES + V32_MODULES + SCREEN_MODULES
+                    if module
+                    in V3_MODULES + V31_MODULES + V32_MODULES + SCREEN_MODULES + COHERE_MODULES
                     else c["case"]
                     for c in cases
                 }
@@ -489,6 +531,16 @@ def audit():
                     )
                     if urn and not urn_states_only_the_named(module, variant, case):
                         raise ValueError(f"{where} states the mechanism beyond its variant")
+                    if module in COHERE_MODULES and (
+                        "%" in case["case"]
+                        or (
+                            items_for(module)["kind"][i] != "anchor"
+                            and any(
+                                re.search(rf"\b{w}", case["case"].lower()) for w in SCREEN_FORBIDDEN
+                            )
+                        )
+                    ):
+                        raise ValueError(f"{where} states a rate, a percentage or a probability")
                     if module in SCREEN_MODULES and not screen_case_clean(module, i, case):
                         raise ValueError(f"{where} states a rate, a percentage or a probability")
                     if module in V31_MODULES + V32_MODULES and case["response"] == "choice":
@@ -542,6 +594,7 @@ def audit():
         "covers": len(COVERS),
         "cases": count,
         "screen_openness": screen_audit(),
+        "cohere_openness": cohere_audit(),
     }
 
 
@@ -617,6 +670,10 @@ def contexts_to_validate():
         yield module, "markets", "v32-standard", V32_RESPONDENT
     from epistemics.dispositions import screen
 
+    for module in COHERE_MODULES:
+        family = module.split("-")[1]
+        truth = {"params": screen.observer_mid(family), "d": 0.08, "tau": 0.05}
+        yield module, "markets", "cohere", truth
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -627,6 +684,16 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "cohere" in analysis:
+        # The respondent's shrinkage recovered from all its sets, anchors at their answers.
+        from epistemics.dispositions import cohere
+
+        c = analysis["cohere"]
+        items = items_for(module)
+        responses = [float(v) for v in c.get("responses", [])]
+        fitted = cohere.fit(items, responses) if responses else c["open"]
+        error = abs(fitted["d"]["mean"] - truth["d"])
+        return float(error), bool(c["anchors_ok"] and error <= TOLERANCE["cohere_d"])
     if "screen" in analysis:
         # Anchors at their answers, and each contrast within tolerance of the respondent's
         # noiseless score (the pipeline check: items, texts, order and scoring line up).

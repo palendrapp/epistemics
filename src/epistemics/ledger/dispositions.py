@@ -74,6 +74,8 @@ for entry in plan["runs"]:
         record["decisions"] = a["decisions"]
     elif "screen" in a:
         record["screen"] = a["screen"]
+    elif "cohere" in a:
+        record["cohere"] = a["cohere"]
     elif "social" in a:
         record["social"] = {"headline": a["social"]["headline"],
                             "parameters": a["social"]["parameters"]}
@@ -171,6 +173,14 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
+    if "cohere" in record:
+        c = record["cohere"]
+        return {
+            **base,
+            "d_open": c["open"]["d"]["mean"],
+            "d_computable": c["computable"]["d"]["mean"],
+            "anchors_ok": c["anchors_ok"],
+        }
     if "screen" in record:
         s = record["screen"]
         return {

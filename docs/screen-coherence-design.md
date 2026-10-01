@@ -1,6 +1,6 @@
 # Coherence sets for the open-inference screen (design note)
 
-Design, 1 October 2026. Nothing is built or collected. The decisions for you are listed at the end.
+Design, 1 October 2026; built the same day (model 0.19.0, design 0.20.0, tasks 0.29.0; see [Built](#built)). Nothing is collected yet.
 
 ## Why
 
@@ -141,3 +141,60 @@ There are two parallel forms, `d` and `e`, for the retest.
 2. **Model:** the Bayesian sampler as the profile model (recommended), with support theory as the rival.
 3. **Two stages** (recommended), or forms `d` and `e` together.
 4. **Budget:** about 11 million for stage A.
+
+## Built
+
+Built on 1 October 2026 as model 0.19.0, design 0.20.0, tasks 0.29.0. The decisions were taken as recommended:
+- F2, F4 and F5;
+- the Bayesian sampler, with support theory's signature read from the identity sets;
+- two stages.
+
+**Code:**
+- **Designs, fit and simulated respondents:** `dispositions/cohere.py`.
+- **Texts:** `disposition_tasks/cohere_texts.py`.
+- **Ledger:** `ledger/cohere_sets.py` and the commands `cohere-validation`, `cohere-a` and `cohere-b`.
+- **Modules:** `cohere-{num,lists,trend}-{d,e}`, variant `cohere`.
+- **Order policy `sets`:** members of each set at least 4 cases apart, placed largest set first. The runner requires it for these modules and refuses it elsewhere.
+- **Stage A preset:** `cohere-a`, 24 runs.
+
+**Sets per form** (20 members and 4 anchors; members of a set share their case text):
+
+| Family | Open sets | Computable sets |
+| --- | --- | --- |
+| F2 | 3-bin and 5-bin partitions of a person's round number; an A/B identity set; a nesting pair (sharp number) | A complement ("more than 40", "at most 40", 0.5 each); a 4-bin partition of an instrument reading |
+| F4 | Partitions of 2, 3 and 5 listed causes plus "none of these"; a disjunction (A, B, A or B) | A conditional 4-cause partition (1/4 each) |
+| F5 | 3-bin and 5-bin partitions of a geometric series at hour 8; an identity set; a nesting pair | Two 3-bin partitions with fixed answers (0, 1, 0) |
+
+**Audits:**
+- every set shares one case and has distinct questions;
+- computable members are fixed under the family observers (openness 0);
+- a `sets` order keeps members apart;
+- no case shows a percentage, and no open case uses a rate or likelihood word.
+
+Median openness of open members: F2 1.5–1.6, F4 0.7–0.8, F5 4.9–5.4.
+
+**The fit.** Each set's events are sums of disjoint atoms. The atoms have a Dirichlet(*α*) prior, and each answer is logit((1 − 2*d*)·*p* + *d*) plus noise *τ* on the log-odds scale. The grid posterior covers *d* (0–0.3), *τ* and *α*, with *α* shared by a session's sets and integrated out.
+
+**Deviation from the note: the evenness *α*.** With *α* fixed at 1 (uniform over the simplex), coherent respondents whose beliefs are spread evenly over a set's parts, like listed causes, were read as shrunk. 30–45% of them were called incoherent in F4, rising with report noise. Data generated from the fit's own model gave only 2–4%, so this was a mismatch, not integration error. With *α* integrated out, evenness has its own parameter and only the sums inform *d*.
+
+**Validation** (`output/cohere-validation-20261001.json`). 150 simulated respondents per family; their latent beliefs come from the family observers, not the fit's prior; *d* is drawn from 0–0.25 and *τ* from 0.05–0.5. One session's open sets:
+
+| Family | *d* recovery *r* | 90% coverage | Confusion with *τ* | Coherent respondents called incoherent |
+| --- | --- | --- | --- | --- |
+| F2 | 0.96 | 0.95 | 0.18 | 0% |
+| F4 | 0.92 | 0.91 | 0.14 | 7% |
+| F5 | 0.94 | 0.91 | −0.09 | 5% |
+
+All pass (*r* ≥ 0.8, coverage ≥ 0.8, confusion ≤ 0.3, false incoherence ≤ 10%). *τ* recovers less well (0.65–0.76), as expected for a single answer per question. In simulation, a partition's answers sum to 1 + (*k* − 2)·*d* (tested).
+
+**Task validation 0.29.** It passed on both seeds: 3,504 cases and 151 contexts. The six coherence-set contexts per seed recover a respondent's *d* (0.08, report noise 0.05) within 0.012, against a tolerance of 0.05.
+- Fingerprint `e3e31a91870434a57c38996d584d4cfeaecb47026a86de53faf79eed76b102e0`.
+- Seed 20260927: `318c799259c570631d1c875f9597be8a93556b43b95d17c48cb21abb632b9c69`.
+- Seed 20261027: `ca31e578339d7ff5dad8ef3991a8192429efe21f374ebefa600340ed74c3c042`.
+
+### Stage A (planned, awaiting your go-ahead)
+
+- **Sessions:** preset `cohere-a`, 24 sessions (eight configurations × F2, F4 and F5, form `d`, `sets` order).
+- **Limits:** cap 15 million tokens (about 11 million expected), 1,800 seconds per run.
+- **Analysis:** `uv run python -m epistemics.ledger cohere-a <root> --output <file>`. It reports per configuration and family: *d* for open and computable sets, *τ*, each law's residual, and hypotheses 1, 2 and 4.
+

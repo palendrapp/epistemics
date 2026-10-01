@@ -10,6 +10,7 @@ import numpy as np
 
 from epistemics.disposition_tasks import urn
 from epistemics.disposition_tasks.render import (
+    COHERE_MODULES,
     SCREEN_MODULES,
     V3_MODULES,
     V31_MODULES,
@@ -186,6 +187,15 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in COHERE_MODULES:
+        from epistemics.dispositions import cohere
+
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "cohere": cohere.session(items, responses),
+            "rows": rows,
+        }
     if manifest.module in SCREEN_MODULES:
         from epistemics.dispositions import screen
 

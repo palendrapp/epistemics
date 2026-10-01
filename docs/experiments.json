@@ -973,9 +973,9 @@
       "question": "Is incoherence that shows only when the model is open (partitions, packing, complements, conjunction identities, nesting) a reliable and general trait, and is it a bias-variance trade-off of a Bayesian sampler?",
       "doc": "docs/screen-coherence-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. Motivation: in F4, GPT-5.6 is subadditive (direct none 0.10-0.17, listed answers leave 0.00-0.14) while GPT-6 is coherent (gaps -0.11 to +0.06). Model: Bayesian sampler (shrinkage d, precision N), with support theory as the rival; open against computable sets; bias, variance and coherent bias separated.",
-      "outcome": "Awaiting decisions: families, model, stages, budget (about 11M for stage A)."
+      "outcome": "Built model 0.19.0, design 0.20.0, tasks 0.29.0 (fingerprint e3e31a91): modules cohere-{num,lists,trend}-{d,e}, 20 set members and 4 anchors each, 'sets' order (members at least 4 apart). Law-based fit: atoms ~ Dirichlet(alpha) with alpha integrated out (alpha fixed at 1 read even beliefs as shrinkage: 30-45% false incoherence in F4). Validation: d recovery r 0.92-0.96, coverage 0.91-0.95, false incoherence 0-7%. Task validation passed on both seeds. Stage A (preset cohere-a, 24 sessions, about 11M) awaiting go-ahead."
     }
   ],
   "next": [

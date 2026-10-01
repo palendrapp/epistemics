@@ -321,7 +321,7 @@ def session(record, experiment, designs):
     module = record["module"]
     if module.endswith("-load"):
         return None  # Capacity load modules have their own analysis (ledger.capacity).
-    if any(k in record for k in ("social", "coherence", "decisions", "screen")):
+    if any(k in record for k in ("social", "coherence", "decisions", "screen", "cohere")):
         return (
             None  # Scripted-peer, battery v3/v3.1/v3.2 and screen modules have their own analyses.
         )
