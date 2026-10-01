@@ -79,9 +79,35 @@ def configuration(rows):
         if any(r["seconds"] for r in anchors)
         else None,
         "output_ladder": ladders[0]["output_per_case"] if ladders else None,
+        "grain_anchor": dl.grain([v for r in anchors for v in r["probability"]]),
+        "frame_shift": _frame_shift(pair_rows, ladder_rows),
     }
     out["sessions"] = sorted(out["sessions"])
     return out
+
+
+def _frame_shift(pair_rows, ladder_rows):
+    """Exploratory (found in the pilot): the anchor sessions' estimates against the agent's own
+    ladder answers at the same thresholds, whatever the anchor: the mean change in |log-odds|
+    (negative: less extreme in the comparison frame), and the mean estimates after low and high
+    anchors."""
+    own = {
+        (r["series"], t): v
+        for r in ladder_rows
+        for t, v in zip(r["thresholds"], r["answers"], strict=True)
+    }
+    rows = [p for p in pair_rows if (p["series"], p["threshold"]) in own]
+    if not rows:
+        return None
+    o = np.array([own[(p["series"], p["threshold"])] for p in rows])
+    e = np.array([p["estimate"] for p in rows])
+    side = np.array([p["side"] for p in rows])
+    return {
+        "extremity_change": float(np.mean(np.abs(screen.logit(e)) - np.abs(screen.logit(o)))),
+        "ladder_mean": float(o.mean()),
+        "estimate_low": float(e[side == "low"].mean()),
+        "estimate_high": float(e[side == "high"].mean()),
+    }
 
 
 def _compare(results, getter, interval_getter=None):

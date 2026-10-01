@@ -1062,6 +1062,21 @@
       "status": "complete",
       "prediction": "Design only. Two modules on the screen's trend cases: ladders (six nearby thresholds per series) for readout grain rho and plateaus; comparative anchors (low and high, 30 points either side of the observer's middle answer) for the anchoring weight a against the agent's own unanchored answer. Predictions: Astra's rho above Sol's at each effort; more plateaus; a differs (Astra higher); a falls with effort; Sol slower per case.",
       "outcome": "Built model 0.21.0, design 0.22.0, tasks 0.32.0 (fingerprint 59238317) with the recommended defaults: modules deliberation-ladder (four trend series x six thresholds, five points apart for a broad observer, each series' questions four cases apart) and deliberation-anchor-a/b (comparison then estimate, anchors 30 points either side, forms swapping sides); generic choice options; preset deliberation-pilot (24 runs). rho from the share of mid-range answers at multiples of 5 beyond chance; a from the high and low anchors' estimates (own answer cancels). Validation (300 simulated configurations): rho r 0.92, coverage 0.90; a r 0.96, coverage 0.87; confusion at most 0.17. Task validation passed on both seeds (3,768 cases, 162 contexts). Pilot (about 13M) awaiting go-ahead."
+    },
+    {
+      "id": "deliberation-pilot",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Deliberation style pilot (grain and anchoring)",
+      "question": "Do Astra and Sol differ in readout grain and in adjustment from anchors, as judging and computing styles predict?",
+      "doc": "docs/deliberation-style-design.md",
+      "roots": [
+        "output/deliberation-pilot-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Written down before collection: P1 Astra's rho above Sol's at each effort; P2 more plateaus; P3 anchoring weight differs (Astra higher); P4 anchoring falls with effort; P5 Sol slower per case.",
+      "outcome": "24 of 24 sessions, 11.8M input tokens, no failures; ladders monotone (one violation), comparisons consistent (100%, Terra 96%). P1 holds pooled (3 of 3, intervals separate) but only through the anchor sessions: Astra rounds 67-92% of its estimates after a comparison and 8-17% of its ladder answers; Sol is fine-grained in both. P2 fails (no plateaus but Luna's). P3 fails: nobody is anchored (a -0.03 to 0.05). P5 fails (Astra not faster; Sol writes twice the output). New: a frame shift. After a comparison, Sol, Luna and Terra give more moderate probabilities than on the ladder at the same thresholds (|log-odds| -0.26 to -1.07), whatever the anchor; Astra and Astra-low do not move. Declared-uninformative anchors are at ceiling."
     }
   ],
   "next": [

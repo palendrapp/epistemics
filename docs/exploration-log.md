@@ -172,3 +172,16 @@ Astra is left out: it gave only 2 mid-range answers that were not round.
 **Ideas:**
 6. **A per-answer marker of defaulting, for Sol.** Use round answers to locate Sol's defaults in other data. For example, were Sol's over-summing five-bin partitions (the coherence sets, F5) built from round, defaulted inner bins or from computed ones? That can be checked on existing data.
 7. **Check the deliberation-style reading by design.** Use cases where computing and judging give different answers, for example a case with an irrelevant but computable number. Does Sol compute with it where Astra ignores it?
+
+## 1 October: deliberation pilot, what it adds
+
+See the [pilot results](deliberation-style-design.md#pilot-results-1-october).
+
+- **Declared-uninformative anchors are ignored** by every configuration (*a* ≈ 0).
+- **Astra's rounding is frame-dependent:** 8–17% on ladders, 67–92% after comparisons. Sol is fine-grained in both.
+- **The frame shift is new:** Sol, Luna and Terra give more moderate probabilities after a comparison than on a ladder, whatever the anchor. Astra does not.
+
+**Ideas:**
+8. **Isolate the frame shift.** Ask the same thresholds three per series, with and without a preceding comparison, and on six-step ladders with and without comparisons. Is it the comparison, the number of thresholds per series, or the order?
+9. **Undeclared anchors.** Numbers in a case that are not said to be uninformative, as they occur in real documents (an unrelated percentage in a report), described honestly as part of the case. Declared anchors are at ceiling; undeclared ones are the realistic risk.
+10. **What triggers Astra's rounding?** The same estimate cases with and without the comparison before them, and single thresholds against ladders. If a comparison frame alone switches Astra to round answers, that is a precise, testable account of its readout mode.

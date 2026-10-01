@@ -181,7 +181,7 @@ Hashes:
 - Seed 20260927: `f338a5119bc4a969015d18b4be4b3c29b4a84ac172e5539a2f511572b5f9cc1a`.
 - Seed 20261027: `d66dc7adb170cbb2c03644eeb4373464e7116936810708d99fd7af0169a12888`.
 
-### Pilot (planned, awaiting your go-ahead)
+### Pilot (1 October)
 
 - **Sessions:** preset `deliberation-pilot`, 24 sessions. Cap 16 million tokens (about 13 million expected), 1,800 seconds per run.
 - **Analysis:** `uv run python -m epistemics.ledger deliberation-pilot <roots...> --output <file>`. It reports per configuration:
@@ -192,3 +192,71 @@ Hashes:
   - seconds and output tokens per case.
 
   It summarises predictions 1–5 across the three effort-matched Astra–Sol pairs.
+
+## Pilot results (1 October)
+
+**Collection.** Root `output/deliberation-pilot-20261001`, tasks 0.32.0.
+- 24 of 24 sessions: 11.8 million input tokens (10.9 million cached) and 44,000 output tokens, in 30 minutes.
+- No failures.
+- Summary: `output/deliberation-pilot-summary-20261001.json`.
+
+**The predictions:**
+
+| Prediction | Result |
+| --- | --- |
+| P1 grain: Astra's *ρ* above Sol's | **Holds when pooled:** 3 of 3 effort-matched pairs, intervals separate (Astra 0.23–0.40, Sol 0.00–0.03). But it comes from the anchor sessions alone (below) |
+| P2 plateaus: Astra's above Sol's | **Fails.** No configuration but Luna (0.20) answered two adjacent thresholds alike |
+| P3 anchoring: *a* differs | **Fails: nobody is anchored.** Estimates after the high and the low anchor are equal: *a* −0.03 to 0.05, Jacowitz–Kahneman index −0.01 to 0.05 |
+| P4 effort lowers *a* | **Moot,** with no anchoring |
+| P5 Sol slower per case | **Fails.** Ladder cases take 2.8–3.6 s for Astra and 2.8–3.1 s for Sol, though Sol writes about twice the output per case (83–108 tokens against 48–50) |
+
+**Checks.**
+- The ladders are monotone: one violation in all (Luna).
+- Comparisons are consistent with the estimates that follow: 100%, Terra 96%.
+
+**Grain depends on the session for Astra.** Share of mid-range answers at multiples of 5:
+
+| Configuration | Ladder sessions | Anchor sessions |
+| --- | --- | --- |
+| Astra | 17% | 88% |
+| Astra-low | 8% | 67% |
+| Astra-high | 8% | 92% |
+| Sol | 30% | 8% |
+| Sol-low | 14% | 4% |
+| Sol-high | 5% | 4% |
+| Luna | 91% | 32% |
+| Terra | 14% | 30% |
+
+- **Astra** answers the ladders in fine, smooth curves and rounds its estimates after a comparison.
+- **Sol** is fine-grained in both.
+- **Luna** rounds the ladders and less so the estimates.
+
+**A frame shift (found in the pilot, exploratory).** The anchor sessions' estimates against the agent's own ladder answers at the same thresholds, whatever the anchor. The table gives the change in |log-odds| (negative: less extreme) and the mean estimates.
+
+| Configuration | Change | Ladder | After a low anchor | After a high anchor |
+| --- | --- | --- | --- | --- |
+| Astra | −0.01 | 0.62 | 0.62 | 0.63 |
+| Astra-low | +0.04 | 0.67 | 0.68 | 0.68 |
+| Astra-high | −0.19 | 0.70 | 0.66 | 0.66 |
+| Sol | −0.26 | 0.72 | 0.68 | 0.68 |
+| Sol-low | −0.59 | 0.81 | 0.59 | 0.61 |
+| Sol-high | −0.53 | 0.80 | 0.70 | 0.70 |
+| Luna | −1.07 | 0.90 | 0.82 | 0.82 |
+| Terra | −0.39 | 0.81 | 0.70 | 0.73 |
+
+- When the same threshold is asked after a comparison, Sol, Luna and Terra give more moderate probabilities than on the ladder, by the same amount after a low or a high anchor.
+- Astra and Astra-low do not move.
+- **The cause is open.** The sessions differ in more than the comparison: three thresholds per series instead of six, and a different order.
+- This is also why the secondary anchoring estimate (the slope against the agent's own ladder answers) came out at 0.15–0.39 for Sol, Luna and Terra while *a* was 0. That estimate takes up the shift.
+
+**Reading.** These results are conditional on these cases and instructions.
+- **Nobody is anchored.** A number declared to carry no information is ignored by every configuration. The resource-rational anchoring prediction had nothing to work on.
+- **Astra's readout depends on the question's frame.** Its answers are fine on a ladder of thresholds, which invites a curve, and round after a comparison. "Astra judges, Sol computes" becomes:
+  - Sol always reports computed precision.
+  - Astra switches to round reports in some frames.
+  - Neither difference shows in time per case or in anchoring.
+- **A second Astra–Sol difference.** Sol's probabilities moderate in the comparison frame; Astra's do not move, although their grain does. Each variant responds to the frame, Astra in how it reports and Sol in what it reports.
+- **What the passport could claim** (for these cases):
+  - no configuration is moved by a number declared uninformative;
+  - Astra gives fine-grained answers when asked for a curve, and round ones otherwise;
+  - Sol's (and GPT-5.6's) probabilities become more moderate when asked after a comparison.
