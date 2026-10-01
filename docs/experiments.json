@@ -1077,6 +1077,21 @@
       "status": "complete",
       "prediction": "Written down before collection: P1 Astra's rho above Sol's at each effort; P2 more plateaus; P3 anchoring weight differs (Astra higher); P4 anchoring falls with effort; P5 Sol slower per case.",
       "outcome": "24 of 24 sessions, 11.8M input tokens, no failures; ladders monotone (one violation), comparisons consistent (100%, Terra 96%). P1 holds pooled (3 of 3, intervals separate) but only through the anchor sessions: Astra rounds 67-92% of its estimates after a comparison and 8-17% of its ladder answers; Sol is fine-grained in both. P2 fails (no plateaus but Luna's). P3 fails: nobody is anchored (a -0.03 to 0.05). P5 fails (Astra not faster; Sol writes twice the output). New: a frame shift. After a comparison, Sol, Luna and Terra give more moderate probabilities than on the ladder at the same thresholds (|log-odds| -0.26 to -1.07), whatever the anchor; Astra and Astra-low do not move. Declared-uninformative anchors are at ceiling."
+    },
+    {
+      "id": "deliberation-followup",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Deliberation follow-up: the anchored thresholds asked directly",
+      "question": "Is it the comparison, or the number of thresholds per series and the order, that switches Astra to round answers and moderates Sol's, Luna's and Terra's?",
+      "doc": "docs/deliberation-style-design.md",
+      "roots": [
+        "output/deliberation-bare-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory: if the comparison is the cause, bare answers resemble the ladder's in grain and extremity.",
+      "outcome": "8 of 8 sessions, 3.8M input tokens, no failures; tasks 0.33.0. The comparison switches Astra to round answers (67-92% after a comparison, 17-33% asked directly, 8-17% on ladders); Sol is fine-grained in every frame. The extremity shift is not one effect: the comparison moderates Sol and Terra; for Luna and Sol-high the six-threshold ladder is the extreme frame; for the Astra family a lone direct question gives the most extreme answers. Twelve single answers per configuration and frame: noisy."
     }
   ],
   "next": [

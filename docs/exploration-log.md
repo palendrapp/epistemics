@@ -185,3 +185,14 @@ See the [pilot results](deliberation-style-design.md#pilot-results-1-october).
 8. **Isolate the frame shift.** Ask the same thresholds three per series, with and without a preceding comparison, and on six-step ladders with and without comparisons. Is it the comparison, the number of thresholds per series, or the order?
 9. **Undeclared anchors.** Numbers in a case that are not said to be uninformative, as they occur in real documents (an unrelated percentage in a report), described honestly as part of the case. Declared anchors are at ceiling; undeclared ones are the realistic risk.
 10. **What triggers Astra's rounding?** The same estimate cases with and without the comparison before them, and single thresholds against ladders. If a comparison frame alone switches Astra to round answers, that is a precise, testable account of its readout mode.
+
+## 1 October: deliberation follow-up
+
+See [the follow-up](deliberation-style-design.md#follow-up-which-frame-does-it-1-october).
+
+- **Idea 10 is answered.** A preceding above-or-below comparison switches Astra to round answers (67–92%, against 17–33% asked directly). Sol never rounds.
+- **Idea 8 is answered only in part.** The moderation after a comparison holds for Sol and Terra. For Luna and Sol-high the six-threshold ladder is the extreme frame. For Astra a lone direct question is.
+
+**Ideas:**
+11. **Astra's readout mode as a switch.** What else switches it, beyond a binary comparison? For example, a verbal estimate first ("likely or unlikely?"), or a range question. A switch between computed and judged reports, set by the frame, is a candidate trait of how a configuration reads a question.
+12. **Extremity by frame, with enough answers.** Several answers per threshold and frame, to characterise each configuration's frame sensitivity, if it seems worth it. On present evidence it is configuration-specific and noisy.

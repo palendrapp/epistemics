@@ -260,3 +260,37 @@ Hashes:
   - no configuration is moved by a number declared uninformative;
   - Astra gives fine-grained answers when asked for a curve, and round ones otherwise;
   - Sol's (and GPT-5.6's) probabilities become more moderate when asked after a comparison.
+
+## Follow-up: which frame does it? (1 October)
+
+**Module `deliberation-bare`** (design 0.23.0, tasks 0.33.0). The twelve anchored thresholds are asked directly, with no comparison: three per series, in random order. Four more series fill the session to 24 cases.
+
+**Collection.** Root `output/deliberation-bare-20261001`: 8 sessions, 3.8 million input tokens, no failures.
+- Task validation 0.33 passed on both seeds (3,792 cases, 163 contexts). Fingerprint `1fb7f93a9799a026fd6db73253c63a15bf00f0a7244d2d368ce741fc460444e9`; seeds `d31e856b…` and `31675436…`.
+- The comparison: `uv run python -m epistemics.ledger deliberation-followup output/deliberation-pilot-20261001 output/deliberation-bare-20261001 --output output/deliberation-followup-20261001.json`.
+
+**The same twelve thresholds in three frames.** These are single answers per threshold (two after a comparison), so the figures are noisy.
+
+| Configuration | Mean answer (ladder / bare / after a comparison) | Mean \|log-odds\| | Share at multiples of 5 |
+| --- | --- | --- | --- |
+| Astra | 0.62 / 0.74 / 0.62 | 0.69 / 1.12 / 0.68 | 17% / 33% / 88% |
+| Astra-low | 0.67 / 0.78 / 0.68 | 0.79 / 1.34 / 0.83 | 8% / 33% / 67% |
+| Astra-high | 0.70 / 0.75 / 0.66 | 0.89 / 1.15 / 0.70 | 8% / 17% / 92% |
+| Sol | 0.72 / 0.75 / 0.68 | 1.20 / 1.14 / 0.93 | 25% / 8% / 8% |
+| Sol-low | 0.81 / 0.77 / 0.60 | 1.61 / 1.27 / 1.02 | 18% / 25% / 4% |
+| Sol-high | 0.80 / 0.69 / 0.70 | 1.61 / 0.87 / 1.08 | 9% / 17% / 4% |
+| Luna | 0.90 / 0.84 / 0.82 | 2.74 / 1.77 / 1.67 | 100% / 55% / 32% |
+| Terra | 0.81 / 0.86 / 0.72 | 1.57 / 1.98 / 1.17 | 17% / 0% / 30% |
+
+**Reading.**
+- **The comparison switches Astra to round answers.** Asked directly, Astra stays mostly fine-grained (17–33%, against 8–17% on ladders). After an above-or-below comparison, 67–92% of its answers are round. Sol is fine-grained in every frame. This is the cleanest result of the deliberation work. Astra's report precision is set by the question's frame, and a binary comparison puts it in a coarse, judgement-like mode.
+- **The frame shift in extremity is not one effect:**
+  - **Sol and Terra:** the comparison moderates their answers; the bare answers are as extreme as on the ladder, or more.
+  - **Luna and Sol-high:** the six-threshold ladder is the extreme frame; bare and after-comparison answers are alike.
+  - **The Astra family:** a lone direct question gives the most extreme answers; the ladder and the comparison give the same, more moderate ones.
+
+  Every configuration's extremity responds to the frame, in a configuration-specific way that twelve single answers cannot pin down.
+- **For the passport** (for these cases):
+  - Astra reports round probabilities after a comparison and fine ones otherwise;
+  - Sol reports fine probabilities in every frame;
+  - how extreme an answer is depends on the frame for every configuration, in ways not yet characterised.
