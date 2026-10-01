@@ -69,7 +69,7 @@ def test_simulated_grain_and_anchoring_are_recovered():
     rng = np.random.default_rng(5)
     truth = {"params": screen.observer_mid("trend"), "rho": 1.0, "a": 0.4, "tau": 0.05}
     pairs, probability = [], []
-    for module in DELIBERATION_MODULES:
+    for module in dl.MODULES:
         items = dl.design(module)
         answers = dl.respond(items, truth, rng)
         s = dl.session(items, answers)
@@ -83,3 +83,18 @@ def test_simulated_grain_and_anchoring_are_recovered():
             assert s["consistency"] == 1.0
     assert dl.grain(probability)["share_5"] == 1.0
     assert abs(dl.anchoring(pairs)["a"]["mean"] - 0.4) < 0.08
+
+
+def test_bare_module_asks_every_anchored_threshold_directly():
+    bare = dl.design(dl.BARE)
+    anchor = dl.design("deliberation-anchor-a")
+    asked = set(zip(bare["series"].tolist(), bare["threshold"].tolist(), strict=True))
+    choice = anchor["kind"] == "choice"
+    anchored = set(
+        zip(anchor["series"][choice].tolist(), anchor["threshold"][choice].tolist(), strict=True)
+    )
+    assert len(asked) == 24 and anchored <= asked
+    for i in range(24):
+        case = render(dl.BARE, "markets", i, "deliberation")
+        assert "%" not in case["case"] and "previous case" not in case["case"]
+    assert len(runner.check_groups(runner.PRESETS["deliberation-bare"])) == 8

@@ -493,6 +493,15 @@ def deliberation_audit():
                 sides.setdefault(key, set()).add(str(items["side"][i]))
     if any(v != {"low", "high"} for v in sides.values()):
         raise ValueError("Deliberation anchors: a threshold lacks a low or a high anchor")
+    bare = items_for("deliberation-bare")
+    asked = {(int(s), int(t)) for s, t in zip(bare["series"], bare["threshold"], strict=True)}
+    anchored = {
+        (int(s), int(t))
+        for s, t, k in zip(items["series"], items["threshold"], items["kind"], strict=True)
+        if k == "choice"
+    }
+    if not anchored <= asked or len(asked) != CASES:
+        raise ValueError("Deliberation bare: not the anchored thresholds asked once each")
     return {
         "thresholds": {
             s: list(deliberation.thresholds(s)) for s in range(len(deliberation.SERIES))
@@ -839,6 +848,9 @@ def estimate(module, analysis, truth):
         from epistemics.dispositions import deliberation
 
         d = analysis["deliberation"]
+        if d["module"] == "bare":
+            error = abs(d["grain"]["rho"]["mean"] - truth["rho"])
+            return float(error), bool(error <= TOLERANCE["deliberation_rho"])
         if d["module"] == "ladder":
             error = abs(d["grain"]["rho"]["mean"] - truth["rho"])
             return float(error), bool(

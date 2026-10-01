@@ -43,6 +43,7 @@ uv run python -m epistemics.ledger sweep --output <file>
 uv run python -m epistemics.ledger roundness --output <file>
 uv run python -m epistemics.ledger deliberation-validation --output <file>
 uv run python -m epistemics.ledger deliberation-pilot <roots...> --output <file>
+uv run python -m epistemics.ledger deliberation-followup <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -185,9 +186,10 @@ def main():
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
     sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
     sub.add_parser("deliberation-validation").add_argument("--output", type=Path, required=True)
-    dp = sub.add_parser("deliberation-pilot")
-    dp.add_argument("roots", type=Path, nargs="+")
-    dp.add_argument("--output", type=Path, required=True)
+    for name in ("deliberation-pilot", "deliberation-followup"):
+        dp = sub.add_parser(name)
+        dp.add_argument("roots", type=Path, nargs="+")
+        dp.add_argument("--output", type=Path, required=True)
     for name in ("statements-probe", "statements-a", "statements-b", "statements-explore"):
         sp = sub.add_parser(name)
         sp.add_argument("roots", type=Path, nargs="+")
@@ -464,12 +466,15 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
-    elif a.command in ("deliberation-validation", "deliberation-pilot"):
+    elif a.command in ("deliberation-validation", "deliberation-pilot", "deliberation-followup"):
         from epistemics.ledger import deliberation as deliberation_ledger
 
         if a.command == "deliberation-validation":
             run = deliberation_ledger.validation()
             summary = {k: run[k] for k in ("rho", "a", "confusion", "a_on_own", "passed")}
+        elif a.command == "deliberation-followup":
+            run = deliberation_ledger.followup(a.roots)
+            summary = {"configurations": len(run["configurations"])}
         else:
             run = deliberation_ledger.pilot(a.roots)
             summary = {

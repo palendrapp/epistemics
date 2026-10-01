@@ -340,6 +340,14 @@ PRESETS["deliberation-pilot"] = (
         "order": "sequences",
     },
 )
+# Deliberation follow-up: the anchored thresholds asked directly (no comparison), random order.
+PRESETS["deliberation-bare"] = (
+    {
+        "configurations": SCREEN_EIGHT,
+        "modules": ("deliberation-bare",),
+        "contexts": (("deliberation", "markets", 1),),
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (

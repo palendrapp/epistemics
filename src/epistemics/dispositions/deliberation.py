@@ -38,16 +38,26 @@ SERIES = (
     (3, (300, 410, 570), 5, 38),
     (4, (60, 81, 112), 6, 52),
 )
+# Follow-up (design 0.23): four more series, so that the bare module keeps three thresholds per
+# series in 24 cases. Ladders and anchors use SERIES only.
+EXTRA = (
+    (0, (50, 70, 98), 6, 63),
+    (2, (80, 112, 157), 6, 71),
+    (3, (200, 280, 392), 5, 86),
+    (4, (90, 125, 175), 5, 95),
+)
+ALL_SERIES = SERIES + EXTRA
 BROAD = {"linear_weight": 0.55, "noise": 0.25}
 TARGETS = (0.64, 0.59, 0.54, 0.49, 0.44, 0.39)  # the broad observer's answers on each ladder
 ANCHORED = (1, 3, 5)  # ladder ranks asked with anchors
 SHIFT = 30  # anchor distance from the broad observer's answer, in points
 MID = (0.06, 0.94)
 MODULES = ("deliberation-ladder", "deliberation-anchor-a", "deliberation-anchor-b")
+BARE = "deliberation-bare"  # the anchored thresholds asked directly, with no comparison
 
 
 def _data(s, t):
-    surface, ys, x, ident = SERIES[s]
+    surface, ys, x, ident = ALL_SERIES[s]
     return {"xs": [1, 2, 3], "ys": list(ys), "x": x, "question": "above", "threshold": int(t),
             "surface": surface, "id": ident}  # fmt: skip
 
@@ -59,7 +69,7 @@ def observer(s, t, params):
 @functools.cache
 def thresholds(s):
     """Six integer thresholds at which the broad observer answers TARGETS."""
-    _, ys, _, _ = SERIES[s]
+    _, ys, _, _ = ALL_SERIES[s]
     grid = np.arange(int(ys[-1]), int(ys[-1] * 8))
     probs = np.array([observer(s, t, BROAD) for t in grid])
     out = tuple(int(grid[np.argmin(np.abs(probs - q))]) for q in TARGETS)
@@ -85,6 +95,14 @@ def _side(s, k, form):
 
 def _rows(module):
     rows = []
+    if module == BARE:
+        for s in range(len(ALL_SERIES)):
+            for rank in ANCHORED:
+                rows.append({"kind": "bare", "set": -1, "series": s, "rank": rank,
+                             "threshold": thresholds(s)[rank], "sequence": -1, "step": 0,
+                             "anchor": 0, "side": "", "response": "probability",
+                             "form": "bare"})  # fmt: skip
+        return rows
     if module == "deliberation-ladder":
         for s in range(len(SERIES)):
             for rank, t in enumerate(thresholds(s)):
@@ -232,9 +250,20 @@ def session(items, responses):
     probability = [
         float(responses[i]) for i in range(len(responses)) if items["response"][i] == "probability"
     ]
-    out = {"module": "ladder" if form == "ladder" else "anchor", "form": form,
+    module = {"ladder": "ladder", "bare": "bare"}.get(form, "anchor")
+    out = {"module": module, "form": form,
            "grain": grain(probability), "responses": [float(v) for v in responses]}  # fmt: skip
-    if form == "ladder":
+    if form == "bare":
+        out["bare"] = [
+            {
+                "series": int(items["series"][i]),
+                "threshold": int(items["threshold"][i]),
+                "rank": int(items["rank"][i]),
+                "answer": float(responses[i]),
+            }  # fmt: skip
+            for i in range(len(responses))
+        ]
+    elif form == "ladder":
         rows = ladders(items, responses)
         out["ladders"] = rows
         out["violations"] = sum(r["violations"] for r in rows)

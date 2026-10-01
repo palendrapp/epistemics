@@ -103,6 +103,7 @@ MODULES = (
     "deliberation-ladder",
     "deliberation-anchor-a",
     "deliberation-anchor-b",
+    "deliberation-bare",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -206,7 +207,8 @@ STATEMENT_VARIANTS = ("statement",)
 # and comparative anchor pairs (choice, then estimate; "sequences" order).
 DELIBERATION_LADDER = ("deliberation-ladder",)
 DELIBERATION_ANCHOR = ("deliberation-anchor-a", "deliberation-anchor-b")
-DELIBERATION_MODULES = DELIBERATION_LADDER + DELIBERATION_ANCHOR
+DELIBERATION_BARE = ("deliberation-bare",)  # follow-up (tasks 0.33): no comparison, random order
+DELIBERATION_MODULES = DELIBERATION_LADDER + DELIBERATION_ANCHOR + DELIBERATION_BARE
 DELIBERATION_VARIANTS = ("deliberation",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),

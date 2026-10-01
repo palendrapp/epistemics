@@ -43,6 +43,7 @@ def sessions(roots):
                     "form": d["form"],
                     "ladders": d.get("ladders"),
                     "pairs": d.get("pairs"),
+                    "bare": d.get("bare"),
                     "probability": [
                         v
                         for v, r in zip(d["responses"], record["items"]["response"], strict=True)
@@ -160,6 +161,63 @@ def pilot(roots):
         "P5_seconds": _compare(results, lambda r: r["seconds_ladder"]),
         "scope": "Exploratory pilot; predictions written down before collection, summarised "
         "descriptively.",
+    }
+
+
+def followup(roots):
+    """The follow-up: the anchored thresholds asked directly (no comparison, three per series,
+    random order), against the same thresholds on the ladder and after a comparison. Per
+    configuration: mean |log-odds| and the share of mid-range answers at multiples of 5 in each
+    frame (original four series), and grain over the whole bare session."""
+    rows = sessions(roots)
+    out = {}
+    for c in sorted({r["configuration"] for r in rows}):
+        mine = [r for r in rows if r["configuration"] == c]
+        ladder = {
+            (x["series"], t): v
+            for r in mine
+            if r["module"] == "ladder"
+            for x in r["ladders"]
+            for t, v in zip(x["thresholds"], x["answers"], strict=True)
+        }
+        bare = {
+            (b["series"], b["threshold"]): b["answer"]
+            for r in mine
+            if r["module"] == "bare"
+            for b in r["bare"]
+        }
+        anchored = {}
+        for r in mine:
+            if r["module"] == "anchor":
+                for p in r["pairs"]:
+                    anchored.setdefault((p["series"], p["threshold"]), []).append(p["estimate"])
+        keys = sorted(set(ladder) & set(bare) & set(anchored))
+        if not keys:
+            continue
+
+        def frame(values):
+            v = np.array(values)
+            mid = v[(v >= dl.MID[0]) & (v <= dl.MID[1])]
+            return {
+                "mean": float(v.mean()),
+                "extremity": float(np.mean(np.abs(screen.logit(v)))),
+                "share_5": float(np.mean(np.round(mid * 100) % 5 == 0)) if len(mid) else None,
+                "n": len(v),
+            }
+
+        out[c] = {
+            "thresholds": len(keys),
+            "ladder": frame([ladder[k] for k in keys]),
+            "bare": frame([bare[k] for k in keys]),
+            "after_comparison": frame([v for k in keys for v in anchored[k]]),
+            "bare_session_grain": dl.grain(
+                [v for r in mine if r["module"] == "bare" for v in r["probability"]]
+            ),
+        }
+    return {
+        "schema_version": "epistemics.deliberation-followup.v1",
+        "configurations": out,
+        "scope": "Exploratory follow-up to the pilot: which frame moves grain and extremity.",
     }
 
 

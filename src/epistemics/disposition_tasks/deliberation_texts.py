@@ -13,7 +13,7 @@ NO_INFORMATION = "a number chosen for this exercise. It carries no information a
 
 def _parts(items, i):
     s = int(items["series"][i])
-    surface, (a, b, c), x, ident = deliberation.SERIES[s]
+    surface, (a, b, c), x, ident = deliberation.ALL_SERIES[s]
     readings, above, _, _ = TREND[surface]
     line = readings.format(id=ident, a=a, b=b, c=c)
     return line, above.format(t=int(items["threshold"][i]), x=x)
@@ -22,7 +22,7 @@ def _parts(items, i):
 def trial(items, i, cover, variant):
     line, predicate = _parts(items, i)
     kind = str(items["kind"][i])
-    if kind == "ladder":
+    if kind in ("ladder", "bare"):
         return [line], f"What is the probability that {predicate}?"
     anchor = int(items["anchor"][i])
     if kind == "choice":
