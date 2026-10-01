@@ -254,3 +254,20 @@ Stage A's 1.93 for its one-change statement came from that statement's change: n
 **Ideas:**
 20. **Guidance as its own reading.** Guidance changes carry the most weight in every configuration. "Which kind of central-bank language moves it most" is a passport reading, but it may be a shared reading rather than a trait.
 21. **Expected correlation among changes.** A change counts for less when other substantive changes may come. Do agents treat a statement's changes as correlated? That could be tested by revealing a second change that agrees or disagrees with the first.
+
+## 2 October: are changes treated as correlated? (idea 21)
+
+See [the experiment](statement-updating-design.md#correlated-changes-2-october).
+
+- **No.** Two revealed changes add as independent evidence for Astra (*a* = 1.04, *b* = 0.01) and nearly so for Sol (0.85, −0.05).
+- **Luna** shows a hint of correlation (*b* = −0.16, interval including 0).
+- **Terra** discounts the second change by a third whichever way it points (primacy), so its final answers depend on order.
+- **Correction.** Together with the announced-count result, this overturns stage A's "strong sub-additivity". That reading compared one strong change with different changes; with content controlled, revealed changes add.
+
+**Ideas:**
+22. **Terra's primacy as a trait.** A second change counts two-thirds whichever way it points, and Terra's final answers depend on order. Is that general across sequences (screen, coherence, statements)? The stage A order gaps (Luna 0.42 and Terra 0.29, against GPT-6's 0.10–0.20) point the same way.
+23. **What the statement family now offers the passport:**
+    - a reading order shared by every configuration (guidance moves most);
+    - additivity for Astra;
+    - primacy for Terra;
+    - a modest, pragmatic count discount.

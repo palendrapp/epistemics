@@ -407,3 +407,49 @@ These are small differences (a few points of probability) and not a preregistere
 - **The count effect that remains is modest** (three or six against one: 0.76–0.87) and absent for Terra.
 - **For the GPT-6 configurations it is pragmatic, not a budget.** Disclosing that the other two changes are rewordings restores the full single-change step (Astra 1.00, Sol 0.85): only changes that might carry content dilute a change's weight. Luna's estimate is less certain (0.61, interval 0.20–1.85).
 - **What remains to explain the sub-additivity in stage A.** A change counts for less when other substantive changes may come, which a reader who expects the committee's changes to hang together could justify. And four changes in one direction move the answer about as much as one strong guidance change, so changes are not added as independent evidence.
+
+## Correlated changes (2 October)
+
+**The question.** After the announced-count result, what remained of stage A's sub-additivity was "several same-direction changes add up to little more than one strong change". Do agents treat a statement's changes as correlated signs of one stance ([exploration log](exploration-log.md), idea 21)?
+
+**Modules `correlated-a` to `-d`** (design 0.27.0, tasks 0.37.0).
+- Statements differ from the previous one in exactly two substantive places, which agree (twelve items) or disagree (twelve).
+- A pair of consecutive cases reports one change, then both.
+- Every item appears in both orders across a pair of forms, so each change is seen once first and once second.
+- Stated priors keep the final answer mid-range: 30% when both changes are dovish, 70% when both are hawkish, 50% when they differ.
+
+**The test.** The second step is regressed on the changes' first-position steps: step2(X) = *a*·step1(X) + *b*·step1(other).
+- **Independent evidence** (log-odds add): *a* = 1, *b* = 0.
+- **Correlated changes:** *b* < 0, since an agreeing second change was partly expected and a disagreeing one was not.
+- **Averaging:** *a* = ½, *b* = −½.
+
+**Collection.** Astra, Sol, Luna and Terra at default effort took all four forms.
+- Root `output/correlated-changes-20261002`: 9 sessions. One failed at its start on a provider error ("selected model is at capacity"), with no answers; admission then stopped.
+- The remaining 7 were collected unchanged in `output/correlated-changes-20261002-topup`.
+- 16 sessions in all, about 12 million input tokens.
+- Task validation 0.37 passed on both seeds (4,128 cases, 177 contexts). Fingerprint `0766ecc460c3dee3b357fe5cd35547ecd9a5456d53835e47e49847254528fc09`; seeds `15cd5e98…` and `16fe10fb…`.
+- The analysis: `uv run python -m epistemics.ledger correlated-changes output/correlated-changes-20261002 output/correlated-changes-20261002-topup --output output/correlated-changes-summary-20261002.json`.
+
+**Results** (48 changes per configuration; bootstrap 90% intervals over changes):
+
+| Configuration | *a* | *b* | Mean \|step\|, first: agree / disagree | Mean \|step\|, second: agree / disagree | Order gap |
+| --- | --- | --- | --- | --- | --- |
+| Astra | 1.04 [0.96, 1.14] | +0.01 [−0.05, 0.09] | 0.58 / 0.58 | 0.60 / 0.59 | 0.14 |
+| Sol | 0.85 [0.68, 1.07] | −0.05 [−0.15, 0.03] | 0.76 / 0.67 | 0.67 / 0.73 | 0.28 |
+| Luna | 0.81 [0.62, 1.05] | −0.16 [−0.39, 0.07] | 0.73 / 0.64 | 0.66 / 0.70 | 0.45 |
+| Terra | 0.65 [0.56, 0.77] | +0.02 [−0.06, 0.12] | 0.76 / 0.72 | 0.62 / 0.52 | 0.49 |
+
+The order gap is the mean |log-odds| between the final answers after both changes in the two orders.
+
+**Reading.**
+- **Two revealed changes add as independent evidence.** Astra's second step is exactly its first-position step, agreeing or not (*a* = 1.04, *b* = 0.01), and Sol is close (0.85, −0.05).
+- **No configuration averages, and none clearly treats the changes as correlated.** Luna's *b* is −0.16, but its interval includes 0.
+- **Terra discounts the second change by about a third, whichever way it points.** That is primacy, not redundancy, and it makes Terra's final answer depend on the order (gap 0.49, against Astra's 0.14).
+- **The order law,** which stage A found holding for everyone at its coarser test, holds tightly for Astra here and weakens with Sol, Luna and Terra.
+
+**A correction to stage A's reading.** Stage A reported evidence as "strongly sub-additive": one guidance change alone moved 1.6–2.6 log-odds, the same kind of change inside a longer statement about 0.6, and four dovish changes about as much as one. Those comparisons set one strong change (neutral guidance to "a further rise may be needed") against different changes elsewhere. With content controlled:
+- a single change moves 0.6–0.9 log-odds (announced count);
+- a change pending among others counts about 20% less, pragmatically;
+- revealed changes add (here).
+
+The stage A results section is kept as written; this section supersedes its sub-additivity reading.
