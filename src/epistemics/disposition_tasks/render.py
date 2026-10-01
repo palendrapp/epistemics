@@ -100,6 +100,9 @@ MODULES = (
     "statement-b3",
     "statement-probe-a",
     "statement-probe-b",
+    "deliberation-ladder",
+    "deliberation-anchor-a",
+    "deliberation-anchor-b",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -199,6 +202,12 @@ COHERE_VARIANTS = ("cohere",)
 STATEMENT_MODULES = tuple(f"statement-{form}{r}" for form in "ab" for r in (1, 2, 3))
 STATEMENT_PROBE_MODULES = ("statement-probe-a", "statement-probe-b")
 STATEMENT_VARIANTS = ("statement",)
+# Deliberation style (tasks 0.32): threshold ladders on the screen's trend series ("sets" order)
+# and comparative anchor pairs (choice, then estimate; "sequences" order).
+DELIBERATION_LADDER = ("deliberation-ladder",)
+DELIBERATION_ANCHOR = ("deliberation-anchor-a", "deliberation-anchor-b")
+DELIBERATION_MODULES = DELIBERATION_LADDER + DELIBERATION_ANCHOR
+DELIBERATION_VARIANTS = ("deliberation",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -525,6 +534,10 @@ def items_for(module):
         from epistemics.dispositions import statements
 
         return statements.module_design(module)
+    if module in DELIBERATION_MODULES:
+        from epistemics.dispositions import deliberation
+
+        return deliberation.design(module)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -893,7 +906,26 @@ RENDERERS = {
     **{m: (lambda *a: _screen(*a)) for m in SCREEN_MODULES},
     **{m: (lambda *a: _cohere(*a)) for m in COHERE_MODULES},
     **{m: (lambda *a: _statement(*a)) for m in STATEMENT_MODULES + STATEMENT_PROBE_MODULES},
+    **{m: (lambda *a: _deliberation(*a)) for m in DELIBERATION_MODULES},
 }
+
+
+def _deliberation(items, i, cover, variant):
+    from epistemics.disposition_tasks import deliberation_texts
+
+    return deliberation_texts.trial(items, i, cover, variant)
+
+
+def choice_options(module, items, index):
+    """A choice case's options and which one is coded 1: battery v3.1/v3.2's act option, or a
+    deliberation comparison's "Above"."""
+    if module in DELIBERATION_MODULES:
+        from epistemics.dispositions import deliberation
+
+        return deliberation.options(items, index)
+    from epistemics.disposition_tasks.surfaces import options
+
+    return options(items, index)
 
 
 def _statement(items, i, cover, variant):
@@ -955,6 +987,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in COHERE_VARIANTS
     if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
         return cover == "markets" and variant in STATEMENT_VARIANTS
+    if module in DELIBERATION_MODULES:
+        return cover == "markets" and variant in DELIBERATION_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -999,15 +1033,13 @@ def render(module, cover, index, variant="paired"):
     if not 0 <= index < len(next(iter(items.values()))):
         raise ValueError("Item index outside the design")
     lines, question = RENDERERS[module](items, index, cover, variant)
-    if module in V3_MODULES + V31_MODULES + V32_MODULES:
+    if module in V3_MODULES + V31_MODULES + V32_MODULES + DELIBERATION_MODULES:
         response = str(items["response"][index])
     else:
         response = "points" if module == "checks" else "probability"
     rendered = {"case": "\n\n".join(lines), "question": question, "response": response}
     if response == "choice":
-        from epistemics.disposition_tasks.surfaces import options
-
-        rendered["options"] = options(items, index)[0]
+        rendered["options"] = choice_options(module, items, index)[0]
     return rendered
 
 
@@ -1020,6 +1052,10 @@ def stated_percentages(module, index, variant=None):
         from epistemics.disposition_tasks.statement_texts import stated
 
         return stated(items, index)  # the market prior
+    if module in DELIBERATION_MODULES:
+        from epistemics.disposition_tasks.deliberation_texts import stated
+
+        return stated(items, index)  # the anchor
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 

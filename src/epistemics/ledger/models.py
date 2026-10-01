@@ -331,6 +331,7 @@ def session(record, experiment, designs):
             "cohere",
             "statement",
             "statement_probe",
+            "deliberation",
         )
     ):
         return (

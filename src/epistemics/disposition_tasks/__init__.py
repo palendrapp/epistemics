@@ -5,4 +5,4 @@ assumptions being measured (how common relays are, how many senders are selectiv
 certainty is worth) are never stated.
 """
 
-VERSION = "disposition-tasks/0.31.0"
+VERSION = "disposition-tasks/0.32.0"

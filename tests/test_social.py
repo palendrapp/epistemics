@@ -132,6 +132,10 @@ def test_runner_accepts_every_module_variant_and_cover_the_audit_renders():
                     group["order"] = "sets"
                 if module.startswith("statement-") and not module.startswith("statement-probe"):
                     group["order"] = "sequences"
+                if module == "deliberation-ladder":
+                    group["order"] = "sets"
+                if module.startswith("deliberation-anchor"):
+                    group["order"] = "sequences"
                 runner.check_groups([{**group, "contexts": [(variant, cover, 1)]}])
 
 

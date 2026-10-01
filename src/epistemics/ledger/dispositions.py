@@ -76,6 +76,8 @@ for entry in plan["runs"]:
         record["screen"] = a["screen"]
     elif "cohere" in a:
         record["cohere"] = a["cohere"]
+    elif "deliberation" in a:
+        record["deliberation"] = a["deliberation"]
     elif "statement" in a:
         record["statement"] = a["statement"]
     elif "statement_probe" in a:
@@ -177,6 +179,9 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
+    if "deliberation" in record:
+        d = record["deliberation"]
+        return {**base, "rho": d["grain"]["rho"]["mean"], "share_5": d["grain"]["share_5"]}
     if "statement" in record:
         s = record["statement"]
         steps = s["stylistic_steps"]

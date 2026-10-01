@@ -36,6 +36,10 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return coherence_responses(items, truth, rng)
     if module.startswith(("decision-", "decision2-")):
         return decision_responses(items, truth, rng)
+    if module.startswith("deliberation-"):
+        from epistemics.dispositions import deliberation
+
+        return deliberation.respond(items, truth, rng)
     if module.startswith("statement-"):
         from epistemics.dispositions import statements
 
@@ -123,10 +127,10 @@ def simulate(directory, *, module, cover, order, truth, seed, variant="paired", 
     while trial is not None:
         value = answers[service.manifest.order[trial["case_number"] - 1]]
         if trial["response"] == "choice":
-            from epistemics.disposition_tasks.surfaces import options
+            from epistemics.disposition_tasks.render import choice_options
 
-            shown, act = options(
-                items_for(module), service.manifest.order[trial["case_number"] - 1]
+            shown, act = choice_options(
+                module, items_for(module), service.manifest.order[trial["case_number"] - 1]
             )
             answer = {"choice": shown[act] if value >= 0.5 else shown[1 - act]}
         elif trial["response"] == "points":

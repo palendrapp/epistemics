@@ -24,6 +24,9 @@ from epistemics.disposition_tasks.render import (
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
+    DELIBERATION_ANCHOR,
+    DELIBERATION_MODULES,
+    DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
     LEARNING_RATES,
@@ -112,6 +115,10 @@ TOLERANCE = {
     "statement_content": 0.1,
     # Statement probe: each period's probability as answered.
     "statement_probe": 0.011,
+    # Deliberation: the readout grain from one session within 0.35 (24 answers), the anchoring
+    # weight from one anchor session within 0.1 (against the respondent's own answers).
+    "deliberation_rho": 0.35,
+    "deliberation_a": 0.1,
 }
 # A Bayesian combiner with distinct readings per slot (the pipeline check).
 STATEMENT_RESPONDENT = {
@@ -125,6 +132,9 @@ STATEMENT_RESPONDENT = {
     "tau": 0.05,
 }
 PROBE_RESPONDENT = {"periods": [0.15, 0.3, 0.35, 0.2]}
+# Deliberation style: a respondent with the screen's middle trend observer, half its answers
+# rounded to 5 points, anchoring weight 0.3, low report noise.
+DELIBERATION_RESPONDENT = {"rho": 0.5, "a": 0.3, "tau": 0.05}
 LOAD_RESPONDENT = {"load_sd": [0.1, 0.2, 0.5], "load_eta": [0.0, 0.2, 0.5], "bias": 0.0}
 # The four-level ladders: the same noise and neglect range, over four levels.
 LONG_LOAD_RESPONDENT = {
@@ -443,7 +453,57 @@ def statement_audit():
     return {"latin_square": True, "stylistic_pairs": {k: list(v) for k, v in STYLE_TEXT.items()}}
 
 
+def deliberation_audit():
+    """Ladders: thresholds rising and the broad and middle observers' answers falling along each;
+    a "sets" order keeps a series' questions at least 4 cases apart. Anchors: every anchored
+    threshold low in one form and high in the other; each pair consecutive in a "sequences" order;
+    every anchor described as chosen for the exercise and carrying no information."""
+    import random
+
+    from epistemics.dispositions import deliberation, screen, statements
+
+    mid = screen.observer_mid("trend")
+    for s in range(len(deliberation.SERIES)):
+        ts = deliberation.thresholds(s)
+        for params in (deliberation.BROAD, mid):
+            p = [deliberation.observer(s, t, params) for t in ts]
+            if any(b >= a for a, b in zip(p, p[1:], strict=False)):
+                raise ValueError(f"Deliberation series {s}: the observer's ladder is not falling")
+    items = items_for("deliberation-ladder")
+    order = deliberation.ladder_order(items, random.Random(1))
+    position = {i: k for k, i in enumerate(order)}
+    for s in range(len(deliberation.SERIES)):
+        idx = [int(i) for i in np.flatnonzero(items["series"] == s)]
+        if min(abs(position[a] - position[b]) for a in idx for b in idx if a != b) < 4:
+            raise ValueError("Deliberation ladder: a series' questions too close")
+    sides = {}
+    for module in DELIBERATION_ANCHOR:
+        items = items_for(module)
+        order = statements.sequences_order(items, random.Random(1))
+        for k in set(items["sequence"].tolist()):
+            spots = [p for p, i in enumerate(order) if items["sequence"][i] == k]
+            if spots != [spots[0], spots[0] + 1] or items["kind"][order[spots[0]]] != "choice":
+                raise ValueError(f"{module}: an anchor pair is split or out of order")
+        for i in range(CASES):
+            case = render(module, "markets", i, "deliberation")["case"]
+            if "chosen for this exercise" not in case or "carries no information" not in case:
+                raise ValueError(f"{module}/{i}: the anchor is not described as uninformative")
+            if items["kind"][i] == "choice":
+                key = (int(items["series"][i]), int(items["rank"][i]))
+                sides.setdefault(key, set()).add(str(items["side"][i]))
+    if any(v != {"low", "high"} for v in sides.values()):
+        raise ValueError("Deliberation anchors: a threshold lacks a low or a high anchor")
+    return {
+        "thresholds": {
+            s: list(deliberation.thresholds(s)) for s in range(len(deliberation.SERIES))
+        },
+        "anchored": len(sides),
+    }
+
+
 def variants_of(module):
+    if module in DELIBERATION_MODULES:
+        return DELIBERATION_VARIANTS
     if module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
         return STATEMENT_VARIANTS
     if module in COHERE_MODULES:
@@ -509,6 +569,7 @@ def covers_of(module):
         + COHERE_MODULES
         + STATEMENT_MODULES
         + STATEMENT_PROBE_MODULES
+        + DELIBERATION_MODULES
         else COVERS
     )
 
@@ -581,6 +642,7 @@ def audit():
                     + SCREEN_MODULES
                     + COHERE_MODULES
                     + STATEMENT_PROBE_MODULES
+                    + DELIBERATION_MODULES
                     else c["case"]
                     for c in cases
                 }
@@ -674,6 +736,7 @@ def audit():
         "screen_openness": screen_audit(),
         "cohere_openness": cohere_audit(),
         "statements": statement_audit(),
+        "deliberation": deliberation_audit(),
     }
 
 
@@ -757,6 +820,9 @@ def contexts_to_validate():
         yield module, "markets", "statement", STATEMENT_RESPONDENT
     for module in STATEMENT_PROBE_MODULES:
         yield module, "markets", "statement", PROBE_RESPONDENT
+    for module in DELIBERATION_MODULES:
+        truth = {**DELIBERATION_RESPONDENT, "params": screen.observer_mid("trend")}
+        yield module, "markets", "deliberation", truth
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -767,6 +833,30 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "deliberation" in analysis:
+        # Ladders: the readout grain; anchors: the anchoring weight against the respondent's own
+        # (noiseless) answers, and every comparison consistent with its estimate.
+        from epistemics.dispositions import deliberation
+
+        d = analysis["deliberation"]
+        if d["module"] == "ladder":
+            error = abs(d["grain"]["rho"]["mean"] - truth["rho"])
+            return float(error), bool(
+                error <= TOLERANCE["deliberation_rho"] and d["violations"] == 0
+            )
+        own = [
+            {
+                "series": s,
+                "thresholds": list(deliberation.thresholds(s)),
+                "answers": [
+                    deliberation.observer(s, t, truth["params"]) for t in deliberation.thresholds(s)
+                ],
+            }
+            for s in range(len(deliberation.SERIES))
+        ]
+        a = deliberation.anchoring_on_own(d["pairs"], own)
+        error = abs(a - truth["a"])
+        return float(error), bool(error <= TOLERANCE["deliberation_a"] and d["consistency"] == 1)
     if "statement" in analysis:
         # A Bayesian combiner's mean step on each slot's changes is its reading (beta 1, tilt 0);
         # stylistic changes move nothing; anchors at their answers.

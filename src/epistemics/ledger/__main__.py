@@ -41,6 +41,8 @@ uv run python -m epistemics.ledger cohere-b <roots...> --output <file>
 uv run python -m epistemics.ledger statements-validation --output <file>
 uv run python -m epistemics.ledger sweep --output <file>
 uv run python -m epistemics.ledger roundness --output <file>
+uv run python -m epistemics.ledger deliberation-validation --output <file>
+uv run python -m epistemics.ledger deliberation-pilot <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -182,6 +184,10 @@ def main():
     sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
     sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
+    sub.add_parser("deliberation-validation").add_argument("--output", type=Path, required=True)
+    dp = sub.add_parser("deliberation-pilot")
+    dp.add_argument("roots", type=Path, nargs="+")
+    dp.add_argument("--output", type=Path, required=True)
     for name in ("statements-probe", "statements-a", "statements-b", "statements-explore"):
         sp = sub.add_parser(name)
         sp.add_argument("roots", type=Path, nargs="+")
@@ -458,6 +464,21 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({k: run[k] for k in ("uptake", "load", "sessions_needed")}, indent=2))
+    elif a.command in ("deliberation-validation", "deliberation-pilot"):
+        from epistemics.ledger import deliberation as deliberation_ledger
+
+        if a.command == "deliberation-validation":
+            run = deliberation_ledger.validation()
+            summary = {k: run[k] for k in ("rho", "a", "confusion", "a_on_own", "passed")}
+        else:
+            run = deliberation_ledger.pilot(a.roots)
+            summary = {
+                k: run[k]
+                for k in ("P1_grain", "P2_plateaus", "P3_anchoring", "P4_effort", "P5_seconds")
+            }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(summary, indent=2))
     elif a.command == "roundness":
         from epistemics.ledger import roundness
 

@@ -31,6 +31,10 @@ from epistemics.disposition_tasks.render import (
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
+    DELIBERATION_ANCHOR,
+    DELIBERATION_LADDER,
+    DELIBERATION_MODULES,
+    DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
     LEARNING_RATES,
@@ -156,6 +160,7 @@ AUDITED_CASES = (
     + 24 * len(SCREEN_MODULES) * len(SCREEN_VARIANTS)
     + 24 * len(COHERE_MODULES) * len(COHERE_VARIANTS)
     + 24 * len(STATEMENT_MODULES + STATEMENT_PROBE_MODULES) * len(STATEMENT_VARIANTS)
+    + 24 * len(DELIBERATION_MODULES) * len(DELIBERATION_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -319,6 +324,22 @@ for _form in "ab":
             "contexts": (("statement", "markets", 1),),
         },
     )
+# Deliberation style pilot (docs/deliberation-style-design.md): each configuration takes the ladder
+# session ("sets" order) and both anchor forms ("sequences" order).
+PRESETS["deliberation-pilot"] = (
+    {
+        "configurations": SCREEN_EIGHT,
+        "modules": DELIBERATION_LADDER,
+        "contexts": (("deliberation", "markets", 1),),
+        "order": "sets",
+    },
+    {
+        "configurations": SCREEN_EIGHT,
+        "modules": DELIBERATION_ANCHOR,
+        "contexts": (("deliberation", "markets", 1),),
+        "order": "sequences",
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -455,11 +476,15 @@ def arrange(module, policy, rng):
     if policy == "sets":
         from epistemics.dispositions import cohere
 
+        if module in DELIBERATION_LADDER:
+            from epistemics.dispositions import deliberation
+
+            return deliberation.ladder_order(items_for(module), rng)
         return cohere.sets_order(items_for(module), rng)
     if policy == "sequences":
         from epistemics.dispositions import statements
 
-        return statements.sequences_order(items_for(module), rng)
+        return statements.sequences_order(items_for(module), rng)  # statements and anchor pairs
     order = list(range(CASES))
     rng.shuffle(order)
     if policy == "random":
@@ -509,6 +534,7 @@ def check_groups(groups):
             + SCREEN_VARIANTS
             + COHERE_VARIANTS
             + STATEMENT_VARIANTS
+            + DELIBERATION_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -520,10 +546,16 @@ def check_groups(groups):
                     if not allowed(module, cover, variant):
                         raise ValueError(f"{module} does not offer {variant} in {cover}")
                     v3 = module.startswith("coherence-")
-                    if (policy == "sets") != (module in COHERE_MODULES):
-                        raise ValueError("Coherence-set modules need, and only they take, sets")
-                    if (policy == "sequences") != (module in STATEMENT_MODULES):
-                        raise ValueError("Statement modules need, and only they take, sequences")
+                    if (policy == "sets") != (module in COHERE_MODULES + DELIBERATION_LADDER):
+                        raise ValueError(
+                            "Coherence-set and ladder modules need, and only they take, sets"
+                        )
+                    if (policy == "sequences") != (
+                        module in STATEMENT_MODULES + DELIBERATION_ANCHOR
+                    ):
+                        raise ValueError(
+                            "Statement and anchor modules need, and only they take, sequences"
+                        )
                     if v3:
                         if (policy == "refer-back") != (variant == "v3-loaded"):
                             raise ValueError(
@@ -819,6 +851,15 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "deliberation" in analysis:
+        d = analysis["deliberation"]
+        return {
+            "parameter": f"deliberation-{d['module']}",
+            "rho": d["grain"]["rho"]["mean"],
+            "share_5": d["grain"]["share_5"],
+            **({"consistency": d["consistency"]} if "consistency" in d else {}),
+            **({"violations": d["violations"]} if "violations" in d else {}),
         }
     if "statement" in analysis:
         s = analysis["statement"]

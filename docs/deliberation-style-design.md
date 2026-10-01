@@ -1,6 +1,6 @@
 # Deliberation style: judging against computing (design note)
 
-Design, 1 October 2026. Nothing is built or collected. It follows the [exploration log](exploration-log.md) (ideas 3, 6 and 7).
+Design, 1 October 2026; built the same day with the recommended defaults (model 0.21.0, design 0.22.0, tasks 0.32.0; see [Built](#built)). Nothing is collected yet. It follows the [exploration log](exploration-log.md) (ideas 3, 6 and 7).
 
 ## Why
 
@@ -128,10 +128,67 @@ Details:
 - **Ceiling.** Every configuration may compute these cases exactly. Then the variants' style difference does not appear on trend questions, which narrows the reading to the families where it was seen (lists, reported numbers).
 - **Effort is not a pure dose.** Effort levels change more than the number of adjustment steps. Prediction 4 is descriptive.
 
-## Decisions for you
+## Decisions (taken 1 October: the recommendations)
 
 1. **Modules:** both ladders and anchors (recommended), or ladders alone first (8 sessions, about 4 million tokens). Ladders alone test the readout reading and leave out adjustment.
 2. **Anchor mode:** the comparative paradigm (recommended; strong and classic), or incidental numbers in the case (weaker, and closer to how anchors occur in real documents).
 3. **Anchor values:** 30 points either side of the observer's middle answer (recommended), or fixed values (10% and 90%).
 4. **Light preregistration:** predictions written down as above and tested descriptively, with confirmation only on a fresh form (recommended), or the full stage A/B machinery.
 5. **Budget:** about 13 million.
+
+## Built
+
+Built on 1 October 2026 as model 0.21.0, design 0.22.0, tasks 0.32.0, with the recommended defaults: both modules, comparative anchors 30 points either side of an observer's answer, and light preregistration.
+
+**Code:**
+- **Designs, simulated respondents and estimates:** `dispositions/deliberation.py`.
+- **Texts:** `disposition_tasks/deliberation_texts.py`, on the screen's trend surfaces.
+- **Ledger:** `ledger/deliberation.py`, with the commands `deliberation-validation` and `deliberation-pilot`.
+- **Modules:** `deliberation-ladder`, `deliberation-anchor-a` and `deliberation-anchor-b`; variant `deliberation`.
+- **Choice cases** use a generic option list (`render.choice_options`); battery v3.1's options are unchanged.
+- **Preset `deliberation-pilot`:** 24 runs (the eight configurations × ladder, anchor-a and anchor-b).
+
+**The series.** Four series: a ticket queue at day 6, archive storage at week 5, registered users at month 5, and orders by hour 6. Each grows by about ×1.4 per step, so linear and exponential continuations disagree.
+
+**Deviations from the note above:**
+- **Threshold spacing.** The screen's middle observer is bimodal and narrow: almost all its weight sits near the linear and the exponential projections. Its answers barely change between them and then fall steeply. So the thresholds are spaced for a broad observer instead (linear weight 0.55, noise 0.25), whose answer falls 5 points per step (64% to 39%). The middle observer then falls 8–14 points per step, and is monotone too.
+- **Anchors** are 30 points either side of the broad observer's answer at ladder ranks 1, 3 and 5: low 29, 19 and 9%, high 89, 79 and 69%. They are the same for every series. In form a, series 1 and 3 start low and series 2 and 4 start high, alternating along the ranks; form b swaps them.
+- **The ladder order is cyclic.** A series' six questions are exactly four cases apart (with four series of six, four apart is only possible that way). The rotation is random, and so is the threshold order within a series.
+- **Readout grain *ρ*** is estimated from the answers, not from the trend model. It is the share of mid-range answers (0.06–0.94) at multiples of 5, above the 1 in 5 a 1-point readout gives by chance (Beta posterior; after Manski & Molinari 2010). The plateau share is descriptive.
+- **Anchoring weight *a*** comes from each threshold's estimates after its high and low anchors, which are in different sessions: (z_high − z_low) / (z_anchor_high − z_anchor_low). The agent's own answer cancels, so no ladder answer or model is needed. The slope against the agent's own ladder answers is reported as a secondary estimate.
+- **No comprehension anchors.** Monotonicity of the ladders, and consistency between each comparison and its estimate, serve as the checks.
+
+**Validation** (`output/deliberation-validation-20261001.json`). 300 simulated configurations:
+- trend parameters drawn across the screen's plausible ranges;
+- *ρ* 0–1, *a* 0–0.6, report noise 0.1–0.5;
+- three sessions each.
+
+| Parameter | *r* | 90% coverage |
+| --- | --- | --- |
+| Readout grain *ρ* | 0.92 | 0.90 |
+| Anchoring weight *a* | 0.96 | 0.87 |
+
+- **Confusion** with report noise and with each other is at most 0.17.
+- **The secondary estimate of *a*** (against the agent's own ladder answers) recovers at r 0.97, with a mean bias of +0.02.
+- All criteria pass.
+
+**Task validation 0.32.** It passed on both seeds: 3,768 cases and 162 contexts.
+- One session per module recovered the respondent's grain within 0.07 and its anchoring weight within 0.02, with every comparison consistent with its estimate.
+- The audits cover: ladders rising in threshold and falling in both observers' answers; the cyclic order; anchor pairs consecutive; every threshold anchored low in one form and high in the other; and every anchor described as chosen for the exercise and carrying no information.
+
+Hashes:
+- Fingerprint `5923831732f8a3514e11373a1d915b0cd58697827b9913615c04bad3b338c83e`.
+- Seed 20260927: `f338a5119bc4a969015d18b4be4b3c29b4a84ac172e5539a2f511572b5f9cc1a`.
+- Seed 20261027: `d66dc7adb170cbb2c03644eeb4373464e7116936810708d99fd7af0169a12888`.
+
+### Pilot (planned, awaiting your go-ahead)
+
+- **Sessions:** preset `deliberation-pilot`, 24 sessions. Cap 16 million tokens (about 13 million expected), 1,800 seconds per run.
+- **Analysis:** `uv run python -m epistemics.ledger deliberation-pilot <roots...> --output <file>`. It reports per configuration:
+  - *ρ* (all probability answers, and ladders alone);
+  - the plateau share and monotonicity violations;
+  - *a* with its interval, the Jacowitz–Kahneman index and the secondary estimate;
+  - choice–estimate consistency;
+  - seconds and output tokens per case.
+
+  It summarises predictions 1–5 across the three effort-matched Astra–Sol pairs.

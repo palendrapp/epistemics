@@ -1061,7 +1061,7 @@
       "roots": [],
       "status": "complete",
       "prediction": "Design only. Two modules on the screen's trend cases: ladders (six nearby thresholds per series) for readout grain rho and plateaus; comparative anchors (low and high, 30 points either side of the observer's middle answer) for the anchoring weight a against the agent's own unanchored answer. Predictions: Astra's rho above Sol's at each effort; more plateaus; a differs (Astra higher); a falls with effort; Sol slower per case.",
-      "outcome": "Design note written; nothing built. Exploratory pilot with predictions written down; a fresh form confirms if they show. 24 sessions (one ladder and two anchor sessions per configuration), about 13M. Five decisions pending."
+      "outcome": "Built model 0.21.0, design 0.22.0, tasks 0.32.0 (fingerprint 59238317) with the recommended defaults: modules deliberation-ladder (four trend series x six thresholds, five points apart for a broad observer, each series' questions four cases apart) and deliberation-anchor-a/b (comparison then estimate, anchors 30 points either side, forms swapping sides); generic choice options; preset deliberation-pilot (24 runs). rho from the share of mid-range answers at multiples of 5 beyond chance; a from the high and low anchors' estimates (own answer cancels). Validation (300 simulated configurations): rho r 0.92, coverage 0.90; a r 0.96, coverage 0.87; confusion at most 0.17. Task validation passed on both seeds (3,768 cases, 162 contexts). Pilot (about 13M) awaiting go-ahead."
     }
   ],
   "next": [

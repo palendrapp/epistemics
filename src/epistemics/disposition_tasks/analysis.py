@@ -11,12 +11,14 @@ import numpy as np
 from epistemics.disposition_tasks import urn
 from epistemics.disposition_tasks.render import (
     COHERE_MODULES,
+    DELIBERATION_MODULES,
     SCREEN_MODULES,
     STATEMENT_MODULES,
     STATEMENT_PROBE_MODULES,
     V3_MODULES,
     V31_MODULES,
     V32_MODULES,
+    choice_options,
     items_for,
 )
 from epistemics.dispositions import fit, observers
@@ -179,16 +181,24 @@ def analyze(manifest, observations):
         name = str(items["response"][index]) if "response" in items else field
         value = getattr(observation.answer, name)
         if name == "choice":
-            # Battery v3.1: 1 if the "act" option was chosen, 0 for "hold".
-            from epistemics.disposition_tasks.surfaces import options
-
-            shown, act = options(items, index)
+            # Battery v3.1: 1 if the "act" option was chosen, 0 for "hold"; deliberation
+            # comparisons: 1 for "Above".
+            shown, act = choice_options(manifest.module, items, index)
             value = 1.0 if value == shown[act] else 0.0
         responses[index] = value
     rows = [
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in DELIBERATION_MODULES:
+        from epistemics.dispositions import deliberation
+
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "deliberation": deliberation.session(items, responses),
+            "rows": rows,
+        }
     if manifest.module in STATEMENT_MODULES + STATEMENT_PROBE_MODULES:
         from epistemics.dispositions import statements
 
