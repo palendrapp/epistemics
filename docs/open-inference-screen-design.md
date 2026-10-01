@@ -480,3 +480,39 @@ Neither is a pattern the F5 observer can produce.
 
 **The exploratory commitment index was mis-oriented for F5.** It counted the straight line as the simplest model. On geometric series, though, the compact rule that fits is the exponential; Luna committed to it completely, which the index scored as low commitment. With six configurations and Luna at an extreme in most families, the cross-family correlations (−0.93 to 0.85) are not interpretable.
 
+### Revised observers (written before stage B was analysed)
+
+`ledger/screen_fit.py`. These are analysis-side only: the tasks and the frozen implementation are unchanged, and stage B was collected on fingerprint `4491e2d5`.
+
+**What stage A's misfit showed:**
+- **Defaults when the model is open:**
+  - with a single example in F1, most configurations answered exactly 0.50;
+  - Terra answered 0.50 to many F1 items;
+  - Luna answered 0.85 to every F2 item and 1.00 to almost every F5 item;
+  - GPT-6's F5 answers sat between 0.55 and 0.80 whether a series grew ×2 or ×1.5 (the observer predicted 0.86 against 0.33).
+- **F2's round numbers:** answers depended on the window's size relative to the number (200 against 500, for example), which fixed-unit rounding cannot produce.
+
+**The revision:**
+1. **Model trust, every family.** On open items, the reported probability is (1 − *m*)·*p*<sub>observer</sub> + *m*·*d*: Bayesian model averaging over "the family's model applies" and an uninformative model whose answer is the fallback *d*. Anchors state their model and are not fitted. *m* is a formal candidate for the cross-family commitment trait: low *m* commits to the family's model.
+2. **F2:** a rounded report comes from a bin proportional to the number (width 0.2 × the value), not a fixed unit.
+3. **F5:** the assumed process noise is a parameter (0.01–0.3, log scale), so certain extrapolation is expressible.
+
+**In-sample on stage A** (form a; the evidence gain is in log units, with flat priors over the grids):
+
+| Family | Evidence gain | Report noise, original → revised |
+| --- | --- | --- |
+| F1 | +1.6 to +17.1 | 0.80 → 0.52–0.80 |
+| F2 | +0.5 to +54 | 0.72–0.80 → 0.10 (Luna) and 0.55–0.80 |
+| F3 | +0.1 to +19 | 0.28–0.78 → 0.10–0.37 |
+| F4 | −1.4 to +2.4 | about unchanged |
+| F5 | +5.5 to +242 | 0.46–0.80 → 0.28–0.80 |
+
+F1 and F2 remain poorly fitted for most GPT-6 configurations.
+
+**Evaluation on stage B, fixed now:**
+1. **Held-out prediction.** Each observer, original and revised, is fitted to a configuration's form a answers and predicts its form b answers (log-odds RMSE on the open items). The revision is supported where its held-out error is lower for most configurations.
+2. **Fits to both forms:** report noise and evidence, original against revised.
+3. **Recovery of the revised observers** (trust and fallback included), with the profile-recovery criteria: `output/screen-revised-recovery-20261001.json`.
+
+The stage B reliability test of the contrasts is as preregistered, and is independent of these models.
+
