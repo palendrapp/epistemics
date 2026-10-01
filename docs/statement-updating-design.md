@@ -99,7 +99,7 @@ This is the key move: **there is no true λ for natural text, so the agent's own
 ## Design per form
 
 - **Six sequences per form.** Each has a previous statement, a new statement, and its own stated prior.
-- **Statements are composites.** They are built from a bank of sentences adapted from real FOMC statements (US government works, so public domain). The committee belongs to an unnamed central bank; dates, rate levels and named events are removed; and a phrase tied to one period is paraphrased. See [Contamination](#contamination).
+- **Statements are composites.** They are built from a bank of sentences in the style of central-bank statements. In tasks 0.30 these were adapted from real FOMC statements (US government works, so public domain); in 0.31 they were rewritten in generic language after the datability probe. The committee belongs to an unnamed central bank; dates, rate levels and named events are removed. See [Contamination](#contamination) and the [probe results](#datability-probe-and-the-031-wording-1-october).
 - **Changes per sequence:** 1 to 6, one sequence each (changed from 2, 4 or 6 in the build, because the runner fixes sessions at 24 cases). Every sequence but the one-change sequence has at least one stylistic change. Half have conflicting directions.
 - **Slots** (changed in the dovish or hawkish direction):
   - economic activity;
@@ -275,9 +275,99 @@ Hashes:
 - Seed 20260927: `518dead1e640fb99e64514a96b5d2afe21b7154151ea1d931654535e10cdf33c`.
 - Seed 20261027: `51fe000d0e0ae16ff14ae08d8923fddcf86141a64317790301311c1e967cbe44`.
 
-### Stage A (planned, awaiting your go-ahead)
+### Datability probe and the 0.31 wording (1 October)
+
+**First probe (tasks 0.30).** Root `output/statements-probe-a-20261001`, Luna and Astra, 1.1 million tokens. Every statement pair was placed in 2013–2019:
+- Astra put 0.50–0.78 on that period;
+- Luna put 0.91–0.98 on it.
+
+The sentences adapted from FOMC statements carry the Fed's and the period's signature phrases: "target range", "longer-run objective", "maximum employment", "realized and expected economic conditions", "act as appropriate to sustain the expansion". By the agreed rule, all six were rewritten.
+
+**Tasks 0.31** (fingerprint `6f68d646…`) rewrites the sentence bank in generic central-bank language:
+- a "policy rate" and the committee's inflation "target";
+- low and stable inflation alongside sustainable growth;
+- guidance such as "prepared to lower the policy rate if the outlook weakens";
+- a vote described as unanimous or by a majority.
+
+The design, the model and the slots are unchanged.
+
+**The rule, applied to normalised answers.** Luna's four period answers for one statement summed to 1.13–1.88: the partition incoherence of the coherence sets again. So its raw maximum overstated how confidently it dated a statement. From 0.31, a statement pair is flagged when its largest period probability, normalised over the four periods, exceeds 0.6. This was decided before the second probe.
+
+**Second probe (tasks 0.31).** Root `output/statements-probe-a-20261001-v031`, 1.1 million tokens. No statement pair is flagged.
+- Normalised maxima: Astra 0.32–0.59, Luna 0.40–0.58.
+- Raw maxima still reach 0.70 (Luna, statements 31 and 34) and 0.66 (Astra, statement 34, whose answers sum to 1.12).
+- Luna's most likely period moved from 2013–2019 to 2005–2012.
+
+The residual period cues are weak, but not absent.
+
+**Task validation 0.31.** It passed on both seeds: 3,696 cases and 159 contexts.
+- Seed 20260927: `e327f8606c65c7f37ca8e8bb8e3374f7eee6d3906b2fdddf171f1e6e000d67e5`.
+- Seed 20261027: `f3e2c7074f490bc8acbed221b6ca552e19fc78d71d4880dad8cf5719cef63430`.
+
+The recovery validation is unaffected: it simulates the design, not the wording.
+
+### Stage A (1 October)
 
 1. **Datability probe:** preset `statements-probe-a`, Luna and Astra, about 1 million tokens. Any statement pair placed in one period above 0.6 is rewritten before stage A (a new version).
 2. **Stage A:** preset `statements-a`, 24 sessions, cap 20 million tokens (about 15 million expected), 1,800 seconds per run.
    - Analysis: `uv run python -m epistemics.ledger statements-a <roots...> --output <file>`.
    - It reports per configuration the fitted parameters, the three laws with their calibrated tests, the recency index, overshoot and dilution, and hypotheses 1–3.
+
+## Stage A results (1 October)
+
+**Collection.** Root `output/statements-stage-a-20261001`, tasks 0.31.0, preset `statements-a`.
+- 24 of 24 sessions: 13.6 million input tokens (12.5 million cached) and 41,000 output tokens, in 34 minutes.
+- No failures, and every session passed its anchors.
+- Summary: `output/statements-stage-a-summary-20261001.json`.
+
+**Preregistered hypotheses:**
+
+| Hypothesis | Result |
+| --- | --- |
+| H1: readings differ (at least three configurations depart from the median by 0.25 for some slot) | **Fails.** Departures: activity (Astra), inflation (Astra), guidance (Astra, Terra), vote (Luna); no slot has three |
+| H2: some configuration departs from the order or the path law | **Fails.** No departures; every calibrated *p* ≥ 0.58 |
+| H3: some configuration departs from the content law | **None.** No answer moved on any stylistic change |
+
+**The laws hold almost exactly.** Path-independent integration is at ceiling, as the preregistration provided for.
+- **Content:** exactly 0 for every configuration.
+- **Path:** the mean absolute gap between the stepwise and whole-statement final answers.
+  - 0.13–0.31 log-odds (about 3–7 points near 50%) for the GPT-6 configurations and Terra.
+  - 0.63 for Luna. But Luna's two identical presentations of statement 31 differed by 1.7 log-odds, so its gaps are at the level of its noise.
+- **Order:** 0.10–0.20 for GPT-6, 0.29 for Terra, 0.42 for Luna. The recency index runs from −0.11 to +0.34, and none is significant.
+- **Caveat.** The tests are calibrated against Bayesian combiners with each configuration's fitted noise. That noise (*τ* 0.16–0.26, Luna 0.40) includes the additive model's misfit, so the tests are conservative here. The absolute gaps above are the plainer evidence.
+
+**Prior use is at ceiling.** Before any change, every configuration answered with exactly the stated market prior, in all 18 of its prior cases (*γ* 0.96–1.02, *c* ≈ 0, spread across sessions 0).
+
+**Readings: the same order in every configuration.**
+- Forward guidance moves the answer most (1.66–2.53 log-odds per change).
+- Then inflation (1.06–1.57).
+- Then activity, risks and the vote (0.73–1.61).
+
+**Evidence is strongly sub-additive, in every configuration and in both modes:**
+- **A single change alone moves a lot.** In statement 31, one guidance change moves the answer 1.6–2.6 log-odds, by step or whole (Luna 1.35–3.04).
+- **Inside a longer statement, it moves less.** The same kind of change moves the answer 0.4–1.0 per step, and steps are about 0.6 log-odds whatever their position.
+- **Several changes together move about as much as one.** Four dovish changes and two stylistic ones (statement 36) move the answer 1.25–2.36 in total, about as much as the one guidance change.
+
+The model expresses this as step gain *β* 0.43–0.62 together with averaging *η* 0.31–0.64 for all eight configurations. These two parameters were at the recovery threshold and trade off against each other, so only their joint reading is offered: changes are combined sub-additively, and the same way step by step as whole.
+
+This is not necessarily a bias. A Bayesian who takes a statement's changes as correlated signs of one shift in the committee's stance should not add them. The additive model cannot separate that reading from averaging.
+
+**Exploratory: overall responsiveness.** The mean absolute move per statement, against the mean of the other configurations, sequence by sequence:
+- **The Astra family moves less:** −0.11 to −0.15 log-odds, above the others in 0–1 of 6 sequences.
+- **Sol and Luna move more:** Sol +0.12 and Luna +0.32, each above the others in 6 of 6. Luna's figure is partly noise, since absolute moves grow with noise.
+- **The rest are in between:** Sol-low +0.06, Sol-high −0.06, Terra −0.04.
+
+These are small differences (a few points of probability) and not a preregistered test.
+
+**Reading.** These results are conditional on these composite statements and instructions.
+- The task leaves the reading of each change to the agent. Even so, all eight configurations supply the same reading and the same way of combining changes:
+  - guidance first;
+  - wording ignored;
+  - changes treated as largely redundant;
+  - the result path-independent.
+- For these agents, generic central-bank language is a strong situation, as the stated batteries were. CogGym's observation that frontier models agree on most experiments applies here too.
+- What the passport could claim, for all eight:
+  - these configurations read a statement the same way in steps as whole;
+  - they adopt a stated market prior exactly;
+  - they ignore content-free rewording;
+  - they treat several same-direction changes as little more informative than one.

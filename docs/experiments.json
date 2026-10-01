@@ -1005,6 +1005,37 @@
       "status": "complete",
       "prediction": "Design only. Readings (one weight per slot) are open and expected to differ. The order and path laws may be at ceiling. Stepwise cases show only the newest change, so the path law tests integration across the trajectory.",
       "outcome": "Built model 0.20.0, design 0.21.0, tasks 0.30.0 (fingerprint 02afef8e) with the recommended defaults: modules statement-{a,b}{1,2,3} (Latin square: each sequence stepwise in orders A and B and whole across a configuration's three sessions), statement-probe-{a,b}, 'sequences' order, presets statements-a/b (24 runs) and statements-probe-a/b (Luna, Astra). 24 cases per session (sequences of 1-6 changes paired by size, 2 anchors); dilution zeta added to the model. Validation (300 simulated configurations): readings r 0.86-0.88, prior use 0.95, retention 0.93, step gain and averaging 0.80 (at the threshold, exploratory in stage A), dilution 0.57; law tests' false departures 3-6%, power 0.61-0.84 against fading, averaging, over-reaction and dilution. Task validation passed on both seeds (3,696 cases, 159 contexts). Next: datability probe (about 1M), then stage A (24 sessions, about 15M); awaiting go-ahead."
+    },
+    {
+      "id": "statements-probe-a",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Statements: datability probe (form a)",
+      "question": "Do configurations date the composite statements to one period, so that their answers could draw on recall of what followed?",
+      "doc": "docs/statement-updating-design.md",
+      "roots": [
+        "output/statements-probe-a-20261001",
+        "output/statements-probe-a-20261001-v031"
+      ],
+      "status": "complete",
+      "prediction": "Rewrite any statement pair that Luna or Astra places in one period above 0.6 before stage A.",
+      "outcome": "Tasks 0.30 (sentences adapted from FOMC statements): every pair was placed in 2013-2019 (Astra 0.50-0.78; Luna 0.91-0.98, its four period answers summing to 1.13-1.88). Rewritten in generic central-bank language (tasks 0.31: no target range, longer-run objective, maximum employment, realized and expected conditions or sustain the expansion), and the 0.6 rule applied to answers normalised over the four periods, decided before the second probe. Tasks 0.31: none flagged (normalised maxima Astra 0.32-0.59, Luna 0.40-0.58); raw maxima still reach 0.70 (Luna, statements 31 and 34) and 0.66 (Astra, statement 34). About 2.2M tokens."
+    },
+    {
+      "id": "statements-stage-a",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Statements, stage A (form a)",
+      "question": "Do configurations differ in how they read changes to a policy statement, and do they obey the order, path and content laws of updating?",
+      "doc": "docs/statement-updating-design.md",
+      "roots": [
+        "output/statements-stage-a-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Preregistered (design note): H1 for at least one slot, at least three configurations depart from the median reading by 0.25 with their 90% interval excluding it; H2 at least one configuration departs from the order or path law (calibrated, Holm across configurations); H3 whether any departs from the content law. Step gain and averaging are exploratory (recovery at the threshold).",
+      "outcome": "24 of 24 sessions, 13.6M input tokens, no failures, all anchors passed. H1 fails (departures: Astra on activity, inflation and guidance; Terra on guidance; Luna on the vote; no slot has three). H2 fails: no configuration departs from the order or path law (calibrated p >= 0.58; path gaps 0.13-0.31 log-odds for GPT-6 and Terra, 0.63 for Luna, whose identical presentations differed by 1.7). H3: no answer moved on any stylistic change. Prior use at ceiling: every prior answer equals the stated market prior. Readings in the same order everywhere (guidance 1.66-2.53 per change, then inflation, then activity, risks and the vote). Evidence strongly sub-additive in every configuration and both modes: one guidance change alone moves 1.6-2.6 log-odds, the same change inside a longer statement about 0.6, and four dovish changes together about as much as one (step gain 0.43-0.62 with averaging 0.31-0.64, which trade off). Consistent with treating a statement's changes as redundant signs of one stance, which the additive model cannot separate from averaging. Exploratory: the Astra family moves 0.11-0.15 log-odds less than the others, Sol (+0.12) and Luna (+0.32, partly noise) more. Generic central-bank language is a strong situation for these agents."
     }
   ],
   "next": [
