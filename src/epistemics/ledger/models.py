@@ -334,6 +334,7 @@ def session(record, experiment, designs):
             "deliberation",
             "followup",
             "announced",
+            "correlated",
         )
     ):
         return (

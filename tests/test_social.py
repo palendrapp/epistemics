@@ -134,7 +134,9 @@ def test_runner_accepts_every_module_variant_and_cover_the_audit_renders():
                     group["order"] = "sequences"
                 if module == "deliberation-ladder":
                     group["order"] = "sets"
-                if module.startswith(("deliberation-anchor", "deliberation-frames", "followup-")):
+                if module.startswith(
+                    ("deliberation-anchor", "deliberation-frames", "followup-", "correlated-")
+                ):
                     group["order"] = "sequences"
                 runner.check_groups([{**group, "contexts": [(variant, cover, 1)]}])
 

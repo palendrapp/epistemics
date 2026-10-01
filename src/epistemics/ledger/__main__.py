@@ -48,6 +48,7 @@ uv run python -m epistemics.ledger deliberation-frames <roots...> [--baseline <r
 uv run python -m epistemics.ledger deliberation-quality <roots...> --output <file>
 uv run python -m epistemics.ledger followups <roots...> --output <file>
 uv run python -m epistemics.ledger announced-count <roots...> --output <file>
+uv run python -m epistemics.ledger correlated-changes <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -189,9 +190,10 @@ def main():
     sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
     sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
-    ac = sub.add_parser("announced-count")
-    ac.add_argument("roots", type=Path, nargs="+")
-    ac.add_argument("--output", type=Path, required=True)
+    for name in ("announced-count", "correlated-changes"):
+        ac = sub.add_parser(name)
+        ac.add_argument("roots", type=Path, nargs="+")
+        ac.add_argument("--output", type=Path, required=True)
     sub.add_parser("deliberation-validation").add_argument("--output", type=Path, required=True)
     for name in (
         "deliberation-pilot",
@@ -515,6 +517,18 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps(summary, indent=2))
+    elif a.command == "correlated-changes":
+        from epistemics.ledger import correlated as correlated_ledger
+
+        run = correlated_ledger.summary(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(
+            json.dumps(
+                {c: {k: v[k] for k in ("a", "b")} for c, v in run["configurations"].items() if v},
+                indent=2,
+            )
+        )
     elif a.command == "announced-count":
         from epistemics.ledger import announced as announced_ledger
 

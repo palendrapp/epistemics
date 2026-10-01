@@ -156,6 +156,14 @@ INTRO_ANNOUNCED = (
     "and reports a change. Each case is separate: nothing carries over between cases, and no "
     "outcomes are revealed during this collection."
 )
+INTRO_CORRELATED = (
+    "Answer questions about policy statements from a central bank's policy committee. The central "
+    "bank is not named, and the statements were written for this collection in the style of real "
+    "ones. In each case a colleague compares a new statement with the committee's previous one "
+    "and reports its changes. Some cases continue the one before: they report the same "
+    "statement's changes so far. Different statements are separate, and no outcomes are "
+    "revealed during this collection."
+)
 FOLLOWUP_CONTEXT = (
     "Names are fictional, and no outcomes are revealed during this collection. Some cases first "
     "ask whether something is likely or unlikely; the next case then asks for its probability, "
@@ -177,6 +185,8 @@ def instructions(module, variant="paired", cover="markets"):
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
+    if module.startswith("correlated-"):
+        return " ".join([INTRO_CORRELATED, RULES, PROBABILITY])
     if module.startswith("announced-"):
         return " ".join([INTRO_ANNOUNCED, RULES, PROBABILITY])
     if module.startswith("followup-"):

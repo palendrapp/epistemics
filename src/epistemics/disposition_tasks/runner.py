@@ -30,6 +30,8 @@ from epistemics.disposition_tasks.render import (
     ASKED_VARIANTS,
     COHERE_MODULES,
     COHERE_VARIANTS,
+    CORRELATED_MODULES,
+    CORRELATED_VARIANTS,
     COVERS,
     CUE_MODULES,
     CUE_VARIANTS,
@@ -168,6 +170,7 @@ AUDITED_CASES = (
     + 24 * len(DELIBERATION_MODULES) * len(DELIBERATION_VARIANTS)
     + 24 * len(FOLLOWUP_MODULES) * len(FOLLOWUP_VARIANTS)
     + 24 * len(ANNOUNCED_MODULES) * len(ANNOUNCED_VARIANTS)
+    + 24 * len(CORRELATED_MODULES) * len(CORRELATED_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -384,6 +387,16 @@ PRESETS["announced-count"] = (
         "contexts": (("announced", "markets", 1),),
     },
 )
+# Correlated changes: one change, then both; the default-effort configurations of each variant on
+# all four forms ("sequences": each pair consecutive).
+PRESETS["correlated-changes"] = (
+    {
+        "configurations": ("astra", "sol", "luna", "terra"),
+        "modules": CORRELATED_MODULES,
+        "contexts": (("correlated", "markets", 1),),
+        "order": "sequences",
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -581,6 +594,7 @@ def check_groups(groups):
             + DELIBERATION_VARIANTS
             + FOLLOWUP_VARIANTS
             + ANNOUNCED_VARIANTS
+            + CORRELATED_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -602,6 +616,7 @@ def check_groups(groups):
                         + DELIBERATION_ANCHOR
                         + DELIBERATION_FRAMES
                         + FOLLOWUP_MODULES
+                        + CORRELATED_MODULES
                     ):
                         raise ValueError(
                             "Statement and anchor modules need, and only they take, sequences"
@@ -901,6 +916,13 @@ def headline(analysis):
             "parameter": "load_slope",
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
+        }
+    if "correlated" in analysis:
+        rows = analysis["correlated"]["items"]
+        return {
+            "parameter": "correlated",
+            "step1": float(np.mean([abs(r["step1"]) for r in rows])),
+            "step2": float(np.mean([abs(r["step2"]) for r in rows])),
         }
     if "announced" in analysis:
         return {"parameter": "announced", **analysis["announced"]["mean_step"]}
