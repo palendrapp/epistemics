@@ -1107,6 +1107,21 @@
       "status": "complete",
       "prediction": "Exploratory: four first questions (comparison with and without the anchor restated, likely or unlikely, the growth model) before the estimate.",
       "outcome": "12 of 12 sessions (six GPT-6 configurations x two forms), 6.1M input tokens, no failures; tasks 0.34.0. Any preceding question switches Astra to round answers (pooled 67-72% after each kind, against 28% asked directly and 11% on ladders); Astra-high is the least affected (33-50%); Sol stays fine-grained (11-28%). The trigger is being asked as a follow-up, not the first question's content; a follow-up within a pair cannot yet be told from a session made of pairs. Quality (exploratory, against each configuration's own ladder): Astra's round follow-ups are not worse; they are nearer its own curve (0.22-0.32 log-odds) than its fresh direct answers (0.35-0.60), discriminate between thresholds like the ladder, never violate monotonicity and repeat best (0.26-0.38). Sol's follow-ups move further from its curve (Sol-low 1.19 against 0.52 direct) and repeat less well (0.49-0.62): Astra changes how it reports, Sol what it reports."
+    },
+    {
+      "id": "followup-advice",
+      "date": "2026-10-01",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Follow-up rounding on the peer-advice cases",
+      "question": "Does a preceding likely-or-unlikely question round Astra's probabilities on another family, open and computable?",
+      "doc": "docs/deliberation-style-design.md",
+      "roots": [
+        "output/followup-advice-20261001"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory: sixteen peer-advice cases, eight fresh and eight follow-ups mixed per session, forms swapping them; open and stated variants.",
+      "outcome": "24 of 24 sessions (six GPT-6 configurations x four modules), 12.9M input tokens, no failures; tasks 0.35.0. Stated (computable): every configuration exact, fresh or follow-up (error 0.01). Open: Astra's follow-ups rounder than its fresh answers (pooled 25% to 42%), much less than on the trend cases (28% to 72%); Sol's not (35% to 23%); Astra's follow-ups mostly repeat its fresh answer (matched gap 0.08-0.12, Astra-high 0.58). Family and the mixed session are confounded."
     }
   ],
   "next": [

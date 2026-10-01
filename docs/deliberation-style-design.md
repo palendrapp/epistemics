@@ -367,3 +367,35 @@ How to read the table:
   - The ladder is itself a frame, not a truth.
   - The direct answers are twelve single answers from one session.
   - The follow-up retest mixes first questions.
+
+## Follow-up rounding on another family (1 October)
+
+**Modules `followup-advice-{open,stated}-{a,b}`** (design 0.25.0, tasks 0.35.0). These are the peer-advice cases (an urn, a prior, an analyst's call phrased in one of three ways), in two variants:
+- **open:** the analyst's record is not stated, and the agent judges;
+- **stated:** the record is stated, so the exact answer can be computed.
+
+Sixteen cases with exact answers between 0.23 and 0.78. In each session, eight are fresh and eight are follow-ups to "is it likely or unlikely that…?", mixed in random order. Form b swaps which cases are fresh, so every case is answered both ways by every configuration.
+
+**Collection.** The six GPT-6 configurations took all four modules: root `output/followup-advice-20261001`, 24 sessions, 12.9 million input tokens, no failures.
+- Task validation 0.35 passed on both seeds (3,936 cases, 169 contexts). Fingerprint `f53d2be7fefe88cb6583aecf4af3d160aff2dc161cf2bf25824c8ee39a30b06e`; seeds `67c14852…` and `436ffda1…`.
+- The analysis: `uv run python -m epistemics.ledger followups output/followup-advice-20261001 --output output/followups-summary-20261001.json`.
+
+**Share of mid-range answers at multiples of 5**, fresh / follow-up (16 each). The matched gap is the mean |log-odds| between a case's fresh and follow-up answers.
+
+| Configuration | Open: fresh / follow-up | Open: matched gap | Stated: fresh / follow-up | Stated: error against the exact answer, fresh / follow-up |
+| --- | --- | --- | --- | --- |
+| Astra | 25% / 44% | 0.08 | 25% / 25% | 0.01 / 0.01 |
+| Astra-low | 31% / 38% | 0.12 | 25% / 25% | 0.01 / 0.01 |
+| Astra-high | 19% / 44% | 0.58 | 25% / 25% | 0.01 / 0.01 |
+| Sol | 44% / 19% | 0.02 | 25% / 25% | 0.01 / 0.01 |
+| Sol-low | 31% / 19% | 0.11 | 25% / 25% | 0.01 / 0.01 |
+| Sol-high | 31% / 31% | 0.85 | 25% / 25% | 0.01 / 0.01 |
+
+The stated variant's 25% is the share of the exact answers themselves that are multiples of 5.
+
+**Reading.**
+- **Computed answers are untouched.** On the stated cases, every configuration gives the exact answer whether asked fresh or as a follow-up (an error of 0.01 log-odds is whole-percent rounding). A follow-up does not make Astra round a number it has computed.
+- **On open cases, Astra's follow-ups are rounder, but much less so than on the trend cases.** Pooled over its efforts, 25% fresh against 42% as follow-ups, compared with 28% against 72% on the trend cases. Sol's are not rounder (35% against 23%).
+- **Astra's follow-ups mostly repeat its fresh answer.** The matched gap is 0.08–0.12, except Astra-high's 0.58.
+- **Two differences from the trend tests, which these data cannot separate:** the family, and mixing fresh and follow-up cases in one session. On the trend cases every estimate in the session was a follow-up. If part of Astra's switch is set by the session rather than the pair, mixing would weaken it.
+- **Summary so far.** Astra's round follow-ups are a property of open answers, and strongest in a session made of follow-ups. It is not a general readout habit, since computed answers are exempt.

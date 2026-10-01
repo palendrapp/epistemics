@@ -224,3 +224,15 @@ The switch is a change of readout, not of content. Sol's follow-ups instead move
 **Ideas:**
 16. **Two styles of frame sensitivity.** Astra changes how it reports (precision) and keeps what it reports; Sol keeps its precision and changes what it reports. A frame-sensitivity profile with two axes, readout and content, is a candidate passport entry for both variants.
 17. **Why are Astra's fresh direct answers the outliers?** A lone question gave Astra its most extreme answers, further from its ladder than its follow-ups. Is a cold, single question Astra's least considered answer?
+
+## 1 October: follow-up rounding on the peer-advice cases (ideas 13 and 15)
+
+See [the results](deliberation-style-design.md#follow-up-rounding-on-another-family-1-october).
+
+- **Computed answers are exempt.** On the stated peer-advice cases every configuration gives the exact answer fresh or as a follow-up.
+- **On open cases Astra's follow-ups are rounder** (25% → 42% pooled), much less than on the trend cases (28% → 72%). Sol's are not.
+- **The family and the session mix are confounded.** These sessions mixed fresh and follow-up cases; the trend sessions were all follow-ups.
+
+**Ideas:**
+18. **Session against pair, on one family.** Trend cases in mixed sessions (fresh and follow-up interleaved). If Astra's follow-ups fall from 72% towards 42%, the session sets the mode; if they stay at 72%, the family does.
+19. **Stop here?** The effect is real for Astra on open trend cases but modest elsewhere, and it never costs accuracy (follow-ups are not worse; computed answers are exact). As a passport claim it may matter less than the readout and content split itself.
