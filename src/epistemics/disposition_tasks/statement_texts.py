@@ -1,63 +1,60 @@
-"""Statement texts (tasks 0.30; docs/statement-updating-design.md).
+"""Statement texts (tasks 0.31; docs/statement-updating-design.md).
 
-Composite policy statements of an unnamed central bank, in the style of FOMC statements (US
-government works). Each slot has a hawkish (-1), neutral (0) and dovish (+1) wording; each style
-has two wordings with the same meaning. No dates, rate levels or named events appear.
+Composite policy statements of an unnamed central bank in generic central-bank language. Each slot
+has a hawkish (-1), neutral (0) and dovish (+1) wording; each style has two wordings with the same
+meaning. No dates, rate levels or named events appear. Tasks 0.30 adapted FOMC sentences; the
+datability probe placed every statement in 2013-2019, so 0.31 removes the Fed's and the period's
+signature phrases (target range, longer-run objective, maximum employment, realized and expected
+economic conditions, sustain the expansion).
 """
 
 from epistemics.dispositions import statements as st
 
 SLOT_TEXT = {
     "activity": {
-        -1: "economic activity has been rising at a solid rate.",
-        0: "economic activity has been rising at a moderate rate.",
-        1: "growth of economic activity has slowed.",
+        -1: "the economy has grown at a strong pace.",
+        0: "the economy has grown at a moderate pace.",
+        1: "economic growth has slowed.",
     },
     "inflation": {
-        -1: "Inflation has moved up and is running somewhat above the committee's longer-run "
-        "objective.",
-        0: "Inflation has remained near the committee's longer-run objective.",
-        1: "Inflation has declined and is running somewhat below the committee's longer-run "
-        "objective.",
+        -1: "Inflation has risen and is somewhat above the committee's target.",
+        0: "Inflation is close to the committee's target.",
+        1: "Inflation has fallen and is somewhat below the committee's target.",
     },
     "risks": {
-        -1: "The committee judges that the risks to the inflation outlook are tilted to the upside.",
-        0: "The committee judges that the risks to the economic outlook are roughly balanced.",
-        1: "The committee judges that downside risks to the economic outlook have increased.",
+        -1: "The committee sees the risks to inflation as tilted upwards.",
+        0: "The committee sees the risks to the outlook as broadly balanced.",
+        1: "The committee sees increased risks that growth will be weaker than expected.",
     },
     "guidance": {
-        -1: "The committee anticipates that some further increases in the target range may be "
-        "appropriate.",
-        0: "In determining the timing and size of future adjustments to the target range, the "
-        "committee will assess realized and expected economic conditions.",
-        1: "The committee will closely monitor incoming information and will act as appropriate "
-        "to sustain the expansion.",
+        -1: "The committee expects that a further rise in the policy rate may be needed.",
+        0: "The committee will set the policy rate according to incoming data and the outlook.",
+        1: "The committee is prepared to lower the policy rate if the outlook weakens.",
     },
     "vote": {
-        -1: "All members voted for the policy action except one, who preferred to raise the "
-        "target range.",
-        0: "All members voted for the policy action.",
-        1: "All members voted for the policy action except one, who preferred to lower the "
-        "target range.",
+        -1: "The decision was taken by a majority; one member preferred to raise the policy rate.",
+        0: "The decision was unanimous.",
+        1: "The decision was taken by a majority; one member preferred to lower the policy rate.",
     },
 }
 # Stylistic pairs: the same meaning in two wordings (the content law's audited list).
 STYLE_TEXT = {
     "opening": (
-        "Recent information indicates that",
-        "Information received since the committee's last meeting indicates that",
+        "Recent data show that",
+        "Data published since the committee's last meeting show that",
     ),
     "mandate": (
-        "The committee seeks to achieve maximum employment and stable prices over the longer run.",
-        "Consistent with its mandate, the committee seeks to foster maximum employment and price "
-        "stability.",
+        "The committee's aim is to keep inflation low and stable while supporting sustainable "
+        "growth in output and employment.",
+        "The committee seeks to keep inflation low and stable and to support sustainable growth "
+        "in output and employment.",
     ),
     "action": (
-        "The committee decided to maintain the target range for its policy rate.",
-        "The committee decided to leave the target range for its policy rate unchanged.",
+        "The committee decided to keep its policy rate unchanged.",
+        "The committee decided to hold its policy rate at its current level.",
     ),
 }
-LOWER = "The committee decided to lower the target range for its policy rate."
+LOWER = "The committee decided to lower its policy rate."
 SPENDING = (
     "Household spending has continued to grow, while business investment has been soft.",
     "Business investment has picked up, and household spending has been steady.",
@@ -65,11 +62,11 @@ SPENDING = (
     "Household spending and business investment have both grown at a steady pace.",
 )
 JOBS = (
-    "Job gains have been solid, and the unemployment rate has remained low.",
-    "Job gains have moderated but remain solid, and the unemployment rate has stayed low.",
-    "The unemployment rate has been little changed, and job gains have been steady.",
+    "Employment has continued to rise, and unemployment remains low.",
+    "Employment growth has eased but remains firm, and unemployment remains low.",
+    "Unemployment has changed little, and employment has grown steadily.",
 )
-OUTCOME = "the committee lowers the target range for its policy rate at its next meeting"
+OUTCOME = "the committee lowers its policy rate at its next meeting"
 
 
 def statement(levels, styles, background, action=None):
@@ -175,8 +172,8 @@ def _anchor_case(items, i):
         *quoted(statement(a["levels"], a["styles"], a["background"], a["action"])),
     ]
     return lines, (
-        "What is the probability that the committee changed the target range for its policy rate "
-        "at the meeting this statement reports?"
+        "What is the probability that the committee changed its policy rate at the meeting this "
+        "statement reports?"
     )
 
 

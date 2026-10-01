@@ -622,17 +622,23 @@ def respond_probe(items, truth, rng):
 
 
 def probe_session(items, responses):
+    """A statement pair is flagged when its largest period probability, normalised over the four
+    periods, exceeds PROBE_LIMIT (tasks 0.31: Luna's four answers summed to 1.1-1.9, so its raw
+    maximum overstated how confidently it dated a statement)."""
     out = []
     for k in range(6):
         idx = sorted(np.flatnonzero(items["sequence"] == k), key=lambda i: int(items["period"][i]))
         probs = [float(responses[i]) for i in idx]
+        total = float(np.sum(probs))
+        normalised = float(np.max(probs) / total) if total > 0 else 0.0
         out.append(
             {
                 "sid": int(items["sid"][idx[0]]),
                 "periods": dict(zip(PERIODS, probs, strict=True)),
-                "sum": float(np.sum(probs)),
+                "sum": total,
                 "max": float(np.max(probs)),
-                "flagged": bool(np.max(probs) > PROBE_LIMIT),
+                "max_normalised": normalised,
+                "flagged": bool(normalised > PROBE_LIMIT),
             }
         )
     return {
