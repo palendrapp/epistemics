@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.5.0"
+VERSION = "reading-guide/0.6.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -840,6 +840,87 @@ def undetermined_checks(config, checks):
     return lines
 
 
+# Analysts' calls (docs/exploration-log.md, call reaction): a confident call without a record is
+# taken at face value when it moves the answer at least FACE_VALUE times as far as the median of
+# the other configurations; wording barely matters when a confident call moves it less than
+# WORDING log-odds further than an "I think" call.
+FACE_VALUE = 1.5
+WORDING = 0.3
+CALLS_EVIDENCE = (
+    "Urn cases where one analyst's call, worded with more or less confidence, is the only "
+    "evidence: without a record, and with the analyst's record stated"
+)
+
+
+def probability_from_even(log_odds):
+    return 1 / (1 + math.exp(-log_odds))
+
+
+def confident_calls(p):
+    """How far an analyst's confident call moves it, without a record, against the others."""
+    f = p.get("call_reaction")
+    if not f or f.get("confident") is None or not f.get("others_confident"):
+        return None
+    w, others = f["confident"], f["others_confident"]
+    ratio = w / others
+    reach = pct(probability_from_even(w))
+    tentative = f.get("tentative")
+    exact = f.get("record_ratio") is not None and abs(f["record_ratio"] - 1) <= 0.05
+    if ratio >= FACE_VALUE:
+        claim = (
+            "Without a track record, it takes an analyst's confident wording at face value: a "
+            f'"definitely… confirmed" call moves it from 50% to about {reach}, about '
+            f"{ratio:.1f} times as far as the other configurations."
+        )
+        fact = f"Face value ({ratio:.1f}× others)"
+    elif tentative is not None and w - tentative < WORDING:
+        claim = (
+            "Without a track record, it gives an analyst's call much the same weight whatever the "
+            f'wording: a "definitely… confirmed" call moves it from 50% to about {reach}, an '
+            f'"I think…" call to about {pct(probability_from_even(tentative))}.'
+        )
+        fact = "Wording barely matters"
+    else:
+        claim = (
+            "Without a track record, it weighs an analyst's confident wording much as the other "
+            f'configurations do: a "definitely… confirmed" call moves it from 50% to about {reach}.'
+        )
+        fact = f"Like the others ({ratio:.1f}×)"
+    if exact:
+        claim += " Given the analyst's record, it weighs the call exactly as the record implies."
+    detail = (
+        f'Weight of a call without a record, in log-odds: "definitely… confirmed" {w:.2f} (median '
+        f"of the other configurations {others:.2f})"
+        + (f", plain {f['plain']:.2f}" if f.get("plain") is not None else "")
+        + (f', "I think…" {tentative:.2f}' if tentative is not None else "")
+        + "."
+    )
+    if f.get("record_ratio") is not None:
+        detail += (
+            f" With the record stated: {f['record_ratio']:.2f} of the weight the record implies."
+        )
+    n = f["collections"]
+    return reading(
+        "confident-calls",
+        "evidence",
+        claim,
+        detail,
+        f"{CALLS_EVIDENCE}; {n} collection{'s' if n != 1 else ''} without a record.",
+        f["sessions"],
+        {
+            "kind": "values",
+            "values": [probability_from_even(others), probability_from_even(w)],
+            "labels": ["others", "this configuration"],
+        },  # fmt: skip
+        caution=(
+            "Exploratory: analysts' calls on abstract urn cases only. The same wording from an AI "
+            "agent, a relayed report or a sensor is weighed differently (exploration log, call "
+            "reaction)."
+        ),
+        fact=("Confident call, no record", fact),
+    )
+
+
 def framing(p):
     """Readout against content: does a follow-up change how precisely it reports, or what?"""
     f = p.get("frame_sensitivity")
@@ -944,6 +1025,7 @@ def guide(ledger, descriptors):
             fidelity_trait(config, (ledger.get("models") or {}).get("battery_v2")),
             sessions_vary(p),
             coherence(p),
+            confident_calls(p),
             framing(p),
         ]
         readings = [r for r in readings if r]
@@ -966,6 +1048,7 @@ def guide(ledger, descriptors):
                 ("documents", "whether it behaves the same in realistic documents"),
                 ("sessions", "how much its judgements vary between sessions"),
                 ("framing", "whether a question's framing changes its numbers"),
+                ("confident-calls", "how it weighs an analyst's confident wording"),
             )
             if not any(m.startswith(key) if key.endswith("-") else m == key for m in measured)
         ] + undetermined_checks(config, (ledger.get("models") or {}).get("structure_checks"))

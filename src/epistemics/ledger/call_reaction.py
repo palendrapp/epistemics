@@ -38,7 +38,8 @@ def weights(roots):
                 if v is None or int(items["own"][i]) != 0:
                     continue
                 w = (float(logit(v)) - float(logit(items["prior"][i]))) * int(items["call"][i])
-                row = {"weight": w, "phrase": int(items["phrase"][i]), "root": Path(root).name}
+                row = {"weight": w, "phrase": int(items["phrase"][i]), "root": Path(root).name,
+                       "run": record["run_id"]}  # fmt: skip
                 if record["variant"] == "peer-a":
                     q = items[f"hits_{int(items['phrase'][i])}"][i] / 40
                     row["deserved"] = float(logit(q))
@@ -57,14 +58,21 @@ def phrase_of(row):
 
 
 def call_steps(roots):
-    from epistemics.ledger import correlated as correlated_ledger
+    from epistemics.ledger import dispositions
 
     out = {}
-    for c, rows in correlated_ledger.items(roots, "calls").items():
-        for r in rows:
-            out.setdefault((c, "analysts' calls in order"), []).append(
-                {"weight": r["step1"] * r["first"][1], "phrase": phrase_of(r)}
-            )
+    for root in roots:
+        for record in dispositions.extract(root):
+            if not record.get("verified") or "calls" not in record:
+                continue
+            for r in record["calls"]["items"]:
+                out.setdefault((record["configuration"], "analysts' calls in order"), []).append(
+                    {
+                        "weight": r["step1"] * r["first"][1],
+                        "phrase": phrase_of(r),
+                        "run": record["run_id"],
+                    }  # fmt: skip
+                )
     return out
 
 
@@ -73,7 +81,8 @@ def summary(advice_roots, calls_roots=()):
     table = {}
     for (c, source), rows in sorted(data.items()):
         w = np.array([r["weight"] for r in rows])
-        entry = {"mean_weight": float(w.mean()), "n": len(rows)}
+        entry = {"mean_weight": float(w.mean()), "n": len(rows),
+                 "sessions": len({r.get("run") for r in rows})}  # fmt: skip
         by_phrase = {}
         for r in rows:
             if r["phrase"] is not None:
@@ -98,3 +107,45 @@ def summary(advice_roots, calls_roots=()):
         "relative_to_others": relative,
         "scope": "Exploratory: a call's weight on cases without the agent's own reading.",
     }
+
+
+CALL_EXPERIMENTS = ("multi-agent-pilot", "multi-agent-open", "confidence-transfer", "calls-order")
+ANALYST_SOURCES = ("advice-peer (no record)", "analysts' calls in order")
+
+
+def passport_calls(advice_roots, calls_roots=()):
+    """The passport's reaction to analysts' calls, per configuration: the weight of a confident
+    ("definitely... confirmed"), plain and "I think" call from an analyst without a record (the mean
+    over the analyst sources measured), against the median of the other configurations; and, where
+    measured, the ratio of the weight given to a call with a stated record to the weight that
+    record implies."""
+    s = summary(advice_roots, calls_roots)
+    sources = s["sources"]
+    phrases = {}
+    collections = {}
+    sessions = {}
+    for source in ANALYST_SOURCES:
+        for c, e in sources.get(source, {}).items():
+            for phrase, w in e.get("by_phrase", {}).items():
+                phrases.setdefault(c, {}).setdefault(phrase, []).append(w)
+            collections[c] = collections.get(c, 0) + 1
+            sessions[c] = sessions.get(c, 0) + e["sessions"]
+    out = {}
+    for c, by in phrases.items():
+        entry = {k: float(np.mean(v)) for k, v in by.items()}
+        others = [
+            float(np.mean(phrases[o]["definitely"]))
+            for o in phrases
+            if o != c and "definitely" in phrases[o]
+        ]
+        record = sources.get("advice-peer (record)", {}).get(c, {})
+        out[c] = {
+            "confident": entry.get("definitely"),
+            "plain": entry.get("plain"),
+            "tentative": entry.get("I think"),
+            "others_confident": float(np.median(others)) if others else None,
+            "collections": collections[c],
+            "sessions": sessions[c],
+            "record_ratio": record.get("ratio_to_deserved"),
+        }
+    return out

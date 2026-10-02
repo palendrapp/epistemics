@@ -383,3 +383,30 @@ Command: `uv run python -m epistemics.ledger call-reaction --advice output/multi
 **Ideas:**
 27. **Write it into the passport as a reading.** It has replicated across two collections.
 28. **Confident wording as a trait across families.** Does Terra take confident language at face value elsewhere, for example confidently worded documents or reports?
+
+## 2 October: analysts' calls in the passport (idea 27)
+
+Reading guide 0.6.0 adds a reading under "How it weighs evidence": how far an analyst's confident call moves the configuration without a record.
+
+**Inputs.** The build pools the two analyst collections without a record: multi-agent open and calls in order. It compares each configuration's "definitely… confirmed" weight with the median of the other configurations, using the median so that Terra does not inflate the comparison for the rest.
+
+**Rules.**
+- **Face value:** the confident call moves the answer at least 1.5 times as far as the others' median.
+- **Wording barely matters:** a confident call moves it less than 0.3 log-odds further than an "I think…" call.
+- **Like the others:** neither.
+- Where the record-stated cases were collected, the reading adds that the configuration weighs a call exactly as the record implies.
+
+**Readings:**
+
+| Configuration | Confident call, no record | Others' median | "I think…" | Reading |
+| --- | --- | --- | --- | --- |
+| Terra | 2.53 (to 93%) | 1.07 | 0.53 | Face value (2.4×) |
+| Sol | 1.31 (to 79%) | 1.07 | 0.42 | Like the others (1.2×) |
+| Luna | 1.07 (to 75%) | 1.31 | 0.28 | Like the others (0.8×) |
+| Astra | 0.82 (to 69%) | 1.31 | 0.63 | Wording barely matters |
+
+All four weigh a call exactly as a stated record implies.
+
+**Astra's reading is new and weaker than Terra's.** Astra gave every analyst's call the same weight in multi-agent open (0.69 whatever the wording). In calls in order the gap between confident and "I think…" was 0.39. Pooled, the gap is 0.20. It does not extend to other sources: with an AI agent's or a sensor's call, Astra responds to wording like the others (0.40 to 1.73 and 2.19).
+
+**Scope.** Only Astra, Sol, Luna and Terra have analyst data without a record, so the other configurations carry no reading. The caution names the source-specificity.

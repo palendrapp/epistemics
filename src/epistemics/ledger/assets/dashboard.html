@@ -561,12 +561,18 @@ function framing(f) {
   return `${p(f.fresh.share_5)} → ${p(f.follow_up.share_5)} (${f.sessions})`;
 }
 
+// Analysts' calls without a record: the weight of a "definitely… confirmed" call against the others.
+function confidentCall(f) {
+  if (!f || f.confident == null || !f.others_confident) return "—";
+  return `${f.confident.toFixed(2)} (${(f.confident / f.others_confident).toFixed(1)}×)`;
+}
+
 function renderPassport(passport) {
   const table = document.getElementById("passport");
   const head = ["Configuration", "Relay default", "Silence default", "Value of certainty", "Evidence sensitivity",
     "Report noise", "Learning (start, κ)", "Relay descriptions", "Disclosure descriptions",
     "Retest difference", "Relative-judgement contrast", "Session SD (ambiguous)", "Stated = implied",
-    "Round answers, fresh → follow-up", "Contexts"];
+    "Round answers, fresh → follow-up", "Confident call, no record (× others’ median)", "Contexts"];
   table.append(el("thead", {}, el("tr", {}, head.map(h => el("th", {}, h)))));
   const body = el("tbody");
   for (const [config, p] of Object.entries(passport)) {
@@ -593,6 +599,7 @@ function renderPassport(passport) {
         : "—"),
       el("td", { class: "num" }, p.description_coherence ? `${p.description_coherence[0]}/${p.description_coherence[1]} sessions` : "—"),
       el("td", { class: "num" }, framing(p.frame_sensitivity)),
+      el("td", { class: "num" }, confidentCall(p.call_reaction)),
       el("td", { class: "num" }, p.contexts)
     ));
   }

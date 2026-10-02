@@ -1207,6 +1207,19 @@
       "status": "complete",
       "prediction": "Exploratory; no test. Call weight (answer minus stated prior, signed by the call) on cases without the agent's own reading, across the multi-agent pilot and open collections, the confidence-transfer collections and the calls experiment.",
       "outcome": "With records stated every configuration gives a call exactly its record's weight (ratio 1.00). Without a record Terra takes an analyst's confident wording at face value: a 'definitely... confirmed' call moves it 2.45 and 2.60 log-odds in two independent collections, about twice the others (0.69-1.41); plain calls more too. Not for the same confidence from an AI agent (ordinary) or a sensor (no weight). Luna gives relayed calls no weight. A passport candidate: give track records, or discount confident wording."
+    },
+    {
+      "id": "passport-calls",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Analysts' calls in the passport (face value, wording, stated records)",
+      "question": "How should a configuration's reaction to an analyst's confident call without a record read in the passport?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Record: a reading-guide reading computed in the ledger build from the multi-agent pilot and open, confidence-transfer and calls-order collections.",
+      "outcome": "Reading guide 0.6.0 adds 'confident-calls' under how it weighs evidence; the passport carries call_reaction per configuration; the dashboard's passport table shows the confident-call weight against the others' median. Rules: face value at 1.5 times the median of the other configurations; wording barely matters when a confident call moves it less than 0.3 log-odds further than an 'I think' call; record weighed exactly when the stated-record ratio is within 0.05 of 1. Readings: Terra face value (2.53 log-odds, to 93%, 2.4 times the others' median 1.07); Sol and Luna like the others (1.2 and 0.8 times); Astra wording barely matters (0.82 against 0.63 for 'I think', analysts only); all four exact with records. Exploratory; analysts' calls on urn cases only."
     }
   ],
   "next": [

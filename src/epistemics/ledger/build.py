@@ -8,6 +8,7 @@ import numpy as np
 
 from epistemics.ledger import (
     VERSION,
+    call_reaction,
     deliberation,
     dispositions,
     guide,
@@ -293,6 +294,16 @@ def build(registry_path="docs/experiments.json"):
     ]
     if frame_roots:
         analyses["frame_sensitivity"] = deliberation.passport_frames(frame_roots)
+    call_roots = {
+        entry["id"]: [r for r in entry.get("roots", []) if Path(r, "plan.json").exists()]
+        for entry in registry["experiments"]
+        if entry["id"] in call_reaction.CALL_EXPERIMENTS
+    }
+    advice_roots = [r for k, rs in call_roots.items() if k != "calls-order" for r in rs]
+    if advice_roots:
+        analyses["call_reaction"] = call_reaction.passport_calls(
+            advice_roots, call_roots.get("calls-order", [])
+        )
     result = {
         "schema_version": "epistemics.ledger.v1",
         "ledger_version": VERSION,
@@ -314,5 +325,7 @@ def build(registry_path="docs/experiments.json"):
         result["passport"].setdefault(config, {"contexts": frames["sessions"]})[
             "frame_sensitivity"
         ] = frames
+    for config, calls in analyses.get("call_reaction", {}).items():
+        result["passport"].setdefault(config, {"contexts": 0})["call_reaction"] = calls
     result["guide"] = guide.guide(result, models.descriptors())
     return result
