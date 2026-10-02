@@ -80,6 +80,8 @@ for entry in plan["runs"]:
         record["correlated"] = a["correlated"]
     elif "calls" in a:
         record["calls"] = a["calls"]
+    elif "wording" in a:
+        record["wording"] = a["wording"]
     elif "announced" in a:
         record["announced"] = a["announced"]
     elif "followup" in a:
@@ -192,6 +194,8 @@ def summary(record):
         return {**base, "items": len(rows)}
     if "announced" in record:
         return {**base, **record["announced"]["mean_step"]}
+    if "wording" in record:
+        return {**base, "family": record["wording"]["family"], **record["wording"]["mean_weight"]}
     if "followup" in record:
         g = record["followup"]["grain"]
         return {

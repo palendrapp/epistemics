@@ -171,6 +171,16 @@ INTRO_CALLS = (
     "urn's calls so far. Different urns are separate, and no outcomes are revealed during this "
     "collection."
 )
+INTRO_WORDING = {
+    "urn": "about urns and the calls analysts make on them",
+    "policy": "about central banks and the notes economists write on them",
+    "report": "about batches of goods and the reports inspectors write on them",
+}
+WORDING_CONTEXT = (
+    "Each case states what is known; when something you might want is not stated, use your own "
+    "best judgment and still answer. Every case is separate, and no outcomes are revealed during "
+    "this collection."
+)
 FOLLOWUP_CONTEXT = (
     "Names are fictional, and no outcomes are revealed during this collection. Some cases first "
     "ask whether something is likely or unlikely; the next case then asks for its probability, "
@@ -194,6 +204,10 @@ def instructions(module, variant="paired", cover="markets"):
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
     if module.startswith("calls-"):
         return " ".join([INTRO_CALLS, RULES, PROBABILITY])
+    if module.startswith("wording-"):
+        family = module.split("-")[1]
+        intro = f"Answer questions about short fictional cases {INTRO_WORDING[family]}."
+        return " ".join([intro, WORDING_CONTEXT, RULES, PROBABILITY])
     if module.startswith("correlated-"):
         return " ".join([INTRO_CORRELATED, RULES, PROBABILITY])
     if module.startswith("announced-"):

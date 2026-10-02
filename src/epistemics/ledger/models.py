@@ -336,6 +336,7 @@ def session(record, experiment, designs):
             "announced",
             "correlated",
             "calls",
+            "wording",
         )
     ):
         return (

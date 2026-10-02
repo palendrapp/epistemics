@@ -35,10 +35,10 @@ def run_all(service, answer):
 
 
 def test_rendering_audit_and_key_wording():
-    assert audit()["cases"] == 4224
+    assert audit()["cases"] == 4512
     from epistemics.disposition_tasks import runner
 
-    assert runner.AUDITED_CASES == 4224  # prepare() refuses validations whose audit differs
+    assert runner.AUDITED_CASES == 4512  # prepare() refuses validations whose audit differs
     conflict = render("corroboration", "markets", 4)
     assert "a relayed call simply repeats the original call" in conflict["case"]
     assert "90% of the time" in conflict["case"] and "it says demand is low" in conflict["case"]
@@ -199,7 +199,7 @@ def test_validation_and_plan_freeze_orders_before_answers(tmp_path, monkeypatch)
 
     monkeypatch.setattr(runner, "codex_version", lambda: "test-only")
     result = validate(3)
-    assert result["passed"] and len(result["contexts"]) == 181
+    assert result["passed"] and len(result["contexts"]) == 193
     paths = []
     for seed in (1, 2):
         p = tmp_path / f"validation-{seed}.json"
@@ -798,7 +798,7 @@ def test_runner_summary_reads_every_cue_module_as_a_mapping():
 
     cues = {"implied": [0.1, 0.3, 0.5, 0.7, 0.9]}
     for module in MODULES:
-        if "-urn" in module:
+        if "-urn" in module and not module.startswith("wording-"):
             assert runner.headline({"module": module, "cues": cues})["parameter"] == "cue_mapping"
 
 

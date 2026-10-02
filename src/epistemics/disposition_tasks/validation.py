@@ -76,6 +76,8 @@ from epistemics.disposition_tasks.render import (
     V32_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
+    WORDING_MODULES,
+    WORDING_VARIANTS,
     items_for,
     render,
     stated_percentages,
@@ -133,7 +135,10 @@ TOLERANCE = {
     # Correlated changes: the mean first step within 0.15 log-odds of the respondent's (one form
     # holds each item in one order only, so the regression needs a configuration's sessions).
     "correlated_step": 0.15,
+    # Confident wording: each case's weight within 0.15 log-odds of the respondent's, on average.
+    "wording_weight": 0.15,
 }
+WORDING_RESPONDENT = {"w": [0.5, 1.0, 1.5, 2.0], "tau": 0.05}
 CALLS_RESPONDENT = {"w": [0.5, 1.0, 1.5], "p": 0.8, "tau": 0.05}
 CORRELATED_RESPONDENT = {
     "w": {"activity": 0.8, "inflation": 1.0, "risks": 0.8, "guidance": 1.6, "vote": 0.8},
@@ -664,6 +669,42 @@ def calls_audit():
     return {"items": len(orders)}
 
 
+def wording_audit():
+    """Confident wording: in each family every item at every wording across the four forms, six
+    items at each wording in a form with directions balanced; the same skeleton (prior, direction,
+    wording) in every family; one quoted claim whose markers match its wording; no record stated."""
+    from epistemics.dispositions import wording
+
+    seen = {}
+    skeleton = {}
+    for module in WORDING_MODULES:
+        family, form = wording.parse(module)
+        items = items_for(module)
+        for level in range(len(wording.WORDINGS)):
+            at = items["wording"] == level
+            if at.sum() != 6 or items["direction"][at].sum() != 0:
+                raise ValueError(f"{module}: wording {level} is not six balanced items")
+        for i in range(CASES):
+            k, level = int(items["item"][i]), int(items["wording"][i])
+            key = (form, k)
+            row = (int(items["prior"][i]), int(items["direction"][i]), level)
+            if skeleton.setdefault(key, row) != row:
+                raise ValueError(f"{module}/{i}: the families differ beyond their texts")
+            case = render(module, "markets", i, "wording")["case"]
+            claim = case[case.index("“") :]
+            if case.count("“") != 1:
+                raise ValueError(f"{module}/{i}: does not show exactly one claim")
+            markers = ("I think" in claim, "definitely" in claim, "confirmed" in claim)
+            if markers != (level == 0, level >= 2, level == 3):
+                raise ValueError(f"{module}/{i}: the claim's wording does not match its level")
+            if any(w in case for w in ("right in", "record", "correct", "accura")):
+                raise ValueError(f"{module}/{i}: states a record")
+            seen.setdefault((family, k), set()).add(level)
+    if len(seen) != 72 or any(len(v) != len(wording.WORDINGS) for v in seen.values()):
+        raise ValueError("Confident wording: an item is not asked at every wording")
+    return {"items": len(seen)}
+
+
 def followup_audit():
     """Follow-up modules: each pair consecutive in a "sequences" order and its first case the
     likely-or-unlikely form of the follow-up's question; every base case fresh in one form and a
@@ -699,6 +740,8 @@ def followup_audit():
 def variants_of(module):
     if module in CALLS_MODULES:
         return CALLS_VARIANTS
+    if module in WORDING_MODULES:
+        return WORDING_VARIANTS
     if module in CORRELATED_MODULES:
         return CORRELATED_VARIANTS
     if module in ANNOUNCED_MODULES:
@@ -777,6 +820,7 @@ def covers_of(module):
         + ANNOUNCED_MODULES
         + CORRELATED_MODULES
         + CALLS_MODULES
+        + WORDING_MODULES
         else COVERS
     )
 
@@ -949,6 +993,7 @@ def audit():
         "announced": announced_audit(),
         "correlated": correlated_audit(),
         "calls": calls_audit(),
+        "wording": wording_audit(),
     }
 
 
@@ -1043,6 +1088,8 @@ def contexts_to_validate():
         yield module, "markets", "correlated", CORRELATED_RESPONDENT
     for module in CALLS_MODULES:
         yield module, "markets", "calls", CALLS_RESPONDENT
+    for module in WORDING_MODULES:
+        yield module, "markets", "wording", WORDING_RESPONDENT
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -1053,6 +1100,14 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "wording" in analysis:
+        # Each case's weight against the respondent's weight for its wording.
+        rows = analysis["wording"]["cases"]
+        from epistemics.dispositions.wording import WORDINGS
+
+        error = float(np.mean([abs(r["weight"] - truth["w"][WORDINGS.index(r["wording"])])
+                               for r in rows]))  # fmt: skip
+        return error, bool(error <= TOLERANCE["wording_weight"])
     if "calls" in analysis:
         # Each item's first step against the respondent's lambda for its first call.
         items = items_for(module)

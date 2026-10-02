@@ -122,6 +122,18 @@ MODULES = (
     "calls-b",
     "calls-c",
     "calls-d",
+    "wording-urn-a",
+    "wording-urn-b",
+    "wording-urn-c",
+    "wording-urn-d",
+    "wording-policy-a",
+    "wording-policy-b",
+    "wording-policy-c",
+    "wording-policy-d",
+    "wording-report-a",
+    "wording-report-b",
+    "wording-report-c",
+    "wording-report-d",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -247,6 +259,12 @@ CORRELATED_VARIANTS = ("correlated",)
 # Analysts' calls in order (tasks 0.38): one call, then both, on an urn (dispositions.calls).
 CALLS_MODULES = tuple(f"calls-{f}" for f in "abcd")
 CALLS_VARIANTS = ("calls",)
+# Confident wording across families (tasks 0.39): one claim without a record, in four wordings, in
+# three families (dispositions.wording).
+WORDING_MODULES = tuple(
+    f"wording-{family}-{form}" for family in ("urn", "policy", "report") for form in "abcd"
+)
+WORDING_VARIANTS = ("wording",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -593,6 +611,10 @@ def items_for(module):
         from epistemics.dispositions import calls
 
         return calls.design(module)
+    if module in WORDING_MODULES:
+        from epistemics.dispositions import wording
+
+        return wording.design(module)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -966,7 +988,14 @@ RENDERERS = {
     **{m: (lambda *a: _announced(*a)) for m in ANNOUNCED_MODULES},
     **{m: (lambda *a: _correlated(*a)) for m in CORRELATED_MODULES},
     **{m: (lambda *a: _calls(*a)) for m in CALLS_MODULES},
+    **{m: (lambda *a: _wording(*a)) for m in WORDING_MODULES},
 }
+
+
+def _wording(items, i, cover, variant):
+    from epistemics.disposition_tasks import wording_texts
+
+    return wording_texts.trial(items, i, cover, variant)
 
 
 def _calls(items, i, cover, variant):
@@ -1084,6 +1113,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in CORRELATED_VARIANTS
     if module in CALLS_MODULES:
         return cover == "markets" and variant in CALLS_VARIANTS
+    if module in WORDING_MODULES:
+        return cover == "markets" and variant in WORDING_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -1167,6 +1198,10 @@ def stated_percentages(module, index, variant=None):
         from epistemics.disposition_tasks.calls_texts import stated
 
         return stated(items, index)  # the urn's prior
+    if module in WORDING_MODULES:
+        from epistemics.disposition_tasks.wording_texts import stated
+
+        return stated(items, index)  # the stated prior
     if module in V3_MODULES + V31_MODULES + V32_MODULES:
         from epistemics.disposition_tasks.surfaces import percentages
 

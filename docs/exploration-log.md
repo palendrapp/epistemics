@@ -410,3 +410,27 @@ All four weigh a call exactly as a stated record implies.
 **Astra's reading is new and weaker than Terra's.** Astra gave every analyst's call the same weight in multi-agent open (0.69 whatever the wording). In calls in order the gap between confident and "I think…" was 0.39. Pooled, the gap is 0.20. It does not extend to other sources: with an AI agent's or a sensor's call, Astra responds to wording like the others (0.40 to 1.73 and 2.19).
 
 **Scope.** Only Astra, Sol, Luna and Terra have analyst data without a record, so the other configurations carry no reading. The caution names the source-specificity.
+
+## 2 October: confident wording across families (idea 28)
+
+**Question.** Without a record, Terra took an analyst's "definitely… confirmed" call at face value, about twice the other configurations, in two urn collections. Is that a trait of confident wording, or of the urn family and that phrase?
+
+**Modules `wording-{urn,policy,report}-{a..d}`** (design 0.29.0, tasks 0.39.0). One person's claim without a record, against a stated prior:
+- **urn:** an analyst's call on an urn, as in the original family.
+- **policy:** an economist's note on whether a central bank's committee lowers its rate at its next meeting. The note's conclusion carries the claim.
+- **report:** an inspector's report on whether a batch of goods meets its standard. The report's conclusion carries the claim.
+
+The claim takes one of four wordings: "I think…", plain, "definitely…", and the original "definitely… confirmed". In the urn family that also splits confidence from a claim of verification.
+
+**Design.**
+- The three families share one skeleton: priors of 40, 50 or 60%, the claim's direction and its wording. Only the texts differ.
+- Each family takes four forms in a Latin square: every item appears at every wording, and a form holds six items at each wording, with directions balanced.
+- Each case is separate, in random order.
+- Measure: weight = (logit(answer) − logit(prior)) × direction.
+
+**What would count** (exploratory; no claim before a confirmatory run):
+- **A trait:** Terra's "definitely… confirmed" weight is at least 1.5 times the median of the other configurations, with the interval above 1, in the policy and report families as well as the urn.
+- **Family-specific:** face value in the urn family only.
+- **Verification, not confidence:** Terra's excess sits in "confirmed": "definitely" alone is like the others, and "confirmed" adds much more for Terra than for the others.
+
+**Collection.** Preset `wording-families`: Astra, Sol, Luna and Terra at default effort, each taking the four forms of each family (48 sessions). Analysis: `uv run python -m epistemics.ledger wording-families <roots> --output <file>`.

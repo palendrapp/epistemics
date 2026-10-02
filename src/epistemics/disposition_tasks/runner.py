@@ -81,6 +81,8 @@ from epistemics.disposition_tasks.render import (
     V32_VARIANTS,
     VARIANTS,
     VIG_VARIANTS,
+    WORDING_MODULES,
+    WORDING_VARIANTS,
     allowed,
     items_for,
 )
@@ -174,6 +176,7 @@ AUDITED_CASES = (
     + 24 * len(ANNOUNCED_MODULES) * len(ANNOUNCED_VARIANTS)
     + 24 * len(CORRELATED_MODULES) * len(CORRELATED_VARIANTS)
     + 24 * len(CALLS_MODULES) * len(CALLS_VARIANTS)
+    + 24 * len(WORDING_MODULES) * len(WORDING_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -410,6 +413,16 @@ PRESETS["calls-order"] = (
         "order": "sequences",
     },
 )
+# Confident wording across families: one claim without a record in four wordings, in the urn,
+# policy-note and inspection-report families; the default-effort configurations of each variant on
+# all four forms of each family.
+PRESETS["wording-families"] = (
+    {
+        "configurations": ("astra", "sol", "luna", "terra"),
+        "modules": WORDING_MODULES,
+        "contexts": (("wording", "markets", 1),),
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -609,6 +622,7 @@ def check_groups(groups):
             + ANNOUNCED_VARIANTS
             + CORRELATED_VARIANTS
             + CALLS_VARIANTS
+            + WORDING_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -941,6 +955,8 @@ def headline(analysis):
         }
     if "announced" in analysis:
         return {"parameter": "announced", **analysis["announced"]["mean_step"]}
+    if "wording" in analysis:
+        return {"parameter": "wording", **analysis["wording"]["mean_weight"]}
     if "followup" in analysis:
         g = analysis["followup"]["grain"]
         return {
