@@ -126,3 +126,17 @@ def test_guide_reads_most_least_and_claim_dependent_wording():
     )
     assert guide.confident_wording(passport([0.9, 1.1, 1.0]))["fact"]["value"] == "Like the others"
     assert guide.confident_wording({}) is None
+
+
+def test_caution_carries_the_three_wording_result():
+    from epistemics.ledger import guide
+
+    assert "untested" in guide.phrase_set_note(None)
+    same = guide.phrase_set_note(
+        {"three": 1.65, "four": 1.0, "shift": 0.08, "shift_interval_90": [-0.5, 0.67]}
+    )
+    assert "no clear change" in same and "1.65 times" in same and "1.00 with four in" in same
+    less = guide.phrase_set_note(
+        {"three": 0.68, "four": 0.83, "shift": -0.31, "shift_interval_90": [-0.48, -0.14]}
+    )
+    assert "top of the analyst's range" in less and "-0.31" in less

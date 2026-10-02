@@ -567,3 +567,13 @@ Pooling both four-wording urn collections (48 cases each): Terra 1.15× [0.89, 1
 **Ideas:**
 32. **Set-relative reading as a passport dimension.** For each configuration, how much a phrase's weight changes when the source's other wordings change. Test it across families, for example an economist with three wordings against four.
 33. **Session-to-session variation on the urn.** Terra's top-phrase weight moved 0.6 log-odds between two four-wording collections run the same day. A retest of one form across several sessions would size that before any reading leans on the urn ratios.
+
+## 2 October: the three-wording result in the passport caution
+
+Reading guide 0.7.1. The `confident-wording` reading's caution now carries each configuration's phrase-set result from `output/wording-phrase-set-20261002`, in place of "whether the analyst result depends on the wordings offered is untested". The ledger build adds `phrase_sets` to `wording_sensitivity` from the registry's `wording-phrase-set` roots.
+
+Each caution gives, for that configuration:
+- how its weight on "definitely… confirmed" changes when an analyst uses three wordings rather than four: less, more, or no clear change, by whether the 90% interval excludes 0;
+- the call's ratio to the others' median with three wordings and with four, both from that collection.
+
+Terra's caution reads: no clear change (+0.08), 1.65 times the others with three wordings against 1.00 with four. Astra and Sol give the phrase less as the top of three. Luna shows no clear change.

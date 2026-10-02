@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.7.0"
+VERSION = "reading-guide/0.7.1"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -873,6 +873,31 @@ def moved(v):
     return "above" if lo > 1 else "below" if hi < 1 else "like"
 
 
+def phrase_set_note(s):
+    """The analyst's-call result with three wordings offered rather than four (idea 30)."""
+    if not s:
+        return "Whether the analyst result depends on the wordings offered is untested."
+    lo, hi = s["shift_interval_90"]
+    top = "\u201cdefinitely\u2026 confirmed\u201d"
+    if hi < 0:
+        own = (
+            f"it gives {top} less ({s['shift']:+.2f} log-odds), reading it as the top of the "
+            "analyst's range"
+        )
+    elif lo > 0:
+        own = f"it gives {top} more ({s['shift']:+.2f} log-odds)"
+    else:
+        own = (
+            f"its weight on {top} shows no clear change ({s['shift']:+.2f} log-odds, 90% "
+            f"interval {lo:.2f} to {hi:.2f})"
+        )
+    return (
+        f"The analyst result depends on the wordings offered: when an analyst uses three wordings "
+        f"rather than four, {own}, and such a call moves it {s['three']:.2f} times as far as the "
+        f"others, against {s['four']:.2f} with four in the same collection."
+    )
+
+
 def confident_wording(p):
     """How far a confidently worded claim without a record moves it, against the other
     configurations, across kinds of claim."""
@@ -976,8 +1001,7 @@ def confident_wording(p):
         caution=(
             "Exploratory: one collection, four configurations compared with each other. Answers "
             "at 99% or more understate how far a claim moves it, so ratios there are lower "
-            "bounds, and an interval can include 1. Whether the analyst result depends on the "
-            "wordings offered is untested."
+            "bounds, and an interval can include 1. " + phrase_set_note(f.get("phrase_sets"))
         ),
         fact=("Confident wording, no record", fact),
     )

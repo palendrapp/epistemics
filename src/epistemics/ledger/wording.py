@@ -15,6 +15,7 @@ BOOTSTRAP = 4000
 FACE_VALUE = 1.5
 CEILING = 0.99
 WORDING_EXPERIMENTS = ("wording-families",)
+PHRASE_EXPERIMENTS = ("wording-phrase-set",)
 
 
 def records(roots):
@@ -118,14 +119,17 @@ def summary(roots, seed=20261002):
     }
 
 
-def passport_wording(roots, record_ratios=None):
+def passport_wording(roots, record_ratios=None, phrase_roots=None):
     """The passport's reaction to confident wording, per configuration: in each family, the weight
     of a "definitely... confirmed" claim without a record against the median of the other
     configurations, the spread from "I think...", and the share of those answers at 99% or more;
     across families, the geometric mean of the ratios and whether its spread is the smallest in
     every family. record_ratios: the weight given to an analyst's call with its record stated,
-    over the weight the record implies (call_reaction.record_ratios)."""
+    over the weight the record implies (call_reaction.record_ratios). phrase_roots: the
+    phrase-set collection; each configuration then carries its analyst's-call ratio with three
+    wordings and with four, and the change in its own weight on the top phrase (phrase_sets)."""
     table = summary(roots)["families"]
+    phrase = phrase_sets(phrase_roots)["configurations"] if phrase_roots else {}
     ceiling = ceilings(roots)
     out = {}
     for c in sorted({c for t in table.values() for c in t}):
@@ -157,6 +161,14 @@ def passport_wording(roots, record_ratios=None):
             "sessions": sum(v["sessions"] for v in families.values()),
             "record_ratio": (record_ratios or {}).get(c),
         }
+        if c in phrase:
+            e = phrase[c]
+            out[c]["phrase_sets"] = {
+                "three": e["three"]["confirmed_to_others"]["ratio"],
+                "four": e["four"]["confirmed_to_others"]["ratio"],
+                "shift": e["confirmed_shift"]["mean"],
+                "shift_interval_90": e["confirmed_shift"]["interval_90"],
+            }
     return out
 
 

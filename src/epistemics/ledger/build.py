@@ -309,7 +309,9 @@ def build(registry_path="docs/experiments.json"):
     if wording_roots:
         record_roots = registry_roots(call_reaction.RECORD_EXPERIMENTS)
         analyses["wording_sensitivity"] = wording.passport_wording(
-            wording_roots, call_reaction.record_ratios(record_roots) if record_roots else None
+            wording_roots,
+            call_reaction.record_ratios(record_roots) if record_roots else None,
+            registry_roots(wording.PHRASE_EXPERIMENTS) or None,
         )
     result = {
         "schema_version": "epistemics.ledger.v1",
