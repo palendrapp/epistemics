@@ -670,25 +670,26 @@ def calls_audit():
 
 
 def wording_audit():
-    """Confident wording: in each family every item at every wording across the four forms, six
-    items at each wording in a form with directions balanced; the same skeleton (prior, direction,
-    wording) in every family; one quoted claim whose markers match its wording; no record stated."""
+    """Confident wording: in each family every item at every wording the family offers across its
+    forms, the same number of items at each wording in a form with directions balanced; the same
+    skeleton (prior, direction, wording) in every four-wording family; urn3 the urn family's texts
+    with three wordings; one quoted claim whose markers match its wording; no record stated."""
     from epistemics.dispositions import wording
 
     seen = {}
     skeleton = {}
     for module in WORDING_MODULES:
         family, form = wording.parse(module)
+        offered = wording.levels(family)
         items = items_for(module)
-        for level in range(len(wording.WORDINGS)):
+        for level in offered:
             at = items["wording"] == level
-            if at.sum() != 6 or items["direction"][at].sum() != 0:
-                raise ValueError(f"{module}: wording {level} is not six balanced items")
+            if at.sum() != CASES // len(offered) or items["direction"][at].sum() != 0:
+                raise ValueError(f"{module}: wording {level} is not a balanced share of items")
         for i in range(CASES):
             k, level = int(items["item"][i]), int(items["wording"][i])
-            key = (form, k)
             row = (int(items["prior"][i]), int(items["direction"][i]), level)
-            if skeleton.setdefault(key, row) != row:
+            if len(offered) == len(wording.WORDINGS) and skeleton.setdefault((form, k), row) != row:
                 raise ValueError(f"{module}/{i}: the families differ beyond their texts")
             case = render(module, "markets", i, "wording")["case"]
             claim = case[case.index("“") :]
@@ -699,8 +700,20 @@ def wording_audit():
                 raise ValueError(f"{module}/{i}: the claim's wording does not match its level")
             if any(w in case for w in ("right in", "record", "correct", "accura")):
                 raise ValueError(f"{module}/{i}: states a record")
+            if family == "urn3":
+                ways = "one of three ways"
+                twin = render(f"wording-urn-{form}", "markets", i, "wording")["case"]
+                if (
+                    ways not in case
+                    or case[: case.index("“")].replace(ways, "one of four ways")
+                    != twin[: twin.index("“")]
+                ):
+                    raise ValueError(f"{module}/{i}: differs from the urn family beyond the set")
             seen.setdefault((family, k), set()).add(level)
-    if len(seen) != 72 or any(len(v) != len(wording.WORDINGS) for v in seen.values()):
+    families = {f for f, _ in seen}
+    if len(seen) != 24 * len(families) or any(
+        v != set(wording.levels(f)) for (f, _), v in seen.items()
+    ):
         raise ValueError("Confident wording: an item is not asked at every wording")
     return {"items": len(seen)}
 

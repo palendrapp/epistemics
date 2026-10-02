@@ -33,13 +33,14 @@ def phrase(level, pre, post):
 def texts(family, k, direction):
     """(prior sentence with {p}, who makes claims, claim lead-in, (pre, post), question)."""
     spec = wording.items_spec()[k]
-    if family == "urn":
+    if family in ("urn", "urn3"):
         urn, analyst = f"urn U{spec['id']}", f"Analyst R{61 + k}"
+        ways = "four" if family == "urn" else "three"
         colour = "red" if direction == 1 else "blue"
         return (
             f"Urn U{spec['id']} is either red-majority or blue-majority. Before any evidence, the "
             "probability that it is red-majority is {p}%.",
-            f"{LAB_PEERS} {analyst} phrases each call in one of four ways.",
+            f"{LAB_PEERS} {analyst} phrases each call in one of {ways} ways.",
             f"{analyst}'s call on {urn}:",
             ("it is", f"{colour}-majority"),
             f"What is the probability that {urn} is red-majority?",

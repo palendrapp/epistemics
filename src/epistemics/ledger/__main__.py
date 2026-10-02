@@ -52,6 +52,7 @@ uv run python -m epistemics.ledger correlated-changes <roots...> --output <file>
 uv run python -m epistemics.ledger primacy --statements <roots...> --correlated <roots...> --output <file>
 uv run python -m epistemics.ledger call-reaction --advice <roots...> [--calls <roots...>] --output <file>
 uv run python -m epistemics.ledger wording-families <roots...> --output <file>
+uv run python -m epistemics.ledger wording-phrase-sets <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -200,6 +201,9 @@ def main():
     wf = sub.add_parser("wording-families")
     wf.add_argument("roots", type=Path, nargs="+")
     wf.add_argument("--output", type=Path, required=True)
+    wp = sub.add_parser("wording-phrase-sets")
+    wp.add_argument("roots", type=Path, nargs="+")
+    wp.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
     pr.add_argument("--correlated", type=Path, nargs="+", required=True)
@@ -552,6 +556,16 @@ def main():
                 weights = " ".join(f"{w} {v['mean']:.2f}" for w, v in e["weights"].items())
                 ratio = e.get("confirmed_to_others", {}).get("ratio")
                 print(family, c, weights, f"x{ratio:.2f}" if ratio else "")
+    elif a.command == "wording-phrase-sets":
+        from epistemics.ledger import wording
+
+        run = wording.phrase_sets(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for c, e in run["configurations"].items():
+            r3, r4 = e["three"]["confirmed_to_others"], e["four"]["confirmed_to_others"]
+            print(c, f"three x{r3['ratio']:.2f} four x{r4['ratio']:.2f}",
+                  f"shift x{e['ratio_shift']['ratio']:.2f}")  # fmt: skip
     elif a.command == "primacy":
         from epistemics.ledger import primacy
 

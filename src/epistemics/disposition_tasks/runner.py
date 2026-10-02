@@ -419,7 +419,18 @@ PRESETS["calls-order"] = (
 PRESETS["wording-families"] = (
     {
         "configurations": ("astra", "sol", "luna", "terra"),
-        "modules": WORDING_MODULES,
+        "modules": tuple(m for m in WORDING_MODULES if not m.startswith("wording-urn3-")),
+        "contexts": (("wording", "markets", 1),),
+    },
+)
+# Phrase-set dependence: the urn family with four wordings and with the original three, in one
+# collection; the default-effort configurations of each variant on every form of both.
+PRESETS["wording-phrase-set"] = (
+    {
+        "configurations": ("astra", "sol", "luna", "terra"),
+        "modules": tuple(
+            m for m in WORDING_MODULES if m.startswith(("wording-urn-", "wording-urn3-"))
+        ),
         "contexts": (("wording", "markets", 1),),
     },
 )

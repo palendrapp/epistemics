@@ -516,3 +516,18 @@ Reading guide 0.7.0 replaces the analysts'-calls reading (`confident-calls`, 0.6
 All four weigh an analyst's call exactly as a stated record implies.
 
 **Why intervals rather than point ratios.** On point ratios, Terra would read as moved further in every family and Sol as further on analysts' calls. Both urn intervals include 1 (Terra 0.97–1.68, Sol 0.94–1.51), so the reading says "about as far" there.
+
+## 2 October: phrase-set dependence in the urn family (idea 30)
+
+**Question.** Terra's face value on an analyst's "definitely… confirmed" call came from collections with three wordings. In the wording-families run, which offers four, the others gave that phrase much more weight and Terra's lead fell from about 2.4 to 1.29. Is that the phrase set?
+
+**Modules `wording-urn3-{a,b,c}`** (design 0.30.0, tasks 0.40.0). These are the urn family's cases and texts with the original three wordings: "I think…", plain and "definitely… confirmed". The analyst "phrases each call in one of three ways".
+- They run in three forms, a Latin square with eight items per wording in a form, directions balanced.
+- Apart from the phrase set, the texts match the four-wording urn modules word for word; the audit checks this.
+
+**Collection.** Preset `wording-phrase-set`: Astra, Sol, Luna and Terra take the three urn3 forms and, in the same collection, the four urn forms again (28 sessions, random order within a session). The rerun also replicates the four-wording urn result. Analysis: `uv run python -m epistemics.ledger wording-phrase-sets <roots> --output <file>`.
+
+**What would count** (exploratory):
+- **Phrase-set dependence:** with three wordings Terra's "definitely… confirmed" weight is again well above the others' median (about 2× or more), and its ratio with three wordings over its ratio with four has an interval above 1.
+  - The likely mechanism: with "definitely" offered alone, the others read "confirmed" as a separate claim of verification and give it more.
+- **No dependence:** Terra's ratio is about the same with three and four wordings. The earlier face value would then come from the original collections' other features: cases where the agent had its own reading, or two calls per urn.

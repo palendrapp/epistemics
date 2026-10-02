@@ -14,6 +14,11 @@ The claim is worded in one of four ways: "I think...", plain, "definitely..." an
 verification. Each family takes four forms, a Latin square: every item appears at every wording
 across the forms, six items at each wording in a form, their directions and priors balanced.
 
+Phrase-set dependence (design 0.30; idea 30): urn3 is the urn family with the original three
+wordings ("I think...", plain, "definitely... confirmed"; the analyst "phrases each call in one of
+three ways"), in three forms of eight items per wording. Run beside urn, it tells whether the top
+phrase's weight depends on "definitely" being offered on its own.
+
   weight = (logit(answer) - logit(prior)) * direction    (log-odds, toward the claim)
 """
 
@@ -23,11 +28,23 @@ import numpy as np
 
 from epistemics.dispositions.screen import logit
 
-FAMILIES = ("urn", "policy", "report")
+FAMILIES = ("urn", "policy", "report", "urn3")
 FORMS = ("a", "b", "c", "d")
-MODULES = tuple(f"wording-{family}-{form}" for family in FAMILIES for form in FORMS)
 WORDINGS = ("I think", "plain", "definitely", "confirmed")
+# The wordings each family offers (indices into WORDINGS); one form per wording.
+LEVELS = {"urn3": (0, 1, 3)}
 PRIORS = (40, 50, 60)
+
+
+def levels(family):
+    return LEVELS.get(family, tuple(range(len(WORDINGS))))
+
+
+def forms(family):
+    return FORMS[: len(levels(family))]
+
+
+MODULES = tuple(f"wording-{family}-{form}" for family in FAMILIES for form in forms(family))
 
 
 def parse(module):
@@ -48,8 +65,9 @@ def items_spec():
     )
 
 
-def wording_of(k, form):
-    return (k + FORMS.index(form)) % len(WORDINGS)
+def wording_of(k, form, family="urn"):
+    offered = levels(family)
+    return offered[(k + FORMS.index(form)) % len(offered)]
 
 
 def design(module):
@@ -62,7 +80,7 @@ def _design(module):
     rows = []
     for k, spec in enumerate(items_spec()):
         rows.append({"kind": "claim", "item": k, "family": family, "form": form,
-                     "wording": wording_of(k, form), "direction": spec["direction"],
+                     "wording": wording_of(k, form, family), "direction": spec["direction"],
                      "prior": spec["prior"], "response": "probability"})  # fmt: skip
     return {k: np.array([r[k] for r in rows]) for k in rows[0]}
 
@@ -90,6 +108,10 @@ def session(items, responses):
         rows.append({"item": int(items["item"][i]), "wording": WORDINGS[int(items["wording"][i])],
                      "direction": int(items["direction"][i]), "prior": prior,
                      "answer": float(responses[i]), "weight": weight})  # fmt: skip
-    means = {w: float(np.mean([r["weight"] for r in rows if r["wording"] == w])) for w in WORDINGS}
+    means = {
+        w: float(np.mean([r["weight"] for r in rows if r["wording"] == w]))
+        for w in WORDINGS
+        if any(r["wording"] == w for r in rows)
+    }
     return {"family": str(items["family"][0]), "form": str(items["form"][0]), "cases": rows,
             "mean_weight": means, "responses": [float(v) for v in responses]}  # fmt: skip

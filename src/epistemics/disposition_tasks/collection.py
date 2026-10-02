@@ -156,6 +156,9 @@ Module = Literal[
     "wording-report-b",
     "wording-report-c",
     "wording-report-d",
+    "wording-urn3-a",
+    "wording-urn3-b",
+    "wording-urn3-c",
 ]
 Cover = Literal["markets", "ecology"]
 Variant = Literal[
@@ -219,9 +222,9 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.39.0"] = VERSION
+    battery_version: Literal["disposition-tasks/0.40.0"] = VERSION
     model_version: Literal["disposition-model/0.21.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.29.0"] = DESIGN_VERSION
+    design_version: Literal["disposition-design/0.30.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest

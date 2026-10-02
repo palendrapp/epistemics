@@ -158,3 +158,55 @@ def passport_wording(roots, record_ratios=None):
             "record_ratio": (record_ratios or {}).get(c),
         }
     return out
+
+
+def phrase_sets(roots, three="urn3", four="urn", seed=20261003):
+    """Phrase-set dependence (idea 30): per configuration, the "definitely... confirmed" weight with
+    three wordings offered against four, and its ratio to the other configurations' median in each
+    set; the shift is the three-wording ratio over the four-wording one (bootstrap over cases)."""
+    data = cases(roots)
+    configs = sorted({c for c, f in data if f == three} & {c for c, f in data if f == four})
+    rng = np.random.default_rng(seed)
+
+    def boot(x):
+        return x[rng.integers(0, len(x), size=(BOOTSTRAP, len(x)))].mean(axis=1)
+
+    top = {(c, f): boot(data[(c, f)]["confirmed"]) for c in configs for f in (three, four)}
+    out = {}
+    for c in configs:
+        others = [o for o in configs if o != c]
+        entry = {}
+        for name, f in (("three", three), ("four", four)):
+            x = data[(c, f)]
+            point = x["confirmed"].mean() / np.median(
+                [data[(o, f)]["confirmed"].mean() for o in others]
+            )
+            ratio = top[(c, f)] / np.median([top[(o, f)] for o in others], axis=0)
+            entry[name] = {
+                "weights": {w: float(v.mean()) for w, v in x.items()},
+                "confirmed_to_others": {"ratio": float(point), "interval_90": _interval(ratio)},
+            }
+            entry[f"_{name}"] = ratio
+        r3, r4 = entry.pop("_three"), entry.pop("_four")
+        d = top[(c, three)] - top[(c, four)]
+        entry["confirmed_shift"] = {
+            "mean": float(
+                data[(c, three)]["confirmed"].mean() - data[(c, four)]["confirmed"].mean()
+            ),
+            "interval_90": _interval(d),
+        }
+        entry["ratio_shift"] = {
+            "ratio": entry["three"]["confirmed_to_others"]["ratio"]
+            / entry["four"]["confirmed_to_others"]["ratio"],
+            "interval_90": _interval(r3 / r4),
+        }
+        out[c] = entry
+    return {
+        "schema_version": "epistemics.wording-phrase-sets.v1",
+        "configurations": out,
+        "scope": (
+            "Exploratory: the urn family's 'definitely... confirmed' call with three wordings "
+            "offered against four; ratio_shift above 1 means the configuration stands further from "
+            "the others when the top phrase is the top of three."
+        ),
+    }

@@ -9,17 +9,49 @@ def test_every_item_takes_every_wording_and_the_families_share_a_skeleton():
     levels = {}
     for module in WORDING_MODULES:
         family, form = wording.parse(module)
+        offered = wording.levels(family)
         items = wording.design(module)
         assert len(items["item"]) == 24
         for k, level in zip(items["item"], items["wording"], strict=True):
             levels.setdefault((family, int(k)), set()).add(int(level))
-        for level in range(4):
+        for level in offered:
             at = items["wording"] == level
-            assert at.sum() == 6 and items["direction"][at].sum() == 0
-    assert len(levels) == 72 and all(v == {0, 1, 2, 3} for v in levels.values())
+            assert at.sum() == 24 // len(offered) and items["direction"][at].sum() == 0
+    assert len(levels) == 96
+    assert all(v == set(wording.levels(f)) for (f, _), v in levels.items())
+    assert wording.levels("urn3") == (0, 1, 3)
     a, b = wording.design("wording-urn-c"), wording.design("wording-report-c")
     for key in ("prior", "direction", "wording"):
         assert (a[key] == b[key]).all()
+
+
+def test_the_three_wording_urn_differs_only_in_its_phrase_set():
+    three = render("wording-urn3-a", "markets", 3, "wording")["case"]
+    four = render("wording-urn-a", "markets", 3, "wording")["case"]
+    assert "one of three ways" in three and "one of four ways" in four
+    head = three[: three.index("“")].replace("three ways", "four ways")
+    assert head == four[: four.index("“")]
+    items = wording.design("wording-urn3-b")
+    result = wording.session(items, [0.5] * 24)
+    assert set(result["mean_weight"]) == {"I think", "plain", "confirmed"}
+
+
+def test_phrase_sets_reads_a_configuration_that_stands_out_only_with_three(monkeypatch):
+    from epistemics.ledger import wording as ledger
+
+    rng = np.random.default_rng(6)
+
+    def weights(top):
+        return {"I think": rng.normal(0.5, 0.2, 24), "confirmed": rng.normal(top, 0.2, 24)}
+
+    data = {}
+    for c, (three, four) in {"astra": (1.0, 1.5), "sol": (1.2, 2.0), "luna": (1.4, 1.7),
+                             "terra": (2.6, 2.2)}.items():  # fmt: skip
+        data[(c, "urn3")], data[(c, "urn")] = weights(three), weights(four)
+    monkeypatch.setattr(ledger, "cases", lambda roots: data)
+    terra = ledger.phrase_sets([])["configurations"]["terra"]
+    assert terra["three"]["confirmed_to_others"]["ratio"] > 2
+    assert terra["ratio_shift"]["interval_90"][0] > 1
 
 
 def test_only_the_claims_wording_changes_across_forms():
