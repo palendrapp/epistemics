@@ -131,15 +131,19 @@ def test_guide_reads_most_least_and_claim_dependent_wording():
     assert guide.confident_wording({}) is None
 
 
-def test_caution_carries_the_three_wording_result():
+def test_caution_carries_the_three_wording_result_per_kind_of_claim():
     from epistemics.ledger import guide
 
     assert "untested" in guide.phrase_set_note(None)
-    same = guide.phrase_set_note(
-        {"three": 1.65, "four": 1.0, "shift": 0.08, "shift_interval_90": [-0.5, 0.67]}
-    )
-    assert "no clear change" in same and "1.65 times" in same and "1.00 with four in" in same
-    less = guide.phrase_set_note(
-        {"three": 0.68, "four": 0.83, "shift": -0.31, "shift_interval_90": [-0.48, -0.14]}
-    )
-    assert "top of the analyst's range" in less and "-0.31" in less
+    urn = {"three": 1.65, "four": 1.0, "shift": 0.08, "shift_interval_90": [-0.5, 0.67]}
+    policy = {"three": 1.27, "four": 1.46, "shift": -0.61, "shift_interval_90": [-0.92, -0.32]}
+    one = guide.phrase_set_note({"urn": urn})
+    assert "no clear change" in one and "1.65 times" in one and "(1.00 with four)" in one
+    assert "not the same way" not in one
+    both = guide.phrase_set_note({"urn": urn, "policy": policy})
+    assert "not the same way for every kind of claim" in both
+    assert "for an economist's forecast, it gives" in both and "top of the source's range" in both
+    alike = guide.phrase_set_note({"urn": policy, "policy": policy})
+    assert "in the same direction for both kinds of claim" in alike
+    more = {"three": 0.67, "four": 0.4, "shift": 0.36, "shift_interval_90": [0.23, 0.49]}
+    assert "more (+0.36" in guide.phrase_set_note({"policy": more})

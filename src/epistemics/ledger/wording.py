@@ -15,7 +15,8 @@ BOOTSTRAP = 4000
 FACE_VALUE = 1.5
 CEILING = 0.99
 WORDING_EXPERIMENTS = ("wording-families",)
-PHRASE_EXPERIMENTS = ("wording-phrase-set",)
+# The collections that ran a family with three wordings beside four, by family.
+PHRASE_EXPERIMENTS = {"urn": "wording-phrase-set", "policy": "wording-phrase-set-policy"}
 
 
 def records(roots):
@@ -126,10 +127,15 @@ def passport_wording(roots, record_ratios=None, phrase_roots=None):
     across families, the geometric mean of the ratios and whether its spread is the smallest in
     every family. record_ratios: the weight given to an analyst's call with its record stated,
     over the weight the record implies (call_reaction.record_ratios). phrase_roots: the
-    phrase-set collection; each configuration then carries its analyst's-call ratio with three
-    wordings and with four, and the change in its own weight on the top phrase (phrase_sets)."""
+    phrase-set collections by family ({"urn": roots, "policy": roots}); each configuration then
+    carries, per family, its top-phrase ratio with three wordings and with four, and the change in
+    its own weight on the top phrase (phrase_sets)."""
     table = summary(roots)["families"]
-    phrase = phrase_sets(phrase_roots)["configurations"] if phrase_roots else {}
+    phrase = {
+        family: phrase_sets(rs, three=f"{family}3", four=family)["configurations"]
+        for family, rs in (phrase_roots or {}).items()
+        if rs
+    }
     ceiling = ceilings(roots)
     out = {}
     for c in sorted({c for t in table.values() for c in t}):
@@ -161,14 +167,18 @@ def passport_wording(roots, record_ratios=None, phrase_roots=None):
             "sessions": sum(v["sessions"] for v in families.values()),
             "record_ratio": (record_ratios or {}).get(c),
         }
-        if c in phrase:
-            e = phrase[c]
-            out[c]["phrase_sets"] = {
+        sets = {
+            family: {
                 "three": e["three"]["confirmed_to_others"]["ratio"],
                 "four": e["four"]["confirmed_to_others"]["ratio"],
                 "shift": e["confirmed_shift"]["mean"],
                 "shift_interval_90": e["confirmed_shift"]["interval_90"],
             }
+            for family, configs in phrase.items()
+            if (e := configs.get(c))
+        }
+        if sets:
+            out[c]["phrase_sets"] = sets
     return out
 
 

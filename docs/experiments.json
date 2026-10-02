@@ -1291,6 +1291,19 @@
       "status": "complete",
       "prediction": "Exploratory test of idea 32: the policy family with the original three wordings beside the four, texts otherwise identical, in one collection. General: Astra and Sol give the top phrase less as the top of three; Terra unchanged.",
       "outcome": "28 of 28 sessions (Astra, Sol, Luna, Terra x three policy3 and four policy forms), 13.8M input tokens, no failures; tasks 0.41.0. Not general: Terra gives the economist's top phrase less as the top of three (-0.61 [-0.92, -0.32]), like Sol (-0.20) and Luna (-0.99); Astra gives it more (+0.36 [0.23, 0.49]), reversing its urn result. Only Sol and Luna read the top phrase against the range in both families. Set-relative reading is not a stable trait of Terra or Astra; not a passport dimension on this evidence. The four-wording forecast ordering replicates (Luna 2.07, Terra 1.46, Sol 0.69, Astra 0.40 times the others' median). Terra's share of answers at 99% or more on the same forecasts fell from 50% to 4% between collections; Luna steady at 42%."
+    },
+    {
+      "id": "passport-wording-families-note",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "The phrase-set result by kind of claim in the confident-wording caution",
+      "question": "How should the policy family's phrase-set result qualify the passport's confident-wording reading?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Record: the caution carries each configuration's three- against four-wording result for the analyst's call and the economist's forecast.",
+      "outcome": "Reading guide 0.7.2: per configuration and kind of claim, the change in its weight on 'definitely... confirmed' when the source uses three wordings rather than four (less, more or no clear change by the 90% interval) and its ratio to the others' median with three and with four; whether the direction is the same for both kinds. Terra: no clear change on the call, less on the forecast; Astra: less, then more; Luna: no clear change, then less; Sol: less on both. The claim and classification are unchanged."
     }
   ],
   "next": [

@@ -632,3 +632,17 @@ Terra's caution reads: no clear change (+0.08), 1.65 times the others with three
   - Luna was steady: 42% both times, 3.86 against 3.94.
   - That supports idea 33: size session-to-session variation before leaning on single-collection ratios.
 - **For the passport caution** (currently the urn's three-wording result): it should add that the phrase set's effect differs by family. On forecasts Terra gives the top phrase less as the top of three, and its lead over the others shrinks rather than grows (1.27× against 1.46×).
+
+## 2 October: the family note in the passport caution
+
+Reading guide 0.7.2. The `confident-wording` caution now carries each configuration's phrase-set result for both kinds of claim measured both ways: the analyst's call (`wording-phrase-set`) and the economist's forecast (`wording-phrase-set-policy`). The ledger build reads both from the registry and stores `phrase_sets` by family.
+
+Each caution says whether the configuration's results go the same way in both families or not. For each family it gives:
+- the change in its weight on "definitely… confirmed" when the source uses three wordings rather than four: less, more, or no clear change;
+- its ratio to the others' median with three wordings and with four.
+
+**Results by configuration:**
+- **Terra:** no clear change on the analyst's call (1.65× against 1.00×); less on the forecast (−0.61; 1.27× against 1.46×).
+- **Astra:** less on the call (−0.31), more on the forecast (+0.36).
+- **Luna:** no clear change on the call, less on the forecast (−0.99).
+- **Sol:** less on both (−0.42 and −0.20), the only configuration whose caution says "in the same direction for both kinds of claim measured".

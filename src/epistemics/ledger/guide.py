@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.7.1"
+VERSION = "reading-guide/0.7.2"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -873,29 +873,50 @@ def moved(v):
     return "above" if lo > 1 else "below" if hi < 1 else "like"
 
 
-def phrase_set_note(s):
-    """The analyst's-call result with three wordings offered rather than four (idea 30)."""
-    if not s:
-        return "Whether the analyst result depends on the wordings offered is untested."
-    lo, hi = s["shift_interval_90"]
+PHRASE_KINDS = {"urn": "an analyst's call", "policy": "an economist's forecast"}
+
+
+def phrase_set_note(sets):
+    """How the result changes when a source uses three wordings rather than four, per kind of
+    claim measured both ways (ideas 30 and 32)."""
+    if not sets:
+        return "Whether the result depends on the wordings a source offers is untested."
     top = "\u201cdefinitely\u2026 confirmed\u201d"
-    if hi < 0:
-        own = (
-            f"it gives {top} less ({s['shift']:+.2f} log-odds), reading it as the top of the "
-            "analyst's range"
+    parts, directions = [], set()
+    for family, kind in PHRASE_KINDS.items():
+        s = sets.get(family)
+        if not s:
+            continue
+        lo, hi = s["shift_interval_90"]
+        directions.add("less" if hi < 0 else "more" if lo > 0 else "unclear")
+        if hi < 0:
+            own = (
+                f"it gives {top} less ({s['shift']:+.2f} log-odds), reading it as the top of the "
+                "source's range"
+            )
+        elif lo > 0:
+            own = f"it gives {top} more ({s['shift']:+.2f} log-odds)"
+        else:
+            own = (
+                f"its weight on {top} shows no clear change ({s['shift']:+.2f} log-odds, 90% "
+                f"interval {lo:.2f} to {hi:.2f})"
+            )
+        parts.append(
+            f"for {kind}, {own}, and it moves {s['three']:.2f} times as far as the others "
+            f"({s['four']:.2f} with four)"
         )
-    elif lo > 0:
-        own = f"it gives {top} more ({s['shift']:+.2f} log-odds)"
+    if len(parts) < 2:
+        scope = ""
+    elif len(directions) > 1:
+        scope = ", and not the same way for every kind of claim"
     else:
-        own = (
-            f"its weight on {top} shows no clear change ({s['shift']:+.2f} log-odds, 90% "
-            f"interval {lo:.2f} to {hi:.2f})"
-        )
-    return (
-        f"The analyst result depends on the wordings offered: when an analyst uses three wordings "
-        f"rather than four, {own}, and such a call moves it {s['three']:.2f} times as far as the "
-        f"others, against {s['four']:.2f} with four in the same collection."
+        scope = ", in the same direction for both kinds of claim measured"
+    lead = (
+        "The result depends on the wordings a source offers"
+        + scope
+        + ". When the source uses three wordings rather than four: "
     )
+    return lead + "; ".join(parts) + ". Each from one collection that ran both sets."
 
 
 def confident_wording(p):
