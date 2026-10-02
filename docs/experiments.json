@@ -1179,6 +1179,21 @@
       "status": "complete",
       "prediction": "Exploratory; no test. The same change later against first, in statements stage A (first and last positions) and the correlated changes (second and first).",
       "outcome": "Terra's primacy replicates across the two designs: a change counts about 20% less when it comes later (0.79 [0.64, 0.97] in stage A, 0.78 [0.68, 0.88] in the correlated changes). No other configuration shows a consistent position effect (Astra 0.91 and 1.03; Sol 0.97 and 0.98; Luna 1.11 and 0.99). Both datasets are statements: generality beyond the family is untested."
+    },
+    {
+      "id": "calls-order",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Primacy beyond statements: analysts' calls in order",
+      "question": "Does Terra discount a later piece of evidence outside the statements, and are two analysts' calls added as independent evidence?",
+      "doc": "docs/exploration-log.md",
+      "roots": [
+        "output/calls-order-20261002"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory test of idea 24: two analysts' calls without a record, one then both, each item in both orders; the correlated-changes and primacy analyses.",
+      "outcome": "16 of 16 sessions (Astra, Sol, Luna, Terra x four forms), 7.7M input tokens, no failures; tasks 0.38.0. Terra's primacy does not clearly carry over: a later call counts 0.95 [0.86, 1.06] of a first (statements 0.79 and 0.78); regression a 0.85. Every configuration treats the two calls as independent evidence (b about 0); Sol adds them exactly (a 1.01, order gap 0.11); Luna inconsistent and noisy; Terra's single-call steps are about twice the others' (1.3-1.4 against about 0.7)."
     }
   ],
   "next": [

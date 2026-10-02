@@ -299,3 +299,45 @@ Command: `uv run python -m epistemics.ledger primacy --statements output/stateme
 
 **Ideas:**
 24. **Terra's primacy beyond statements.** Sequences in another family: readings of a series revealed one at a time (the screen's trend cases), or two analysts' calls in turn (the peer-advice cases), in both orders. If Terra discounts later evidence there too, primacy is a candidate trait for the passport ("weighs what it hears first more"), with a consumer action: put the most important evidence first, or present evidence all at once.
+
+## 2 October: primacy beyond statements (idea 24)
+
+**Modules `calls-a` to `-d`** (design 0.28.0, tasks 0.38.0). An urn with a stated prior and two analysts' calls, each phrased in one of three ways and given without a record, so the agent judges what a call is worth.
+- A pair of consecutive cases reports one call, then both.
+- The calls agree in twelve items and disagree in twelve.
+- Every item appears in both orders.
+
+The design mirrors the correlated changes, so the same analyses apply.
+
+**Collection.** Astra, Sol, Luna and Terra at default effort took all four forms: root `output/calls-order-20261002`, 16 sessions, 7.7 million input tokens, no failures.
+- Task validation 0.38 passed on both seeds (4,224 cases, 181 contexts). Fingerprint `b5ffef158c18cdf2938d72270007e564b0f335ca66ca94393a55e6a4cf4883af`; seeds `fee45fb4…` and `7da48c46…`.
+- Commands:
+  - `uv run python -m epistemics.ledger correlated-changes output/calls-order-20261002 --key calls --output output/calls-order-summary-20261002.json`;
+  - `uv run python -m epistemics.ledger primacy … --calls output/calls-order-20261002 --output output/primacy-20261002.json`.
+
+**Results:**
+
+| Configuration | Calls: *a* | Calls: *b* | Calls: order gap | Later / first: statements stage A | Later / first: correlated changes | Later / first: calls |
+| --- | --- | --- | --- | --- | --- | --- |
+| Astra | 0.88 [0.78, 0.99] | −0.00 | 0.37 | 0.91 [0.83, 0.99] | 1.03 [0.97, 1.10] | 0.96 [0.85, 1.07] |
+| Sol | 1.01 [0.98, 1.05] | −0.00 | 0.11 | 0.97 [0.88, 1.07] | 0.98 [0.88, 1.08] | 1.02 [0.99, 1.05] |
+| Luna | 0.68 [0.50, 0.86] | +0.02 | 0.72 | 1.11 [0.93, 1.32] | 0.99 [0.82, 1.21] | 1.02 [0.79, 1.33] |
+| Terra | 0.85 [0.76, 0.97] | −0.03 | 0.55 | 0.79 [0.64, 0.97] | 0.78 [0.68, 0.88] | 0.95 [0.86, 1.06] |
+
+*a* is the second step on the call's own first-position step; *b* is the second step on the other call's.
+
+**Reading.**
+- **Terra's primacy does not clearly carry over to the calls.** A later call counts 0.95 of a first one (interval including 1), against 0.78–0.79 for statement changes. The regression's partial *a* (0.85) suggests at most a mild discount.
+- **So far, Terra's primacy is a property of how it reads statements,** not a general trait.
+- **Two calls are independent evidence for everyone** (*b* ≈ 0), as statement changes were.
+- **Sol adds them exactly** (*a* = 1.01, order gap 0.11).
+- **Luna's measures disagree:** *a* = 0.68 in the regression but 1.02 in the ratio of means, with large noise (order gap 0.72). Its later call is not reliably discounted.
+- **Terra's steps on calls are about twice the others'** (1.3–1.4 log-odds for a single call, against about 0.7). It takes an analyst's call at more face value.
+
+**Ideas:**
+25. **Stop the primacy line?** It does not generalise on present evidence.
+26. **What the order work leaves for the passport:**
+    - every configuration treats separate pieces of evidence as independent (no averaging, no correlation);
+    - Sol adds them most exactly;
+    - Terra discounts later statement changes;
+    - Terra reacts about twice as strongly to an analyst's call. That last one, a strong reaction to unverified calls, may be worth a look across the peer-advice data already collected.
