@@ -1166,6 +1166,19 @@
       "status": "complete",
       "prediction": "Exploratory test of exploration idea 21: step2(X) = a step1(X) + b step1(other); independent a = 1, b = 0; correlated b < 0; averaging a = 1/2, b = -1/2.",
       "outcome": "16 sessions (Astra, Sol, Luna, Terra x four forms; one failed at its start on a provider capacity error with no answers, so seven runs were topped up unchanged), about 12M input tokens. Astra adds the two changes as independent evidence (a 1.04, b 0.01); Sol nearly (0.85, -0.05); Luna a hint of correlation (b -0.16, interval including 0); Terra discounts the second change by a third either way (a 0.65, b 0.02), so its final answers depend on order (gap 0.49 against Astra's 0.14). No averaging. With the announced-count result this supersedes stage A's 'strong sub-additivity', which compared one strong change with different changes."
+    },
+    {
+      "id": "primacy-check",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Exploration: primacy across the sequence data",
+      "question": "Does Terra's discount on later changes recur across the sequence data where order was varied, and does any other configuration show one?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Exploratory; no test. The same change later against first, in statements stage A (first and last positions) and the correlated changes (second and first).",
+      "outcome": "Terra's primacy replicates across the two designs: a change counts about 20% less when it comes later (0.79 [0.64, 0.97] in stage A, 0.78 [0.68, 0.88] in the correlated changes). No other configuration shows a consistent position effect (Astra 0.91 and 1.03; Sol 0.97 and 0.98; Luna 1.11 and 0.99). Both datasets are statements: generality beyond the family is untested."
     }
   ],
   "next": [

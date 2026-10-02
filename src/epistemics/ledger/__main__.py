@@ -49,6 +49,7 @@ uv run python -m epistemics.ledger deliberation-quality <roots...> --output <fil
 uv run python -m epistemics.ledger followups <roots...> --output <file>
 uv run python -m epistemics.ledger announced-count <roots...> --output <file>
 uv run python -m epistemics.ledger correlated-changes <roots...> --output <file>
+uv run python -m epistemics.ledger primacy --statements <roots...> --correlated <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -190,6 +191,10 @@ def main():
     sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
     sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
+    pr = sub.add_parser("primacy")
+    pr.add_argument("--statements", type=Path, nargs="+", required=True)
+    pr.add_argument("--correlated", type=Path, nargs="+", required=True)
+    pr.add_argument("--output", type=Path, required=True)
     for name in ("announced-count", "correlated-changes"):
         ac = sub.add_parser(name)
         ac.add_argument("roots", type=Path, nargs="+")
@@ -517,6 +522,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps(summary, indent=2))
+    elif a.command == "primacy":
+        from epistemics.ledger import primacy
+
+        run = primacy.summary(a.statements, a.correlated)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps({"configurations": len(run["configurations"])}))
     elif a.command == "correlated-changes":
         from epistemics.ledger import correlated as correlated_ledger
 

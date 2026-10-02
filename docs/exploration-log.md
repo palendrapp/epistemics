@@ -271,3 +271,31 @@ See [the experiment](statement-updating-design.md#correlated-changes-2-october).
     - additivity for Astra;
     - primacy for Terra;
     - a modest, pragmatic count discount.
+
+## 2 October: is Terra's primacy general? (idea 22)
+
+Command: `uv run python -m epistemics.ledger primacy --statements output/statements-stage-a-20261001 --correlated output/correlated-changes-20261002 output/correlated-changes-20261002-topup --output output/primacy-20261002.json`.
+
+**Measure.** The same change's |step| when it comes later against when it comes first.
+- In statements stage A, a sequence's first change in one order is its last in the other.
+- In the correlated changes, every change comes once first and once second.
+- A ratio below 1 is primacy. Stylistic changes are left out.
+
+| Configuration | Statements stage A: last / first (changes) | Correlated changes: second / first (changes) |
+| --- | --- | --- |
+| Astra | 0.91 [0.83, 0.99] (7) | 1.03 [0.97, 1.10] (48) |
+| Astra-low | 0.88 [0.73, 1.02] (7) | — |
+| Astra-high | 1.10 [0.94, 1.24] (7) | — |
+| Sol | 0.97 [0.88, 1.07] (7) | 0.98 [0.88, 1.08] (48) |
+| Sol-low | 0.94 [0.78, 1.10] (7) | — |
+| Sol-high | 0.87 [0.73, 1.04] (7) | — |
+| Luna | 1.11 [0.93, 1.32] (7) | 0.99 [0.82, 1.21] (48) |
+| **Terra** | **0.79 [0.64, 0.97] (7)** | **0.78 [0.68, 0.88] (48)** |
+
+**Reading.**
+- **Terra's primacy replicates across the two designs.** In separate sessions, with multi-change sequences in one and two-change statements in the other, a change counts about 20% less when it comes later, and both intervals exclude 1.
+- **No other configuration shows a consistent position effect.** Luna's stage A recency (an index of +0.33) does not recur.
+- **The limit.** Both datasets are central-bank statements, so "general" here means general across two designs within one family.
+
+**Ideas:**
+24. **Terra's primacy beyond statements.** Sequences in another family: readings of a series revealed one at a time (the screen's trend cases), or two analysts' calls in turn (the peer-advice cases), in both orders. If Terra discounts later evidence there too, primacy is a candidate trait for the passport ("weighs what it hears first more"), with a consumer action: put the most important evidence first, or present evidence all at once.

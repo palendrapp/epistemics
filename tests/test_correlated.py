@@ -36,3 +36,11 @@ def test_the_regression_tells_independent_correlated_and_averaging_apart():
     assert abs(independent["a"]["mean"] - 1) < 0.15 and abs(independent["b"]["mean"]) < 0.15
     assert correlated_["b"]["mean"] < -0.3
     assert abs(averaging["a"]["mean"] - 0.5) < 0.15 and abs(averaging["b"]["mean"] + 0.5) < 0.15
+
+
+def test_primacy_ratio_reads_a_discount_on_later_changes():
+    from epistemics.ledger import primacy
+
+    pairs = [(1.0, 0.8), (0.5, 0.4), (0.8, 0.64)]
+    r = primacy.ratio(pairs)
+    assert abs(r["ratio"] - 0.8) < 1e-9 and r["changes"] == 3
