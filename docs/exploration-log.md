@@ -591,3 +591,44 @@ Terra's caution reads: no clear change (+0.08), 1.65 times the others with three
 - **Specific to the urn:** no configuration's weight changes with the set.
 
 **Caveat.** Many policy answers sit at 99% or more. If Terra's are at that ceiling, its weight cannot rise and a fall would show only as fewer answers there, so the analysis reports the share at the ceiling for each set.
+
+### Results
+
+**Collection.** Root `output/wording-phrase-set-policy-20261002`: 28 of 28 sessions (Astra, Sol, Luna and Terra × three policy3 forms and four policy forms), 13.8 million input tokens, no failures.
+- Task validation 0.41 passed on both seeds: 4,656 cases, 199 contexts, wording recovery error at most 0.05.
+- Fingerprint `06a050254e705989…`.
+- Command: `uv run python -m epistemics.ledger wording-phrase-sets output/wording-phrase-set-policy-20261002 --family policy --output output/wording-phrase-sets-policy-20261002.json`.
+
+**An economist's "definitely… confirmed" forecast with three wordings against four, in the same collection** (log-odds; ratio to the others' median; share of answers at 99% or more):
+
+| | Three wordings | Four wordings | Weight, three − four |
+| --- | --- | --- | --- |
+| Astra | 1.45 (0.67×; 0%) | 1.09 (0.40×; 0%) | **+0.36** [0.23, 0.49] |
+| Sol | 1.69 (0.79×; 0%) | 1.90 (0.69×; 0%) | −0.20 [−0.36, −0.06] |
+| Luna | 2.94 (1.74×; 0%) | 3.94 (2.07×; 42%) | −0.99 [−1.27, −0.71] |
+| Terra | 2.16 (1.27×; 0%) | 2.77 (1.46×; 4%) | **−0.61** [−0.92, −0.32] |
+
+**Set-relative reading across the two families** (weight on the top phrase, three − four):
+
+| | Urn | Policy |
+| --- | --- | --- |
+| Astra | −0.31 (less) | **+0.36 (more)** |
+| Sol | −0.42 (less) | −0.20 (less) |
+| Luna | −0.62 (no clear change) | −0.99 (less) |
+| Terra | +0.08 (no clear change) | **−0.61 (less)** |
+
+**Reading.**
+- **Set-relative reading is not a stable trait of Terra or Astra.**
+  - On the urn, Terra read the top phrase as worded. On the economist's forecast it gives the phrase less as the top of three, like Sol and Luna.
+  - Astra reverses. With four wordings it barely tells "definitely" from "definitely… confirmed" on a forecast (1.05 against 1.09). With three it gives the top phrase, and the lower wordings, more.
+- **Sol and Luna read the top phrase against the source's range in both families.** That is the only consistent part, and with two families it is thin.
+- **So the urn's "Terra reads the words, others read the range" was specific to the urn.** I would not add set-relative reading as a passport dimension on this evidence.
+- **The forecast ordering in the passport replicates.** With four wordings, rerun hours later:
+  - Luna 2.07×, Terra 1.46× [1.31, 1.62], Sol 0.69×, Astra 0.40×.
+  - Pooled over both collections: Luna 2.13×, Terra 1.60×, Sol 0.63×, Astra 0.40×.
+  - The `confident-wording` reading's "moved more" for Terra and Luna, and "moved less" for Sol and Astra, holds for forecasts.
+- **Terra's answers vary between sessions.**
+  - On the same four-wording forecasts, half of Terra's "definitely… confirmed" answers reached 99% or more this morning; here 4% did. Its mean weight changed less (3.07 against 2.77).
+  - Luna was steady: 42% both times, 3.86 against 3.94.
+  - That supports idea 33: size session-to-session variation before leaning on single-collection ratios.
+- **For the passport caution** (currently the urn's three-wording result): it should add that the phrase set's effect differs by family. On forecasts Terra gives the top phrase less as the top of three, and its lead over the others shrinks rather than grows (1.27× against 1.46×).
