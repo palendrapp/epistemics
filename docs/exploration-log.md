@@ -531,3 +531,39 @@ All four weigh an analyst's call exactly as a stated record implies.
 - **Phrase-set dependence:** with three wordings Terra's "definitely… confirmed" weight is again well above the others' median (about 2× or more), and its ratio with three wordings over its ratio with four has an interval above 1.
   - The likely mechanism: with "definitely" offered alone, the others read "confirmed" as a separate claim of verification and give it more.
 - **No dependence:** Terra's ratio is about the same with three and four wordings. The earlier face value would then come from the original collections' other features: cases where the agent had its own reading, or two calls per urn.
+
+### Results
+
+**Collection.** Root `output/wording-phrase-set-20261002`: 28 of 28 sessions (Astra, Sol, Luna and Terra × three urn3 forms and four urn forms), 13.4 million input tokens, no failures.
+- Task validation 0.40 passed on both seeds: 4,584 cases, 196 contexts, wording recovery error at most 0.05.
+- Fingerprint `4e8eff8c529988e2…`.
+- Command: `uv run python -m epistemics.ledger wording-phrase-sets output/wording-phrase-set-20261002 --output output/wording-phrase-sets-20261002.json`.
+
+**"Definitely… confirmed" with three wordings against four, in the same collection** (log-odds; ratio to the others' median, 90% interval):
+
+| | Three wordings | Four wordings | Weight, three − four | Ratio, three ÷ four |
+| --- | --- | --- | --- | --- |
+| Astra | 1.02 (0.68× [0.62, 0.79]) | 1.33 (0.83× [0.64, 0.98]) | −0.31 [−0.48, −0.14] | 0.83 [0.69, 1.14] |
+| Sol | 1.49 (1.46× [1.03, 1.59]) | 1.91 (1.19× [1.00, 1.60]) | −0.42 [−0.69, −0.14] | 1.23 [0.75, 1.43] |
+| Luna | 0.98 (0.66× [0.35, 1.02]) | 1.60 (1.00× [0.63, 1.47]) | −0.62 [−1.36, 0.13] | 0.66 [0.33, 1.24] |
+| Terra | 1.68 (**1.65×** [1.08, 1.98]) | 1.60 (1.00× [0.68, 1.40]) | **+0.08** [−0.50, 0.67] | **1.65** [0.93, 2.46] |
+
+Pooling both four-wording urn collections (48 cases each): Terra 1.15× [0.89, 1.48], Sol 1.21× [1.01, 1.49], Luna 0.87×, Astra 0.73×.
+
+**Reading.**
+- **The phrase set changes how the others read the top phrase, not how Terra reads it.**
+  - With three wordings, Astra, Sol and Luna give "definitely… confirmed" less (0.3–0.6 log-odds; intervals exclude 0 for Astra and Sol). They treat it as the top of the analyst's scale.
+  - With "definitely" also on offer, they read "confirmed" as something more, a claim of verification, and give it more.
+  - Terra gives the phrase the same weight either way (+0.08). It reads the words, not their place among the analyst's wordings.
+- **So Terra's lead with three wordings comes from the others discounting, not from Terra inflating.**
+  - With three wordings Terra stands 1.65 times the others' median (interval above 1). With four it is at the median.
+  - The shift's interval just reaches 1 (0.93–2.46), so the dependence is supported but not settled.
+- **Three wordings alone do not restore the earlier 2.4×.** The rest of that gap belongs to the earlier designs or to session-to-session variation.
+  - The earlier designs had cases with the agent's own reading in the same session, and two calls per urn.
+  - Terra's top-phrase weight on the four-wording urn was 2.19 this morning and 1.60 here, the largest drop between the two collections.
+- **A candidate trait for the passport: set-relative reading of wording.** Most configurations read a confidence phrase against the range the source uses; Terra reads it as worded. That is one collection with four configurations, exploratory.
+- **The current passport reading stands:** "about as far as the others for analysts' calls" is measured with four wordings. Its caution should now say that with three wordings Terra stands further from the others.
+
+**Ideas:**
+32. **Set-relative reading as a passport dimension.** For each configuration, how much a phrase's weight changes when the source's other wordings change. Test it across families, for example an economist with three wordings against four.
+33. **Session-to-session variation on the urn.** Terra's top-phrase weight moved 0.6 log-odds between two four-wording collections run the same day. A retest of one form across several sessions would size that before any reading leans on the urn ratios.

@@ -1248,6 +1248,21 @@
       "status": "complete",
       "prediction": "Record: a reading-guide reading computed in the ledger build from the wording-families collection, with the multi-agent pilot's record-stated ratio; replaces passport-calls.",
       "outcome": "Reading guide 0.7.0 replaces 'confident-calls' with 'confident-wording'; the passport's call_reaction field gives way to wording_sensitivity; the dashboard column shows the geometric mean of the per-family ratios to the others' median. Per family a configuration is above, below or like the others by whether the 90% interval of its 'definitely... confirmed' ratio excludes 1; moved more (above somewhere, below nowhere), moved less (the reverse), like the others, or depends on the kind of claim. Readings: Terra and Luna moved more (forecasts and reports; about as far for analysts' calls; 1.43 and 1.36 times across the three, often 99% or more); Sol moved less (0.82); Astra moved less in every kind of claim with the smallest spread (0.54); all four exact with an analyst's record stated. Exploratory, one collection."
+    },
+    {
+      "id": "wording-phrase-set",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Phrase-set dependence: an analyst's confident call with three wordings against four",
+      "question": "Does Terra's lead on an analyst's 'definitely... confirmed' call depend on the phrase set (three wordings, as in the original collections, against four)?",
+      "doc": "docs/exploration-log.md",
+      "roots": [
+        "output/wording-phrase-set-20261002"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory test of idea 30: the urn family with the original three wordings beside the four, texts otherwise identical, in one collection. Dependence: Terra's top-phrase ratio well above the others' median with three wordings, and its three-over-four ratio interval above 1.",
+      "outcome": "28 of 28 sessions (Astra, Sol, Luna, Terra x three urn3 and four urn forms), 13.4M input tokens, no failures; tasks 0.40.0. With three wordings Terra stands 1.65 [1.08, 1.98] times the others' median; with four, 1.00. The shift (1.65 [0.93, 2.46]) comes from the others: Astra, Sol and Luna give the top phrase 0.3-0.6 log-odds less when it is the top of three (Astra and Sol intervals exclude 0), while Terra gives it the same either way (+0.08). Three wordings do not restore the earlier 2.4 times. Candidate trait: set-relative reading of wording (most configurations read a phrase against the source's range; Terra reads it as worded). Exploratory."
     }
   ],
   "next": [
