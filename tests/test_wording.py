@@ -17,20 +17,23 @@ def test_every_item_takes_every_wording_and_the_families_share_a_skeleton():
         for level in offered:
             at = items["wording"] == level
             assert at.sum() == 24 // len(offered) and items["direction"][at].sum() == 0
-    assert len(levels) == 96
+    assert len(levels) == 120
     assert all(v == set(wording.levels(f)) for (f, _), v in levels.items())
-    assert wording.levels("urn3") == (0, 1, 3)
+    assert wording.levels("urn3") == wording.levels("policy3") == (0, 1, 3)
+    assert wording.base("policy3") == "policy" and wording.base("report") == "report"
     a, b = wording.design("wording-urn-c"), wording.design("wording-report-c")
     for key in ("prior", "direction", "wording"):
         assert (a[key] == b[key]).all()
 
 
-def test_the_three_wording_urn_differs_only_in_its_phrase_set():
-    three = render("wording-urn3-a", "markets", 3, "wording")["case"]
-    four = render("wording-urn-a", "markets", 3, "wording")["case"]
-    assert "one of three ways" in three and "one of four ways" in four
-    head = three[: three.index("“")].replace("three ways", "four ways")
-    assert head == four[: four.index("“")]
+def test_the_three_wording_families_differ_only_in_their_phrase_set():
+    for family in ("urn", "policy"):
+        three = render(f"wording-{family}3-a", "markets", 3, "wording")["case"]
+        four = render(f"wording-{family}-a", "markets", 3, "wording")["case"]
+        assert "one of three ways" in three and "one of four ways" in four
+        head = three[: three.index("“")].replace("three ways", "four ways")
+        assert head == four[: four.index("“")]
+    assert len(runner.check_groups(runner.PRESETS["wording-phrase-set-policy"])) == 28
     items = wording.design("wording-urn3-b")
     result = wording.session(items, [0.5] * 24)
     assert set(result["mean_weight"]) == {"I think", "plain", "confirmed"}

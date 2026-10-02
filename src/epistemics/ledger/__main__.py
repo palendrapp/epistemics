@@ -52,7 +52,7 @@ uv run python -m epistemics.ledger correlated-changes <roots...> --output <file>
 uv run python -m epistemics.ledger primacy --statements <roots...> --correlated <roots...> --output <file>
 uv run python -m epistemics.ledger call-reaction --advice <roots...> [--calls <roots...>] --output <file>
 uv run python -m epistemics.ledger wording-families <roots...> --output <file>
-uv run python -m epistemics.ledger wording-phrase-sets <roots...> --output <file>
+uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|policy] --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -203,6 +203,7 @@ def main():
     wf.add_argument("--output", type=Path, required=True)
     wp = sub.add_parser("wording-phrase-sets")
     wp.add_argument("roots", type=Path, nargs="+")
+    wp.add_argument("--family", choices=("urn", "policy"), default="urn")
     wp.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
@@ -559,7 +560,7 @@ def main():
     elif a.command == "wording-phrase-sets":
         from epistemics.ledger import wording
 
-        run = wording.phrase_sets(a.roots)
+        run = wording.phrase_sets(a.roots, three=f"{a.family}3", four=a.family)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         for c, e in run["configurations"].items():

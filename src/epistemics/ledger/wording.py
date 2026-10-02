@@ -179,6 +179,7 @@ def phrase_sets(roots, three="urn3", four="urn", seed=20261003):
     data = cases(roots)
     configs = sorted({c for c, f in data if f == three} & {c for c, f in data if f == four})
     rng = np.random.default_rng(seed)
+    ceiling = ceilings(roots)
 
     def boot(x):
         return x[rng.integers(0, len(x), size=(BOOTSTRAP, len(x)))].mean(axis=1)
@@ -194,9 +195,11 @@ def phrase_sets(roots, three="urn3", four="urn", seed=20261003):
                 [data[(o, f)]["confirmed"].mean() for o in others]
             )
             ratio = top[(c, f)] / np.median([top[(o, f)] for o in others], axis=0)
+            top_answers = ceiling.get((c, f), {}).get("top")
             entry[name] = {
                 "weights": {w: float(v.mean()) for w, v in x.items()},
                 "confirmed_to_others": {"ratio": float(point), "interval_90": _interval(ratio)},
+                "ceiling": float(np.mean(top_answers)) if top_answers else None,
             }
             entry[f"_{name}"] = ratio
         r3, r4 = entry.pop("_three"), entry.pop("_four")

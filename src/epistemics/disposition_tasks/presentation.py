@@ -175,6 +175,7 @@ INTRO_WORDING = {
     "urn": "about urns and the calls analysts make on them",
     "urn3": "about urns and the calls analysts make on them",
     "policy": "about central banks and the notes economists write on them",
+    "policy3": "about central banks and the notes economists write on them",
     "report": "about batches of goods and the reports inspectors write on them",
 }
 WORDING_CONTEXT = (

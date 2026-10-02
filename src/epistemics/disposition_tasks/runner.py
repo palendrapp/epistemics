@@ -419,7 +419,9 @@ PRESETS["calls-order"] = (
 PRESETS["wording-families"] = (
     {
         "configurations": ("astra", "sol", "luna", "terra"),
-        "modules": tuple(m for m in WORDING_MODULES if not m.startswith("wording-urn3-")),
+        "modules": tuple(
+            m for m in WORDING_MODULES if m.split("-")[1] in ("urn", "policy", "report")
+        ),
         "contexts": (("wording", "markets", 1),),
     },
 )
@@ -430,6 +432,17 @@ PRESETS["wording-phrase-set"] = (
         "configurations": ("astra", "sol", "luna", "terra"),
         "modules": tuple(
             m for m in WORDING_MODULES if m.startswith(("wording-urn-", "wording-urn3-"))
+        ),
+        "contexts": (("wording", "markets", 1),),
+    },
+)
+# Set-relative reading in the policy family: the economist's notes with four wordings and with
+# three, in one collection; the default-effort configurations on every form of both.
+PRESETS["wording-phrase-set-policy"] = (
+    {
+        "configurations": ("astra", "sol", "luna", "terra"),
+        "modules": tuple(
+            m for m in WORDING_MODULES if m.startswith(("wording-policy-", "wording-policy3-"))
         ),
         "contexts": (("wording", "markets", 1),),
     },

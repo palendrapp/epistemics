@@ -137,6 +137,9 @@ MODULES = (
     "wording-urn3-a",
     "wording-urn3-b",
     "wording-urn3-c",
+    "wording-policy3-a",
+    "wording-policy3-b",
+    "wording-policy3-c",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -266,7 +269,9 @@ CALLS_VARIANTS = ("calls",)
 # three families (dispositions.wording).
 WORDING_MODULES = tuple(
     f"wording-{family}-{form}" for family in ("urn", "policy", "report") for form in "abcd"
-) + tuple(f"wording-urn3-{form}" for form in "abc")  # the original three wordings (tasks 0.40)
+) + tuple(
+    f"wording-{family}-{form}" for family in ("urn3", "policy3") for form in "abc"
+)  # the original three wordings (tasks 0.40)
 WORDING_VARIANTS = ("wording",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),

@@ -17,7 +17,8 @@ across the forms, six items at each wording in a form, their directions and prio
 Phrase-set dependence (design 0.30; idea 30): urn3 is the urn family with the original three
 wordings ("I think...", plain, "definitely... confirmed"; the analyst "phrases each call in one of
 three ways"), in three forms of eight items per wording. Run beside urn, it tells whether the top
-phrase's weight depends on "definitely" being offered on its own.
+phrase's weight depends on "definitely" being offered on its own. policy3 (design 0.31; idea 32)
+does the same for the economist's notes.
 
   weight = (logit(answer) - logit(prior)) * direction    (log-odds, toward the claim)
 """
@@ -28,12 +29,17 @@ import numpy as np
 
 from epistemics.dispositions.screen import logit
 
-FAMILIES = ("urn", "policy", "report", "urn3")
+FAMILIES = ("urn", "policy", "report", "urn3", "policy3")
 FORMS = ("a", "b", "c", "d")
 WORDINGS = ("I think", "plain", "definitely", "confirmed")
 # The wordings each family offers (indices into WORDINGS); one form per wording.
-LEVELS = {"urn3": (0, 1, 3)}
+LEVELS = {"urn3": (0, 1, 3), "policy3": (0, 1, 3)}
 PRIORS = (40, 50, 60)
+
+
+def base(family):
+    """The four-wording family a three-wording family copies."""
+    return family[:-1] if family in LEVELS else family
 
 
 def levels(family):

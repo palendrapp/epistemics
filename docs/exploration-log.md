@@ -577,3 +577,17 @@ Each caution gives, for that configuration:
 - the call's ratio to the others' median with three wordings and with four, both from that collection.
 
 Terra's caution reads: no clear change (+0.08), 1.65 times the others with three wordings against 1.00 with four. Astra and Sol give the phrase less as the top of three. Luna shows no clear change.
+
+## 2 October: set-relative reading in the policy family (idea 32)
+
+**Question.** On the urn, Astra and Sol gave "definitely… confirmed" less when it was the top of three wordings than when "definitely" was also on offer. Terra gave it the same either way: it reads the words, not their place among the analyst's wordings. Does this hold for an economist's forecast? That is the family where Terra and Luna moved furthest and half of Terra's answers reached 99% or more.
+
+**Modules `wording-policy3-{a,b,c}`** (design 0.31.0, tasks 0.41.0). These are the policy family's notes with the three original wordings: the economist "phrases each conclusion in one of three ways". Otherwise they match the four-wording policy modules word for word, and the audit checks this.
+
+**Collection.** Preset `wording-phrase-set-policy`: Astra, Sol, Luna and Terra take the three policy3 forms and, in the same collection, the four policy forms again (28 sessions). Analysis: `uv run python -m epistemics.ledger wording-phrase-sets <roots> --family policy --output <file>`.
+
+**What would count** (exploratory):
+- **Set-relative reading is general:** the configurations that read the urn phrase against the analyst's range (Astra and Sol) also give the economist's top phrase less as the top of three. Terra's weight does not change.
+- **Specific to the urn:** no configuration's weight changes with the set.
+
+**Caveat.** Many policy answers sit at 99% or more. If Terra's are at that ceiling, its weight cannot rise and a fall would show only as fewer answers there, so the analysis reports the share at the ceiling for each set.

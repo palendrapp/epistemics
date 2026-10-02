@@ -700,15 +700,17 @@ def wording_audit():
                 raise ValueError(f"{module}/{i}: the claim's wording does not match its level")
             if any(w in case for w in ("right in", "record", "correct", "accura")):
                 raise ValueError(f"{module}/{i}: states a record")
-            if family == "urn3":
+            if wording.base(family) != family:
                 ways = "one of three ways"
-                twin = render(f"wording-urn-{form}", "markets", i, "wording")["case"]
+                twin = render(f"wording-{wording.base(family)}-{form}", "markets", i, "wording")[
+                    "case"
+                ]
                 if (
                     ways not in case
                     or case[: case.index("“")].replace(ways, "one of four ways")
                     != twin[: twin.index("“")]
                 ):
-                    raise ValueError(f"{module}/{i}: differs from the urn family beyond the set")
+                    raise ValueError(f"{module}/{i}: differs from its family beyond the set")
             seen.setdefault((family, k), set()).add(level)
     families = {f for f, _ in seen}
     if len(seen) != 24 * len(families) or any(

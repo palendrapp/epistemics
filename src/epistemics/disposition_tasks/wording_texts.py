@@ -33,9 +33,10 @@ def phrase(level, pre, post):
 def texts(family, k, direction):
     """(prior sentence with {p}, who makes claims, claim lead-in, (pre, post), question)."""
     spec = wording.items_spec()[k]
-    if family in ("urn", "urn3"):
+    ways = "four" if len(wording.levels(family)) == 4 else "three"
+    family = wording.base(family)
+    if family == "urn":
         urn, analyst = f"urn U{spec['id']}", f"Analyst R{61 + k}"
-        ways = "four" if family == "urn" else "three"
         colour = "red" if direction == 1 else "blue"
         return (
             f"Urn U{spec['id']} is either red-majority or blue-majority. Before any evidence, the "
@@ -58,7 +59,7 @@ def texts(family, k, direction):
             "is {p}%.",
             "Economists at research firms write notes on central banks' decisions. A note ends "
             f"with a conclusion naming the decision the economist expects. {economist} phrases "
-            "each conclusion in one of four ways.",
+            f"each conclusion in one of {ways} ways.",
             f"{economist}'s note on {bank} reviews recent data on prices, employment and spending. "
             "Its conclusion:",
             ("the committee will", decision),
