@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.6.0"
+VERSION = "reading-guide/0.7.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -840,15 +840,22 @@ def undetermined_checks(config, checks):
     return lines
 
 
-# Analysts' calls (docs/exploration-log.md, call reaction): a confident call without a record is
-# taken at face value when it moves the answer at least FACE_VALUE times as far as the median of
-# the other configurations; wording barely matters when a confident call moves it less than
-# WORDING log-odds further than an "I think" call.
-FACE_VALUE = 1.5
-WORDING = 0.3
-CALLS_EVIDENCE = (
-    "Urn cases where one analyst's call, worded with more or less confidence, is the only "
-    "evidence: without a record, and with the analyst's record stated"
+# Confident wording across kinds of claim (docs/exploration-log.md, idea 28): one claim without a
+# record, worded "I think...", plainly, "definitely..." or "definitely... confirmed", in three
+# families. In each family a configuration's "definitely... confirmed" weight is above, below or
+# like the other configurations' median, by whether its 90% interval excludes 1. Moved more: above
+# somewhere and below nowhere; moved less: the reverse; otherwise it depends on the kind of claim.
+# CEILING_SHARE: how often answers at 99% or more are mentioned.
+CEILING_SHARE = 0.4
+CLAIM_KINDS = {
+    "urn": ("an analyst's call on an urn", "analysts' calls"),
+    "policy": ("an economist's forecast of a central bank's decision", "economists' forecasts"),
+    "report": ("an inspector's report on a batch of goods", "inspectors' reports"),
+}
+WORDING_EVIDENCE = (
+    "One claim without a record, worded four ways from \u201cI think\u2026\u201d to "
+    "\u201cdefinitely\u2026 confirmed\u201d: an analyst's call on an urn, an economist's forecast "
+    "and an inspector's report"
 )
 
 
@@ -856,68 +863,123 @@ def probability_from_even(log_odds):
     return 1 / (1 + math.exp(-log_odds))
 
 
-def confident_calls(p):
-    """How far an analyst's confident call moves it, without a record, against the others."""
-    f = p.get("call_reaction")
-    if not f or f.get("confident") is None or not f.get("others_confident"):
+def kinds(keys):
+    names = [CLAIM_KINDS[k][0] for k in keys]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def moved(v):
+    lo, hi = v["interval_90"]
+    return "above" if lo > 1 else "below" if hi < 1 else "like"
+
+
+def confident_wording(p):
+    """How far a confidently worded claim without a record moves it, against the other
+    configurations, across kinds of claim."""
+    f = p.get("wording_sensitivity")
+    if not f or not f.get("families"):
         return None
-    w, others = f["confident"], f["others_confident"]
-    ratio = w / others
-    reach = pct(probability_from_even(w))
-    tentative = f.get("tentative")
-    exact = f.get("record_ratio") is not None and abs(f["record_ratio"] - 1) <= 0.05
-    if ratio >= FACE_VALUE:
-        claim = (
-            "Without a track record, it takes an analyst's confident wording at face value: a "
-            f'"definitely… confirmed" call moves it from 50% to about {reach}, about '
-            f"{ratio:.1f} times as far as the other configurations."
+    fam = {k: f["families"][k] for k in CLAIM_KINDS if k in f["families"]}
+    side = {k: moved(v) for k, v in fam.items()}
+    above = [k for k in fam if side[k] == "above"]
+    below = [k for k in fam if side[k] == "below"]
+    like = [k for k in fam if side[k] == "like"]
+    pooled = f["pooled_ratio"]
+
+    def scope(keys):
+        return "in every kind of claim measured" if len(keys) == len(fam) else f"for {kinds(keys)}"
+
+    def reach(k, phrase):
+        return (
+            f"{phrase} {CLAIM_KINDS[k][0]}, \u201cdefinitely\u2026 confirmed\u201d takes it from "
+            f"50% to about {pct(probability_from_even(fam[k]['confident']))}, "
+            f"{fam[k]['ratio']:.1f} times as far as the others."
         )
-        fact = f"Face value ({ratio:.1f}× others)"
-    elif tentative is not None and w - tentative < WORDING:
+
+    if above and not below:
+        top = max(above, key=lambda k: fam[k]["ratio"])
         claim = (
-            "Without a track record, it gives an analyst's call much the same weight whatever the "
-            f'wording: a "definitely… confirmed" call moves it from 50% to about {reach}, an '
-            f'"I think…" call to about {pct(probability_from_even(tentative))}.'
+            "Without a record, a confidently worded claim moves it further than the other "
+            f"configurations {scope(above)}"
+            + (f", and about as far for {kinds(like)}" if like else "")
+            + ". "
+            + reach(top, "On")
         )
-        fact = "Wording barely matters"
+        fact = f"Moved more ({pooled:.1f}\u00d7 others)"
+    elif below and not above:
+        low = min(below, key=lambda k: fam[k]["ratio"])
+        claim = (
+            "Without a record, a confidently worded claim moves it less than the other "
+            f"configurations {scope(below)}"
+            + (f", and about as far for {kinds(like)}" if like else "")
+            + (", and its answers change least with the wording" if f.get("least_spread") else "")
+            + ". "
+            + reach(low, "On")
+        )
+        fact = f"Moved less ({pooled:.1f}\u00d7 others)"
+    elif not above and not below:
+        claim = (
+            "Without a record, a confidently worded claim moves it about as far as the other "
+            "configurations in every kind of claim measured."
+        )
+        fact = "Like the others"
     else:
         claim = (
-            "Without a track record, it weighs an analyst's confident wording much as the other "
-            f'configurations do: a "definitely… confirmed" call moves it from 50% to about {reach}.'
+            "How far confident wording moves it depends on the kind of claim: further than the "
+            f"other configurations for {kinds(above)}, less for {kinds(below)}"
+            + (f", about as far for {kinds(like)}" if like else "")
+            + "."
         )
-        fact = f"Like the others ({ratio:.1f}×)"
-    if exact:
-        claim += " Given the analyst's record, it weighs the call exactly as the record implies."
+        fact = f"Depends on the claim ({pooled:.1f}\u00d7)"
+    certain = [
+        (k, v["ceiling"])
+        for k, v in fam.items()
+        if v.get("ceiling") is not None and v["ceiling"] >= CEILING_SHARE
+    ]
+    if certain:
+        parts = [f"{share:.0%} of its answers on {CLAIM_KINDS[k][1]}" for k, share in certain]
+        claim += (
+            " A \u201cdefinitely\u2026 confirmed\u201d claim often takes it to 99% or more ("
+            + "; ".join(parts)
+            + ")."
+        )
+    if f.get("record_ratio") is not None and abs(f["record_ratio"] - 1) <= 0.05:
+        claim += " Given an analyst's record, it weighs a call exactly as the record implies."
     detail = (
-        f'Weight of a call without a record, in log-odds: "definitely… confirmed" {w:.2f} (median '
-        f"of the other configurations {others:.2f})"
-        + (f", plain {f['plain']:.2f}" if f.get("plain") is not None else "")
-        + (f', "I think…" {tentative:.2f}' if tentative is not None else "")
-        + "."
+        "Weight of a \u201cdefinitely\u2026 confirmed\u201d claim without a record, in log-odds, "
+        "against the median of the other configurations: "
+        + "; ".join(
+            f"{CLAIM_KINDS[k][1]} {v['confident']:.2f} ({v['ratio']:.2f}\u00d7, 90% interval "
+            f"{v['interval_90'][0]:.2f}\u2013{v['interval_90'][1]:.2f}; \u201cI think\u2026\u201d "
+            f"{v['tentative']:.2f})"
+            for k, v in fam.items()
+        )
+        + f". Across the three, {pooled:.2f} times the others."
     )
     if f.get("record_ratio") is not None:
         detail += (
-            f" With the record stated: {f['record_ratio']:.2f} of the weight the record implies."
+            f" With an analyst's record stated: {f['record_ratio']:.2f} of the weight the record "
+            "implies."
         )
-    n = f["collections"]
     return reading(
-        "confident-calls",
+        "confident-wording",
         "evidence",
         claim,
         detail,
-        f"{CALLS_EVIDENCE}; {n} collection{'s' if n != 1 else ''} without a record.",
+        f"{WORDING_EVIDENCE}; one collection.",
         f["sessions"],
         {
             "kind": "values",
-            "values": [probability_from_even(others), probability_from_even(w)],
-            "labels": ["others", "this configuration"],
-        },  # fmt: skip
+            "values": [probability_from_even(v["confident"]) for v in fam.values()],
+            "labels": [CLAIM_KINDS[k][1] for k in fam],
+        },
         caution=(
-            "Exploratory: analysts' calls on abstract urn cases only. The same wording from an AI "
-            "agent, a relayed report or a sensor is weighed differently (exploration log, call "
-            "reaction)."
+            "Exploratory: one collection, four configurations compared with each other. Answers "
+            "at 99% or more understate how far a claim moves it, so ratios there are lower "
+            "bounds, and an interval can include 1. Whether the analyst result depends on the "
+            "wordings offered is untested."
         ),
-        fact=("Confident call, no record", fact),
+        fact=("Confident wording, no record", fact),
     )
 
 
@@ -1025,7 +1087,7 @@ def guide(ledger, descriptors):
             fidelity_trait(config, (ledger.get("models") or {}).get("battery_v2")),
             sessions_vary(p),
             coherence(p),
-            confident_calls(p),
+            confident_wording(p),
             framing(p),
         ]
         readings = [r for r in readings if r]
@@ -1048,7 +1110,7 @@ def guide(ledger, descriptors):
                 ("documents", "whether it behaves the same in realistic documents"),
                 ("sessions", "how much its judgements vary between sessions"),
                 ("framing", "whether a question's framing changes its numbers"),
-                ("confident-calls", "how it weighs an analyst's confident wording"),
+                ("confident-wording", "how far confident wording moves it without a record"),
             )
             if not any(m.startswith(key) if key.endswith("-") else m == key for m in measured)
         ] + undetermined_checks(config, (ledger.get("models") or {}).get("structure_checks"))

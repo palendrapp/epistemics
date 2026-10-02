@@ -64,3 +64,33 @@ def test_summary_flags_face_value_only_where_confident_claims_move_it_further(mo
     assert table["terra"]["face_value"] and not table["sol"]["face_value"]
     assert table["terra"]["confirmed_to_others"]["ratio"] > 2
     assert abs(table["terra"]["confirmed_adds"]["mean"] - 0.8) < 0.2
+
+
+def test_guide_reads_most_least_and_claim_dependent_wording():
+    from epistemics.ledger import guide
+
+    def family(ratio, ceiling=0.0):
+        return {"confident": 2.0 * ratio, "tentative": 0.5, "ratio": ratio,
+                "interval_90": [ratio - 0.2, ratio + 0.2], "spread": 1.0, "ceiling": ceiling,
+                "sessions": 4}  # fmt: skip
+
+    def passport(ratios, least=False, record=1.0, ceiling=0.0):
+        fams = {k: family(r, ceiling) for k, r in zip(("urn", "policy", "report"), ratios)}  # noqa: B905
+        pooled = float(np.exp(np.mean(np.log(ratios))))
+        return {"wording_sensitivity": {"families": fams, "pooled_ratio": pooled,
+                                        "least_spread": least, "sessions": 12,
+                                        "record_ratio": record}}  # fmt: skip
+
+    more = guide.confident_wording(passport([1.1, 1.75, 1.3], ceiling=0.5))
+    assert more["fact"]["value"].startswith("Moved more")
+    assert "about as far for an analyst's" in more["claim"] and "economist's" in more["claim"]
+    assert "99% or more" in more["claim"] and "exactly" in more["claim"]
+    less = guide.confident_wording(passport([0.7, 0.4, 0.55], least=True, record=None))
+    assert less["fact"]["value"].startswith("Moved less") and "change least" in less["claim"]
+    assert "every kind of claim" in less["claim"] and "exactly" not in less["claim"]
+    mixed = guide.confident_wording(passport([0.7, 2.2, 1.4]))
+    assert (
+        mixed["fact"]["value"].startswith("Depends") and "less for an analyst's" in mixed["claim"]
+    )
+    assert guide.confident_wording(passport([0.9, 1.1, 1.0]))["fact"]["value"] == "Like the others"
+    assert guide.confident_wording({}) is None

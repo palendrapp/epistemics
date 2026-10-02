@@ -13,22 +13,43 @@ from epistemics.dispositions.wording import FAMILIES, WORDINGS
 
 BOOTSTRAP = 4000
 FACE_VALUE = 1.5
+CEILING = 0.99
+WORDING_EXPERIMENTS = ("wording-families",)
+
+
+def records(roots):
+    from epistemics.ledger import dispositions
+
+    for root in roots:
+        for record in dispositions.extract(root):
+            if record.get("verified") and "wording" in record:
+                yield record
 
 
 def cases(roots):
-    from epistemics.ledger import dispositions
-
     out = {}
-    for root in roots:
-        for record in dispositions.extract(root):
-            if not record.get("verified") or "wording" not in record:
-                continue
-            w = record["wording"]
-            for r in w["cases"]:
-                out.setdefault((record["configuration"], w["family"]), {}).setdefault(
-                    r["wording"], []
-                ).append(r["weight"])
+    for record in records(roots):
+        w = record["wording"]
+        for r in w["cases"]:
+            out.setdefault((record["configuration"], w["family"]), {}).setdefault(
+                r["wording"], []
+            ).append(r["weight"])
     return {k: {w: np.array(v) for w, v in by.items()} for k, by in out.items()}
+
+
+def ceilings(roots):
+    """Per configuration and family: the sessions, and whether each "definitely... confirmed"
+    answer is at 99% or more toward the claim (where the weight understates the move)."""
+    out = {}
+    for record in records(roots):
+        w = record["wording"]
+        e = out.setdefault((record["configuration"], w["family"]), {"top": [], "sessions": 0})
+        e["sessions"] += 1
+        for c in w["cases"]:
+            if c["wording"] == "confirmed":
+                toward = c["answer"] if c["direction"] == 1 else 1 - c["answer"]
+                e["top"].append(round(toward, 2) >= CEILING)
+    return out
 
 
 def _interval(x):
@@ -95,3 +116,45 @@ def summary(roots, seed=20261002):
             "least 1.5 times as far as the other configurations' median, with the interval above 1."
         ),
     }
+
+
+def passport_wording(roots, record_ratios=None):
+    """The passport's reaction to confident wording, per configuration: in each family, the weight
+    of a "definitely... confirmed" claim without a record against the median of the other
+    configurations, the spread from "I think...", and the share of those answers at 99% or more;
+    across families, the geometric mean of the ratios and whether its spread is the smallest in
+    every family. record_ratios: the weight given to an analyst's call with its record stated,
+    over the weight the record implies (call_reaction.record_ratios)."""
+    table = summary(roots)["families"]
+    ceiling = ceilings(roots)
+    out = {}
+    for c in sorted({c for t in table.values() for c in t}):
+        families = {}
+        for family, t in table.items():
+            e = t.get(c)
+            if not e or "confirmed_to_others" not in e or "spread" not in e:
+                continue
+            top = ceiling.get((c, family), {})
+            families[family] = {
+                "confident": e["weights"]["confirmed"]["mean"],
+                "tentative": e["weights"]["I think"]["mean"],
+                "ratio": e["confirmed_to_others"]["ratio"],
+                "interval_90": e["confirmed_to_others"]["interval_90"],
+                "spread": e["spread"]["mean"],
+                "ceiling": float(np.mean(top["top"])) if top.get("top") else None,
+                "sessions": top.get("sessions", 0),
+            }
+        if not families:
+            continue
+        least = all(
+            v["spread"] <= min(o["spread"]["mean"] for o in table[f].values() if "spread" in o)
+            for f, v in families.items()
+        )
+        out[c] = {
+            "families": families,
+            "pooled_ratio": float(np.exp(np.mean(np.log([v["ratio"] for v in families.values()])))),
+            "least_spread": bool(least and len(table[next(iter(families))]) > 1),
+            "sessions": sum(v["sessions"] for v in families.values()),
+            "record_ratio": (record_ratios or {}).get(c),
+        }
+    return out

@@ -492,3 +492,27 @@ Where answers sit at the ceiling, the measured weight understates how far the co
 29. **Replace the calls reading with a cross-family wording-sensitivity reading.** Use each configuration's spread and its top-phrase weight against the others, pooled over the three families, with a ceiling-aware measure (the share of answers at 99% or more) beside it.
 30. **Phrase-set dependence.** Rerun the urn family with the original three-wording set beside the four-wording set in matched sessions. That would show whether Terra's face value depends on "definitely… confirmed" being the top of the scale.
 31. **Forecasts against verifiable claims.** Does the policy-family gap come from the claim being a forecast? An economist reporting a decision already announced would be confirmable; a forecast is not.
+
+## 2 October: confident wording in the passport (idea 29)
+
+Reading guide 0.7.0 replaces the analysts'-calls reading (`confident-calls`, 0.6.0) with one reading across kinds of claim, `confident-wording`, under "How it weighs evidence". The passport field `call_reaction` gives way to `wording_sensitivity`, built from the wording-families collection. The record-stated ratio from the multi-agent pilot is kept beside it.
+
+**Rules.**
+- In each family, a configuration's "definitely… confirmed" weight is compared with the median of the other configurations. It counts as above or below only when the 90% interval excludes 1; otherwise it is like the others.
+- **Moved more:** above in some family and below in none. **Moved less:** the reverse. **Like the others:** neither. Otherwise **it depends on the kind of claim**.
+- The reading names the share of answers at 99% or more when that is at least 40%, because the weights there are lower bounds.
+- It adds that an analyst's stated record is weighed exactly when the ratio is within 0.05 of 1.
+- The dashboard's passport table shows the geometric mean of the three ratios, marked "least" where the spread from "I think…" is the smallest in every family.
+
+**Readings:**
+
+| Configuration | Reading | Across the three |
+| --- | --- | --- |
+| Terra | Moved more: further for forecasts and reports, about as far for analysts' calls; half its answers at 99% or more on both | 1.43× |
+| Luna | Moved more: the same pattern; 42% and 100% of answers at 99% or more | 1.36× |
+| Sol | Moved less: less for forecasts and reports, about as far for analysts' calls | 0.82× |
+| Astra | Moved less in every kind of claim, and its answers change least with the wording | 0.54× |
+
+All four weigh an analyst's call exactly as a stated record implies.
+
+**Why intervals rather than point ratios.** On point ratios, Terra would read as moved further in every family and Sol as further on analysts' calls. Both urn intervals include 1 (Terra 0.97–1.68, Sol 0.94–1.51), so the reading says "about as far" there.

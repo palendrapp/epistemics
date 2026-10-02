@@ -75,21 +75,3 @@ def test_call_reaction_reads_each_first_calls_phrase():
     analyst, direction, phrase = spec["calls"][1]
     row = {"item": 5, "first": [analyst, direction]}
     assert call_reaction.phrase_of(row) == phrase
-
-
-def test_guide_reads_face_value_wording_and_ordinary_calls():
-    from epistemics.ledger import guide
-
-    def calls(confident, tentative, others, record=1.0):
-        entry = {"confident": confident, "plain": (confident + tentative) / 2,
-                 "tentative": tentative, "others_confident": others, "collections": 2,
-                 "sessions": 5, "record_ratio": record}  # fmt: skip
-        return {"call_reaction": entry}
-
-    face = guide.confident_calls(calls(2.5, 0.5, 1.1))
-    assert face["topic"] == "evidence" and "face value" in face["claim"]
-    assert face["fact"]["value"].startswith("Face value") and "exactly" in face["claim"]
-    flat = guide.confident_calls(calls(0.8, 0.65, 1.3, record=None))
-    assert flat["fact"]["value"] == "Wording barely matters" and "exactly" not in flat["claim"]
-    assert guide.confident_calls(calls(1.3, 0.4, 1.1))["fact"]["value"].startswith("Like")
-    assert guide.confident_calls({}) is None

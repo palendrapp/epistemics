@@ -1235,6 +1235,19 @@
       "status": "complete",
       "prediction": "Exploratory test of idea 28: one claim without a record in four wordings ('I think', plain, 'definitely', 'definitely... confirmed') in three families, a Latin square per family. A trait: Terra's top-phrase weight at least 1.5 times the others' median, interval above 1, in every family.",
       "outcome": "48 of 48 sessions (Astra, Sol, Luna, Terra x three families x four forms), 22.9M input tokens, no failures; tasks 0.39.0. Terra's urn face value did not replicate under a four-wording set (top phrase 2.19 log-odds, 1.29 [0.97, 1.68] times the others' median; the others gave the phrase much more than in the three-wording collections). Policy notes: Luna 2.20 and Terra 1.75 times the others' median, half of Terra's answers at 99% or more; Astra and Sol barely move with wording. Inspection reports move everyone near the ceiling; Luna and Terra furthest. 'Confirmed' adds to 'definitely' for everyone. Across families Astra is the least wording-sensitive and Terra in the top two. The passport's calls readings (Terra face value, Astra wording barely matters) overstate design-conditional effects; candidate replacement: an ordinal cross-family wording-sensitivity reading."
+    },
+    {
+      "id": "passport-wording",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Confident wording in the passport (replaces the analysts'-calls reading)",
+      "question": "How should a configuration's reaction to confidently worded claims without a record read in the passport, given the wording-families results?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Record: a reading-guide reading computed in the ledger build from the wording-families collection, with the multi-agent pilot's record-stated ratio; replaces passport-calls.",
+      "outcome": "Reading guide 0.7.0 replaces 'confident-calls' with 'confident-wording'; the passport's call_reaction field gives way to wording_sensitivity; the dashboard column shows the geometric mean of the per-family ratios to the others' median. Per family a configuration is above, below or like the others by whether the 90% interval of its 'definitely... confirmed' ratio excludes 1; moved more (above somewhere, below nowhere), moved less (the reverse), like the others, or depends on the kind of claim. Readings: Terra and Luna moved more (forecasts and reports; about as far for analysts' calls; 1.43 and 1.36 times across the three, often 99% or more); Sol moved less (0.82); Astra moved less in every kind of claim with the smallest spread (0.54); all four exact with an analyst's record stated. Exploratory, one collection."
     }
   ],
   "next": [

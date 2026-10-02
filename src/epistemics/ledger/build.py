@@ -16,6 +16,7 @@ from epistemics.ledger import (
     roots,
     transfer,
     variance,
+    wording,
 )
 
 CONFIGURATIONS = ("astra", "sol", "astra-low", "sol-low", "luna", "terra")
@@ -294,15 +295,21 @@ def build(registry_path="docs/experiments.json"):
     ]
     if frame_roots:
         analyses["frame_sensitivity"] = deliberation.passport_frames(frame_roots)
-    call_roots = {
-        entry["id"]: [r for r in entry.get("roots", []) if Path(r, "plan.json").exists()]
-        for entry in registry["experiments"]
-        if entry["id"] in call_reaction.CALL_EXPERIMENTS
-    }
-    advice_roots = [r for k, rs in call_roots.items() if k != "calls-order" for r in rs]
-    if advice_roots:
-        analyses["call_reaction"] = call_reaction.passport_calls(
-            advice_roots, call_roots.get("calls-order", [])
+
+    def registry_roots(ids):
+        return [
+            r
+            for entry in registry["experiments"]
+            if entry["id"] in ids
+            for r in entry.get("roots", [])
+            if Path(r, "plan.json").exists()
+        ]
+
+    wording_roots = registry_roots(wording.WORDING_EXPERIMENTS)
+    if wording_roots:
+        record_roots = registry_roots(call_reaction.RECORD_EXPERIMENTS)
+        analyses["wording_sensitivity"] = wording.passport_wording(
+            wording_roots, call_reaction.record_ratios(record_roots) if record_roots else None
         )
     result = {
         "schema_version": "epistemics.ledger.v1",
@@ -325,7 +332,9 @@ def build(registry_path="docs/experiments.json"):
         result["passport"].setdefault(config, {"contexts": frames["sessions"]})[
             "frame_sensitivity"
         ] = frames
-    for config, calls in analyses.get("call_reaction", {}).items():
-        result["passport"].setdefault(config, {"contexts": 0})["call_reaction"] = calls
+    for config, sensitivity in analyses.get("wording_sensitivity", {}).items():
+        result["passport"].setdefault(config, {"contexts": sensitivity["sessions"]})[
+            "wording_sensitivity"
+        ] = sensitivity
     result["guide"] = guide.guide(result, models.descriptors())
     return result

@@ -109,43 +109,15 @@ def summary(advice_roots, calls_roots=()):
     }
 
 
-CALL_EXPERIMENTS = ("multi-agent-pilot", "multi-agent-open", "confidence-transfer", "calls-order")
-ANALYST_SOURCES = ("advice-peer (no record)", "analysts' calls in order")
+RECORD_EXPERIMENTS = ("multi-agent-pilot",)
 
 
-def passport_calls(advice_roots, calls_roots=()):
-    """The passport's reaction to analysts' calls, per configuration: the weight of a confident
-    ("definitely... confirmed"), plain and "I think" call from an analyst without a record (the mean
-    over the analyst sources measured), against the median of the other configurations; and, where
-    measured, the ratio of the weight given to a call with a stated record to the weight that
-    record implies."""
-    s = summary(advice_roots, calls_roots)
-    sources = s["sources"]
-    phrases = {}
-    collections = {}
-    sessions = {}
-    for source in ANALYST_SOURCES:
-        for c, e in sources.get(source, {}).items():
-            for phrase, w in e.get("by_phrase", {}).items():
-                phrases.setdefault(c, {}).setdefault(phrase, []).append(w)
-            collections[c] = collections.get(c, 0) + 1
-            sessions[c] = sessions.get(c, 0) + e["sessions"]
-    out = {}
-    for c, by in phrases.items():
-        entry = {k: float(np.mean(v)) for k, v in by.items()}
-        others = [
-            float(np.mean(phrases[o]["definitely"]))
-            for o in phrases
-            if o != c and "definitely" in phrases[o]
-        ]
-        record = sources.get("advice-peer (record)", {}).get(c, {})
-        out[c] = {
-            "confident": entry.get("definitely"),
-            "plain": entry.get("plain"),
-            "tentative": entry.get("I think"),
-            "others_confident": float(np.median(others)) if others else None,
-            "collections": collections[c],
-            "sessions": sessions[c],
-            "record_ratio": record.get("ratio_to_deserved"),
-        }
-    return out
+def record_ratios(roots):
+    """Per configuration: the weight given to an analyst's call with its record stated, over the
+    weight that record implies (1: exact)."""
+    sources = summary(roots)["sources"]
+    return {
+        c: e["ratio_to_deserved"]
+        for c, e in sources.get("advice-peer (record)", {}).items()
+        if "ratio_to_deserved" in e
+    }
