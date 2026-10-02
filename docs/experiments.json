@@ -1194,6 +1194,19 @@
       "status": "complete",
       "prediction": "Exploratory test of idea 24: two analysts' calls without a record, one then both, each item in both orders; the correlated-changes and primacy analyses.",
       "outcome": "16 of 16 sessions (Astra, Sol, Luna, Terra x four forms), 7.7M input tokens, no failures; tasks 0.38.0. Terra's primacy does not clearly carry over: a later call counts 0.95 [0.86, 1.06] of a first (statements 0.79 and 0.78); regression a 0.85. Every configuration treats the two calls as independent evidence (b about 0); Sol adds them exactly (a 1.01, order gap 0.11); Luna inconsistent and noisy; Terra's single-call steps are about twice the others' (1.3-1.4 against about 0.7)."
+    },
+    {
+      "id": "call-reaction",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Exploration: how strongly configurations react to an analyst's call",
+      "question": "Is Terra's strong reaction to a single analyst's call general across the peer-advice data, and what drives it?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Exploratory; no test. Call weight (answer minus stated prior, signed by the call) on cases without the agent's own reading, across the multi-agent pilot and open collections, the confidence-transfer collections and the calls experiment.",
+      "outcome": "With records stated every configuration gives a call exactly its record's weight (ratio 1.00). Without a record Terra takes an analyst's confident wording at face value: a 'definitely... confirmed' call moves it 2.45 and 2.60 log-odds in two independent collections, about twice the others (0.69-1.41); plain calls more too. Not for the same confidence from an AI agent (ordinary) or a sensor (no weight). Luna gives relayed calls no weight. A passport candidate: give track records, or discount confident wording."
     }
   ],
   "next": [

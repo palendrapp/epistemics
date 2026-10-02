@@ -50,6 +50,7 @@ uv run python -m epistemics.ledger followups <roots...> --output <file>
 uv run python -m epistemics.ledger announced-count <roots...> --output <file>
 uv run python -m epistemics.ledger correlated-changes <roots...> --output <file>
 uv run python -m epistemics.ledger primacy --statements <roots...> --correlated <roots...> --output <file>
+uv run python -m epistemics.ledger call-reaction --advice <roots...> [--calls <roots...>] --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -191,6 +192,10 @@ def main():
     sub.add_parser("statements-validation").add_argument("--output", type=Path, required=True)
     sub.add_parser("sweep").add_argument("--output", type=Path, required=True)
     sub.add_parser("roundness").add_argument("--output", type=Path, required=True)
+    cr = sub.add_parser("call-reaction")
+    cr.add_argument("--advice", type=Path, nargs="+", required=True)
+    cr.add_argument("--calls", type=Path, nargs="*", default=[])
+    cr.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
     pr.add_argument("--correlated", type=Path, nargs="+", required=True)
@@ -525,6 +530,13 @@ def main():
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps(summary, indent=2))
+    elif a.command == "call-reaction":
+        from epistemics.ledger import call_reaction
+
+        run = call_reaction.summary(a.advice, a.calls)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(run["relative_to_others"], indent=2))
     elif a.command == "primacy":
         from epistemics.ledger import primacy
 

@@ -65,3 +65,13 @@ def test_calls_items_run_in_both_orders_and_recover_a_later_call_discount():
     fitted = ledger.analyse(rows)
     assert abs(fitted["a"]["mean"] - 0.7) < 0.12 and abs(fitted["b"]["mean"]) < 0.12
     assert len(runner.check_groups(runner.PRESETS["calls-order"])) == 16
+
+
+def test_call_reaction_reads_each_first_calls_phrase():
+    from epistemics.dispositions import calls
+    from epistemics.ledger import call_reaction
+
+    spec = calls.items_spec()[5]
+    analyst, direction, phrase = spec["calls"][1]
+    row = {"item": 5, "first": [analyst, direction]}
+    assert call_reaction.phrase_of(row) == phrase

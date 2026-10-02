@@ -341,3 +341,45 @@ The design mirrors the correlated changes, so the same analyses apply.
     - Sol adds them most exactly;
     - Terra discounts later statement changes;
     - Terra reacts about twice as strongly to an analyst's call. That last one, a strong reaction to unverified calls, may be worth a look across the peer-advice data already collected.
+
+## 2 October: Terra's reaction to analysts' calls (idea 26)
+
+Command: `uv run python -m epistemics.ledger call-reaction --advice output/multi-agent-pilot-20260930 output/multi-agent-open-20260930 output/confidence-transfer-20260930 output/confidence-transfer-20260930-2 --calls output/calls-order-20261002 --output output/call-reaction-20261002.json`.
+
+**Measure.** A call's weight is the answer's log-odds minus the stated prior's, signed by the call's direction. Only cases without the agent's own reading are used, so the call is the only evidence.
+
+**Mean weight by source:**
+
+| Source | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| Analyst, record stated (multi-agent pilot) | 1.44 | 1.44 | 1.44 | 1.44 |
+| Analyst, no record (multi-agent open) | 0.69 | 0.88 | 0.45 | **1.39** |
+| Analyst, no record (calls in order) | 0.74 | 0.76 | 0.67 | **1.34** |
+| AI agent, no record (confidence transfer) | 0.99 | 0.88 | 0.62 | 0.78 |
+| Relay, no record | 0.85 | 0.61 | 0.00 | 0.85 |
+| Sensor, no record | 1.23 | 0.93 | 1.22 | 0.00 |
+
+**The weight of a "definitely… confirmed" call:**
+
+| Source | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| Analyst, no record (multi-agent open) | 0.69 | 1.39 | 0.74 | **2.45** |
+| Analyst, no record (calls in order) | 0.95 | 1.23 | 1.41 | **2.60** |
+| AI agent, no record | 1.73 | 1.39 | 1.12 | 1.47 |
+| Sensor, no record | 2.19 | 1.73 | 2.27 | 0.00 |
+
+**Reading.**
+- **With records stated, every configuration gives a call exactly the weight its record implies** (ratio 1.00 for all four).
+- **Without a record, Terra takes an analyst's confident wording at face value.**
+  - A "definitely… confirmed" call moves it about 2.5 log-odds, from 50% to about 92%.
+  - That is roughly twice the other configurations, in two independent collections nine days apart.
+  - Plain calls are also weighted more (1.06–1.25, against 0.39–0.85). "I think…" calls are not.
+- **It is specific to human analysts' wording.** The same confidence from an AI agent gets an ordinary weight, and from a sensor no weight at all.
+- **Two more idiosyncrasies, without records:**
+  - Terra gives a sensor's call no weight;
+  - Luna gives a relayed call none.
+- **For the passport** (for these cases): "Without a track record, it takes an analyst's confident wording at face value: a 'definitely… confirmed' call moves it about twice as far as other configurations. With the record given, it weighs calls exactly." The consumer action is to give track records, or to discount confident wording yourself.
+
+**Ideas:**
+27. **Write it into the passport as a reading.** It has replicated across two collections.
+28. **Confident wording as a trait across families.** Does Terra take confident language at face value elsewhere, for example confidently worded documents or reports?
