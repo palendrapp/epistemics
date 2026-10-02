@@ -434,3 +434,61 @@ The claim takes one of four wordings: "I think…", plain, "definitely…", and 
 - **Verification, not confidence:** Terra's excess sits in "confirmed": "definitely" alone is like the others, and "confirmed" adds much more for Terra than for the others.
 
 **Collection.** Preset `wording-families`: Astra, Sol, Luna and Terra at default effort, each taking the four forms of each family (48 sessions). Analysis: `uv run python -m epistemics.ledger wording-families <roots> --output <file>`.
+
+### Results
+
+**Collection.** Root `output/wording-families-20261002`: 48 of 48 sessions (Astra, Sol, Luna and Terra × three families × four forms), 22.9 million input tokens, no failures.
+- Task validation 0.39 passed on both seeds: 4,512 cases, 193 contexts, wording recovery error at most 0.05 against a tolerance of 0.15.
+- Fingerprint `0c30480df0dbd8d3…`.
+- Command: `uv run python -m epistemics.ledger wording-families output/wording-families-20261002 --output output/wording-families-summary-20261002.json`.
+
+**Mean weight (log-odds toward the claim), "I think…" / plain / "definitely…" / "definitely… confirmed":**
+
+| Family | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| urn | 0.51 / 0.76 / 1.15 / 1.43 | 0.61 / 0.91 / 1.38 / 2.08 | 0.28 / 0.35 / 1.15 / 1.70 | 0.37 / 0.54 / 1.28 / 2.19 |
+| policy | 0.50 / 0.77 / 1.07 / 1.26 | 0.68 / 0.90 / 1.43 / 1.76 | 0.76 / 1.06 / 2.68 / **3.86** | 0.52 / 1.03 / 2.37 / **3.07** |
+| report | 0.88 / 1.57 / 2.18 / 2.36 | 0.96 / 1.70 / 2.71 / 3.31 | 0.81 / 1.99 / 3.71 / 4.60 | 0.91 / 1.92 / 3.52 / 4.24 |
+
+**"Definitely… confirmed" against the median of the other three** (90% bootstrap interval):
+
+| Family | Astra | Sol | Luna | Terra |
+| --- | --- | --- | --- | --- |
+| urn | 0.69 [0.63, 0.77] | 1.22 [0.94, 1.51] | 0.82 [0.53, 1.17] | 1.29 [0.97, 1.68] |
+| policy | 0.41 [0.35, 0.50] | 0.57 [0.48, 0.70] | **2.20 [1.96, 2.46]** | **1.75 [1.42, 2.10]** |
+| report | 0.55 [0.51, 0.60] | 0.78 [0.69, 0.88] | 1.39 [1.24, 1.57] | 1.28 [1.14, 1.45] |
+
+**Ceiling.** Share of answers at 99% or more on a "definitely… confirmed" claim:
+- report: Astra 0%, Sol 38%, Luna 100%, Terra 50%;
+- policy: Terra 50%, Luna 42%, the others 0%;
+- urn: Luna 25%, the others 0%.
+
+Where answers sit at the ceiling, the measured weight understates how far the configuration would go. So the report ratios, and Luna's and Terra's policy ratios, are lower bounds.
+
+**Reading.**
+- **Terra's face value in the urn family did not replicate in this design.**
+  - Its "definitely… confirmed" call moves it 2.19 log-odds, against 2.45 and 2.60 before.
+  - The others now give the same phrase much more than before: Sol 2.08 against 1.23–1.39, Astra 1.43 against 0.69–0.95. So the ratio fell from about 2.4 to 1.29, with the interval reaching 1.
+  - The likeliest difference is the phrase set:
+    - Before, the combined phrase was the top of three wordings.
+    - Here "definitely" alone is also offered, so "confirmed" stands apart as a claim of verification.
+    - The collections ran within hours of each other on the same day, so drift is unlikely, but this is post hoc.
+- **Most of the weight on the top phrase comes from "confirmed".** It adds to "definitely" for every configuration in every family (+0.18 to +1.18). Terra's increment is largest in the urn family (+0.92), but not distinctively so (Sol +0.69).
+- **In the policy family Terra and Luna take confident wording at face value; Astra and Sol barely move with it.**
+  - An economist's "definitely… confirmed" forecast moves Luna 3.86 and Terra 3.07 log-odds, and half of Terra's answers go to 99% or more.
+  - The same note moves Astra 1.26 and Sol 1.76.
+  - The widest gap between configurations in this experiment is on a forecast. A forecast is the claim least open to confirmation.
+- **Inspection reports move everyone a lot**, which makes sense for a tester's verdict. Luna and Terra still move furthest, near the ceiling.
+- **Wording sensitivity, ordered, holds across families:**
+  - Astra's spread from "I think…" to "definitely… confirmed" is the smallest in every family: 0.92, 0.76, 1.48.
+  - Terra's is in the top two in every family: 1.83, 2.55, 3.33.
+  - Luna is top in policy and report but third in urn.
+- **Consequences for the passport readings written this morning (reading guide 0.6.0):**
+  - **Terra, "takes an analyst's confident wording at face value":** replicates in the policy family, not in the urn family under a four-wording set. As written it overstates a design-conditional effect.
+  - **Astra, "wording barely matters":** contradicted. Astra is the least sensitive to wording in every family, but its spread is 0.8–1.5 log-odds, not flat.
+  - **A sounder reading is ordinal across families:** Astra reacts least to confident wording, Terra and Luna most, with the gap largest on forecasts.
+
+**Ideas:**
+29. **Replace the calls reading with a cross-family wording-sensitivity reading.** Use each configuration's spread and its top-phrase weight against the others, pooled over the three families, with a ceiling-aware measure (the share of answers at 99% or more) beside it.
+30. **Phrase-set dependence.** Rerun the urn family with the original three-wording set beside the four-wording set in matched sessions. That would show whether Terra's face value depends on "definitely… confirmed" being the top of the scale.
+31. **Forecasts against verifiable claims.** Does the policy-family gap come from the claim being a forecast? An economist reporting a decision already announced would be confirmable; a forecast is not.

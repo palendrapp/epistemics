@@ -1220,6 +1220,21 @@
       "status": "complete",
       "prediction": "Record: a reading-guide reading computed in the ledger build from the multi-agent pilot and open, confidence-transfer and calls-order collections.",
       "outcome": "Reading guide 0.6.0 adds 'confident-calls' under how it weighs evidence; the passport carries call_reaction per configuration; the dashboard's passport table shows the confident-call weight against the others' median. Rules: face value at 1.5 times the median of the other configurations; wording barely matters when a confident call moves it less than 0.3 log-odds further than an 'I think' call; record weighed exactly when the stated-record ratio is within 0.05 of 1. Readings: Terra face value (2.53 log-odds, to 93%, 2.4 times the others' median 1.07); Sol and Luna like the others (1.2 and 0.8 times); Astra wording barely matters (0.82 against 0.63 for 'I think', analysts only); all four exact with records. Exploratory; analysts' calls on urn cases only."
+    },
+    {
+      "id": "wording-families",
+      "date": "2026-10-02",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Confident wording across families (urn, policy note, inspection report)",
+      "question": "Is Terra's face-value reaction to an analyst's confident call a trait of confident wording across families, or specific to the urn family and its phrase?",
+      "doc": "docs/exploration-log.md",
+      "roots": [
+        "output/wording-families-20261002"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory test of idea 28: one claim without a record in four wordings ('I think', plain, 'definitely', 'definitely... confirmed') in three families, a Latin square per family. A trait: Terra's top-phrase weight at least 1.5 times the others' median, interval above 1, in every family.",
+      "outcome": "48 of 48 sessions (Astra, Sol, Luna, Terra x three families x four forms), 22.9M input tokens, no failures; tasks 0.39.0. Terra's urn face value did not replicate under a four-wording set (top phrase 2.19 log-odds, 1.29 [0.97, 1.68] times the others' median; the others gave the phrase much more than in the three-wording collections). Policy notes: Luna 2.20 and Terra 1.75 times the others' median, half of Terra's answers at 99% or more; Astra and Sol barely move with wording. Inspection reports move everyone near the ceiling; Luna and Terra furthest. 'Confirmed' adds to 'definitely' for everyone. Across families Astra is the least wording-sensitive and Terra in the top two. The passport's calls readings (Terra face value, Astra wording barely matters) overstate design-conditional effects; candidate replacement: an ordinal cross-family wording-sensitivity reading."
     }
   ],
   "next": [
