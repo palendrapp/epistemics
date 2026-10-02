@@ -28,6 +28,8 @@ from epistemics.disposition_tasks.render import (
     ANNOUNCED_VARIANTS,
     ASKED_MODULES,
     ASKED_VARIANTS,
+    CALLS_MODULES,
+    CALLS_VARIANTS,
     COHERE_MODULES,
     COHERE_VARIANTS,
     CORRELATED_MODULES,
@@ -171,6 +173,7 @@ AUDITED_CASES = (
     + 24 * len(FOLLOWUP_MODULES) * len(FOLLOWUP_VARIANTS)
     + 24 * len(ANNOUNCED_MODULES) * len(ANNOUNCED_VARIANTS)
     + 24 * len(CORRELATED_MODULES) * len(CORRELATED_VARIANTS)
+    + 24 * len(CALLS_MODULES) * len(CALLS_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -397,6 +400,16 @@ PRESETS["correlated-changes"] = (
         "order": "sequences",
     },
 )
+# Analysts' calls in order: primacy beyond statements; the default-effort configurations of each
+# variant on all four forms ("sequences": each pair consecutive).
+PRESETS["calls-order"] = (
+    {
+        "configurations": ("astra", "sol", "luna", "terra"),
+        "modules": CALLS_MODULES,
+        "contexts": (("calls", "markets", 1),),
+        "order": "sequences",
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -595,6 +608,7 @@ def check_groups(groups):
             + FOLLOWUP_VARIANTS
             + ANNOUNCED_VARIANTS
             + CORRELATED_VARIANTS
+            + CALLS_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -617,6 +631,7 @@ def check_groups(groups):
                         + DELIBERATION_FRAMES
                         + FOLLOWUP_MODULES
                         + CORRELATED_MODULES
+                        + CALLS_MODULES
                     ):
                         raise ValueError(
                             "Statement and anchor modules need, and only they take, sequences"
@@ -917,8 +932,8 @@ def headline(analysis):
             "slope": load["load_slope"],
             "eta_slope": load["eta_slope"],
         }
-    if "correlated" in analysis:
-        rows = analysis["correlated"]["items"]
+    if "correlated" in analysis or "calls" in analysis:
+        rows = analysis.get("correlated", analysis.get("calls"))["items"]
         return {
             "parameter": "correlated",
             "step1": float(np.mean([abs(r["step1"]) for r in rows])),

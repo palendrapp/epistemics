@@ -11,6 +11,7 @@ import numpy as np
 from epistemics.disposition_tasks import urn
 from epistemics.disposition_tasks.render import (
     ANNOUNCED_MODULES,
+    CALLS_MODULES,
     COHERE_MODULES,
     CORRELATED_MODULES,
     DELIBERATION_MODULES,
@@ -193,6 +194,15 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in CALLS_MODULES:
+        from epistemics.dispositions import calls
+
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "calls": calls.session(items, responses),
+            "rows": rows,
+        }
     if manifest.module in CORRELATED_MODULES:
         from epistemics.dispositions import correlated
 

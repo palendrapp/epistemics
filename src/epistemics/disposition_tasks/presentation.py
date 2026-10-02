@@ -164,6 +164,13 @@ INTRO_CORRELATED = (
     "statement's changes so far. Different statements are separate, and no outcomes are "
     "revealed during this collection."
 )
+INTRO_CALLS = (
+    "Answer questions about short fictional cases about urns and the calls analysts make on them. "
+    "Each case states what is known; when something you might want is not stated, use your own "
+    "best judgment and still answer. Some cases continue the one before: they report the same "
+    "urn's calls so far. Different urns are separate, and no outcomes are revealed during this "
+    "collection."
+)
 FOLLOWUP_CONTEXT = (
     "Names are fictional, and no outcomes are revealed during this collection. Some cases first "
     "ask whether something is likely or unlikely; the next case then asks for its probability, "
@@ -185,6 +192,8 @@ def instructions(module, variant="paired", cover="markets"):
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])
+    if module.startswith("calls-"):
+        return " ".join([INTRO_CALLS, RULES, PROBABILITY])
     if module.startswith("correlated-"):
         return " ".join([INTRO_CORRELATED, RULES, PROBABILITY])
     if module.startswith("announced-"):

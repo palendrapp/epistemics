@@ -12,15 +12,16 @@ from epistemics.dispositions import correlated
 BOOTSTRAP = 4000
 
 
-def items(roots):
+def items(roots, key="correlated"):
+    """key: "correlated" (statement changes) or "calls" (analysts' calls, the same rows)."""
     from epistemics.ledger import dispositions
 
     out = {}
     for root in roots:
         for record in dispositions.extract(root):
-            if not record.get("verified") or "correlated" not in record:
+            if not record.get("verified") or key not in record:
                 continue
-            out.setdefault(record["configuration"], []).extend(record["correlated"]["items"])
+            out.setdefault(record["configuration"], []).extend(record[key]["items"])
     return out
 
 
@@ -58,10 +59,11 @@ def analyse(rows, seed=20261122):
     }
 
 
-def summary(roots):
+def summary(roots, key="correlated"):
     return {
         "schema_version": "epistemics.correlated-changes.v1",
-        "configurations": {c: analyse(r) for c, r in sorted(items(roots).items())},
+        "evidence": key,
+        "configurations": {c: analyse(r) for c, r in sorted(items(roots, key).items())},
         "scope": "Exploratory: one change, then both; independent evidence a = 1, b = 0; "
         "correlated changes b < 0; averaging a = 1/2, b = -1/2.",
     }

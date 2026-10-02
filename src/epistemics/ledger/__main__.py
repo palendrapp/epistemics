@@ -194,11 +194,14 @@ def main():
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
     pr.add_argument("--correlated", type=Path, nargs="+", required=True)
+    pr.add_argument("--calls", type=Path, nargs="*", default=[])
     pr.add_argument("--output", type=Path, required=True)
     for name in ("announced-count", "correlated-changes"):
         ac = sub.add_parser(name)
         ac.add_argument("roots", type=Path, nargs="+")
         ac.add_argument("--output", type=Path, required=True)
+        if name == "correlated-changes":
+            ac.add_argument("--key", choices=("correlated", "calls"), default="correlated")
     sub.add_parser("deliberation-validation").add_argument("--output", type=Path, required=True)
     for name in (
         "deliberation-pilot",
@@ -525,14 +528,14 @@ def main():
     elif a.command == "primacy":
         from epistemics.ledger import primacy
 
-        run = primacy.summary(a.statements, a.correlated)
+        run = primacy.summary(a.statements, a.correlated, a.calls)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(json.dumps({"configurations": len(run["configurations"])}))
     elif a.command == "correlated-changes":
         from epistemics.ledger import correlated as correlated_ledger
 
-        run = correlated_ledger.summary(a.roots)
+        run = correlated_ledger.summary(a.roots, a.key)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         print(

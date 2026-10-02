@@ -78,6 +78,8 @@ for entry in plan["runs"]:
         record["cohere"] = a["cohere"]
     elif "correlated" in a:
         record["correlated"] = a["correlated"]
+    elif "calls" in a:
+        record["calls"] = a["calls"]
     elif "announced" in a:
         record["announced"] = a["announced"]
     elif "followup" in a:
@@ -185,8 +187,8 @@ def summary(record):
         return {**base, "load": record["load"]}
     if "social" in record:
         return {**base, "social": record["social"]}
-    if "correlated" in record:
-        rows = record["correlated"]["items"]
+    if "correlated" in record or "calls" in record:
+        rows = record.get("correlated", record.get("calls"))["items"]
         return {**base, "items": len(rows)}
     if "announced" in record:
         return {**base, **record["announced"]["mean_step"]}

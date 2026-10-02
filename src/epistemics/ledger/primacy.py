@@ -48,11 +48,11 @@ def statement_pairs(roots):
     return out
 
 
-def correlated_pairs(roots):
+def correlated_pairs(roots, key="correlated"):
     from epistemics.ledger import correlated as correlated_ledger
 
     out = {}
-    for c, rows in correlated_ledger.items(roots).items():
+    for c, rows in correlated_ledger.items(roots, key).items():
         by = {}
         for r in rows:
             by.setdefault(r["item"], []).append(r)
@@ -81,18 +81,20 @@ def ratio(pairs, seed=20261123):
     }
 
 
-def summary(statement_roots, correlated_roots):
+def summary(statement_roots, correlated_roots, calls_roots=()):
     s = statement_pairs(statement_roots)
     c = correlated_pairs(correlated_roots)
-    configs = sorted(set(s) | set(c))
+    k = correlated_pairs(calls_roots, "calls") if calls_roots else {}
+    configs = sorted(set(s) | set(c) | set(k))
     return {
         "schema_version": "epistemics.primacy.v1",
         "configurations": {
-            k: {
-                "statements": ratio(s[k]) if k in s else None,
-                "correlated": ratio(c[k]) if k in c else None,
+            name: {
+                "statements": ratio(s[name]) if name in s else None,
+                "correlated": ratio(c[name]) if name in c else None,
+                "calls": ratio(k[name]) if name in k else None,
             }
-            for k in configs
+            for name in configs
         },
         "scope": "Exploratory: the same change later against first; ratio below 1 is primacy.",
     }

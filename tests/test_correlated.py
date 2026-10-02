@@ -44,3 +44,24 @@ def test_primacy_ratio_reads_a_discount_on_later_changes():
     pairs = [(1.0, 0.8), (0.5, 0.4), (0.8, 0.64)]
     r = primacy.ratio(pairs)
     assert abs(r["ratio"] - 0.8) < 1e-9 and r["changes"] == 3
+
+
+def test_calls_items_run_in_both_orders_and_recover_a_later_call_discount():
+    from epistemics.disposition_tasks.render import CALLS_MODULES, render
+    from epistemics.dispositions import calls
+
+    orders = {}
+    rows = []
+    rng = np.random.default_rng(4)
+    truth = {"w": [0.5, 1.0, 1.5], "p": 0.7, "tau": 0.02}
+    for module in CALLS_MODULES:
+        items = calls.design(module)
+        for k, first in zip(items["item"], items["first"], strict=True):
+            orders.setdefault(int(k), set()).add(str(first))
+        rows += calls.session(items, calls.respond(items, truth, rng))["items"]
+        case = render(module, "markets", 1, "calls")
+        assert "Both calls have now been reported" in case["case"] and "record" not in case["case"]
+    assert len(orders) == 24 and all(len(v) == 2 for v in orders.values())
+    fitted = ledger.analyse(rows)
+    assert abs(fitted["a"]["mean"] - 0.7) < 0.12 and abs(fitted["b"]["mean"]) < 0.12
+    assert len(runner.check_groups(runner.PRESETS["calls-order"])) == 16

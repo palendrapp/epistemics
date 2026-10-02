@@ -21,6 +21,8 @@ from epistemics.disposition_tasks.render import (
     ANNOUNCED_VARIANTS,
     ASKED_MODULES,
     ASKED_VARIANTS,
+    CALLS_MODULES,
+    CALLS_VARIANTS,
     COHERE_MODULES,
     COHERE_VARIANTS,
     CORRELATED_MODULES,
@@ -132,6 +134,7 @@ TOLERANCE = {
     # holds each item in one order only, so the regression needs a configuration's sessions).
     "correlated_step": 0.15,
 }
+CALLS_RESPONDENT = {"w": [0.5, 1.0, 1.5], "p": 0.8, "tau": 0.05}
 CORRELATED_RESPONDENT = {
     "w": {"activity": 0.8, "inflation": 1.0, "risks": 0.8, "guidance": 1.6, "vote": 0.8},
     "c": 0.4,
@@ -628,6 +631,39 @@ def correlated_audit():
     return {"items": len(orders)}
 
 
+def calls_audit():
+    """Analysts' calls: each item in both orders across a pair of forms, its calls agreeing or
+    disagreeing as declared; each pair consecutive in a "sequences" order, the first case showing
+    one call and the second both; no record or rate stated."""
+    import random
+
+    from epistemics.dispositions import calls, statements
+
+    orders = {}
+    for module in CALLS_MODULES:
+        items = items_for(module)
+        order = statements.sequences_order(items, random.Random(1))
+        for k in set(items["item"].tolist()):
+            spots = [p for p, i in enumerate(order) if items["item"][i] == k]
+            if spots != [spots[0], spots[0] + 1]:
+                raise ValueError(f"{module}: a pair is split")
+        for i in range(CASES):
+            k = int(items["item"][i])
+            spec = calls.items_spec()[k]
+            (_, d1, _), (_, d2, _) = spec["calls"]
+            if (d1 == d2) != spec["agree"]:
+                raise ValueError(f"{module}/{i}: calls do not agree or disagree as declared")
+            case = render(module, "markets", i, "calls")["case"]
+            if case.count("“") != int(items["step"][i]):
+                raise ValueError(f"{module}/{i}: shows the wrong number of calls")
+            if any(w in case for w in ("right in", "record", "correct")):
+                raise ValueError(f"{module}/{i}: states a record")
+            orders.setdefault(k, set()).add(str(items["first"][i]))
+    if any(len(v) != 2 for v in orders.values()) or len(orders) != 24:
+        raise ValueError("Analysts' calls: an item is not asked in both orders")
+    return {"items": len(orders)}
+
+
 def followup_audit():
     """Follow-up modules: each pair consecutive in a "sequences" order and its first case the
     likely-or-unlikely form of the follow-up's question; every base case fresh in one form and a
@@ -661,6 +697,8 @@ def followup_audit():
 
 
 def variants_of(module):
+    if module in CALLS_MODULES:
+        return CALLS_VARIANTS
     if module in CORRELATED_MODULES:
         return CORRELATED_VARIANTS
     if module in ANNOUNCED_MODULES:
@@ -738,6 +776,7 @@ def covers_of(module):
         + FOLLOWUP_MODULES
         + ANNOUNCED_MODULES
         + CORRELATED_MODULES
+        + CALLS_MODULES
         else COVERS
     )
 
@@ -909,6 +948,7 @@ def audit():
         "followup": followup_audit(),
         "announced": announced_audit(),
         "correlated": correlated_audit(),
+        "calls": calls_audit(),
     }
 
 
@@ -1001,6 +1041,8 @@ def contexts_to_validate():
         yield module, "markets", "announced", ANNOUNCED_RESPONDENT
     for module in CORRELATED_MODULES:
         yield module, "markets", "correlated", CORRELATED_RESPONDENT
+    for module in CALLS_MODULES:
+        yield module, "markets", "calls", CALLS_RESPONDENT
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -1011,6 +1053,17 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "calls" in analysis:
+        # Each item's first step against the respondent's lambda for its first call.
+        items = items_for(module)
+        rows = analysis["calls"]["items"]
+        errors = []
+        for r in rows:
+            i = int(np.flatnonzero((items["item"] == r["item"]) & (items["step"] == 1))[0])
+            lam = truth["w"][int(items["first_phrase"][i])] * int(items["first_direction"][i])
+            errors.append(abs(r["step1"] - lam))
+        error = float(np.mean(errors))
+        return error, bool(error <= TOLERANCE["correlated_step"])
     if "correlated" in analysis:
         # Each item's first step against the respondent's lambda for its first change.
         rows = analysis["correlated"]["items"]
