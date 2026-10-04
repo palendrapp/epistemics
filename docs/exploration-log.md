@@ -882,3 +882,14 @@ Reading guide 0.8.0 adds `round-readout` under "How far to trust its numbers".
 - **Claim.** The reading states the configuration's own shares, and that its variant rounds more (or less) than the other at every effort level in both domains, as a difference that carried in a preregistered test.
 - **Caution.** It describes readout, not belief; it holds for judgment calls, not base-rate questions; and effort does not carry it across domains.
 - **Also:** the dashboard's passport table shows the two shares, and the passport note lists round readout as a dimension.
+
+## 5 October: a mitigation bound to the passport (design)
+
+Stretch goal (user): show that a configuration with a mitigation generated from its passport does better than the configuration alone. Design: [passport-adapter-design.md](passport-adapter-design.md).
+- **Phase 1 target: hidden structures in finance dossiers** (sources repeating another source; selective silence). The passport's structure checks already give, per configuration, the lightest prompt that works. Relay needs rung 2 for Astra and rung 3 for Sol, Luna and Terra; disclosure needs rung 2 for Sol and rung 3 for Luna.
+- **The adapter** is a versioned JSON document generated deterministically from the passport readings and bound to the configuration identity. Its components (structure checks at the recommended dose) compile to an instructions preamble.
+- **Evaluation:** new dossier set B, in which the structure is determinate from the documents without being named, so the correct posterior is exact.
+  - Arms: alone, generic (every check at full dose), passport adapter, and another configuration's adapter.
+  - Present and absent cases are balanced, so overcorrection is measured.
+- **Phase 2:** state-then-compute with a calculation tool (Luna's stated–applied gap), record before wording (Terra and Luna), and aggregation (session variation).
+- **Literature** added to the [reading list](reading-list.md): BiasBuster, self-adaptive debiasing, Just ask for calibration, Halawi et al.'s aggregation, PAL, consider-the-opposite, Fischhoff and Larrick on debiasing, the outside view, natural frequencies, and Mellers et al.

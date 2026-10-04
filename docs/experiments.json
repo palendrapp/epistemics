@@ -1393,6 +1393,19 @@
       "status": "complete",
       "prediction": "Record: a reading-guide reading computed in the ledger build from the single-judgment-transfer roots.",
       "outcome": "Reading guide 0.8.0 adds 'round-readout' (How far to trust its numbers): each configuration's share of round probabilities on open judgment calls, abstract and finance, and that its variant rounds more or less than the other variant of its family at every effort level in both domains (Astra over Sol, Luna over Terra; Holm p 0.012), with the caution that it describes readout not belief, holds for judgment calls not base-rate questions, and is not carried by effort. Dashboard column and passport-note dimension added."
+    },
+    {
+      "id": "passport-adapter-design",
+      "date": "2026-10-05",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Passport adapter: a mitigation bound to the passport (design)",
+      "question": "Does a configuration with a mitigation generated from its passport (its passport adapter) do better than the configuration alone, than a generic mitigation, and than another configuration's adapter?",
+      "doc": "docs/passport-adapter-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Phase 1: structure checks for finance dossiers (relay, disclosure) at each configuration's recommended rung, delivered as an instructions preamble; held-out dossier set B with determinate structures; arms alone, generic, adapter, mismatched; error against the exact posterior; M1 adapter beats alone per configuration (Holm), M2 not worse than generic and better on absent cases, M3 beats mismatched.",
+      "outcome": "Awaiting decisions: phase-1 scope (structure checks only, recommended), a literature generic arm, budget (pilot about 15M, main about 45M input tokens)."
     }
   ],
   "next": [
