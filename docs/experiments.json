@@ -1342,9 +1342,26 @@
       "question": "Does a configuration's round readout (and, secondarily, its stated-applied gap and sensitivity to verbal confidence) in abstract urn tasks predict its value in finance tasks, on fresh data and more configurations?",
       "doc": "docs/finance-transfer-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "H1 (primary): Spearman rho between configurations' abstract and finance round readout, one-sided p < 0.05 (critical rho 0.503 at twelve configurations). Secondary, Holm-adjusted: within GPT-6, within GPT-5.6, stated-applied gap, verbal confidence.",
-      "outcome": "Awaiting decisions: twelve configurations (adds Luna and Terra at low and high effort; H1 power 0.97 full, 0.70 as explored) or eight (0.82, 0.49); budget about 100M or 68M input tokens; cue modules or rate-asking dossiers for the finance gap."
+      "outcome": "Built and run (see finance-transfer): twelve configurations (Luna and Terra at low and high effort added and smoke-tested), the description tasks for the finance gap, preset finance-transfer (tasks 0.42.0); preregistration committed before collection (0cc81e0)."
+    },
+    {
+      "id": "finance-transfer-preregistered",
+      "date": "2026-10-04",
+      "track": "dispositions",
+      "kind": "preregistered",
+      "title": "Abstract-to-finance transfer: preregistered test",
+      "question": "Does a configuration's round readout in abstract urn tasks predict its round readout in finance tasks (and, secondarily, within each model family, the stated-applied gap and sensitivity to verbal confidence)?",
+      "doc": "docs/finance-transfer-preregistration.md",
+      "roots": [
+        "output/finance-transfer-20261004",
+        "output/finance-transfer-20261004-b",
+        "output/finance-transfer-20261004-c"
+      ],
+      "status": "complete",
+      "prediction": "H1 (primary): Spearman rho between abstract and finance round readout over twelve configurations, one-sided p < 0.05. Secondary (Holm): within GPT-6, within GPT-5.6, stated-applied gap, verbal confidence.",
+      "outcome": "216 of 216 sessions over three roots (the first reached the runner's two-hour root limit after 120; two continuation roots, same implementation), about 109.6M input tokens. H1 passes: rho 0.64, p 0.015, 10 of 12 on the same side of the median; far transfer to the statements alone rho 0.61, p 0.025. But within GPT-6 rho 0.03 and within GPT-5.6 rho -0.43: the transfer is the model-family difference (GPT-5.6 rounder than GPT-6 in both domains), not a configuration trait. H3 gap rho 0.56, p 0.031, Holm 0.12 (fails); H4 confidence rho 0.36 (fails). Exploratory: readout depends on question type (base-rate questions fine-grained for everyone; GPT-5.6 rounds single judgments); Astra is not rounder than Sol in the abstract tasks."
     }
   ],
   "next": [

@@ -123,3 +123,73 @@ At 10 sessions per domain and twelve configurations: 0.98, 0.73, 0.38. With a be
 This document and the analysis code (`src/epistemics/ledger/finance_transfer.py`, with `tests/test_finance_transfer.py`) are committed together, before the collection starts. The results cite that commit.
 
 Deviations, if any, are reported with the results.
+
+## Results (4 October 2026)
+
+**Collection.** All 216 planned sessions completed and verified, over three roots, about 109.6 million input tokens:
+- `output/finance-transfer-20261004`: 120 sessions;
+- `-b` and `-c`: 48 each.
+
+The analysis was run on all three:
+
+```bash
+uv run python -m epistemics.ledger finance-transfer-preregistered output/finance-transfer-20261004 output/finance-transfer-20261004-b output/finance-transfer-20261004-c --output output/finance-transfer-preregistered-20261004.json
+```
+
+**Deviations.**
+1. **Three roots.** The first root reached the runner's two-hour total limit per root after 120 sessions. The last two admitted sessions timed out with about 80 seconds left, and admission stopped. The 96 remaining planned runs were collected in two continuation roots with the same preset rows and the same frozen implementation (fingerprint `2e8351bf…`, validation 0.42). The plan was not changed.
+2. **Several roots in the analysis.** `preregistered` was changed to take several roots, as this document anticipated ("the analysis reads both roots"). Nothing else in the analysis changed (commit 95aed6b).
+
+All twelve configurations entered (8 of 8 abstract and 10 of 10 finance sessions each). Under the five-answer rule, some sessions had no round-readout value: Luna's and Terra's wording-urn sessions in which they gave every call no weight, so that all answers sat at the prior. Luna-low, Luna and Luna-high kept 6, 5 and 6 of 8 abstract values; Terra-low, Terra and Terra-high kept 7, 5 and 8.
+
+**Tests.**
+
+| | Hypothesis | ρ | p (one-sided) | Holm p | Critical ρ | Same side of median | Verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **H1** | Round readout transfers, 12 configurations | **0.64** | **0.015** | — | 0.503 | 10 of 12 | **Passes** |
+| H2a | Within GPT-6 | 0.03 | 0.50 | 1.00 | 0.829 | 4 of 6 | Fails |
+| H2b | Within GPT-5.6 | −0.43 | 0.82 | 1.00 | 0.829 | 2 of 6 | Fails |
+| H3 | Stated–applied gap | 0.56 | 0.031 | 0.12 | 0.503 | 10 of 12 | Fails after Holm |
+| H4 | Sensitivity to verbal confidence | 0.36 | 0.13 | 0.39 | 0.503 | 10 of 12 | Fails |
+
+Reported, not tested: far transfer to the announced-count statements alone, ρ 0.61, p 0.025.
+
+**Values per configuration.** Round readout, then the stated–applied gap, each as abstract / finance; the far column is the announced statements alone.
+
+| | Round readout | Far | Gap |
+| --- | --- | --- | --- |
+| Astra-low | 0.41 / 0.46 | 0.38 | 0.057 / 0.000 |
+| Astra | 0.36 / 0.42 | 0.25 | 0.048 / 0.017 |
+| Astra-high | 0.32 / 0.45 | 0.38 | 0.055 / 0.000 |
+| Sol-low | 0.41 / 0.34 | 0.29 | 0.098 / 0.019 |
+| Sol | 0.34 / 0.33 | 0.19 | 0.109 / 0.002 |
+| Sol-high | 0.36 / 0.38 | 0.19 | 0.041 / 0.024 |
+| Luna-low | 0.52 / 0.86 | 0.79 | 0.371 / 0.128 |
+| Luna | 0.44 / 0.84 | 1.00 | 0.245 / 0.132 |
+| Luna-high | 0.51 / 0.76 | 0.81 | 0.269 / 0.077 |
+| Terra-low | 0.58 / 0.51 | 0.44 | 0.053 / 0.084 |
+| Terra | 0.38 / 0.55 | 0.38 | 0.148 / 0.064 |
+| Terra-high | 0.52 / 0.49 | 0.29 | 0.153 / 0.056 |
+
+**Reading.**
+- **H1 passes, but the transfer is between model families, not between configurations.**
+  - The six GPT-5.6 configurations report rounder probabilities than the six GPT-6 ones in both domains (abstract 0.38–0.58 against 0.32–0.41; finance 0.49–0.86 against 0.33–0.46).
+  - Within either family, a configuration's abstract readout does not predict its finance readout (ρ 0.03 and −0.43). Effort and variant do not carry a readout trait from one domain to the other.
+  - So the claim supported is that **GPT-5.6 configurations give rounder probabilities than GPT-6 configurations, in abstract and finance tasks alike.** It is a difference between two model families, and twelve configurations from two families cannot say more than that.
+- **The gap and verbal confidence do not pass**, though in both most configurations sit on the same side of the median in both domains.
+  - The gap separates Luna (all three efforts) from the rest in both domains.
+  - Sol's abstract gap (0.10–0.11 at low and medium effort) is larger here than in battery v2.
+
+**Exploratory, after the tests** (`ledger.finance_transfer.sessions`, by module):
+- **The question type drives readout.**
+  - Base-rate questions on the urn are answered fine-grained by everyone (copying 0.16–0.36).
+  - Single judgments (an analyst's call, an economist's forecast, a statement) are where GPT-5.6 rounds. Luna answers 1.00 round on every wording and statement case, Terra 0.57–0.88.
+  - The exploration's ρ 1.00 used only single-judgment tasks, where the family difference is largest. Its eight-configuration result had no GPT-5.6 effort variants.
+- **The exploration's "Astra rounder than Sol" does not hold on these tasks.**
+  - In the abstract tasks Astra and Sol are level: 0.41 against 0.41, 0.36 against 0.34, 0.32 against 0.36.
+  - In finance Astra is rounder at every effort (0.42–0.46 against 0.33–0.38), mostly on the economist's forecasts.
+- **GPT-5.6 sessions vary more** in readout from session to session (abstract SD 0.19–0.40, against 0.08–0.12 for GPT-6), partly through the zero-weight sessions.
+
+**What it means for the product.**
+- A passport can say, conditional on these tasks: GPT-5.6 configurations report rounder probabilities than GPT-6 ones in both abstract and finance cases, especially on single judgments.
+- It cannot yet say that a particular configuration's readout in one domain predicts its readout in another.

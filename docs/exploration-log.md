@@ -834,3 +834,14 @@ Decisions (user, "go for it"): twelve configurations, the description tasks for 
 - The 96 remaining planned runs (the 94 and the 2 that timed out) are collected in two continuation roots of 48, run one after the other: `output/finance-transfer-20261004-b` and `-c`.
 - They use the same preset rows and the same frozen implementation (fingerprint `2e8351bf…`, validation 0.42).
 - `ledger.finance_transfer.preregistered` now takes several roots, as the preregistration anticipated ("the analysis reads both roots"). Nothing else in the analysis changed.
+
+## 4 October: the preregistered transfer test, results
+
+See [finance-transfer-preregistration.md](finance-transfer-preregistration.md#results-4-october-2026).
+- **H1 passes** (ρ 0.64, p 0.015, twelve configurations), but **both within-family tests fail** (GPT-6 ρ 0.03; GPT-5.6 ρ −0.43). What transfers is the model-family difference: GPT-5.6 configurations give rounder probabilities than GPT-6 in abstract and finance tasks alike. A configuration-level readout trait does not transfer.
+- **The secondaries fail:** the gap (Holm 0.12) and verbal confidence.
+- **Exploratory:** readout depends on question type. GPT-5.6 rounds single judgments (Luna 1.00) but answers base-rate questions fine-grained like everyone else. The exploration's "Astra rounder than Sol" does not hold in the abstract tasks.
+
+**Ideas:**
+36. **Question type as the axis.** Test whether a configuration's readout on single judgments transfers across domains when every task is a single judgment (calls, forecasts, statements, inspections), within each family. Base-rate questions answered fine-grained by everyone add noise to the configuration contrast.
+37. **More model families.** A between-family claim needs more than two families before it is about families rather than about GPT-5.6 against GPT-6.

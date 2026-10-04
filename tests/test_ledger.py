@@ -641,3 +641,12 @@ def test_reading_guide_reads_battery_v2_traits():
     )
     carry = guide.carry_over("luna", None, v2)
     assert carry["fact"]["value"] == "No" and "a question about how common it is" in carry["claim"]
+
+
+def test_registry_ids_are_unique():
+    import collections
+    import json
+    from pathlib import Path
+
+    ids = [e["id"] for e in json.loads(Path("docs/experiments.json").read_text())["experiments"]]
+    assert [k for k, n in collections.Counter(ids).items() if n > 1] == []
