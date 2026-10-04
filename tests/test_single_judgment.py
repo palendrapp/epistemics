@@ -56,3 +56,19 @@ def test_preset_gives_five_abstract_and_twelve_finance_sessions():
         mine = [r for r in runs if r[0] == config]
         assert sum(r[1] in sj.ABSTRACT_MODULES for r in mine) == 5
         assert sum(r[1] in sj.FINANCE_MODULES for r in mine) == 12
+
+
+def test_passport_and_guide_read_the_variant_difference(monkeypatch):
+    from epistemics.ledger import guide
+
+    monkeypatch.setattr(sj, "sessions", lambda roots: _rows(0.3, 0.2, seed=5))
+    monkeypatch.setattr(sj, "PERMUTATIONS", 2000)
+    out = sj.passport([])
+    assert out["sol-high"]["partner"] == "astra" and out["sol-high"]["difference"]["finance"] < 0
+    assert out["astra"]["transfer_pass"] and out["astra"]["every_effort"]
+    astra = guide.round_readout({"round_readout": out["astra"]})
+    sol = guide.round_readout({"round_readout": out["sol"]})
+    assert "Astra does so more often than Sol at every effort level" in astra["claim"]
+    assert "Sol does so less often than Astra" in sol["claim"]
+    assert astra["topic"] == "reliability" and astra["fact"]["label"] == "Round probabilities"
+    assert guide.round_readout({}) is None

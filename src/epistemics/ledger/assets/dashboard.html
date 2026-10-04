@@ -568,12 +568,18 @@ function confidentWording(f) {
   return `${f.pooled_ratio.toFixed(2)}×${f.least_spread ? " (least)" : ""}`;
 }
 
+// Round readout on open judgment calls (preregistered single-judgment test): abstract / finance.
+function roundReadout(f) {
+  if (!f || f.abstract == null || f.finance == null) return "—";
+  return `${Math.round(f.abstract * 100)}% / ${Math.round(f.finance * 100)}%`;
+}
+
 function renderPassport(passport) {
   const table = document.getElementById("passport");
   const head = ["Configuration", "Relay default", "Silence default", "Value of certainty", "Evidence sensitivity",
     "Report noise", "Learning (start, κ)", "Relay descriptions", "Disclosure descriptions",
     "Retest difference", "Relative-judgement contrast", "Session SD (ambiguous)", "Stated = implied",
-    "Round answers, fresh → follow-up", "Confident wording, no record (× others, 3 kinds)", "Contexts"];
+    "Round answers, fresh → follow-up", "Confident wording, no record (× others, 3 kinds)", "Round probabilities on judgment calls, abstract / finance", "Contexts"];
   table.append(el("thead", {}, el("tr", {}, head.map(h => el("th", {}, h)))));
   const body = el("tbody");
   for (const [config, p] of Object.entries(passport)) {
@@ -601,6 +607,7 @@ function renderPassport(passport) {
       el("td", { class: "num" }, p.description_coherence ? `${p.description_coherence[0]}/${p.description_coherence[1]} sessions` : "—"),
       el("td", { class: "num" }, framing(p.frame_sensitivity)),
       el("td", { class: "num" }, confidentWording(p.wording_sensitivity)),
+      el("td", { class: "num" }, roundReadout(p.round_readout)),
       el("td", { class: "num" }, p.contexts)
     ));
   }

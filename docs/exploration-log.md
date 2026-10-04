@@ -870,3 +870,15 @@ See [single-judgment-preregistration.md](single-judgment-preregistration.md#resu
 **Ideas:**
 38. **Write it into the passport:** a variant-level readout reading, with the condition (open single judgments) and the finding that effort does not carry it.
 39. **Other trait candidates on the same template.** Single judgments only, variant contrasts within families, abstract against finance. Verbal-confidence sensitivity is the obvious next candidate. Sol over Astra held in both domains in the exploration, but its preregistered configuration-level test failed.
+
+## 4 October: round readout in the passport (idea 38)
+
+Reading guide 0.8.0 adds `round-readout` under "How far to trust its numbers".
+- **Source.** The ledger build runs the preregistered single-judgment analysis on the registry's `single-judgment-transfer` roots and stores `round_readout` per configuration:
+  - its share of round probabilities on open judgment calls, abstract and finance;
+  - its variant's difference from the other variant of its family, overall and at its own effort;
+  - whether every effort level agreed;
+  - the Holm p, and the configuration-level p.
+- **Claim.** The reading states the configuration's own shares, and that its variant rounds more (or less) than the other at every effort level in both domains, as a difference that carried in a preregistered test.
+- **Caution.** It describes readout, not belief; it holds for judgment calls, not base-rate questions; and effort does not carry it across domains.
+- **Also:** the dashboard's passport table shows the two shares, and the passport note lists round readout as a dimension.

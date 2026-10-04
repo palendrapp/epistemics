@@ -241,3 +241,51 @@ def power(
             for alpha, h in hits.items():
                 out[f"sessions{m_a}+{m_f}/diff{d_a}+{d_f}/alpha{alpha}"] = h / datasets
     return out
+
+
+EXPERIMENTS = ("single-judgment-transfer",)
+
+
+def passport(roots):
+    """Per configuration, for the passport: its round readout on open single judgments in each
+    domain; its variant's difference from the other variant of its family (this variant minus
+    the other), overall and at its own effort; whether the difference had the same sign at every
+    effort in both domains; the preregistered verdict; and the configuration-level transfer p."""
+    run = preregistered(roots)
+    every = {}
+    for h in run["primary"].values():
+        efforts = [e for t in h["domains"].values() if t for e in t["by_effort"].values()]
+        every[h["family"]] = bool(efforts) and (
+            all(e > 0 for e in efforts) or all(e < 0 for e in efforts)
+        )
+    out = {}
+    for c, m in run["values"].items():
+        if m["abstract"] is None or m["finance"] is None:
+            continue
+        variant, effort = split(c)
+        family = next(f for f, vs in VARIANTS.items() if variant in vs)
+        first, second = VARIANTS[family]
+        sign = 1 if variant == first else -1
+        h = next(v for v in run["primary"].values() if v["family"] == family)
+        out[c] = {
+            "abstract": m["abstract"],
+            "finance": m["finance"],
+            "sessions": m["abstract_sessions"] + m["finance_sessions"],
+            "variant": variant,
+            "partner": second if variant == first else first,
+            "effort": effort,
+            "family": family,
+            "difference": {d: sign * t["difference"] for d, t in h["domains"].items() if t},
+            "at_effort": {
+                d: sign * t["by_effort"][effort]
+                for d, t in h["domains"].items()
+                if t and effort in t["by_effort"]
+            },
+            "every_effort": every[family],
+            "p_holm": h["p_holm"],
+            "transfer_pass": h["pass"],
+            "configuration_transfer_p": (
+                run["secondary"]["within_family_configurations"] or {}
+            ).get("p_one_sided"),
+        }
+    return out

@@ -14,6 +14,7 @@ from epistemics.ledger import (
     guide,
     models,
     roots,
+    single_judgment,
     transfer,
     variance,
     wording,
@@ -313,6 +314,9 @@ def build(registry_path="docs/experiments.json"):
             call_reaction.record_ratios(record_roots) if record_roots else None,
             {f: registry_roots((e,)) for f, e in wording.PHRASE_EXPERIMENTS.items()},
         )
+    readout_roots = registry_roots(single_judgment.EXPERIMENTS)
+    if readout_roots:
+        analyses["round_readout"] = single_judgment.passport(readout_roots)
     result = {
         "schema_version": "epistemics.ledger.v1",
         "ledger_version": VERSION,
@@ -334,6 +338,10 @@ def build(registry_path="docs/experiments.json"):
         result["passport"].setdefault(config, {"contexts": frames["sessions"]})[
             "frame_sensitivity"
         ] = frames
+    for config, readout in analyses.get("round_readout", {}).items():
+        result["passport"].setdefault(config, {"contexts": readout["sessions"]})[
+            "round_readout"
+        ] = readout
     for config, sensitivity in analyses.get("wording_sensitivity", {}).items():
         result["passport"].setdefault(config, {"contexts": sensitivity["sessions"]})[
             "wording_sensitivity"

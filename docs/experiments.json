@@ -1380,6 +1380,19 @@
       "status": "complete",
       "prediction": "Co-primary, each in both domains (intersection-union), Holm over the two: H1 Astra rounds more than Sol (GPT-6); H2 Luna more than Terra (GPT-5.6). Variant contrast over effort levels, permutation within effort. Secondary: configuration-level within-family transfer (mean of two Spearman rhos), all twelve.",
       "outcome": "204 of 204 sessions in the four planned roots, about 101.7M input tokens, no failures, no deviations. H1 passes: Astra - Sol +0.38 abstract (p 0.0009), +0.11 finance (p 0.012); Holm 0.012. H2 passes: Luna - Terra +0.26 (p 0.006), +0.33 (p < 0.0001); Holm 0.012. Every effort level positive in both domains and families. Secondary: configuration-level within families mean rho 0.51, p 0.059 (not significant); all twelve rho 0.59, p 0.024. First preregistered trait to carry from abstract to finance tasks within a model family; at the variant, not the configuration, level; conditional on open single judgments."
+    },
+    {
+      "id": "passport-round-readout",
+      "date": "2026-10-04",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Round readout in the passport (variant-level, abstract to finance)",
+      "question": "How should the preregistered single-judgment result read in the passport?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Record: a reading-guide reading computed in the ledger build from the single-judgment-transfer roots.",
+      "outcome": "Reading guide 0.8.0 adds 'round-readout' (How far to trust its numbers): each configuration's share of round probabilities on open judgment calls, abstract and finance, and that its variant rounds more or less than the other variant of its family at every effort level in both domains (Astra over Sol, Luna over Terra; Holm p 0.012), with the caution that it describes readout not belief, holds for judgment calls not base-rate questions, and is not carried by effort. Dashboard column and passport-note dimension added."
     }
   ],
   "next": [

@@ -9,7 +9,7 @@ not access to internal beliefs.
 
 import math
 
-VERSION = "reading-guide/0.7.2"
+VERSION = "reading-guide/0.8.0"
 NAMES = {
     "astra": "GPT-6 Astra",
     "sol": "GPT-6 Sol",
@@ -468,6 +468,74 @@ def fidelity_trait(config, v2):
         2 * len(gaps),
         caution=caution,
         fact=("Uses the base rates it states (six abstract tasks)", value),
+    )
+
+
+# Round readout on open single judgments (docs/single-judgment-preregistration.md): how often it
+# reports a judged probability as a multiple of 5 points, in abstract vignettes and in finance
+# judgments, and how its variant compares with the other variant of its model family.
+VARIANT_NAMES = {"astra": "Astra", "sol": "Sol", "luna": "Luna", "terra": "Terra"}
+READOUT_EVIDENCE = (
+    "Open single judgments: abstract vignettes (number processes, durations, inspections, pumps, "
+    "tanks) and an economist's forecasts and central-bank statements"
+)
+
+
+def round_readout(p):
+    """How often it gives round probabilities on judgment calls, and whether its variant's
+    difference from the other variant carried from abstract to finance cases."""
+    f = p.get("round_readout")
+    if not f or f.get("abstract") is None or f.get("finance") is None:
+        return None
+    me, other = VARIANT_NAMES[f["variant"]], VARIANT_NAMES[f["partner"]]
+    a, b = f["abstract"], f["finance"]
+    da, db = f["difference"].get("abstract"), f["difference"].get("finance")
+    claim = (
+        f"On open judgment calls it reports a round probability (a multiple of 5 points) in "
+        f"about {pct(a)} of abstract cases and {pct(b)} of finance cases."
+    )
+    if f.get("transfer_pass") and da is not None and db is not None:
+        more = da > 0 and db > 0
+        every = " at every effort level" if f.get("every_effort") else ""
+        claim += (
+            f" {me} does so {'more' if more else 'less'} often than {other}{every}, in both: a "
+            "difference that carried from abstract vignettes to finance judgments in a "
+            "preregistered test."
+        )
+    detail = (
+        "Share of answers at multiples of 5 points among judged probabilities between 6% and 94%: "
+        f"abstract vignettes {pct(a)}, finance judgments {pct(b)}."
+    )
+    if da is not None and db is not None:
+        detail += (
+            f" {me} minus {other}, averaged over effort: {100 * da:+.0f} points abstract, "
+            f"{100 * db:+.0f} finance (Holm p {f['p_holm']:.3f})."
+        )
+    at = f.get("at_effort") or {}
+    if "abstract" in at and "finance" in at:
+        detail += (
+            f" At its own effort level: {100 * at['abstract']:+.0f} and "
+            f"{100 * at['finance']:+.0f} points."
+        )
+    if f.get("configuration_transfer_p") is not None:
+        detail += (
+            " Whether a configuration's own level, effort included, carries across domains is not "
+            f"established (p {f['configuration_transfer_p']:.2f})."
+        )
+    return reading(
+        "round-readout",
+        "reliability",
+        claim,
+        detail,
+        f"{READOUT_EVIDENCE}; {count(f['sessions'])}; preregistered.",
+        f["sessions"],
+        {"kind": "values", "values": [a, b], "labels": ["abstract", "finance"]},
+        caution=(
+            "It describes how precisely it reports a probability, not what it believes. It holds "
+            "for judgment calls: on questions about base rates every configuration answers in fine "
+            "grain. Its effort level does not predict the readout across domains; its variant does."
+        ),
+        fact=("Round probabilities", f"{pct(a)} abstract, {pct(b)} finance"),
     )
 
 
@@ -1133,6 +1201,7 @@ def guide(ledger, descriptors):
             documents(config, analyses),
             information(p),
             precision(p, config, (ledger.get("models") or {}).get("battery_v2")),
+            round_readout(p),
             fidelity_trait(config, (ledger.get("models") or {}).get("battery_v2")),
             sessions_vary(p),
             coherence(p),
@@ -1160,6 +1229,7 @@ def guide(ledger, descriptors):
                 ("sessions", "how much its judgements vary between sessions"),
                 ("framing", "whether a question's framing changes its numbers"),
                 ("confident-wording", "how far confident wording moves it without a record"),
+                ("round-readout", "how often it gives round probabilities on judgment calls"),
             )
             if not any(m.startswith(key) if key.endswith("-") else m == key for m in measured)
         ] + undetermined_checks(config, (ledger.get("models") or {}).get("structure_checks"))
