@@ -147,3 +147,46 @@ def test_caution_carries_the_three_wording_result_per_kind_of_claim():
     assert "in the same direction for both kinds of claim" in alike
     more = {"three": 0.67, "four": 0.4, "shift": 0.36, "shift_interval_90": [0.23, 0.49]}
     assert "more (+0.36" in guide.phrase_set_note({"policy": more})
+
+
+def test_session_variation_separates_session_shifts_from_item_noise(monkeypatch):
+    from epistemics.ledger import wording as ledger
+
+    rng = np.random.default_rng(8)
+
+    def record(config, form, shift, run):
+        cases = []
+        for k in range(6):
+            weight = 1.5 + 0.1 * k + shift + rng.normal(0, 0.05)
+            answer = float(1 / (1 + np.exp(-weight)))
+            cases.append({"item": k, "wording": "confirmed", "weight": weight, "direction": 1,
+                          "answer": answer})  # fmt: skip
+        return {"run_id": run, "configuration": config,
+                "wording": {"family": "urn", "form": form, "cases": cases}}  # fmt: skip
+
+    records = []
+    for config, sd in (("steady", 0.02), ("moody", 0.8), ("third", 0.05)):
+        for form in "abcd":
+            for r in range(4):
+                records.append(record(config, form, rng.normal(0, sd), f"{config}-{form}-{r}"))
+    monkeypatch.setattr(ledger, "records", lambda roots: iter(records))
+    out = ledger.session_variation([], draws=500)["configurations"]
+    assert out["moody"]["sigma_session"] > 0.4 > out["steady"]["sigma_session"]
+    assert out["moody"]["sigma_item"] < 0.1
+    lo, hi = out["moody"]["pseudo_collection_ratio"]["interval_90"]
+    assert hi - lo > 0.2
+
+
+def test_runner_compares_repeated_wording_headlines():
+    a = {"parameter": "wording", "I think": 0.5, "plain": 1.0, "definitely": 1.5, "confirmed": 2.0}
+    b = {"parameter": "wording", "I think": 0.7, "plain": 1.0, "definitely": 1.1, "confirmed": 2.0}
+    assert abs(runner.difference(a, b) - 0.15) < 1e-9
+    summary = runner.agreement(
+        {
+            ("terra", "wording-urn-a"): [
+                {"variant": "wording", "cover": "markets", "repeat": r, "estimate": e}
+                for r, e in ((1, a), (2, b))
+            ]
+        }  # fmt: skip
+    )
+    assert summary["terra/wording-urn-a"]["repeat_differences"] == [runner.difference(a, b)]

@@ -1304,6 +1304,21 @@
       "status": "complete",
       "prediction": "Record: the caution carries each configuration's three- against four-wording result for the analyst's call and the economist's forecast.",
       "outcome": "Reading guide 0.7.2: per configuration and kind of claim, the change in its weight on 'definitely... confirmed' when the source uses three wordings rather than four (less, more or no clear change by the 90% interval) and its ratio to the others' median with three and with four; whether the direction is the same for both kinds. Terra: no clear change on the call, less on the forecast; Astra: less, then more; Luna: no clear change, then less; Sol: less on both. The claim and classification are unchanged."
+    },
+    {
+      "id": "wording-sessions",
+      "date": "2026-10-04",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Session-to-session variation on the urn (confident wording)",
+      "question": "How much does a configuration's weight on a confident analyst's call move between sessions that answer the same cases, and how far can a single collection's ratio be trusted?",
+      "doc": "docs/exploration-log.md",
+      "roots": [
+        "output/wording-sessions-20261004"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory test of idea 33: form a of the four-wording urn, six repeats per configuration, each in its own case order (inline groups; tasks 0.41.0, validation unchanged); variance components with the two earlier collections.",
+      "outcome": "24 of 24 sessions recorded and verified, 11.5M input tokens; the runner's end-of-run summary failed (KeyError: 'mean', repeated wording headlines), data unaffected, fixed in tasks 0.41.1. Variation is between sessions, not items (sigma_item 0.03-0.35, sigma_session 0.4-2.0 log-odds): each session applies one consistent mapping. Luna has two modes on the urn: in 5 of 8 sessions every answer equals the stated prior (calls get no weight); in 3 it weighs calls strongly. Sol has two levels (top phrase near 1.1 or 2.2-3.0). Terra varies continuously (0.60-3.28 on the same cases) and most on forecasts (sigma 0.98). Astra is steadiest. Pseudo-collections: Terra's urn ratio to the others' median spans 0.92-2.00 (median 1.38); single-collection urn ratios are not reliable to better than about 0.5. The forecast ordering is firmer."
     }
   ],
   "next": [

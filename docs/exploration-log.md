@@ -646,3 +646,86 @@ Each caution says whether the configuration's results go the same way in both fa
 - **Astra:** less on the call (−0.31), more on the forecast (+0.36).
 - **Luna:** no clear change on the call, less on the forecast (−0.99).
 - **Sol:** less on both (−0.42 and −0.20), the only configuration whose caution says "in the same direction for both kinds of claim measured".
+
+## 4 October: session-to-session variation on the urn (idea 33)
+
+**Question.** Terra's "definitely… confirmed" weight on the four-wording urn was 2.19 in one collection and 1.60 in another, hours apart. On the same forecasts its share of answers at 99% or more fell from 50% to 4%. How much does a configuration's answer move between sessions that answer the same cases? How far can a single collection's ratio be trusted?
+
+**Measure.**
+- Sessions that answer the same form see the same items, each in its own case order, so they differ only by session.
+- From the "definitely… confirmed" weights (sessions × items within a form):
+  - σ_session is the SD of a session's mean beyond item noise. It is pooled over forms, with a 90% interval from chi-square quantiles on the between-session degrees of freedom.
+  - σ_item is the item-by-session residual.
+  - The SD of a four-form collection's mean is √(σ_session²/4 + σ_item²/24).
+- Pseudo-collections draw one session per form at random and give the spread of each configuration's ratio to the others' median.
+
+**Before collecting**, from the two collections that already answered every four-wording urn form (two sessions per form and configuration, 4 df):
+
+| | σ_session | 90% | σ_item | Collection SD |
+| --- | --- | --- | --- | --- |
+| Astra | 0.40 | 0.26–0.95 | 0.03 | 0.20 |
+| Sol | 0.61 | 0.40–1.46 | 0.10 | 0.31 |
+| Luna | 1.31 | 0.85–3.10 | 0.27 | 0.66 |
+| Terra | 0.96 | 0.60–2.31 | 0.46 | 0.49 |
+
+Those pairs come from different collections, so collection-level differences are mixed in.
+
+**Collection.** Root `output/wording-sessions-20261004`: form a of the four-wording urn, six repeats each for Astra, Sol, Luna and Terra (24 sessions). Each repeat has its own case order. The plan used inline groups rather than a preset, so the task code and its validation 0.41 are unchanged. Groups:
+
+`{"configurations": ("astra", "sol", "luna", "terra"), "modules": ("wording-urn-a",), "contexts": (("wording", "markets", r) for r in 1..6)}`
+
+Analysis: `uv run python -m epistemics.ledger wording-sessions <roots> --output <file>`. Run it on the new root alone (within one collection), and with the two earlier collections (across collections).
+
+### Results
+
+**Collection.** Root `output/wording-sessions-20261004`: 24 of 24 sessions recorded and verified, 11.5 million input tokens.
+- The runner's end-of-run summary then failed (`KeyError: 'mean'`). Its comparison of repeated contexts assumed a `mean` field, and wording headlines carry one weight per wording. The data are unaffected.
+- Tasks 0.41.1 fixes the comparison, with a test, and is re-validated.
+- Commands:
+  - `uv run python -m epistemics.ledger wording-sessions output/wording-sessions-20261004 --output output/wording-sessions-within-20261004.json` (within one collection);
+  - the same with `output/wording-families-20261002 output/wording-phrase-set-20261002` added (`…-pooled-…`, across three collections);
+  - `--family policy` on the two four-wording policy collections (`…-policy-…`).
+
+**Session-to-session variation in the "definitely… confirmed" weight** (log-odds; σ_session with its 90% interval; σ_item; SD of a four-form collection's mean):
+
+| | Urn, within one collection | Urn, three collections | Policy, two collections |
+| --- | --- | --- | --- |
+| Astra | 0.45 [0.30, 0.94]; 0.03; 0.23 | 0.42 [0.31, 0.66]; 0.03; 0.21 | 0.21 [0.14, 0.50]; 0.03; 0.11 |
+| Sol | 0.68 [0.46, 1.43]; 0.11; 0.34 | 0.73 [0.54, 1.17]; 0.11; 0.37 | 0.44 [0.28, 1.05]; 0.13; 0.22 |
+| Luna | 1.97 [1.32, 4.11]; 0.21; 0.99 | 1.62 [1.20, 2.58]; 0.24; 0.81 | 0.35 [0.16, 0.94]; 0.53; 0.20 |
+| Terra | 0.67 [0.44, 1.41]; 0.26; 0.34 | 0.94 [0.69, 1.52]; 0.35; 0.48 | **0.98** [0.63, 2.33]; 0.26; 0.49 |
+
+**Form a of the four-wording urn, every session** (mean "definitely… confirmed" weight; eight sessions over three collections):
+
+| | Sessions |
+| --- | --- |
+| Astra | 1.60 1.72 1.40 2.20 1.11 1.11 1.06 1.72 |
+| Sol | 2.20 2.98 2.49 1.10 1.15 2.43 1.22 1.11 |
+| Luna | 0.00 2.82 4.60 2.70 0.00 0.00 0.00 0.00 |
+| Terra | 0.60 1.51 1.91 2.94 1.77 1.90 3.28 3.00 |
+
+**Reading.**
+- **The variation is between sessions, not between items.** σ_item is 0.03–0.35 against σ_session of 0.4–2.0. A session applies one consistent mapping from wording to number to every case. The mapping itself changes from session to session.
+- **Luna has two modes on the urn.**
+  - In 5 of 8 sessions it gives every analyst's call no weight at all: all 24 answers equal the stated prior, whatever the wording.
+  - In the other 3 it weighs calls strongly, and orders them by wording.
+  - On the economist's forecasts it is steady (σ 0.35). The earlier "Luna gives relayed calls no weight" (call reaction) came from one session per source, so it may be the same mode.
+- **Sol has two levels:** its top-phrase weight sits near 1.1–1.2 in some sessions and 2.2–3.0 in others.
+- **Terra varies continuously and widely:** 0.60 to 3.28 on the same urn cases. It varies the most of the four on the forecasts (σ 0.98), where the others are steady.
+- **Astra is the most stable in both families.**
+- **What it means for single-collection ratios.**
+  - Drawing one session per form at random (pseudo-collections from the eight urn sessions per configuration), Terra's ratio to the others' median spans 0.92 to 2.00 (90%, median 1.38). It reaches 1.5 or more in 37% of draws.
+  - The other configurations' ratios span: Sol 0.73–1.64, Luna 0.49–1.56, Astra 0.52–0.98.
+  - The original face-value result (2.45 and 2.60 log-odds, about twice the others) sits at the edge of what session variation produces. The later 1.29 and 1.00 sit inside it.
+  - The urn ratios in the passport rest on one collection, four sessions per configuration, and are not reliable to better than about ±0.5 in the ratio.
+  - The forecast ordering is firmer: two collections agree, and Astra, Sol and Luna are steady there. Terra's forecast ratio carries its own large session variation.
+- **For the passport:**
+  - The `confident-wording` caution should say that a configuration's response to wording varies between sessions, with Terra and Luna most variable.
+  - Luna's two-mode behaviour on analysts' calls is itself a candidate reading: in most sessions it ignores an analyst's call.
+  - The guide's existing `sessions` reading ("how much its judgements vary between sessions") could take these repeats.
+
+**Ideas:**
+34. **Session modes as a passport reading.** Describe each configuration's between-session behaviour as a mixture where it is one: Luna ignores analysts' calls in most sessions. Check which other families show modes.
+35. **What sets the mode?** Luna's zero-weight sessions might follow something in the case order, such as the first case. A per-session look at the first few cases could tell, without new data.
+
+**Task validation 0.41.1** (the summary fix only) passed on both seeds: 4,656 cases, 199 contexts. Fingerprint `6502d27aef6da333…`.

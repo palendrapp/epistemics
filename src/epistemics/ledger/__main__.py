@@ -53,6 +53,7 @@ uv run python -m epistemics.ledger primacy --statements <roots...> --correlated 
 uv run python -m epistemics.ledger call-reaction --advice <roots...> [--calls <roots...>] --output <file>
 uv run python -m epistemics.ledger wording-families <roots...> --output <file>
 uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|policy] --output <file>
+uv run python -m epistemics.ledger wording-sessions <roots...> [--family urn] --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -205,6 +206,10 @@ def main():
     wp.add_argument("roots", type=Path, nargs="+")
     wp.add_argument("--family", choices=("urn", "policy"), default="urn")
     wp.add_argument("--output", type=Path, required=True)
+    ws = sub.add_parser("wording-sessions")
+    ws.add_argument("roots", type=Path, nargs="+")
+    ws.add_argument("--family", default="urn")
+    ws.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
     pr.add_argument("--correlated", type=Path, nargs="+", required=True)
@@ -567,6 +572,16 @@ def main():
             r3, r4 = e["three"]["confirmed_to_others"], e["four"]["confirmed_to_others"]
             print(c, f"three x{r3['ratio']:.2f} four x{r4['ratio']:.2f}",
                   f"shift x{e['ratio_shift']['ratio']:.2f}")  # fmt: skip
+    elif a.command == "wording-sessions":
+        from epistemics.ledger import wording
+
+        run = wording.session_variation(a.roots, family=a.family)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for c, e in run["configurations"].items():
+            lo, hi = e["sigma_session_interval_90"]
+            print(c, f"sigma_session {e['sigma_session']:.2f} [{lo:.2f}, {hi:.2f}]",
+                  f"sigma_item {e['sigma_item']:.2f} collection_sd {e['collection_sd']:.2f}")  # fmt: skip
     elif a.command == "primacy":
         from epistemics.ledger import primacy
 

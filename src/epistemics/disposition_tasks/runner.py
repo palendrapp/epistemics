@@ -1098,6 +1098,18 @@ def difference(a, b):
         if a["slope"] is None or b["slope"] is None:
             return None
         return abs(a["slope"] - b["slope"])
+    if "mean" not in a or "mean" not in b:
+        # Tasks 0.41.1: headlines without a single mean (wording, announced, correlated, ...)
+        # compare the numeric fields both carry (first repeated in the wording-sessions run, whose
+        # summary step failed on this after all runs completed).
+        keys = [
+            k
+            for k, v in a.items()
+            if k != "parameter"
+            and isinstance(v, (int, float))
+            and isinstance(b.get(k), (int, float))
+        ]
+        return float(np.mean([abs(a[k] - b[k]) for k in keys])) if keys else None
     return abs(a["mean"] - b["mean"])
 
 

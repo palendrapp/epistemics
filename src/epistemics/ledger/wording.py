@@ -9,7 +9,7 @@ the reading guide), the increment "confirmed" adds to "definitely", and the spre
 
 import numpy as np
 
-from epistemics.dispositions.wording import FAMILIES, WORDINGS
+from epistemics.dispositions.wording import FAMILIES, FORMS, WORDINGS
 
 BOOTSTRAP = 4000
 FACE_VALUE = 1.5
@@ -233,5 +233,95 @@ def phrase_sets(roots, three="urn3", four="urn", seed=20261003):
             "Exploratory: the urn family's 'definitely... confirmed' call with three wordings "
             "offered against four; ratio_shift above 1 means the configuration stands further from "
             "the others when the top phrase is the top of three."
+        ),
+    }
+
+
+def session_variation(roots, family="urn", seed=20261004, draws=4000):
+    """Session-to-session variation (idea 33): sessions that answered the same form (same items,
+    each in its own case order) differ only by session. Per configuration, from the
+    "definitely... confirmed" weights (sessions x items within each form): the between-session SD
+    of a session's mean (sigma_session) after removing the item-by-session residual (sigma_item),
+    pooled over forms, with a 90% interval from chi-square quantiles on the between-session
+    degrees of freedom; the SD a four-form collection's mean would have; each session's mean and
+    share of answers at 99% or more; and pseudo-collections (one session drawn per form) for the
+    distribution of each configuration's ratio to the others' median."""
+    rng = np.random.default_rng(seed)
+    by = {}
+    for record in records(roots):
+        w = record["wording"]
+        if w["family"] != family:
+            continue
+        top = [r for r in w["cases"] if r["wording"] == "confirmed"]
+        toward = [r["answer"] if r["direction"] == 1 else 1 - r["answer"] for r in top]
+        by.setdefault(record["configuration"], {}).setdefault(w["form"], []).append(
+            {
+                "run": record["run_id"],
+                "weights": {r["item"]: r["weight"] for r in top},
+                "mean": float(np.mean([r["weight"] for r in top])),
+                "ceiling": float(np.mean([round(t, 2) >= CEILING for t in toward])),
+            }
+        )
+    out = {}
+    for c, forms in sorted(by.items()):
+        between, df_b, ss_res, df_res, items = 0.0, 0, 0.0, 0, []
+        for sessions in forms.values():
+            if len(sessions) < 2:
+                continue
+            keys = sorted(sessions[0]["weights"])
+            m = np.array([[s["weights"][k] for k in keys] for s in sessions])
+            rows = m.mean(axis=1)
+            between += float(np.var(rows, ddof=1)) * (len(rows) - 1)
+            df_b += len(rows) - 1
+            resid = m - rows[:, None] - m.mean(axis=0)[None, :] + m.mean()
+            ss_res += float((resid**2).sum())
+            df_res += (m.shape[0] - 1) * (m.shape[1] - 1)
+            items.append(m.shape[1])
+        if not df_b:
+            continue
+        n = float(np.mean(items))
+        v_between = between / df_b
+        sigma_item2 = ss_res / df_res if df_res else 0.0
+        chi = rng.chisquare(df_b, 200000)
+        bounds = [df_b * v_between / float(np.percentile(chi, q)) for q in (95, 5)]
+        sigma2 = max(v_between - sigma_item2 / n, 0.0)
+        out[c] = {
+            "sigma_session": float(np.sqrt(sigma2)),
+            "sigma_session_interval_90": [
+                float(np.sqrt(max(b - sigma_item2 / n, 0.0))) for b in bounds
+            ],
+            "sigma_item": float(np.sqrt(sigma_item2)),
+            "collection_sd": float(np.sqrt(sigma2 / 4 + sigma_item2 / (4 * n))),
+            "sessions_df": df_b,
+            "sessions": {
+                f: [{"run": s["run"], "mean": s["mean"], "ceiling": s["ceiling"]} for s in ss]
+                for f, ss in sorted(forms.items())
+            },
+        }
+    configs = [c for c in out if set(by[c]) >= set(FORMS)]
+    if len(configs) > 1:
+        draws_by = {c: [] for c in configs}
+        for _ in range(draws):
+            means = {
+                c: float(np.mean([by[c][f][rng.integers(len(by[c][f]))]["mean"] for f in FORMS]))
+                for c in configs
+            }
+            for c in configs:
+                draws_by[c].append(means[c] / np.median([means[o] for o in configs if o != c]))
+        for c in configs:
+            x = np.array(draws_by[c])
+            out[c]["pseudo_collection_ratio"] = {
+                "median": float(np.median(x)),
+                "interval_90": _interval(x),
+                "share_at_least_1_5": float(np.mean(x >= FACE_VALUE)),
+            }
+    return {
+        "schema_version": "epistemics.wording-sessions.v1",
+        "family": family,
+        "configurations": out,
+        "scope": (
+            "Exploratory: sessions answering the same form differ only by session and case order. "
+            "sigma_session is the SD of a session's mean 'definitely... confirmed' weight beyond "
+            "item noise; collection_sd the SD of a four-form collection's mean."
         ),
     }
