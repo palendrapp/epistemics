@@ -814,3 +814,18 @@ Command: `uv run python -m epistemics.ledger finance-transfer --output output/fi
   - The finance tasks are fictional cases.
 
 **Next:** a preregistered version, [finance-transfer-design.md](finance-transfer-design.md): fresh sessions, twelve configurations, round readout as the single primary.
+
+## 4 October: the preregistered transfer test, built
+
+Decisions (user, "go for it"): twelve configurations, the description tasks for the finance gap, about 100 million input tokens.
+
+**Configurations.** Luna and Terra at low and high effort (`gpt-5.6-luna` and `gpt-5.6-terra`) were added to the configuration table.
+- A one-session smoke test of each (`output/smoke-gpt56-effort-20261004`, `wording-urn-a`, 1.9 million input tokens) completed and verified. The commands carried `model_reasoning_effort` low and high with no warnings.
+- In passing, Terra-low and Terra-high gave every analyst's call no weight: all answers at the stated prior. Luna-low gave only the top phrase any weight. This is the zero-weight mode seen in Luna's urn sessions. It is not used in the test.
+
+**Preset** `finance-transfer` (tasks 0.42.0, the preset only): 216 sessions, 8 abstract and 10 finance per configuration.
+
+**Preregistration:** [finance-transfer-preregistration.md](finance-transfer-preregistration.md).
+- The analysis is `ledger.finance_transfer.preregistered`, run with `uv run python -m epistemics.ledger finance-transfer-preregistered <root>`.
+- Power: `ledger finance-transfer-power`, which now includes the gap simulation.
+- One rule was tightened before freezing. Answers are excluded "at the stated prior" only for questions about the outcome whose prior the case states. The rate and probe questions ask about a source's behaviour and state no prior for it; their 0.5 placeholder would otherwise have dropped genuine answers of 0.5.

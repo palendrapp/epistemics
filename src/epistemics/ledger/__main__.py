@@ -56,6 +56,7 @@ uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|
 uv run python -m epistemics.ledger wording-sessions <roots...> [--family urn] --output <file>
 uv run python -m epistemics.ledger finance-transfer --output <file>
 uv run python -m epistemics.ledger finance-transfer-power --output <file>
+uv run python -m epistemics.ledger finance-transfer-preregistered <root> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -214,6 +215,9 @@ def main():
     ws.add_argument("--output", type=Path, required=True)
     ft = sub.add_parser("finance-transfer")
     ft.add_argument("--output", type=Path, required=True)
+    ftr = sub.add_parser("finance-transfer-preregistered")
+    ftr.add_argument("root", type=Path)
+    ftr.add_argument("--output", type=Path, required=True)
     ftp = sub.add_parser("finance-transfer-power")
     ftp.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
@@ -599,6 +603,16 @@ def main():
                   f"same side {t['same_side_of_median']}/{len(t['configurations'])}")  # fmt: skip
             for c in t["configurations"]:
                 print(f"   {c:10s} abstract {t['abstract'][c]:.3f}  finance {t['finance'][c]:.3f}")
+    elif a.command == "finance-transfer-preregistered":
+        from epistemics.ledger import finance_transfer
+
+        run = finance_transfer.preregistered(a.root)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        h1 = run["H1"] or {}
+        print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
+        for k, v in run["secondary"].items():
+            print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
     elif a.command == "finance-transfer-power":
         from epistemics.ledger import finance_transfer
 
@@ -609,6 +623,7 @@ def main():
             "between_0.24": finance_transfer.power(
                 configurations=(12,), sessions=(8, 10), between=0.24
             ),
+            "gap": finance_transfer.power_gap(),
         }
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")

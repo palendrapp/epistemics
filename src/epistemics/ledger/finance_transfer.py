@@ -20,6 +20,7 @@ Per trait: Spearman's rank correlation over the configurations measured in both,
 one-sided permutation p, and how many configurations sit on the same side of the median in both.
 """
 
+import functools
 import itertools
 import json
 from pathlib import Path
@@ -251,6 +252,7 @@ def summary():
     }
 
 
+@functools.cache
 def critical_rho(n, alpha=0.05):
     """The smallest Spearman rho whose exact one-sided permutation p is at most alpha (n <= 9
     enumerates every ordering; larger n uses 200,000 random orderings, seed 20261004)."""
@@ -295,4 +297,233 @@ def power(
                     obs_f = f + rng.normal(0, session_sd / np.sqrt(m), n)
                     hits += spearman(obs_a, obs_f) >= crit - 1e-12
                 out[f"n{n}/m{m}/rho{r}"] = hits / datasets
+    return out
+
+
+# Preregistered test (docs/finance-transfer-preregistration.md): fresh sessions in one root.
+ABSTRACT_MODULES = tuple(f"wording-urn-{f}" for f in "abcd") + (
+    "copying-urn-asked",
+    "selection-urn-asked",
+)
+FINANCE_MODULES = (
+    tuple(f"wording-policy-{f}" for f in "abcd")
+    + ("corroboration-cues", "disclosure-cues")
+    + ("announced-a", "announced-b")
+)
+GAP_STRUCTURES = {
+    "abstract": ("copying-urn-asked", "selection-urn-asked"),
+    "finance": ("corroboration-cues", "disclosure-cues"),
+}
+GPT6 = ("astra-low", "astra", "astra-high", "sol-low", "sol", "sol-high")
+GPT56 = ("luna-low", "luna", "luna-high", "terra-low", "terra", "terra-high")
+MIN_SESSIONS = {"abstract": 6, "finance": 8}
+MIN_ANSWERS = 5
+MIN_CONFIGS = 10
+PERMUTATIONS = 200000
+SEED = 20261006
+
+
+# Questions about a source's behaviour (its copying or withholding rate), not about the outcome
+# whose prior the case states: their answers are never excluded as "at the stated prior".
+RATE_KINDS = ("rate", "probe")
+
+
+def _answers(record):
+    """(answer, stated prior of the outcome asked about, or None) for every probability answer of
+    a session."""
+    if "wording" in record:
+        return [(c["answer"], c["prior"] / 100) for c in record["wording"]["cases"]]
+    if "announced" in record:
+        return [(c["answer"], c["prior"] / 100) for c in record["announced"]["cases"]]
+    items = record["items"]
+    out = []
+    for i, v in enumerate(record["responses"]):
+        if v is None or ("response" in items and items["response"][i] != "probability"):
+            continue
+        asks_outcome = "prior" in items and str(items["kind"][i]) not in RATE_KINDS
+        out.append((float(v), float(items["prior"][i]) if asks_outcome else None))
+    return out
+
+
+def _gap(record):
+    fits = {s["slot"]: s for s in record.get("slot_fits", [])}
+    if not all(fits.get(level, {}).get("stated") for level in LEVELS):
+        return None
+    return float(
+        np.mean([abs(np.mean(fits[k]["stated"]) - fits[k]["implied"]["mean"]) for k in LEVELS])
+    )
+
+
+def sessions(root):
+    """Per verified session: configuration, domain, module, its round-readout share (None below
+    MIN_ANSWERS qualifying answers), its stated-applied gap where it asks base rates, and its
+    wording weights where it is a wording session."""
+    from epistemics.ledger import dispositions
+
+    out = []
+    for r in dispositions.extract(root):
+        if not r.get("verified"):
+            continue
+        module = r["module"]
+        domain = "abstract" if module in ABSTRACT_MODULES else (
+            "finance" if module in FINANCE_MODULES else None
+        )  # fmt: skip
+        if domain is None:
+            continue
+        answers = [(a, p if p is not None else -1.0) for a, p in _answers(r)]
+        share, n = _round_share(answers)
+        out.append(
+            {
+                "configuration": r["configuration"],
+                "domain": domain,
+                "module": module,
+                "run": r["run_id"],
+                "round_share": share if n >= MIN_ANSWERS else None,
+                "round_answers": n,
+                "gap": _gap(r) if module in GAP_STRUCTURES[domain] else None,
+                "wording": [(c["wording"], c["weight"]) for c in r["wording"]["cases"]]
+                if "wording" in r
+                else None,
+            }
+        )
+    return out
+
+
+def _permutation_p(a, b, rng, permutations=PERMUTATIONS):
+    rho = spearman(a, b)
+    n = len(a)
+    if n <= 9:
+        null = [spearman(a, np.asarray(b)[list(p)]) for p in itertools.permutations(range(n))]
+    else:
+        b = np.asarray(b, float)
+        null = [spearman(a, b[rng.permutation(n)]) for _ in range(permutations)]
+    return rho, float(np.mean(np.asarray(null) >= rho - 1e-12))
+
+
+def holm(ps):
+    order = sorted(ps, key=ps.get)
+    out, running = {}, 0.0
+    for k, name in enumerate(order):
+        running = max(running, min(1.0, ps[name] * (len(ps) - k)))
+        out[name] = running
+    return out
+
+
+def preregistered(root, permutations=PERMUTATIONS, seed=SEED):
+    """H1-H4 of the preregistration from one root's sessions."""
+    rng = np.random.default_rng(seed)
+    rows = sessions(root)
+    counts, values = {}, {}
+    for s in rows:
+        counts.setdefault(s["configuration"], {"abstract": 0, "finance": 0})[s["domain"]] += 1
+    included = sorted(
+        c for c, n in counts.items() if all(n[d] >= MIN_SESSIONS[d] for d in MIN_SESSIONS)
+    )
+    for c in included:
+        mine = [s for s in rows if s["configuration"] == c]
+        entry = {}
+        for d in ("abstract", "finance"):
+            shares = [
+                s["round_share"] for s in mine if s["domain"] == d and s["round_share"] is not None
+            ]
+            gaps = [
+                float(np.mean(v))
+                for m in GAP_STRUCTURES[d]
+                if (v := [s["gap"] for s in mine if s["module"] == m and s["gap"] is not None])
+            ]
+            wording = [w for s in mine if s["domain"] == d and s["wording"] for w in s["wording"]]
+            entry[d] = {
+                "round_readout": float(np.mean(shares)) if shares else None,
+                "round_sessions": len(shares),
+                "round_session_sd": float(np.std(shares, ddof=1)) if len(shares) > 1 else None,
+                "gap": float(np.mean(gaps)) if len(gaps) == 2 else None,
+                "confidence": _spread(wording),
+            }
+        entry["far_round_readout"] = (
+            float(np.mean(v))
+            if (v := [s["round_share"] for s in mine if s["module"].startswith("announced-") and s["round_share"] is not None])
+            else None
+        )  # fmt: skip
+        values[c] = entry
+
+    def test(trait, configs, abstract_key=None):
+        pairs = [
+            (c, values[c]["abstract"][trait], values[c]["finance"][trait])
+            for c in configs
+            if c in values
+            and values[c]["abstract"][trait] is not None
+            and values[c]["finance"][trait] is not None
+        ]
+        if len(pairs) < 4:
+            return None
+        names, a, b = zip(*pairs, strict=True)
+        rho, p = _permutation_p(np.array(a), np.array(b), rng, permutations)
+        same = int(sum((x > np.median(a)) == (y > np.median(b)) for x, y in zip(a, b, strict=True)))
+        return {"configurations": list(names), "rho": rho, "p_one_sided": p,
+                "critical_rho": critical_rho(len(names)), "same_side_of_median": same}  # fmt: skip
+
+    # H1 runs on every included configuration; below MIN_CONFIGS it is flagged, with the
+    # critical rho for the number included (the design's fallback).
+    h1 = test("round_readout", included)
+    if h1:
+        h1["below_minimum"] = len(h1["configurations"]) < MIN_CONFIGS
+        h1["pass"] = bool(h1["rho"] > 0 and h1["p_one_sided"] < 0.05)
+    secondary = {
+        "H2a": test("round_readout", [c for c in included if c in GPT6]),
+        "H2b": test("round_readout", [c for c in included if c in GPT56]),
+        "H3": test("gap", included),
+        "H4": test("confidence", included),
+    }
+    adjusted = holm({k: v["p_one_sided"] for k, v in secondary.items() if v})
+    for k, v in secondary.items():
+        if v:
+            v["p_holm"] = adjusted[k]
+            v["pass"] = bool(v["rho"] > 0 and adjusted[k] < 0.05)
+    far = None
+    names = sorted(c for c, v in values.items() if v["far_round_readout"] is not None)
+    if len(names) >= 4:
+        a = np.array([values[c]["abstract"]["round_readout"] for c in names])
+        b = np.array([values[c]["far_round_readout"] for c in names])
+        rho, p = _permutation_p(a, b, rng, permutations)
+        far = {"configurations": names, "rho": rho, "p_one_sided": p}
+    return {
+        "schema_version": "epistemics.finance-transfer-preregistered.v1",
+        "sessions": {c: counts[c] for c in sorted(counts)},
+        "included": included,
+        "values": values,
+        "H1": h1,
+        "secondary": secondary,
+        "reported": {"far_round_readout": far},
+        "scope": (
+            "Preregistered (docs/finance-transfer-preregistration.md): does a configuration's "
+            "round readout in abstract urn tasks predict its round readout in finance tasks?"
+        ),
+    }
+
+
+def power_gap(
+    families=((6, 6), (6, 2)),
+    true_rho=(1.0, 0.76, 0.0),
+    sessions=4,
+    datasets=2000,
+    seed=20261007,
+):
+    """Power of H3 (Spearman over configurations, one-sided alpha 0.05) for the stated-applied
+    gap: GPT-6 gaps |N(0.02, 0.015)| with session SD 0.02, GPT-5.6 gaps |N(0.10, 0.05)| with
+    session SD 0.08; finance values correlated `true_rho` with abstract on a 0.6 scale; four
+    rate-asking sessions per domain."""
+    rng = np.random.default_rng(seed)
+    out = {}
+    for n6, n5 in families:
+        n = n6 + n5
+        crit = critical_rho(n)
+        for r in true_rho:
+            hits = 0
+            for _ in range(datasets):
+                a = np.r_[np.abs(rng.normal(0.02, 0.015, n6)), np.abs(rng.normal(0.10, 0.05, n5))]
+                z = (a - a.mean()) / a.std()
+                f = a.mean() + (r * z + np.sqrt(1 - r**2) * rng.normal(0, 1, n)) * a.std() * 0.6
+                sd = np.r_[np.full(n6, 0.02), np.full(n5, 0.08)] / np.sqrt(sessions)
+                hits += spearman(a + rng.normal(0, sd), f + rng.normal(0, sd)) >= crit - 1e-12
+            out[f"n{n}/gpt56_{n5}/rho{r}"] = hits / datasets
     return out

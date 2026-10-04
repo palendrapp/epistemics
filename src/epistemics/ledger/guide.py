@@ -19,6 +19,10 @@ NAMES = {
     "sol-high": "GPT-6 Sol, high effort",
     "luna": "GPT-5.6 Luna",
     "terra": "GPT-5.6 Terra",
+    "luna-low": "GPT-5.6 Luna, low effort",
+    "luna-high": "GPT-5.6 Luna, high effort",
+    "terra-low": "GPT-5.6 Terra, low effort",
+    "terra-high": "GPT-5.6 Terra, high effort",
 }
 TOPICS = (
     ("base-rates", "What it assumes"),

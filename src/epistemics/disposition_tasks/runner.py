@@ -447,6 +447,36 @@ PRESETS["wording-phrase-set-policy"] = (
         "contexts": (("wording", "markets", 1),),
     },
 )
+# Abstract-to-finance transfer (docs/finance-transfer-preregistration.md): twelve configurations,
+# six per model family; abstract urn tasks and their finance twins, plus the announced-count
+# statements; every case separate, in random order.
+TRANSFER_CONFIGURATIONS = (
+    "astra-low", "astra", "astra-high", "sol-low", "sol", "sol-high",
+    "luna-low", "luna", "luna-high", "terra-low", "terra", "terra-high",
+)  # fmt: skip
+PRESETS["finance-transfer"] = (
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": tuple(f"wording-urn-{f}" for f in "abcd")
+        + tuple(f"wording-policy-{f}" for f in "abcd"),
+        "contexts": (("wording", "markets", 1),),
+    },
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": ("copying-urn-asked", "selection-urn-asked"),
+        "contexts": (("urn2-named", "markets", 1), ("urn2-named", "markets", 2)),
+    },
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": ("corroboration-cues", "disclosure-cues"),
+        "contexts": (("cues-a", "markets", 1), ("cues-a", "markets", 2)),
+    },
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": ("announced-a", "announced-b"),
+        "contexts": (("announced", "markets", 1),),
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (

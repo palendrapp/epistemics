@@ -53,6 +53,12 @@ CONFIGURATIONS = {
     "sol-high": ("gpt-6-sol", "high"),
     "luna": ("gpt-5.6-luna", "medium"),
     "terra": ("gpt-5.6-terra", "medium"),
+    # 4 October 2026: GPT-5.6 effort variants, for the abstract-to-finance transfer test
+    # (docs/finance-transfer-design.md).
+    "luna-low": ("gpt-5.6-luna", "low"),
+    "luna-high": ("gpt-5.6-luna", "high"),
+    "terra-low": ("gpt-5.6-terra", "low"),
+    "terra-high": ("gpt-5.6-terra", "high"),
 }
 
 
