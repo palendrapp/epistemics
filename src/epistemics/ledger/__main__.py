@@ -56,7 +56,7 @@ uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|
 uv run python -m epistemics.ledger wording-sessions <roots...> [--family urn] --output <file>
 uv run python -m epistemics.ledger finance-transfer --output <file>
 uv run python -m epistemics.ledger finance-transfer-power --output <file>
-uv run python -m epistemics.ledger finance-transfer-preregistered <root> --output <file>
+uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -216,7 +216,7 @@ def main():
     ft = sub.add_parser("finance-transfer")
     ft.add_argument("--output", type=Path, required=True)
     ftr = sub.add_parser("finance-transfer-preregistered")
-    ftr.add_argument("root", type=Path)
+    ftr.add_argument("roots", type=Path, nargs="+")
     ftr.add_argument("--output", type=Path, required=True)
     ftp = sub.add_parser("finance-transfer-power")
     ftp.add_argument("--output", type=Path, required=True)
@@ -606,7 +606,7 @@ def main():
     elif a.command == "finance-transfer-preregistered":
         from epistemics.ledger import finance_transfer
 
-        run = finance_transfer.preregistered(a.root)
+        run = finance_transfer.preregistered(a.roots)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         h1 = run["H1"] or {}

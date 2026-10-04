@@ -829,3 +829,8 @@ Decisions (user, "go for it"): twelve configurations, the description tasks for 
 - The analysis is `ledger.finance_transfer.preregistered`, run with `uv run python -m epistemics.ledger finance-transfer-preregistered <root>`.
 - Power: `ledger finance-transfer-power`, which now includes the gap simulation.
 - One rule was tightened before freezing. Answers are excluded "at the stated prior" only for questions about the outcome whose prior the case states. The rate and probe questions ask about a source's behaviour and state no prior for it; their 0.5 placeholder would otherwise have dropped genuine answers of 0.5.
+
+**Collection (in progress).** Root `output/finance-transfer-20261004` reached the runner's two-hour total limit per root (`total_seconds` 7200) after 120 of 216 sessions. The last two admitted sessions timed out with about 80 seconds left. Admission stopped, leaving 94 unattempted.
+- The 96 remaining planned runs (the 94 and the 2 that timed out) are collected in two continuation roots of 48, run one after the other: `output/finance-transfer-20261004-b` and `-c`.
+- They use the same preset rows and the same frozen implementation (fingerprint `2e8351bf…`, validation 0.42).
+- `ledger.finance_transfer.preregistered` now takes several roots, as the preregistration anticipated ("the analysis reads both roots"). Nothing else in the analysis changed.

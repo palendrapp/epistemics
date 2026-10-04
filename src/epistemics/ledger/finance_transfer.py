@@ -409,10 +409,13 @@ def holm(ps):
     return out
 
 
-def preregistered(root, permutations=PERMUTATIONS, seed=SEED):
-    """H1-H4 of the preregistration from one root's sessions."""
+def preregistered(roots, permutations=PERMUTATIONS, seed=SEED):
+    """H1-H4 of the preregistration from the collection's sessions: the first root and its
+    continuation or top-up roots (a single root may be passed as a string or path)."""
     rng = np.random.default_rng(seed)
-    rows = sessions(root)
+    if isinstance(roots, (str, Path)):
+        roots = [roots]
+    rows = [s for root in roots for s in sessions(root)]
     counts, values = {}, {}
     for s in rows:
         counts.setdefault(s["configuration"], {"abstract": 0, "finance": 0})[s["domain"]] += 1
