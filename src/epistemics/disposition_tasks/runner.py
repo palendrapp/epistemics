@@ -477,6 +477,26 @@ PRESETS["finance-transfer"] = (
         "contexts": (("announced", "markets", 1),),
     },
 )
+# Single-judgment transfer (docs/single-judgment-preregistration.md): the same twelve
+# configurations; abstract open-inference vignettes (form a of each family) and finance single
+# judgments (the economist's forecasts twice, the central-bank statements once).
+PRESETS["single-judgment-transfer"] = (
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": tuple(f"screen-{f}-a" for f in ("gen", "num", "choice", "lists", "trend")),
+        "contexts": (("screen", "markets", 1),),
+    },
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": tuple(f"wording-policy-{f}" for f in "abcd"),
+        "contexts": (("wording", "markets", 1), ("wording", "markets", 2)),
+    },
+    {
+        "configurations": TRANSFER_CONFIGURATIONS,
+        "modules": tuple(f"announced-{f}" for f in "abcd"),
+        "contexts": (("announced", "markets", 1),),
+    },
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (

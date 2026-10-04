@@ -845,3 +845,17 @@ See [finance-transfer-preregistration.md](finance-transfer-preregistration.md#re
 **Ideas:**
 36. **Question type as the axis.** Test whether a configuration's readout on single judgments transfers across domains when every task is a single judgment (calls, forecasts, statements, inspections), within each family. Base-rate questions answered fine-grained by everyone add noise to the configuration contrast.
 37. **More model families.** A between-family claim needs more than two families before it is about families rather than about GPT-5.6 against GPT-6.
+
+## 4 October: single judgments only (idea 36)
+
+**Post hoc, on data already collected.**
+- **Single judgments within the preregistered collection** (urn calls against forecasts and statements): ρ 0.60 over twelve configurations, but ρ −0.03 within GPT-6 and 0.66 (p 0.087) within GPT-5.6.
+  - The urn calls are a poor abstract measure: Astra and Sol are level on them (0.35–0.47 against 0.39–0.46), and GPT-5.6 often gives them no weight. Luna kept 1–2 of its 4 urn sessions.
+  - On the finance single judgments Astra rounds more than Sol at every effort: 0.40–0.49 against 0.28–0.31.
+- **The open-inference screen vignettes** (number processes, durations, inspections, pumps, tanks: abstract, not finance, no calls) give a different picture within GPT-6.
+  - Compared with the finance single judgments, ρ is 0.77 (p 0.051). Astra rounds more than Sol at every effort in both: screens 0.84–0.88 against 0.39–0.68.
+  - This is post hoc: the screens were chosen after the sweep, and the data come from collections days apart.
+
+**Next:** a preregistered test on fresh data. [single-judgment-preregistration.md](single-judgment-preregistration.md).
+- The co-primaries are at the level the data point to, the variant: Astra against Sol within GPT-6, and Luna against Terra within GPT-5.6, each in both domains.
+- The configuration-level rank tests are secondary. A rank test over six configurations per family has little power (0.61 at a within-family correlation of 0.8, even with 18 sessions per configuration).

@@ -56,6 +56,8 @@ uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|
 uv run python -m epistemics.ledger wording-sessions <roots...> [--family urn] --output <file>
 uv run python -m epistemics.ledger finance-transfer --output <file>
 uv run python -m epistemics.ledger finance-transfer-power --output <file>
+uv run python -m epistemics.ledger single-judgment-preregistered <roots...> --output <file>
+uv run python -m epistemics.ledger single-judgment-power --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -218,6 +220,11 @@ def main():
     ftr = sub.add_parser("finance-transfer-preregistered")
     ftr.add_argument("roots", type=Path, nargs="+")
     ftr.add_argument("--output", type=Path, required=True)
+    sjr = sub.add_parser("single-judgment-preregistered")
+    sjr.add_argument("roots", type=Path, nargs="+")
+    sjr.add_argument("--output", type=Path, required=True)
+    sjp = sub.add_parser("single-judgment-power")
+    sjp.add_argument("--output", type=Path, required=True)
     ftp = sub.add_parser("finance-transfer-power")
     ftp.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
@@ -613,6 +620,24 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command in ("single-judgment-preregistered", "single-judgment-power"):
+        from epistemics.ledger import single_judgment
+
+        if a.command == "single-judgment-power":
+            run = {"schema_version": "epistemics.single-judgment-power.v1",
+                   "power": single_judgment.power()}  # fmt: skip
+        else:
+            run = single_judgment.preregistered(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        if "primary" in run:
+            for k, v in run["primary"].items():
+                d = {dom: (t or {}).get("difference") for dom, t in v["domains"].items()}
+                print(k, v["family"], d, f"p_iu {v['p_intersection_union']:.4f}",
+                      f"p_holm {v['p_holm']:.4f}", "pass" if v["pass"] else "fail")  # fmt: skip
+            print(json.dumps(run["secondary"], default=str)[:600])
+        else:
+            print(json.dumps(run["power"], indent=1))
     elif a.command == "finance-transfer-power":
         from epistemics.ledger import finance_transfer
 
