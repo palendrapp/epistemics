@@ -54,6 +54,7 @@ uv run python -m epistemics.ledger call-reaction --advice <roots...> [--calls <r
 uv run python -m epistemics.ledger wording-families <roots...> --output <file>
 uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|policy] --output <file>
 uv run python -m epistemics.ledger wording-sessions <roots...> [--family urn] --output <file>
+uv run python -m epistemics.ledger finance-transfer --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -210,6 +211,8 @@ def main():
     ws.add_argument("roots", type=Path, nargs="+")
     ws.add_argument("--family", default="urn")
     ws.add_argument("--output", type=Path, required=True)
+    ft = sub.add_parser("finance-transfer")
+    ft.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
     pr.add_argument("--correlated", type=Path, nargs="+", required=True)
@@ -582,6 +585,17 @@ def main():
             lo, hi = e["sigma_session_interval_90"]
             print(c, f"sigma_session {e['sigma_session']:.2f} [{lo:.2f}, {hi:.2f}]",
                   f"sigma_item {e['sigma_item']:.2f} collection_sd {e['collection_sd']:.2f}")  # fmt: skip
+    elif a.command == "finance-transfer":
+        from epistemics.ledger import finance_transfer
+
+        run = finance_transfer.summary()
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for name, t in run["traits"].items():
+            print(name, f"rho {t['rho']:.2f} p {t['p_one_sided']:.3f}",
+                  f"same side {t['same_side_of_median']}/{len(t['configurations'])}")  # fmt: skip
+            for c in t["configurations"]:
+                print(f"   {c:10s} abstract {t['abstract'][c]:.3f}  finance {t['finance'][c]:.3f}")
     elif a.command == "primacy":
         from epistemics.ledger import primacy
 

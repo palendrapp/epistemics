@@ -729,3 +729,86 @@ Analysis: `uv run python -m epistemics.ledger wording-sessions <roots> --output 
 35. **What sets the mode?** Luna's zero-weight sessions might follow something in the case order, such as the first case. A per-session look at the first few cases could tell, without new data.
 
 **Task validation 0.41.1** (the summary fix only) passed on both seeds: 4,656 cases, 199 contexts. Fingerprint `6502d27aef6da333…`.
+
+## 4 October: do any traits carry from abstract tasks to finance tasks? (existing data)
+
+**Question.** The user asked whether any trait transfers from abstract tasks to a finance domain. Three candidates came out of the registry. This tests each with data already collected: does a configuration's place on the trait in abstract tasks predict its place in finance tasks? Finance tasks are those whose stories are about markets:
+- market newsletters and company disclosure in the description tasks (the "markets" cover);
+- central-bank statements;
+- the economist's forecasts.
+
+Abstract tasks are the urn tasks.
+
+**Specified before computing the finance side** (post hoc on existing data; the qualitative patterns were already known, so this is a consistency check, not a confirmatory test):
+1. **Stated–applied gap.**
+   - Abstract: battery v2's mean |stated − applied| base rate over its six urn tasks (levels 1–3).
+   - Finance: the same gap at levels 1–3 in every verified session of the description tasks under the markets cover (outlets that may copy market calls; companies that may withhold bad indicators).
+2. **Sensitivity to verbal confidence.**
+   - Abstract: the weight of a "definitely… confirmed" call minus an "I think…" call, without a record, pooled over every urn collection that has both: multi-agent open, calls in order (first calls), and the wording urn families.
+   - Finance: the same on the economist's forecasts (policy and policy3).
+3. **Round readout.**
+   - Abstract: the share of answers at multiples of 0.05, among answers between 0.06 and 0.94 that move off the stated prior, on fresh single-claim urn cases (the wording urn families).
+   - Finance: the same on fresh finance cases, namely the economist's forecasts and the announced-count statements.
+   - Secondary: the sweep's comparison of the general vignettes (screen and coherence sets) with statements stage A, eight configurations, follow-up confound noted.
+
+**Statistics.** For each trait, over the configurations measured in both domains:
+- Spearman's rank correlation, with an exact one-sided permutation p over all orderings of the finance values;
+- the number of configurations on the same side of the median in both domains.
+
+With four configurations the smallest attainable p is 1/24 (0.042), so only a perfect ordering can reach 0.05.
+
+### Results
+
+Command: `uv run python -m epistemics.ledger finance-transfer --output output/finance-transfer-20261004.json`.
+
+**1. Stated–applied gap** (|stated − applied| base rate, levels 1–3):
+
+| | Abstract (battery v2, six urn tasks) | Finance (market newsletters, company disclosure) |
+| --- | --- | --- |
+| Luna | 0.179 | 0.127 |
+| Terra | 0.119 | 0.044 |
+| Astra | 0.035 | 0.004 |
+| Sol | 0.028 | 0.017 |
+
+ρ 0.80, exact one-sided p 0.17. All four configurations sit on the same side of the median in both domains. The only change of order is Astra and Sol, both near zero. Luna has the largest gap in both domains and Terra the next.
+
+**2. Sensitivity to verbal confidence** ("definitely… confirmed" minus "I think…", log-odds, no record):
+
+| | Abstract: analyst's call, calls in order, wording urn | Abstract, mean | Finance: economist's forecasts |
+| --- | --- | --- | --- |
+| Terra | 1.98, 2.01, 1.71 | 1.90 | 2.08 |
+| Sol | 0.99, 0.79, 1.20 | 1.00 | 1.07 |
+| Luna | 0.53, 1.05, 1.14 | 0.91 | 2.85 |
+| Astra | −0.01, 0.39, 0.81 | 0.40 | 0.71 |
+
+ρ 0.40, p 0.38; 2 of 4 on the same side of the median.
+- The ends carry over: Astra is least sensitive in both domains, and Terra is high in both. Within GPT-6, Sol is above Astra in both.
+- Luna does not: lowest-middle on urns and highest on forecasts. Its urn value includes the sessions in which it ignores analysts' calls altogether (see session variation).
+
+**3. Round readout** (share of answers at multiples of 0.05, among answers between 0.06 and 0.94 that move off the stated prior):
+
+| | Abstract: wording urn | Finance: forecasts and announced statements | Forecasts only | Announced statements only |
+| --- | --- | --- | --- | --- |
+| Luna | 0.96 | 0.97 | 0.98 | 0.95 |
+| Terra | 0.80 | 0.73 | 0.78 | 0.63 |
+| Astra | 0.50 | 0.46 | 0.52 | 0.32 |
+| Sol | 0.47 | 0.45 | 0.51 | 0.26 |
+
+ρ 1.00, p 0.042, which is the smallest attainable with four configurations. The order is the same for each finance task separately (ρ 1.00 each). The announced-count statements have a different structure from the urn cases.
+
+**Secondary, eight configurations:** the sweep's open-case grain on the general vignettes (screen and coherence sets) against central-bank statements stage A gives ρ 0.76, p 0.018, with 6 of 8 on the same side of the median. Effort for effort, Astra is rounder than Sol in both:
+- general vignettes: 0.84 against 0.70, 0.86 against 0.41, 0.85 against 0.54;
+- statements: 0.35 against 0.23, 0.46 against 0.21, 0.42 against 0.38.
+
+**Reading.**
+- **Round readout carries from abstract to finance tasks.** It is the only one of the three that holds its exact order, on two finance tasks and on eight configurations (p 0.018). The level changes with the task: everyone is finer-grained on the central-bank statements except Luna. The order does not change.
+  - It is a readout style: how precisely a configuration reports a number, not what it believes. The battery v2 test of report noise (precision) failed, so this is a different property.
+- **The stated–applied gap carries at the level of who has one.** Luna, then Terra, in both domains; Astra and Sol near zero in both. Battery v2 supported this across abstract tasks as a preregistered secondary hypothesis. The finance data are consistent with it, but four configurations cannot test the order.
+- **Sensitivity to verbal confidence carries only at the ends:** Astra low and Terra high in both domains, with Luna's mode-switching on the urn breaking the middle.
+- **Most of what carries is a difference between model families.** GPT-5.6 (Luna, Terra) against GPT-6 (Astra, Sol) holds in all three traits.
+  - Within GPT-6, two differences hold in both domains: Astra is rounder than Sol, and Sol is more moved by verbal confidence than Astra.
+  - The gap does not separate Astra from Sol.
+- **Caveats.**
+  - Post hoc on existing data, with the qualitative patterns known beforehand.
+  - Four configurations for the primary checks, so no order can be certified there; the eight-configuration grain check is the firmest.
+  - The finance tasks are fictional cases.

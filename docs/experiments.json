@@ -1319,6 +1319,19 @@
       "status": "complete",
       "prediction": "Exploratory test of idea 33: form a of the four-wording urn, six repeats per configuration, each in its own case order (inline groups; tasks 0.41.0, validation unchanged); variance components with the two earlier collections.",
       "outcome": "24 of 24 sessions recorded and verified, 11.5M input tokens; the runner's end-of-run summary failed (KeyError: 'mean', repeated wording headlines), data unaffected, fixed in tasks 0.41.1. Variation is between sessions, not items (sigma_item 0.03-0.35, sigma_session 0.4-2.0 log-odds): each session applies one consistent mapping. Luna has two modes on the urn: in 5 of 8 sessions every answer equals the stated prior (calls get no weight); in 3 it weighs calls strongly. Sol has two levels (top phrase near 1.1 or 2.2-3.0). Terra varies continuously (0.60-3.28 on the same cases) and most on forecasts (sigma 0.98). Astra is steadiest. Pseudo-collections: Terra's urn ratio to the others' median spans 0.92-2.00 (median 1.38); single-collection urn ratios are not reliable to better than about 0.5. The forecast ordering is firmer."
+    },
+    {
+      "id": "finance-transfer",
+      "date": "2026-10-04",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Exploration: do traits carry from abstract (urn) tasks to finance tasks?",
+      "question": "Does a configuration's place on the stated-applied gap, sensitivity to verbal confidence or round readout in abstract tasks predict its place in finance tasks (market newsletters and company disclosure, central-bank statements, the economist's forecasts)?",
+      "doc": "docs/exploration-log.md",
+      "roots": [],
+      "status": "complete",
+      "prediction": "Exploratory consistency check on existing data, specified before the finance side was computed: Spearman's rho with an exact one-sided permutation p, and agreement on the side of the median.",
+      "outcome": "Round readout carries: rho 1.00 (p 0.042, four configurations; the same order on the forecasts and on the announced-count statements separately) and rho 0.76, p 0.018 on eight configurations (general vignettes against central-bank statements); Luna and Terra round most, Astra rounder than Sol effort for effort. The stated-applied gap carries in who has one (Luna 0.18 and 0.13, Terra 0.12 and 0.04; Astra and Sol near zero; rho 0.80, p 0.17, 4/4 same side). Sensitivity to verbal confidence carries only at the ends (Astra low, Terra high; rho 0.40). Most of what carries separates GPT-5.6 from GPT-6; within GPT-6, Astra rounder and Sol more moved by verbal confidence in both domains. Post hoc; four configurations for the primary checks."
     }
   ],
   "next": [
