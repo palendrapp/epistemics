@@ -111,3 +111,58 @@ H2's post hoc difference is larger: Luna 0.93–1.00 against Terra 0.53–0.61 i
 | 20261027 | `output/disposition-validation-0.43-20261027.json` | `91bac83ac9e031886ed5216a3b8b9df3b7c554302da6c5e151e53c39cd053daa` |
 
 This document and the analysis code (`src/epistemics/ledger/single_judgment.py`, with `tests/test_single_judgment.py`) are committed together, before collection. Deviations, if any, are reported with the results.
+
+## Results (4 October 2026)
+
+**Collection.** All 204 planned sessions completed and verified, in the four planned roots of 51, with no failures and about 101.7 million input tokens. `caffeinate` kept the machine awake.
+- **Deviations:** none.
+- **Missing values:** one Luna-low screen session had fewer than five qualifying answers, so it has no round-readout value. Luna-low keeps 4 of 5 abstract values.
+
+```bash
+uv run python -m epistemics.ledger single-judgment-preregistered output/single-judgment-20261004-1 output/single-judgment-20261004-2 output/single-judgment-20261004-3 output/single-judgment-20261004-4 --output output/single-judgment-preregistered-20261004.json
+```
+
+**Co-primary tests.**
+
+| | Variants | Abstract difference (p) | Finance difference (p) | Intersection-union p | Holm p | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
+| **H1** | Astra − Sol (GPT-6) | +0.38 (0.0009) | +0.11 (0.012) | 0.012 | 0.012 | **Passes** |
+| **H2** | Luna − Terra (GPT-5.6) | +0.26 (0.006) | +0.33 (< 0.0001) | 0.006 | 0.012 | **Passes** |
+
+**By effort.** Every difference is positive, in both domains and in both families.
+
+| | Low | Medium | High |
+| --- | --- | --- | --- |
+| Astra − Sol, abstract | +0.23 | +0.52 | +0.39 |
+| Astra − Sol, finance | +0.09 | +0.18 | +0.06 |
+| Luna − Terra, abstract | +0.15 | +0.25 | +0.37 |
+| Luna − Terra, finance | +0.45 | +0.32 | +0.21 |
+
+**Secondary.**
+- **S1 (configuration-level, within families):** mean ρ 0.51 (GPT-6 0.49, GPT-5.6 0.54), exact p 0.059. Not significant.
+- **S2 (all twelve):** ρ 0.59, p 0.024.
+
+**Round readout per configuration** (abstract / finance):
+
+| GPT-6 | | GPT-5.6 | |
+| --- | --- | --- | --- |
+| Astra-low | 0.80 / 0.37 | Luna-low | 0.83 / 0.99 |
+| Astra | 0.95 / 0.52 | Luna | 0.87 / 0.92 |
+| Astra-high | 0.73 / 0.43 | Luna-high | 0.98 / 0.85 |
+| Sol-low | 0.57 / 0.27 | Terra-low | 0.68 / 0.53 |
+| Sol | 0.42 / 0.33 | Terra | 0.62 / 0.60 |
+| Sol-high | 0.34 / 0.38 | Terra-high | 0.61 / 0.64 |
+
+**Reading.**
+- **Both variant-level transfers hold.** Within each model family, the variant that rounds its open single judgments more in abstract vignettes also rounds them more in finance judgments, at every effort level:
+  - GPT-6: Astra over Sol;
+  - GPT-5.6: Luna over Terra.
+- This is the first preregistered trait in the repository to carry from abstract tasks to finance tasks within a model family. Until now the only transfer was between families: GPT-5.6 rounds more than GPT-6.
+- **The finance difference between Astra and Sol (+0.11) is smaller than the post hoc estimate (+0.17), as expected.** It is smallest at high effort (+0.06).
+- **Configuration-level transfer (S1) is not established.** Effort changes readout within a variant, but not in a way that carries across domains. The trait is at the level of the variant, not the configuration.
+- **Conditions.** It holds for open single judgments: probabilities that are judged, not computed. In the abstract-to-finance test, base-rate questions were answered fine-grained by everyone and did not separate the variants. Round readout says how precisely a configuration reports a probability, not what it believes.
+
+**For the passport** (conditional on these tasks):
+- On open single judgments, Astra gives round probabilities more often than Sol, in abstract and finance cases alike, at every effort level.
+- Luna does the same relative to Terra.
+- Effort level does not predict it across domains.

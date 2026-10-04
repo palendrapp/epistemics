@@ -859,3 +859,14 @@ See [finance-transfer-preregistration.md](finance-transfer-preregistration.md#re
 **Next:** a preregistered test on fresh data. [single-judgment-preregistration.md](single-judgment-preregistration.md).
 - The co-primaries are at the level the data point to, the variant: Astra against Sol within GPT-6, and Luna against Terra within GPT-5.6, each in both domains.
 - The configuration-level rank tests are secondary. A rank test over six configurations per family has little power (0.61 at a within-family correlation of 0.8, even with 18 sessions per configuration).
+
+## 4 October: single-judgment transfer, results
+
+See [single-judgment-preregistration.md](single-judgment-preregistration.md#results-4-october-2026).
+- **Both co-primaries pass.** Within GPT-6, Astra rounds its open single judgments more than Sol in abstract vignettes (+0.38) and finance judgments (+0.11). Within GPT-5.6, Luna rounds more than Terra (+0.26, +0.33). Holm p 0.012 each, with every effort level in the predicted direction.
+- **Configuration-level transfer** within families is not established (p 0.059).
+- This is the first trait in the repository to carry from abstract to finance tasks within a model family, in a preregistered test. It sits at the level of the variant and is conditional on open single judgments.
+
+**Ideas:**
+38. **Write it into the passport:** a variant-level readout reading, with the condition (open single judgments) and the finding that effort does not carry it.
+39. **Other trait candidates on the same template.** Single judgments only, variant contrasts within families, abstract against finance. Verbal-confidence sensitivity is the obvious next candidate. Sol over Astra held in both domains in the exploration, but its preregistered configuration-level test failed.

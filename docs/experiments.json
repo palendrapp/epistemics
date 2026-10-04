@@ -1362,6 +1362,24 @@
       "status": "complete",
       "prediction": "H1 (primary): Spearman rho between abstract and finance round readout over twelve configurations, one-sided p < 0.05. Secondary (Holm): within GPT-6, within GPT-5.6, stated-applied gap, verbal confidence.",
       "outcome": "216 of 216 sessions over three roots (the first reached the runner's two-hour root limit after 120; two continuation roots, same implementation), about 109.6M input tokens. H1 passes: rho 0.64, p 0.015, 10 of 12 on the same side of the median; far transfer to the statements alone rho 0.61, p 0.025. But within GPT-6 rho 0.03 and within GPT-5.6 rho -0.43: the transfer is the model-family difference (GPT-5.6 rounder than GPT-6 in both domains), not a configuration trait. H3 gap rho 0.56, p 0.031, Holm 0.12 (fails); H4 confidence rho 0.36 (fails). Exploratory: readout depends on question type (base-rate questions fine-grained for everyone; GPT-5.6 rounds single judgments); Astra is not rounder than Sol in the abstract tasks."
+    },
+    {
+      "id": "single-judgment-transfer",
+      "date": "2026-10-04",
+      "track": "dispositions",
+      "kind": "preregistered",
+      "title": "Single-judgment transfer: variant-level round readout from abstract vignettes to finance judgments",
+      "question": "Within each model family, does the variant that rounds its open single judgments more in abstract vignettes also round more in finance judgments (Astra against Sol; Luna against Terra)?",
+      "doc": "docs/single-judgment-preregistration.md",
+      "roots": [
+        "output/single-judgment-20261004-1",
+        "output/single-judgment-20261004-2",
+        "output/single-judgment-20261004-3",
+        "output/single-judgment-20261004-4"
+      ],
+      "status": "complete",
+      "prediction": "Co-primary, each in both domains (intersection-union), Holm over the two: H1 Astra rounds more than Sol (GPT-6); H2 Luna more than Terra (GPT-5.6). Variant contrast over effort levels, permutation within effort. Secondary: configuration-level within-family transfer (mean of two Spearman rhos), all twelve.",
+      "outcome": "204 of 204 sessions in the four planned roots, about 101.7M input tokens, no failures, no deviations. H1 passes: Astra - Sol +0.38 abstract (p 0.0009), +0.11 finance (p 0.012); Holm 0.012. H2 passes: Luna - Terra +0.26 (p 0.006), +0.33 (p < 0.0001); Holm 0.012. Every effort level positive in both domains and families. Secondary: configuration-level within families mean rho 0.51, p 0.059 (not significant); all twelve rho 0.59, p 0.024. First preregistered trait to carry from abstract to finance tasks within a model family; at the variant, not the configuration, level; conditional on open single judgments."
     }
   ],
   "next": [
