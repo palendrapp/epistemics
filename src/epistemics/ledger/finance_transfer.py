@@ -249,3 +249,50 @@ def summary():
             "the finance side was computed; the qualitative patterns were already known."
         ),
     }
+
+
+def critical_rho(n, alpha=0.05):
+    """The smallest Spearman rho whose exact one-sided permutation p is at most alpha (n <= 9
+    enumerates every ordering; larger n uses 200,000 random orderings, seed 20261004)."""
+    base = np.arange(n, dtype=float)
+    if n <= 9:
+        null = np.array([np.corrcoef(base, p)[0, 1] for p in itertools.permutations(base)])
+    else:
+        rng = np.random.default_rng(20261004)
+        null = np.array([np.corrcoef(base, rng.permutation(base))[0, 1] for _ in range(200000)])
+    null = np.sort(null)
+    for r in np.unique(null):
+        if np.mean(null >= r - 1e-12) <= alpha:
+            return float(r)
+    return 1.0
+
+
+def power(
+    configurations=(8, 12),
+    sessions=(4, 6, 8),
+    true_rho=(1.0, 0.76, 0.5, 0.0),
+    between=0.17,
+    session_sd=0.20,
+    datasets=2000,
+    seed=20261005,
+):
+    """Power of the primary test (Spearman over configurations, one-sided alpha 0.05) for round
+    readout: true configuration values with between-configuration SD `between` in each domain,
+    correlated `true_rho` across domains; each session's share off by N(0, session_sd) (the
+    pooled within-configuration session SD of the existing urn, policy and announced sessions);
+    a configuration's domain value is the mean of its sessions."""
+    rng = np.random.default_rng(seed)
+    out = {}
+    for n in configurations:
+        crit = critical_rho(n)
+        for m in sessions:
+            for r in true_rho:
+                hits = 0
+                for _ in range(datasets):
+                    a = rng.normal(0, between, n)
+                    f = r * a + np.sqrt(1 - r**2) * rng.normal(0, between, n)
+                    obs_a = a + rng.normal(0, session_sd / np.sqrt(m), n)
+                    obs_f = f + rng.normal(0, session_sd / np.sqrt(m), n)
+                    hits += spearman(obs_a, obs_f) >= crit - 1e-12
+                out[f"n{n}/m{m}/rho{r}"] = hits / datasets
+    return out

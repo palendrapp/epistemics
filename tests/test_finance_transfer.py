@@ -19,3 +19,13 @@ def test_compare_uses_only_configurations_measured_in_both():
 def test_round_share_ignores_extremes_and_answers_left_at_the_prior():
     share, n = ft._round_share([(0.55, 0.5), (0.5, 0.5), (0.97, 0.5), (0.63, 0.6)])
     assert n == 2 and share == 0.5
+
+
+def test_critical_rho_matches_the_exact_null():
+    assert ft.critical_rho(4) == 1.0
+    assert abs(ft.critical_rho(8) - 0.643) < 0.001
+
+
+def test_power_is_calibrated_without_transfer_and_high_with_full_transfer():
+    p = ft.power(configurations=(8,), sessions=(8,), true_rho=(1.0, 0.0), datasets=400)
+    assert p["n8/m8/rho0.0"] < 0.1 and p["n8/m8/rho1.0"] > 0.7

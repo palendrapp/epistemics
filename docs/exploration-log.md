@@ -812,3 +812,5 @@ Command: `uv run python -m epistemics.ledger finance-transfer --output output/fi
   - Post hoc on existing data, with the qualitative patterns known beforehand.
   - Four configurations for the primary checks, so no order can be certified there; the eight-configuration grain check is the firmest.
   - The finance tasks are fictional cases.
+
+**Next:** a preregistered version, [finance-transfer-design.md](finance-transfer-design.md): fresh sessions, twelve configurations, round readout as the single primary.

@@ -55,6 +55,7 @@ uv run python -m epistemics.ledger wording-families <roots...> --output <file>
 uv run python -m epistemics.ledger wording-phrase-sets <roots...> [--family urn|policy] --output <file>
 uv run python -m epistemics.ledger wording-sessions <roots...> [--family urn] --output <file>
 uv run python -m epistemics.ledger finance-transfer --output <file>
+uv run python -m epistemics.ledger finance-transfer-power --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
 uv run python -m epistemics.ledger statements-explore <roots...> --output <file>
@@ -213,6 +214,8 @@ def main():
     ws.add_argument("--output", type=Path, required=True)
     ft = sub.add_parser("finance-transfer")
     ft.add_argument("--output", type=Path, required=True)
+    ftp = sub.add_parser("finance-transfer-power")
+    ftp.add_argument("--output", type=Path, required=True)
     pr = sub.add_parser("primacy")
     pr.add_argument("--statements", type=Path, nargs="+", required=True)
     pr.add_argument("--correlated", type=Path, nargs="+", required=True)
@@ -596,6 +599,20 @@ def main():
                   f"same side {t['same_side_of_median']}/{len(t['configurations'])}")  # fmt: skip
             for c in t["configurations"]:
                 print(f"   {c:10s} abstract {t['abstract'][c]:.3f}  finance {t['finance'][c]:.3f}")
+    elif a.command == "finance-transfer-power":
+        from epistemics.ledger import finance_transfer
+
+        run = {
+            "schema_version": "epistemics.finance-transfer-power.v1",
+            "critical_rho": {n: finance_transfer.critical_rho(n) for n in (6, 8, 12)},
+            "between_0.17": finance_transfer.power(sessions=(4, 8, 10)),
+            "between_0.24": finance_transfer.power(
+                configurations=(12,), sessions=(8, 10), between=0.24
+            ),
+        }
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        print(json.dumps(run["critical_rho"]))
     elif a.command == "primacy":
         from epistemics.ledger import primacy
 
