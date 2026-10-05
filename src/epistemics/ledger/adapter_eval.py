@@ -214,3 +214,78 @@ def hinted_summary(roots):
             "exact one-sided p over session splits."
         ),
     }
+
+
+# Matching (tasks 0.46): the passport adapter 0.2.0 attached as a run field, on tasks that measure
+# the stated-applied gap. Lower gap is better.
+MATCHING_ARMS = ("alone", "adapter", "mismatched", "generic")
+
+
+def matching_arm(config, adapter, mismatch):
+    if adapter is None:
+        return "alone"
+    if adapter == "generic2":
+        return "generic"
+    if adapter == f"adapter2-{config}":
+        return "adapter"
+    if adapter == f"adapter2-{mismatch.get(config)}":
+        return "mismatched"
+    return None
+
+
+def matching_sessions(roots):
+    from epistemics.disposition_tasks.runner import MATCHING_MISMATCH, MATCHING_TASKS
+    from epistemics.ledger import dispositions
+    from epistemics.ledger.finance_transfer import _gap
+
+    modules = {m for m, _ in MATCHING_TASKS}
+    out = []
+    for root in roots:
+        for r in dispositions.extract(root):
+            if not r.get("verified") or r.get("module") not in modules:
+                continue
+            arm = matching_arm(r["configuration"], r.get("adapter"), MATCHING_MISMATCH)
+            gap = _gap(r)
+            if arm is None or gap is None:
+                continue
+            out.append({"configuration": r["configuration"], "module": r["module"], "arm": arm,
+                        "adapter": r.get("adapter"), "gap": gap, "run": r["run_id"]})  # fmt: skip
+    return out
+
+
+def matching_summary(roots):
+    rows = matching_sessions(roots)
+    out = {}
+    for c in sorted({r["configuration"] for r in rows}):
+        gaps = {arm: [r["gap"] for r in rows if r["configuration"] == c and r["arm"] == arm]
+                for arm in MATCHING_ARMS}  # fmt: skip
+        by_module = {
+            m: {arm: float(np.mean(v)) for arm in MATCHING_ARMS
+                if (v := [r["gap"] for r in rows if r["configuration"] == c and r["module"] == m
+                          and r["arm"] == arm])}
+            for m in sorted({r["module"] for r in rows})
+        }  # fmt: skip
+        contrasts = {}
+        if gaps["adapter"]:
+            for name, other in (("M1", "alone"), ("M2", "generic"), ("M3", "mismatched")):
+                if gaps[other]:
+                    contrasts[name] = {
+                        "difference": float(np.mean(gaps[other]) - np.mean(gaps["adapter"])),
+                        "p_one_sided": _exact_p(np.array(gaps[other]), np.array(gaps["adapter"])),
+                    }
+        out[c] = {
+            "arms": {
+                arm: {"gap": float(np.mean(v)), "sessions": len(v)} for arm, v in gaps.items() if v
+            },
+            "by_module": by_module,
+            "contrasts": contrasts,
+        }
+    return {
+        "schema_version": "epistemics.adapter-matching.v1",
+        "configurations": out,
+        "scope": (
+            "Gap: mean over levels 1-3 of |stated - applied| base rate per session (lower is "
+            "better). Contrasts: other arm minus adapter (positive favours the adapter), exact "
+            "one-sided p over session splits."
+        ),
+    }

@@ -25,7 +25,17 @@ from pathlib import Path
 
 from epistemics.source_learning.storage import digest, encoded
 
-VERSION = "passport-adapter/0.1.0"
+VERSION = "passport-adapter/0.2.0"
+# 0.2.0 adds component C2 (state, then apply) for configurations whose passport shows a
+# stated-applied gap: a battery v2 mean gap of at least GAP_TRIGGER. The 0.1.0 adapters (adapter-*,
+# generic) stay frozen as generated; 0.2.0 writes adapter2-* and generic2.
+GAP_TRIGGER = 0.10
+C2_TEXT = (
+    "When a forecast turns on how common something is among sources, companies or sensors like "
+    "the one in a case, settle on your estimate of how common it is, then use exactly that "
+    "estimate in the forecast; if you are asked for the estimate, give the same one. Your stated "
+    "estimates and your forecasts should agree."
+)
 SCHEMA = "epistemics.passport-adapter.v1"
 STRUCTURES = ("relay", "disclosure")
 FULL = 3
@@ -72,7 +82,9 @@ def dose(check):
 def compile_instructions(components):
     lines = [PREAMBLE]
     for c in components:
-        if c["rung"] > 0:
+        if c["id"] == "C2":
+            lines.append(C2_TEXT)
+        elif c["rung"] > 0:
             lines.append(" ".join(TEXT[c["structure"]][r] for r in range(1, c["rung"] + 1)))
     return "\n".join(lines) if len(lines) > 1 else ""
 
@@ -84,7 +96,15 @@ def _finish(document):
     return document
 
 
-def generate(label, configuration, checks, passport):
+def c2(gap):
+    """Component C2 when the stated-applied gap reaches the trigger, else None."""
+    if gap is None or gap < GAP_TRIGGER:
+        return None
+    return {"id": "C2", "structure": None, "rung": None, "reading": "stated-applied-gap",
+            "basis": f"battery v2 mean stated-applied gap {gap:.3f}"}  # fmt: skip
+
+
+def generate(label, configuration, checks, passport, gap=None, name=None):
     """The adapter for one configuration from its structure checks.
 
     checks: {structure: check} as in the ledger's structure_checks model; passport: the source
@@ -112,7 +132,7 @@ def generate(label, configuration, checks, passport):
     return _finish(
         {
             "schema_version": SCHEMA,
-            "name": f"adapter-{label}",
+            "name": name or f"adapter-{label}",
             "subject": {
                 "label": label,
                 "configuration": configuration,
@@ -120,23 +140,26 @@ def generate(label, configuration, checks, passport):
             },
             "passport": passport,
             "generator": {"version": VERSION},
-            "components": components,
-            "instructions": compile_instructions(components),
+            "components": components + ([c2(gap)] if c2(gap) else []),
+            "instructions": compile_instructions(components + ([c2(gap)] if c2(gap) else [])),
             "tools": [],
         }
     )
 
 
-def generic(passport):
+def generic(passport, with_c2=False, name="generic"):
     """The comparator: every structure at full dose, for any configuration."""
     components = [
         {"id": "C1", "structure": s, "rung": FULL, "reading": None, "basis": "full dose for all"}
         for s in STRUCTURES
     ]
+    if with_c2:
+        components.append({"id": "C2", "structure": None, "rung": None, "reading": None,
+                           "basis": "on for all"})  # fmt: skip
     return _finish(
         {
             "schema_version": SCHEMA,
-            "name": "generic",
+            "name": name,
             "subject": None,
             "passport": passport,
             "generator": {"version": VERSION},
@@ -158,11 +181,19 @@ def from_ledger(ledger_path, labels):
         "ledger_sha256": digest(raw),
     }
     checks = ((ledger.get("models") or {}).get("structure_checks") or {}).get("checks") or {}
-    out = {"generic": generic(passport)}
+    cells = (
+        ((ledger.get("models") or {}).get("battery_v2") or {}).get("traits", {})
+        .get("stated_applied_gap", {}).get("cells", {})
+    )  # fmt: skip
+    out = {"generic2": generic(passport, with_c2=True, name="generic2")}
     for label in labels:
         model, effort = CONFIGURATIONS[label]
         configuration = {"model": model, "reasoning_effort": effort}
-        out[f"adapter-{label}"] = generate(label, configuration, checks.get(label, {}), passport)
+        gaps = [v for k, v in cells.items() if k.split("/")[0] == label and v is not None]
+        gap = sum(gaps) / len(gaps) if gaps else None
+        out[f"adapter2-{label}"] = generate(
+            label, configuration, checks.get(label, {}), passport, gap, name=f"adapter2-{label}"
+        )
     return out
 
 

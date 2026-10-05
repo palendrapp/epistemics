@@ -144,3 +144,81 @@ def test_runner_summary_reads_hinted_modules_as_mappings():
     cues = {"implied": [0.1, 0.3, 0.5, 0.7, 0.9]}
     for module in ("relay-hinted", "disclosure-hinted"):
         assert runner.headline({"module": module, "cues": cues})["parameter"] == "cue_mapping"
+
+
+def test_c2_follows_the_stated_applied_gap():
+    configuration = {"model": "m", "reasoning_effort": "medium"}
+    with_gap = adapter.generate("x", configuration, {}, {}, gap=0.18)
+    without = adapter.generate("x", configuration, {}, {}, gap=0.03)
+    assert [c["id"] for c in with_gap["components"]][-1] == "C2"
+    assert adapter.C2_TEXT in with_gap["instructions"]
+    assert all(c["id"] == "C1" for c in without["components"])
+    assert adapter.C2_TEXT not in without["instructions"]
+    frozen = presentation.adapter("adapter2-luna")
+    assert adapter.C2_TEXT in frozen["instructions"]
+    assert adapter.C2_TEXT not in presentation.adapter("adapter2-astra")["instructions"]
+
+
+def test_groups_attach_adapters_as_a_run_field_and_keep_runs_distinct():
+    import pytest
+
+    base = {"configurations": ("astra",), "modules": ("disclosure-cues",),
+            "contexts": (("cues-a", "markets", 1),)}  # fmt: skip
+    runs = runner.check_groups((base, {**base, "adapter": "adapter2-astra"}))
+    assert [r[-1] for r in runs] == [None, "adapter2-astra"]
+    assert all(len(r) == 9 for r in runs)
+    with pytest.raises(ValueError):
+        runner.check_groups(({**base, "adapter": "no-such-adapter"},))
+    evident = {"configurations": ("astra",), "modules": ("relay-evident",),
+               "contexts": (("alone", "markets", 1),), "adapter": "generic2"}  # fmt: skip
+    with pytest.raises(ValueError):
+        runner.check_groups((evident,))
+
+
+def test_attached_adapter_is_frozen_in_the_manifest_and_shown_in_the_instructions(tmp_path):
+    import pytest
+
+    from epistemics.disposition_tasks.collection import create, load
+
+    participant = {"kind": "agent", "subject_id": "test",
+                   "configuration": {"model": "m", "model_version": "v",
+                                     "configuration_sha256": "0" * 64, "temperature": None}}  # fmt: skip
+    manifest = create(tmp_path / "run", participant, module="disclosure-cues", cover="markets",
+                      order=list(range(24)), variant="cues-a", synthetic=True,
+                      adapter="adapter2-luna")  # fmt: skip
+    assert load(tmp_path / "run")[0].adapter == "adapter2-luna"
+    text = presentation.describe(manifest)["instructions"]
+    assert text.endswith(presentation.adapter("adapter2-luna")["instructions"])
+    plain = create(tmp_path / "plain", participant, module="disclosure-cues", cover="markets",
+                   order=list(range(24)), variant="cues-a", synthetic=True)  # fmt: skip
+    assert (
+        plain.adapter is None
+        and presentation.adapter("adapter2-luna")["instructions"]
+        not in (presentation.describe(plain)["instructions"])
+    )
+    with pytest.raises(ValueError):
+        create(tmp_path / "bad", participant, module="disclosure-cues", cover="markets",
+               order=list(range(24)), variant="cues-a", synthetic=True, adapter="nope")  # fmt: skip
+
+
+def test_matching_preset_and_summary(monkeypatch):
+    from epistemics.ledger import adapter_eval
+
+    runs = runner.check_groups(runner.PRESETS["adapter-matching"])
+    assert len(runs) == 96
+    assert {r[-1] for r in runs if r[0] == "luna"} == {
+        None,
+        "adapter2-luna",
+        "adapter2-astra",
+        "generic2",
+    }
+    rows = []
+    for arm, gap in (("alone", 0.3), ("adapter", 0.1), ("mismatched", 0.28), ("generic", 0.11)):
+        for k in range(6):
+            rows.append({"configuration": "luna", "module": "copying-urn-asked", "arm": arm,
+                         "adapter": arm, "gap": gap + 0.01 * k, "run": f"{arm}{k}"})  # fmt: skip
+    monkeypatch.setattr(adapter_eval, "matching_sessions", lambda roots: rows)
+    out = adapter_eval.matching_summary([])["configurations"]["luna"]
+    assert (
+        out["contrasts"]["M3"]["difference"] > 0.15 and out["contrasts"]["M3"]["p_one_sided"] < 0.01
+    )

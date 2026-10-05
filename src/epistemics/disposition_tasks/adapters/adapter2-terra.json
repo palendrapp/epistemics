@@ -1,0 +1,46 @@
+{
+  "adapter_sha256": "7f7a91512aa65f26c4d0caee49e67fdfbf126b173bea0cc74e1c40d4f38a1993",
+  "components": [
+    {
+      "basis": "recommended rung 3",
+      "id": "C1",
+      "reading": "check-relay",
+      "rung": 3,
+      "structure": "relay"
+    },
+    {
+      "basis": "check undetermined: full dose",
+      "id": "C1",
+      "reading": "check-disclosure",
+      "rung": 3,
+      "structure": "disclosure"
+    },
+    {
+      "basis": "battery v2 mean stated-applied gap 0.119",
+      "id": "C2",
+      "reading": "stated-applied-gap",
+      "rung": null,
+      "structure": null
+    }
+  ],
+  "generator": {
+    "version": "passport-adapter/0.2.0"
+  },
+  "instructions": "Guidance for this session (it applies to every case; read each case on its own evidence):\nSome news sources repeat another source's report instead of checking for themselves; a repeated report adds nothing to the report it repeats. Before forecasting, ask yourself how common that is among sources like the ones in front of you. Then, for each source whose report matches another's, ask whether it could be repeating that report rather than checking for itself, and weigh it accordingly.\nSome companies stay silent about their numbers when the numbers are bad; what a company leaves out of an update can be informative. Before forecasting, ask yourself how common that is among companies like the one in front of you. Then, for each update with something left out, ask whether it could have been left out because it was bad, and weigh the gap accordingly.\nWhen a forecast turns on how common something is among sources, companies or sensors like the one in a case, settle on your estimate of how common it is, then use exactly that estimate in the forecast; if you are asked for the estimate, give the same one. Your stated estimates and your forecasts should agree.",
+  "name": "adapter2-terra",
+  "passport": {
+    "guide_version": "reading-guide/0.8.0",
+    "ledger_sha256": "8d3b3b62d7227c7482914399765d383e73296f9f852a699b4fb66ef8e51e5d0c",
+    "ledger_version": "ledger/0.2.0"
+  },
+  "schema_version": "epistemics.passport-adapter.v1",
+  "subject": {
+    "configuration": {
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "medium"
+    },
+    "configuration_id": "configuration:eeb61986d1683e2146818c8b97308dfee07855e048bc7623c6e7807d622671a2",
+    "label": "terra"
+  },
+  "tools": []
+}

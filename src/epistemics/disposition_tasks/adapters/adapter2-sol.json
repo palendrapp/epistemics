@@ -1,0 +1,39 @@
+{
+  "adapter_sha256": "15e8c75b3f317666fa1a8b068a3220e844bcc1f287885fa6da377b7bc01dd0fd",
+  "components": [
+    {
+      "basis": "recommended rung 3",
+      "id": "C1",
+      "reading": "check-relay",
+      "rung": 3,
+      "structure": "relay"
+    },
+    {
+      "basis": "recommended rung 2",
+      "id": "C1",
+      "reading": "check-disclosure",
+      "rung": 2,
+      "structure": "disclosure"
+    }
+  ],
+  "generator": {
+    "version": "passport-adapter/0.2.0"
+  },
+  "instructions": "Guidance for this session (it applies to every case; read each case on its own evidence):\nSome news sources repeat another source's report instead of checking for themselves; a repeated report adds nothing to the report it repeats. Before forecasting, ask yourself how common that is among sources like the ones in front of you. Then, for each source whose report matches another's, ask whether it could be repeating that report rather than checking for itself, and weigh it accordingly.\nSome companies stay silent about their numbers when the numbers are bad; what a company leaves out of an update can be informative. Before forecasting, ask yourself how common that is among companies like the one in front of you.",
+  "name": "adapter2-sol",
+  "passport": {
+    "guide_version": "reading-guide/0.8.0",
+    "ledger_sha256": "8d3b3b62d7227c7482914399765d383e73296f9f852a699b4fb66ef8e51e5d0c",
+    "ledger_version": "ledger/0.2.0"
+  },
+  "schema_version": "epistemics.passport-adapter.v1",
+  "subject": {
+    "configuration": {
+      "model": "gpt-6-sol",
+      "reasoning_effort": "medium"
+    },
+    "configuration_id": "configuration:574925cfbabfa83071305735aeabd1250e9ac2a22b57590e1a7281557b155918",
+    "label": "sol"
+  },
+  "tools": []
+}

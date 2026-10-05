@@ -241,7 +241,7 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.45.1"] = VERSION
+    battery_version: Literal["disposition-tasks/0.46.0"] = VERSION
     model_version: Literal["disposition-model/0.21.0"] = MODEL_VERSION
     design_version: Literal["disposition-design/0.33.0"] = DESIGN_VERSION
     study_id: str
@@ -252,6 +252,9 @@ class Manifest(Model):
     module: Module
     cover: Cover
     variant: Variant = "paired"
+    # Tasks 0.46: a passport adapter attached to the run (its guidance is appended to the
+    # instructions); None for none. Older manifests carry no adapter.
+    adapter: str | None = None
     order: list[int] = Field(min_length=CASES, max_length=CASES)
     # Learning variants only: each item's structure (relay or selective sender), aligned with
     # item index and shown after that case is answered; None where there is nothing to reveal.
@@ -266,6 +269,11 @@ class Manifest(Model):
     def consistent(self):
         if self.response_origin != "synthetic" and self.response_origin != self.participant.kind:
             raise ValueError("Response origin must match participant")
+        if self.adapter is not None:
+            if not (Path(__file__).parent / "adapters" / f"{self.adapter}.json").exists():
+                raise ValueError("Unknown passport adapter")
+            if self.module.endswith(("-evident", "-hinted")):
+                raise ValueError("Evident and hinted modules carry their adapter in the variant")
         if sorted(self.order) != list(range(CASES)):
             raise ValueError("Case order must be a permutation of the design items")
         if len(self.case_sha256) != CASES:
@@ -305,6 +313,7 @@ def create(
     variant="paired",
     reveal_seed=None,
     synthetic=False,
+    adapter=None,
 ):
     participant = ParticipantDescriptor.model_validate(participant).root
     order = [int(i) for i in order]
@@ -320,6 +329,7 @@ def create(
         module=module,
         cover=cover,
         variant=variant,
+        adapter=adapter,
         order=order,
         revealed=revealed,
         case_sha256=[digest(encoded(render(module, cover, i, variant))) for i in order],

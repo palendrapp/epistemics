@@ -212,7 +212,14 @@ def adapter(name):
     return json.loads((ADAPTERS / f"{name}.json").read_text())
 
 
-def instructions(module, variant="paired", cover="markets"):
+def instructions(module, variant="paired", cover="markets", attached=None):
+    """The session's instructions; `attached` names a passport adapter whose guidance is appended
+    (tasks 0.46)."""
+    text = _instructions(module, variant, cover)
+    return text + (f"\n\n{adapter(attached)['instructions']}" if attached else "")
+
+
+def _instructions(module, variant="paired", cover="markets"):
     if module in ("relay-evident", "disclosure-evident", "relay-hinted", "disclosure-hinted"):
         # The arm is the variant: the standard dossier instructions, plus the adapter's guidance
         # (the reference arm carries the generic full-dose guidance; tasks 0.45).
@@ -257,7 +264,9 @@ def describe(manifest):
     return {
         "battery_version": VERSION,
         "cases": len(manifest.order),
-        "instructions": instructions(manifest.module, manifest.variant, manifest.cover),
+        "instructions": instructions(
+            manifest.module, manifest.variant, manifest.cover, getattr(manifest, "adapter", None)
+        ),
         "workflow": WORKFLOW,
         "answer_schema": Answer.model_json_schema(),
         "context_policy": manifest.context_policy,

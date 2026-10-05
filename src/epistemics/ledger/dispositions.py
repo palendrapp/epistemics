@@ -48,7 +48,8 @@ for entry in plan["runs"]:
     for row in a["rows"]:
         responses[row["item"]] = row["response"]
     record.update(verified=True, module=m.module, cover=m.cover,
-                  variant=getattr(m, "variant", "paired"), order=list(m.order),
+                  variant=getattr(m, "variant", "paired"), adapter=getattr(m, "adapter", None),
+                  order=list(m.order),
                   responses=responses,
                   kinds=[str(k) for k in items["kind"]] if "kind" in items else None,
                   slots=[int(s) for s in items["slot"]] if "slot" in items else None,

@@ -507,6 +507,7 @@ PRESETS["single-judgment-transfer"] = (
 # evident-structure modules, in four arms each: alone, generic, its own passport adapter, and the
 # pre-specified mismatched adapter (the one whose doses differ most from its own; ties go to the
 # lighter dose).
+ADAPTER_NAMES = tuple(sorted(p.stem for p in (Path(__file__).parent / "adapters").glob("*.json")))
 ADAPTER_MISMATCH = {"astra": "sol", "sol": "astra", "luna": "astra", "terra": "sol"}
 PRESETS["adapter-pilot"] = tuple(
     {
@@ -533,6 +534,24 @@ PRESETS["adapter-hinted"] = tuple(
         ),
     }
     for config, other in ADAPTER_MISMATCH.items()
+)
+# Does matching the adapter matter? (docs/passport-adapter-design.md, "Matching"): tasks that
+# measure the stated-applied gap, with the passport adapter 0.2.0 attached as a run field. Luna's
+# and Terra's adapters carry the state-then-apply component (their passports show the gap);
+# Astra's and Sol's do not. Each configuration gets no adapter, its own, a mismatched one whose
+# state-then-apply status differs, and the generic one; three sessions per cell.
+MATCHING_MISMATCH = {"astra": "luna", "sol": "terra", "luna": "astra", "terra": "sol"}
+MATCHING_TASKS = (("disclosure-cues", "cues-a"), ("copying-urn-asked", "urn2-named"))
+PRESETS["adapter-matching"] = tuple(
+    {
+        "configurations": (config,),
+        "modules": (module,),
+        "contexts": tuple((variant, "markets", r) for r in (1, 2, 3)),
+        **({"adapter": arm} if arm else {}),
+    }
+    for config, other in MATCHING_MISMATCH.items()
+    for module, variant in MATCHING_TASKS
+    for arm in (None, f"adapter2-{config}", f"adapter2-{other}", "generic2")
 )
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
@@ -703,6 +722,12 @@ def check_groups(groups):
         if policy not in ORDER_POLICIES:
             raise ValueError(f"Unknown order policy: {policy}")
         configurations, modules = group["configurations"], group["modules"]
+        # Tasks 0.46: a group may attach a passport adapter (by name) to every run it holds.
+        adapter = group.get("adapter")
+        if adapter is not None and adapter not in ADAPTER_NAMES:
+            raise ValueError(f"Unknown adapter: {adapter}")
+        if adapter is not None and set(modules) & set(EVIDENT_MODULES + HINTED_MODULES):
+            raise ValueError("Evident and hinted modules carry their adapter in the variant")
         contexts = [tuple(c) for c in group["contexts"]]
         if not configurations or set(configurations) - set(CONFIGURATIONS):
             raise ValueError("Unknown configuration")
@@ -776,11 +801,15 @@ def check_groups(groups):
                         and module not in CUE_MODULES
                     ):
                         raise ValueError("Order policies other than random need a cue module")
-                    key = (config, module, variant, cover, repeat)
+                    key = (config, module, variant, cover, repeat, adapter)
                     if key in runs:
                         raise ValueError("Every run must be distinct")
                     runs[key] = (policy, index, bool(group.get("shared_order", False)))
-    return [(*key, *runs[key]) for key in sorted(runs)]
+    # (configuration, module, variant, cover, repeat, policy, group, shared, adapter): the adapter
+    # comes last, so code reading the first five fields is unchanged.
+    return [
+        (*key[:5], *runs[key], key[5]) for key in sorted(runs, key=lambda k: (*k[:5], k[5] or ""))
+    ]
 
 
 def snapshot_sources(src):
@@ -874,19 +903,21 @@ def prepare(
     case_seed, order_seed = secrets.randbits(63), secrets.randbits(63)
     shuffle = random.Random(case_seed)
     runs, shared_orders = [], {}
-    for config, module, variant, cover, repeat, policy, group, shared in planned:
+    for config, module, variant, cover, repeat, policy, group, shared, adapter in planned:
         if shared:
             order = shared_orders.setdefault((group, module), arrange(module, policy, shuffle))
         else:
             order = arrange(module, policy, shuffle)
         runs.append(
             {
-                "run_id": f"{config}-{module}-{variant}-{cover}{repeat}",
+                "run_id": f"{config}-{module}-{variant}-{cover}{repeat}"
+                + (f"-{adapter}" if adapter else ""),
                 "configuration": config,
                 "module": module,
                 "variant": variant,
                 "cover": cover,
                 "repeat": repeat,
+                "adapter": adapter,
                 "order": order,
                 "order_policy": policy,
                 "reveal_seed": secrets.randbits(63) if variant in LEARNING_RATES else None,
@@ -961,6 +992,7 @@ def prepare(
             order=e["order"],
             variant=e["variant"],
             reveal_seed=e["reveal_seed"],
+            adapter=e.get("adapter"),
         )
     return plan
 

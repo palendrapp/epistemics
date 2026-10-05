@@ -303,3 +303,39 @@ uv run python -m epistemics.ledger adapter-hinted output/adapter-hinted-20261005
 **Next, to show that identity binding matters**, a setting is needed where configurations differ in which structures they neglect: one configuration handles a structure unprompted that another misses. Then a configuration-specific adapter can include or leave out components, and over-prompting has a measurable cost. The abstract-structure checks have such differences (rungs 1–3, "needs the rate", "not reliable"). A confirmatory test of M1 alone would be cheap to preregister now.
 
 **Task validation 0.45.1** (the runner summary fix only) passed on both seeds (203 contexts). Fingerprint `095aa351eaeb5800…`. It is ready for the next collection.
+
+## Matching: does it matter which configuration's adapter is attached?
+
+Asked 5 October (user: "test whether matching the adapter matters"). Written before any data.
+
+**Why a new component.** In the hinted test the adapters differed only by one rung on one structure, which made no difference. Matching can only matter if adapters differ in kind. The passport has such a difference: the stated–applied gap (battery v2). Luna (mean gap 0.18) and Terra (0.12) state base rates their forecasts do not use; Astra (0.04) and Sol (0.03) do not.
+
+**Adapter 0.2.0** (`passport-adapter/0.2.0`) adds component **C2, state then apply**, when the passport's gap is at least 0.10:
+
+> "When a forecast turns on how common something is among sources, companies or sensors like the one in a case, settle on your estimate of how common it is, then use exactly that estimate in the forecast; if you are asked for the estimate, give the same one. Your stated estimates and your forecasts should agree."
+
+The new adapters are `adapter2-*` and `generic2`; the 0.1.0 adapters stay frozen. Luna's and Terra's 0.2.0 adapters carry C2 and Astra's and Sol's do not. `generic2` carries every component at full dose, so it again equals Luna's and Terra's.
+
+**Infrastructure (tasks 0.46.0).** An adapter is now an optional field of a run, so it can be attached to any module:
+- a preset group can name `adapter`;
+- the plan entry and manifest record it;
+- the instructions append its guidance;
+- the ledger's per-session records carry it.
+
+Older manifests have none. Evident and hinted modules keep their arms in the variant, and attaching a run-field adapter to them is refused.
+
+**Tasks.** Both measure the gap within a session: they ask the base rate at each level and fit the rate the forecasts imply.
+- `disclosure-cues` (`cues-a`), finance;
+- `copying-urn-asked` (`urn2-named`), abstract.
+
+**Arms** (three sessions per cell): no adapter, own adapter, mismatched adapter, `generic2`.
+- The mismatched adapter is chosen so that C2 differs: Luna gets Astra's (no C2), Terra gets Sol's (no C2), Astra gets Luna's (C2) and Sol gets Terra's (C2).
+- Preset `adapter-matching`: four configurations × four arms × two modules × three sessions = 96 sessions.
+
+**Outcome:** the stated–applied gap per session (mean over levels 1–3 of |stated − applied|), lower is better. Analysis: `uv run python -m epistemics.ledger adapter-matching <roots> --output <file>`.
+
+**What would show that matching matters:**
+- For Luna and Terra, their own adapter (with C2) leaves a smaller gap than the mismatched one (without it): M3 > 0.
+- For Astra and Sol, the mismatched adapter's unneeded C2 neither helps nor hurts: M3 near 0, at the cost of extra instruction length.
+
+Together these would say that the adapter must come from the configuration's own passport to carry what it needs, and need carry nothing it does not. M1 (own against none) checks that C2 works at all. Exploratory: the confirmatory version would be preregistered.
