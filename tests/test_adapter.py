@@ -138,3 +138,9 @@ def test_hinted_preset_has_five_arms_three_sessions_each():
         arms = {r[2] for r in runs if r[0] == config}
         assert arms == {"alone", "generic", f"adapter-{config}", f"adapter-{other}", "reference"}
         assert {r[4] for r in runs if r[0] == config} == {1, 2, 3}
+
+
+def test_runner_summary_reads_hinted_modules_as_mappings():
+    cues = {"implied": [0.1, 0.3, 0.5, 0.7, 0.9]}
+    for module in ("relay-hinted", "disclosure-hinted"):
+        assert runner.headline({"module": module, "cues": cues})["parameter"] == "cue_mapping"

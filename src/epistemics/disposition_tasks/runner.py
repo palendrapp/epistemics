@@ -1172,6 +1172,9 @@ def headline(analysis):
         + V2_MODULES
         + V2_ASKED_MODULES
         + V2_PROBED_MODULES
+        # Tasks 0.45.1: the hinted-structure dossiers fit like the unprompted ones (their first
+        # collection's end-of-run summary failed on this; the data are unaffected).
+        + HINTED_MODULES
     ):
         return {"parameter": "cue_mapping", **analysis["cues"]}
     if analysis["module"] in RANGE_MODULES:

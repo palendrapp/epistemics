@@ -253,3 +253,53 @@ Chosen 5 October (user: "go for recommended"), after the pilot. Written before a
 **This is an exploratory test, not a preregistration.** If the adapter helps here, the confirmatory test would be preregistered on fresh sessions.
 
 **Validation fix (before any data).** The first 0.45 validation failed on seed 20261027 for an older capacity module (`composite-deep-load`, recovery estimate −0.08). The hinted contexts had been inserted mid-list. Validation draws from one generator in context order, so every later context's draw shifted, and that module's recovery is marginal on some draws. The hinted contexts now come at the very end, so the first 201 contexts are identical in order (and draws) to 0.44.1, which passed on both seeds.
+
+## Redesign results (5 October 2026)
+
+**Collection.** All 120 planned sessions completed and verified (three per cell, unique runs), about 56 million input tokens.
+- They are spread over 13 roots (`output/adapter-hinted-20261005*`). The provider repeatedly returned "Selected model is at capacity", and each failure stopped a root's admission.
+- A driver collected the missing runs in continuation roots until none was left. Sessions cut off by an error were discarded and collected again from scratch.
+- The last root's end-of-run summary failed (`KeyError: 'disposition'`: the runner's headline did not know the hinted modules). The data are unaffected. Tasks 0.45.1 fixes it, with a test.
+
+```bash
+uv run python -m epistemics.ledger adapter-hinted output/adapter-hinted-20261005* --output output/adapter-hinted-eval-20261005.json
+```
+
+**Deviation from the configuration's own considered answers.** This is the mean absolute log-odds distance on described cases, six sessions per arm. The reference arm's value is leave-one-out, so it shows how far the configuration's own fully prompted sessions disagree with each other.
+
+| | Alone | Generic | Own adapter | Mismatched | Reference (noise floor) |
+| --- | --- | --- | --- | --- | --- |
+| Astra | 1.39 | 0.33 | **0.38** | 0.35 | 0.11 |
+| Sol | 1.23 | 0.37 | **0.31** | 0.33 | 0.20 |
+| Luna | 1.01 | 0.51 | **0.62** | 0.43 | 0.51 |
+| Terra | 1.08 | 0.51 | **0.58** | 0.61 | 0.69 |
+
+**Contrasts** (other arm minus adapter, exact one-sided p over session splits):
+
+| | M1: alone − adapter | M2: generic − adapter | M3: mismatched − adapter |
+| --- | --- | --- | --- |
+| Astra | **+1.02 (p 0.001)** | −0.05 (0.66) | −0.03 (0.59) |
+| Sol | **+0.92 (p 0.001)** | +0.05 (0.28) | +0.02 (0.45) |
+| Luna | **+0.39 (p 0.008)** | −0.11 (0.79) | −0.20 (0.96) |
+| Terra | **+0.49 (p 0.010)** | −0.07 (0.66) | +0.03 (0.41) |
+
+**Mapping distance** (implied structure prior per description level, from the reference's):
+- alone: 0.29–0.42;
+- with an adapter: 0.17–0.18.
+
+**Reading.**
+- **The adapter works for every configuration (M1).** Without the mechanism stated, a configuration's forecasts on hinted cases sit far from what it forecasts when the structure is put to it: 1.0–1.4 log-odds. The adapter's preamble closes most of that gap: about 70% for Astra and 75% for Sol, and for Luna and Terra about 40–45%, to roughly their own reference noise.
+  - Astra and Sol keep a residual (0.3–0.4 against floors of 0.1–0.2). Stating the mechanism inside each case adds something the standing instructions do not.
+- **Tailoring the dose adds nothing measurable (M2, M3).** The generic full-dose preamble and another configuration's adapter do as well as the configuration's own.
+  - For Luna and Terra this was certain by construction, since their adapters are the generic one.
+  - For Astra and Sol, the lighter dose on one structure neither helped nor hurt here.
+  - So the passport's value in this test is diagnostic, not dosing. It identifies which structures a configuration neglects, and those are what any of these preambles target. It does not yet show that a configuration-specific dose matters.
+- **A side finding from the reference arm.** Terra's considered selective-disclosure prior is the same at every description level (0.36): it does not read the company descriptions at all. Luna treats only the two most suggestive outlet descriptions as possible copiers (0.66), and every other description as independent.
+
+**What can and cannot be claimed (exploratory, one collection, four configurations).**
+- **Can:** model plus passport adapter forecasts closer to the model's own considered judgment than the model alone, by large margins, on held-out finance dossiers.
+- **Cannot:** that the passport-specific dose beats a generic structure preamble.
+
+**Next, to show that identity binding matters**, a setting is needed where configurations differ in which structures they neglect: one configuration handles a structure unprompted that another misses. Then a configuration-specific adapter can include or leave out components, and over-prompting has a measurable cost. The abstract-structure checks have such differences (rungs 1–3, "needs the rate", "not reliable"). A confirmatory test of M1 alone would be cheap to preregister now.
+
+**Task validation 0.45.1** (the runner summary fix only) passed on both seeds (203 contexts). Fingerprint `095aa351eaeb5800…`. It is ready for the next collection.

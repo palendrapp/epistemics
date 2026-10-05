@@ -906,3 +906,16 @@ See [passport-adapter-design.md](passport-adapter-design.md#pilot-5-october-2026
 - a graded-evidence ladder showing where each configuration starts using a structure unprompted;
 - the aggregation component for Luna;
 - three or more sessions per cell.
+
+## 5 October: passport adapter on hinted structures, results
+
+See [passport-adapter-design.md](passport-adapter-design.md#redesign-results-5-october-2026). 120 sessions over 13 roots, because of provider capacity errors.
+- **M1 holds for all four configurations.** With its adapter, a configuration's forecasts on held-out hinted finance dossiers come much closer to its own considered answers (mechanism stated, full guidance) than alone:
+  - Astra 1.39 → 0.38 log-odds, Sol 1.23 → 0.31 (both p 0.001);
+  - Luna 1.01 → 0.62, Terra 1.08 → 0.58 (p 0.01).
+- **M2 and M3 are null.** The generic full-dose preamble and another configuration's adapter do as well. The passport's value here is diagnostic (which structures to target), not dosing.
+- **Side finding:** Terra's considered selective-disclosure prior ignores the company descriptions (0.36 at every level).
+
+**Ideas:**
+40. **Preregister M1 on fresh sessions.** The effects are large, so it is cheap.
+41. **Identity binding needs differential neglect.** Use structures some configurations handle unprompted and others miss (the abstract checks differ), so a tailored adapter's omissions and inclusions both matter, and over-prompting has a cost.
