@@ -251,3 +251,5 @@ Chosen 5 October (user: "go for recommended"), after the pilot. Written before a
 - **Contrasts:** M1 (alone − adapter), M2 (generic − adapter), M3 (mismatched − adapter), with exact one-sided p over splits of the sessions (six per arm per configuration, three per module).
 
 **This is an exploratory test, not a preregistration.** If the adapter helps here, the confirmatory test would be preregistered on fresh sessions.
+
+**Validation fix (before any data).** The first 0.45 validation failed on seed 20261027 for an older capacity module (`composite-deep-load`, recovery estimate −0.08). The hinted contexts had been inserted mid-list. Validation draws from one generator in context order, so every later context's draw shifted, and that module's recovery is marginal on some draws. The hinted contexts now come at the very end, so the first 201 contexts are identical in order (and draws) to 0.44.1, which passed on both seeds.

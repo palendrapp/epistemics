@@ -1134,13 +1134,10 @@ def contexts_to_validate():
             yield module, "markets", variant, REPORT_TRUTHS[0]
         for variant in LEARNING_RATES:
             yield module, "markets", variant, LEARNER
-    # Appended last, so earlier contexts keep the random draws of earlier battery versions.
+    # Appended after these when added (an old note): earlier contexts keep their random draws.
     for variant in UNPROMPTED_VARIANTS:
         for module in UNPROMPTED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT
-    # Tasks 0.45, appended last.
-    for module in HINTED_MODULES:
-        yield module, "markets", "alone", CUE_RESPONDENT
     for variant in ASKED_VARIANTS:
         for module in ASKED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT
@@ -1218,6 +1215,10 @@ def contexts_to_validate():
         else:
             params = screen.mid(family)
         yield module, "markets", "screen", {"params": params, "noise": 0.05}
+    # Tasks 0.45: at the very end, so every earlier context keeps its random draws (validation
+    # draws from one generator in this order; a context inserted earlier shifts all later ones).
+    for module in HINTED_MODULES:
+        yield module, "markets", "alone", CUE_RESPONDENT
 
 
 def estimate(module, analysis, truth):
