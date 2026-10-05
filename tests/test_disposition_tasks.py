@@ -448,7 +448,9 @@ def test_order_policies_control_the_first_cases():
         }
     ]
     planned = runner.check_groups(groups)
-    assert len(planned) == 4 and all(p[5:] == ("irrelevant-first", 0, True) for p in planned)
+    # (tasks 0.46) A ninth field, the attached adapter, comes last; none here.
+    assert len(planned) == 4
+    assert all(p[5:] == ("irrelevant-first", 0, True, None) for p in planned)
     with pytest.raises(ValueError, match="cue module"):
         runner.check_groups(
             [{**groups[0], "modules": ["disclosure"], "contexts": [["open", "markets", 1]]}]
