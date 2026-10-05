@@ -931,3 +931,19 @@ See [passport-adapter-design.md](passport-adapter-design.md#matching-results-5-o
 **Ideas:**
 42. **Preregister M3 for Luna,** sized from these effects.
 43. **A calculation tool as a stronger form of state-then-apply.**
+
+## 5 October: Clef pilot (design)
+
+Change of direction (user): what Cloudflare's decision model Clef makes possible for this paradigm. Design: [clef-pilot-design.md](clef-pilot-design.md).
+- **What Clef removes.** It returns a softmax over typed answers (yes/no, options, rubric levels) from one prefill pass, with no generated text and no session. The readout layer we have been separating from judgement (round numbers, session modes, wording) is gone.
+- **The pilot reuses cases the agents already answered:**
+  - evident dossiers, scored against the exact posterior;
+  - hinted dossiers, alone and with the mechanism stated;
+  - cues-a description cases, for the stated–applied gap.
+- **One new measure.** Joint calls ask the base rate, the structure probe and the forecast on the same state. Whether the forecast applies the base rate given in the same call is a coherence check that an agent session cannot give.
+- **Method checks first:** repeats, alone against joint, question order, paraphrase.
+- **Scale and cost.** 384 calls per model, about $0.10 for both models via Workers AI. You supply the token; local weights need CUDA.
+
+**Ideas:**
+44. **A decision-model passport.** If the method checks pass, Clef and Clef-flash become passport configurations without session noise. Repeated measures are then free, and parameter recovery can be run on the model itself.
+45. **Dense response surfaces.** Sweep prior, likelihood and description level on a grid. This maps the whole updating function, not a fitted point.

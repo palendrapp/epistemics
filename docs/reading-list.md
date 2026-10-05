@@ -200,3 +200,13 @@ Sources for the [passport adapter design](passport-adapter-design.md): ways to h
 | Kahneman & Lovallo 1993, Timid choices and bold forecasts (Management Science) | The outside view: start from the reference class. It is the source of asking how common a structure is before judging the case. | 5 Oct, adapter design | [M] |
 | Gigerenzer & Hoffrage 1995, How to improve Bayesian reasoning without instruction: frequency formats (Psychological Review) | Natural frequencies improve Bayesian updating. It is a candidate representation for the calculation component. | 5 Oct, adapter design | [M] |
 | Mellers et al. 2014, Psychological strategies for winning a geopolitical forecasting tournament (Psychological Science) | Brief training in probabilistic reasoning improved forecasting accuracy. It is the human precedent for a short, general preamble improving forecasts. | 5 Oct, adapter design | [M] |
+
+## Decision models (5 October)
+
+Sources for the [Clef pilot design](clef-pilot-design.md). The model's own documentation is listed in the design note.
+
+| Paper | Why it came up | Mentioned | Read |
+| --- | --- | --- | --- |
+| Kadavath et al. 2022, Language models (mostly) know what they know (arXiv 2207.05221) | Calibration of a model's probability that its own answer is true, read from token probabilities. It is the nearest precedent for Clef's `noul` answer, a softmax probability of true, as opposed to a probability the model writes. | 5 Oct, Clef design | [M] |
+| [Tian et al. 2023, Just ask for calibration (EMNLP)](https://aclanthology.org/2023.emnlp-main.330/) | After RLHF, verbalized probabilities can be better calibrated than token probabilities. Clef is trained for calibrated option probabilities, so the comparison with our agents' verbalized answers runs the other way. | 5 Oct, Clef design (listed under passport-bound mitigation) | [A] |
+| [Chen et al. 2026](https://arxiv.org/abs/2605.06915) | The regime account: near-Bayesian with explicit likelihoods only when the model can compute. Clef cannot reason step by step, so it is a test of that account. | 5 Oct, Clef design (listed under measuring traits) | [S] |

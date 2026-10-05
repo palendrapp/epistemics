@@ -1468,6 +1468,19 @@
       "status": "complete",
       "prediction": "Exploratory (written before data): for Luna and Terra, own (with the component) beats mismatched (without), M3 > 0; for Astra and Sol, the unneeded component neither helps nor hurts.",
       "outcome": "96 of 96 sessions over six roots (capacity errors re-collected), about 45M input tokens; tasks 0.46.0 validated on both seeds. Luna: own adapter halved its gap (0.26 to 0.12) while Astra's adapter left 0.22; M3 +0.10, p 0.07 (suggestive). Terra: no help (0.11 alone, 0.10 own, 0.07 mismatched). Astra and Sol: unneeded component harmless; any adapter roughly halved their small copying-task gap. Identity binding matters where the passport finds a large, distinctive failure (Luna's gap)."
+    },
+    {
+      "id": "clef-pilot-design",
+      "date": "2026-10-05",
+      "track": "dispositions",
+      "kind": "record",
+      "title": "Clef pilot: Bayesian dispositions of a decision model (design)",
+      "question": "On the cases the agent configurations already answered, does Cloudflare's decision model Clef (and Clef-flash) match the exact posterior when the structure is evident, neglect structures that are only hinted, and apply the base rates it states, including within a single call?",
+      "doc": "docs/clef-pilot-design.md",
+      "roots": [],
+      "status": "planned",
+      "prediction": "Design only. States are the rendered cases; probability questions become noul (probability of true), base rates a 21-option choice (probability-weighted mean). Q1 evident (48 cases): error against the exact posterior, structure use, false structure. Q2 hinted alone and reference (96): implied priors and alone-to-reference distance. Q3 cues-a (48): stated-applied gap; within-state joint calls on 60 described forecast cases (base rate, probe, forecast): forecast and probe against the observer given Clef's own base rate. Q4 method: repeats, alone against joint, question order, paraphrase. 384 calls per model, both models, about $0.10.",
+      "outcome": "Awaiting decisions: access (Workers AI with the user's own token, recommended), models (both, recommended), adapter arm (after the pilot, recommended)."
     }
   ],
   "next": [
