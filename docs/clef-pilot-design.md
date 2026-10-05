@@ -1,6 +1,6 @@
 # Clef pilot: Bayesian dispositions of a decision model (design)
 
-Written 5 October 2026. Status: design only; nothing has been built or collected.
+Written 5 October 2026. Status: built with the recommended defaults (see [Built](#built-5-october-2026)); nothing collected yet.
 
 ## Why Clef
 
@@ -162,6 +162,62 @@ The parser follows the shape actually returned.
 1. **Access:** Workers AI with your token (recommended), or a rented GPU.
 2. **Models:** both Clef and Clef-flash (recommended), or Clef only.
 3. **Adapter arm.** Passport-adapter guidance appended to the question instructions, in this pilot or after it. Recommended after: the pilot should first show whether Clef's instructions field moves its answers at all.
+
+## Built (5 October 2026)
+
+The recommended defaults are Workers AI, both models, and no adapter arm.
+
+**Package `epistemics.clef`** (pilot version clef-pilot/0.1.0). It sits outside the task package, so no tasks version, fingerprint or validation changes.
+- **`requests`** builds every request body from `render` and `items_for`.
+  - 768 calls: 384 per model.
+  - Per model: q1 48, q2 96, q3 48, joint 120, repeat 48, paraphrase 24.
+  - The probe and base-rate wording of the joint calls is the cue modules' own; a test checks it against their rendered probe and rate items.
+- **`client`**:
+  - Workers AI REST over the standard library.
+  - Credentials only from `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`, and scrubbed from every error message.
+  - Up to five attempts on transient HTTP errors.
+- **`answers`** parses the probability of true for noul questions, and the 21 option probabilities for base rates (mean and mode). The documented field names are loose, so it accepts the plausible shapes and fails loudly otherwise. Raw responses are always kept, so a parser fix never needs a new call.
+- **`pilot`**:
+  - `plan` freezes `plan.json` (call metadata, request digests, a digest of each module's items) and `requests.jsonl` (the bodies), and never rewrites them.
+  - `run` checks each frozen body against its digest, sends only unanswered calls, and appends records to `calls.jsonl` (failures to `errors.jsonl`). It stops after five consecutive failures.
+  - `smoke` sends one call per question type per model.
+
+**Commands** (the live ones need the two environment variables in your shell):
+
+```
+uv run python -m epistemics.clef smoke --out output/clef-smoke-<date>
+uv run python -m epistemics.clef plan --root output/clef-pilot-<date>
+uv run python -m epistemics.clef run --root output/clef-pilot-<date>
+uv run python -m epistemics.ledger clef-pilot output/clef-pilot-<date> \
+    --evident-roots output/adapter-pilot-20261005 \
+    --hinted-roots output/adapter-hinted-20261005-* \
+    --cues-roots output/finance-transfer-20261004 output/finance-transfer-20261004-b output/finance-transfer-20261004-c --output output/clef-pilot-<date>.json
+```
+
+**Analysis (`ledger/clef.py`).**
+- **Agent comparison.** The agents' values come from their roots, using the same functions as before:
+  - evident and hinted alone arms: `adapter_eval`;
+  - cues-a gap: `finance_transfer._gap` per session.
+- **Rotated baseline (within-state).** The same gaps are also computed with each case's base rate taken from another case of the module, averaged over every rotation. A forecast that applies its own stated base rate should sit well below this case-blind baseline.
+- **Rounding for the cue fit.** The fit's report likelihood is censored at whole percentages, the agents' resolution, so Clef's answers enter it rounded to whole percentages. Every other measure uses them unrounded.
+- **Hinted joint calls.** Their questions name the mechanism (the probe asks whether the outlet relayed the call). On hinted cases the joint call is therefore an asked condition, and alone against joint there measures the effect of naming, not method noise. The cue cases already describe the mechanism, so there it is a pure method check. The analysis reports the two separately.
+
+**Tests (`tests/test_clef.py`, offline).**
+- **Client:** a mocked opener, covering the retries and that credentials never reach an error message.
+- **Pilot and analysis:** a synthetic responder, an exact Bayesian observer standing in for Clef. On it the analysis gives:
+  - error near 0 on Q1, structure use 1, false structure 0;
+  - implied priors equal to the responder's (0.20–0.80);
+  - stated–applied gap near 0;
+  - within-state gaps of 0, against rotated baselines of 0.4–1.2 log-odds;
+  - deterministic repeats.
+- **What this covers.** It is parameter recovery for the measures; it is not evidence about Clef. Live coverage begins with the smoke test.
+
+**Next.**
+1. You export the two variables.
+2. Smoke test, one call per question type per model, to confirm the response shape.
+3. Freeze the plan.
+4. Run, about 768 calls.
+5. Analysis.
 
 ## Sources
 

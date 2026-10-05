@@ -61,6 +61,8 @@ uv run python -m epistemics.ledger single-judgment-power --output <file>
 uv run python -m epistemics.ledger adapter-eval <roots...> --output <file>
 uv run python -m epistemics.ledger adapter-hinted <roots...> --output <file>
 uv run python -m epistemics.ledger adapter-matching <roots...> --output <file>
+uv run python -m epistemics.ledger clef-pilot <root> [--evident-roots ...] [--hinted-roots ...]
+    [--cues-roots ...] --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -226,6 +228,12 @@ def main():
     sjr = sub.add_parser("single-judgment-preregistered")
     sjr.add_argument("roots", type=Path, nargs="+")
     sjr.add_argument("--output", type=Path, required=True)
+    cp = sub.add_parser("clef-pilot")
+    cp.add_argument("root", type=Path)
+    cp.add_argument("--evident-roots", type=Path, nargs="*", default=())
+    cp.add_argument("--hinted-roots", type=Path, nargs="*", default=())
+    cp.add_argument("--cues-roots", type=Path, nargs="*", default=())
+    cp.add_argument("--output", type=Path, required=True)
     am = sub.add_parser("adapter-matching")
     am.add_argument("roots", type=Path, nargs="+")
     am.add_argument("--output", type=Path, required=True)
@@ -632,6 +640,44 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command == "clef-pilot":
+        from epistemics.ledger import clef
+
+        run = clef.summary(a.root, a.evident_roots, a.hinted_roots, a.cues_roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for model, m in run["models"].items():
+            print(model, m["calls"])
+            print(
+                "  q1",
+                {
+                    k: round(v["error"], 3)
+                    for k, v in m["q1"].items()
+                    if isinstance(v, dict) and v.get("complete")
+                },
+                "extremity",
+                m["q1"].get("extremity") and round(m["q1"]["extremity"], 3),
+            )
+            print(
+                "  q2", {k: round(v["deviation"], 3) for k, v in m["q2"].items() if v["complete"]}
+            )
+            print(
+                "  q3 gap",
+                {
+                    k: v["gap"] and round(v["gap"], 3)
+                    for k, v in m["q3"]["across"].items()
+                    if v["complete"]
+                },
+            )
+            print(
+                "  q3 within",
+                {
+                    k: (round(v["forecast_gap"], 2), round(v["forecast_gap_rotated"], 2))
+                    for k, v in m["q3"]["within"].items()
+                    if v["complete"]
+                },
+            )
+            print("  q4", {k: m["q4"][k] for k in ("repeat", "paraphrase")})
     elif a.command == "adapter-matching":
         from epistemics.ledger import adapter_eval
 
