@@ -142,6 +142,8 @@ MODULES = (
     "wording-policy3-c",
     "relay-evident",
     "disclosure-evident",
+    "relay-hinted",
+    "disclosure-hinted",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -279,6 +281,10 @@ WORDING_VARIANTS = ("wording",)
 # (dispositions.evident). The variant is the arm: the standard instructions alone, the generic
 # comparator, or a configuration's passport adapter (disposition_tasks/adapters/*.json).
 EVIDENT_MODULES = ("relay-evident", "disclosure-evident")
+# Hinted structures (tasks 0.45): held-out dossiers whose structure must be inferred from source
+# descriptions (cues-b), in the evident modules' arms plus a reference arm that puts the
+# structure fully to the configuration (hinted_texts).
+HINTED_MODULES = ("relay-hinted", "disclosure-hinted")
 EVIDENT_VARIANTS = (
     "alone",
     "generic",
@@ -287,6 +293,7 @@ EVIDENT_VARIANTS = (
     "adapter-luna",
     "adapter-terra",
 )
+HINTED_VARIANTS = EVIDENT_VARIANTS + ("reference",)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -641,6 +648,10 @@ def items_for(module):
         from epistemics.dispositions import evident
 
         return evident.design(module)
+    if module == "relay-hinted":
+        return design.corroboration_unprompted()
+    if module == "disclosure-hinted":
+        return design.disclosure_unprompted()
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -1016,7 +1027,14 @@ RENDERERS = {
     **{m: (lambda *a: _calls(*a)) for m in CALLS_MODULES},
     **{m: (lambda *a: _wording(*a)) for m in WORDING_MODULES},
     **{m: (lambda *a: _evident(*a)) for m in EVIDENT_MODULES},
+    **{m: (lambda *a: _hinted(*a)) for m in HINTED_MODULES},
 }
+
+
+def _hinted(items, i, cover, variant):
+    from epistemics.disposition_tasks import hinted_texts
+
+    return hinted_texts.trial(items, i, cover, variant)
 
 
 def _evident(items, i, cover, variant):
@@ -1150,6 +1168,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in WORDING_VARIANTS
     if module in EVIDENT_MODULES:
         return cover == "markets" and variant in EVIDENT_VARIANTS
+    if module in HINTED_MODULES:
+        return cover == "markets" and variant in HINTED_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -1270,6 +1290,7 @@ def stated_percentages(module, index, variant=None):
         "corroboration-unprompted",
         "corroboration-asked",
         "corroboration-probed",
+        "relay-hinted",
     ):
         values = [items["prior"][index], items["accuracy_a"][index]]
         if items["kind"][index] != "single":

@@ -227,3 +227,27 @@ Adapters add 698–857 characters of instructions.
 3. **Replication.** At least three sessions per cell, and identical-instruction arms reported as a replication check.
 
 No mitigation effect is claimed from this pilot.
+
+## Redesign: hinted structures, scored against the configuration's own considered answers
+
+Chosen 5 October (user: "go for recommended"), after the pilot. Written before any data.
+
+**Cases:** modules `relay-hinted` and `disclosure-hinted` (design 0.33.0, tasks 0.45.0; `disposition_tasks.hinted_texts`).
+- They use the design of the unprompted dossiers where the passport's neglect was measured: 24 cases, 20 with a source description at one of five levels, and 4 without.
+- They use the evident modules' new companies and outlets, and the second paraphrase set of descriptions (cues-b). For relay these run from "has a research desk that visits the company's factories before every call" to "is a one-person blog that posts within minutes of larger outlets". For disclosure they run from "is owned by a customer cooperative that publishes all its data a month later" to "is in talks to be sold, and the buyer's price depends on these indicators".
+- These descriptions were not used to set any adapter's dose. The structure has to be inferred, so no case has a fixed correct answer.
+
+**Arms** (three sessions per cell): alone, generic, own adapter, mismatched adapter, and **reference**.
+- The reference puts the structure fully to the configuration. The case brief states the mechanism, as the full-mechanism dossiers do, and the instructions carry the generic full-dose guidance.
+- Preset `adapter-hinted`: four configurations × five arms × two modules × three sessions = 120 sessions.
+
+**Target.** For each configuration, its own reference answer to each case: the mean log-odds of its three reference sessions. The adapter succeeds if it brings the configuration's forecasts, without the mechanism stated, to what the configuration forecasts when the structure is put to it. That is a claim about coherence with its own considered judgment, not about the true rate of copying or withholding, which these cases do not fix.
+
+**Scores** (`uv run python -m epistemics.ledger adapter-hinted <roots> --output <file>`):
+- **Deviation:** the mean absolute log-odds distance of a session's forecasts on described cases from the reference target, per arm.
+  - The reference arm's own value is computed leave-one-out (each session against the mean of the other two), a noise floor.
+  - The described cases are the 20 with a source description: the four cases without one would only add noise.
+- **Mapping distance:** the mean absolute difference between an arm's implied structure prior at each description level (the description fit) and the reference's.
+- **Contrasts:** M1 (alone − adapter), M2 (generic − adapter), M3 (mismatched − adapter), with exact one-sided p over splits of the sessions (six per arm per configuration, three per module).
+
+**This is an exploratory test, not a preregistration.** If the adapter helps here, the confirmatory test would be preregistered on fresh sessions.

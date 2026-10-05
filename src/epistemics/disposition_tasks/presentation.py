@@ -213,10 +213,12 @@ def adapter(name):
 
 
 def instructions(module, variant="paired", cover="markets"):
-    if module in ("relay-evident", "disclosure-evident"):
-        # The arm is the variant: the standard dossier instructions, plus the adapter's guidance.
+    if module in ("relay-evident", "disclosure-evident", "relay-hinted", "disclosure-hinted"):
+        # The arm is the variant: the standard dossier instructions, plus the adapter's guidance
+        # (the reference arm carries the generic full-dose guidance; tasks 0.45).
         standard = " ".join([INTRO, SEPARATE, RULES, PROBABILITY])
-        guidance = "" if variant == "alone" else adapter(variant)["instructions"]
+        name = "generic" if variant == "reference" else variant
+        guidance = "" if variant == "alone" else adapter(name)["instructions"]
         return standard + (f"\n\n{guidance}" if guidance else "")
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE

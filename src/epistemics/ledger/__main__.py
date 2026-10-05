@@ -59,6 +59,7 @@ uv run python -m epistemics.ledger finance-transfer-power --output <file>
 uv run python -m epistemics.ledger single-judgment-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger single-judgment-power --output <file>
 uv run python -m epistemics.ledger adapter-eval <roots...> --output <file>
+uv run python -m epistemics.ledger adapter-hinted <roots...> --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -224,6 +225,9 @@ def main():
     sjr = sub.add_parser("single-judgment-preregistered")
     sjr.add_argument("roots", type=Path, nargs="+")
     sjr.add_argument("--output", type=Path, required=True)
+    ah = sub.add_parser("adapter-hinted")
+    ah.add_argument("roots", type=Path, nargs="+")
+    ah.add_argument("--output", type=Path, required=True)
     ae = sub.add_parser("adapter-eval")
     ae.add_argument("roots", type=Path, nargs="+")
     ae.add_argument("--output", type=Path, required=True)
@@ -624,6 +628,16 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command == "adapter-hinted":
+        from epistemics.ledger import adapter_eval
+
+        run = adapter_eval.hinted_summary(a.roots)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for c, e in run["configurations"].items():
+            devs = {arm: round(v["deviation"], 2) for arm, v in e["arms"].items()}
+            print(c, devs, {k: (round(v["difference"], 2), round(v["p_one_sided"], 3))
+                            for k, v in e["contrasts"].items()})  # fmt: skip
     elif a.command == "adapter-eval":
         from epistemics.ledger import adapter_eval
 

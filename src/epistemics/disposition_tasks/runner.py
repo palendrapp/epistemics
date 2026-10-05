@@ -48,6 +48,8 @@ from epistemics.disposition_tasks.render import (
     EVIDENT_VARIANTS,
     FOLLOWUP_MODULES,
     FOLLOWUP_VARIANTS,
+    HINTED_MODULES,
+    HINTED_VARIANTS,
     LEARNING_RATES,
     LOAD_MODULES,
     LOAD_VARIANTS,
@@ -180,6 +182,7 @@ AUDITED_CASES = (
     + 24 * len(CALLS_MODULES) * len(CALLS_VARIANTS)
     + 24 * len(WORDING_MODULES) * len(WORDING_VARIANTS)
     + 24 * len(EVIDENT_MODULES) * len(EVIDENT_VARIANTS)
+    + 24 * len(HINTED_MODULES) * len(HINTED_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -516,6 +519,21 @@ PRESETS["adapter-pilot"] = tuple(
     }
     for config, other in ADAPTER_MISMATCH.items()
 )
+# Passport adapter, redesigned (docs/passport-adapter-design.md, "Redesign"): the hinted-structure
+# dossiers, five arms (alone, generic, own adapter, mismatched adapter, and the reference arm that
+# puts the structure fully to the configuration), three sessions per cell.
+PRESETS["adapter-hinted"] = tuple(
+    {
+        "configurations": (config,),
+        "modules": HINTED_MODULES,
+        "contexts": tuple(
+            (arm, "markets", r)
+            for arm in ("alone", "generic", f"adapter-{config}", f"adapter-{other}", "reference")
+            for r in (1, 2, 3)
+        ),
+    }
+    for config, other in ADAPTER_MISMATCH.items()
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -716,7 +734,7 @@ def check_groups(groups):
             + CORRELATED_VARIANTS
             + CALLS_VARIANTS
             + WORDING_VARIANTS
-            + EVIDENT_VARIANTS
+            + HINTED_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts

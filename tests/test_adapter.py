@@ -107,3 +107,34 @@ def test_implementation_snapshot_carries_the_adapters_and_reproduces_the_fingerp
         cwd=tmp_path, env={**os.environ, "PYTHONPATH": str(snapshot)}, text=True,
     ).strip()  # fmt: skip
     assert actual == fingerprint()
+
+
+def test_hinted_summary_scores_arms_against_the_reference(monkeypatch):
+    from epistemics.ledger import adapter_eval
+
+    rng = np.random.default_rng(4)
+    target = rng.normal(0, 1, 24)
+    described = np.arange(24) < 20
+    rows = []
+    for arm, shift in (("alone", 1.5), ("generic", 0.4), ("adapter", 0.3), ("mismatched", 0.9),
+                       ("reference", 0.0)):  # fmt: skip
+        for k in range(3):
+            z = target + shift * described + rng.normal(0, 0.05, 24)
+            rows.append({"configuration": "sol", "module": "relay-hinted", "arm": arm,
+                         "variant": arm, "run": f"{arm}{k}", "z": z, "described": described,
+                         "implied": [0.1, 0.2, 0.5, 0.6 + shift / 5, 0.7]})  # fmt: skip
+    monkeypatch.setattr(adapter_eval, "hinted_sessions", lambda roots: rows)
+    out = adapter_eval.hinted_summary([])["configurations"]["sol"]
+    assert out["arms"]["reference"]["deviation"] < 0.15
+    assert abs(out["arms"]["alone"]["deviation"] - 1.5) < 0.1
+    assert out["contrasts"]["M1"]["difference"] > 1 and out["contrasts"]["M1"]["p_one_sided"] < 0.06
+    assert out["contrasts"]["M3"]["difference"] > 0.4
+
+
+def test_hinted_preset_has_five_arms_three_sessions_each():
+    runs = runner.check_groups(runner.PRESETS["adapter-hinted"])
+    assert len(runs) == 120
+    for config, other in runner.ADAPTER_MISMATCH.items():
+        arms = {r[2] for r in runs if r[0] == config}
+        assert arms == {"alone", "generic", f"adapter-{config}", f"adapter-{other}", "reference"}
+        assert {r[4] for r in runs if r[0] == config} == {1, 2, 3}

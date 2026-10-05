@@ -40,6 +40,8 @@ from epistemics.disposition_tasks.render import (
     EVIDENT_VARIANTS,
     FOLLOWUP_MODULES,
     FOLLOWUP_VARIANTS,
+    HINTED_MODULES,
+    HINTED_VARIANTS,
     LEARNING_RATES,
     LOAD_MODULES,
     LOAD_VARIANTS,
@@ -773,6 +775,44 @@ def evident_audit():
     return {"cases": 2 * CASES, "arms": len(EVIDENT_VARIANTS)}
 
 
+def hinted_audit():
+    """Hinted structures: the unprompted dossier design with the evident modules' companies and
+    outlets and the cues-b descriptions; no arm but the reference states the mechanism, and the
+    reference states it once in the brief; the reference's instructions are the generic ones."""
+    from epistemics.disposition_tasks import evident_texts, hinted_texts, presentation
+    from epistemics.disposition_tasks.render import COMPANIES as SET_A
+    from epistemics.disposition_tasks.render import cue_sentence
+
+    for module in HINTED_MODULES:
+        family = "corroboration" if module.startswith("relay") else "disclosure"
+        items = items_for(module)
+        for i in range(CASES):
+            if evident_texts.COMPANIES[i] in SET_A:
+                raise ValueError(f"{module}/{i}: reuses a set-A company")
+            for variant in HINTED_VARIANTS:
+                case = render(module, "markets", i, variant)
+                stated = any(word in json.dumps(case).lower() for word in MECHANISM)
+                if (variant == hinted_texts.REFERENCE) != stated:
+                    raise ValueError(f"{module}/{i}/{variant}: states the mechanism wrongly")
+                if variant == hinted_texts.REFERENCE and case["case"].count("Background:") != 1:
+                    raise ValueError(f"{module}/{i}: the reference states the mechanism twice")
+            slot = int(items["slot"][i])
+            if slot >= 0:
+                name = (
+                    evident_texts.OUTLETS_B[i]
+                    if family == "corroboration"
+                    else evident_texts.COMPANIES[i]
+                )
+                expected = cue_sentence(family, hinted_texts.SET, slot, name)
+                if expected not in render(module, "markets", i, "alone")["case"]:
+                    raise ValueError(f"{module}/{i}: its description is not the cues-b one")
+    if presentation.instructions("relay-hinted", "reference") != presentation.instructions(
+        "relay-hinted", "generic"
+    ):
+        raise ValueError("The reference arm's instructions are not the generic ones")
+    return {"cases": 2 * CASES, "arms": len(HINTED_VARIANTS)}
+
+
 def followup_audit():
     """Follow-up modules: each pair consecutive in a "sequences" order and its first case the
     likely-or-unlikely form of the follow-up's question; every base case fresh in one form and a
@@ -806,6 +846,8 @@ def followup_audit():
 
 
 def variants_of(module):
+    if module in HINTED_MODULES:
+        return HINTED_VARIANTS
     if module in EVIDENT_MODULES:
         return EVIDENT_VARIANTS
     if module in CALLS_MODULES:
@@ -892,6 +934,7 @@ def covers_of(module):
         + CALLS_MODULES
         + WORDING_MODULES
         + EVIDENT_MODULES
+        + HINTED_MODULES
         else COVERS
     )
 
@@ -1066,6 +1109,7 @@ def audit():
         "calls": calls_audit(),
         "wording": wording_audit(),
         "evident": evident_audit(),
+        "hinted": hinted_audit(),
     }
 
 
@@ -1094,6 +1138,9 @@ def contexts_to_validate():
     for variant in UNPROMPTED_VARIANTS:
         for module in UNPROMPTED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT
+    # Tasks 0.45, appended last.
+    for module in HINTED_MODULES:
+        yield module, "markets", "alone", CUE_RESPONDENT
     for variant in ASKED_VARIANTS:
         for module in ASKED_MODULES:
             yield module, "markets", variant, CUE_RESPONDENT

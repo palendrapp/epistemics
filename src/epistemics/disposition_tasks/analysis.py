@@ -45,6 +45,9 @@ CUE_MODELS = {
     "corroboration-asked": "dependence",
     "disclosure-asked": "disclosure",
     "corroboration-probed": "dependence",
+    # Tasks 0.45: the hinted-structure dossiers fit like the unprompted ones.
+    "relay-hinted": "dependence",
+    "disclosure-hinted": "disclosure",
     **{
         f"{family}-urn{suffix}": model
         for family, model in (
