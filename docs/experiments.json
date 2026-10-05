@@ -1448,6 +1448,26 @@
       "status": "complete",
       "prediction": "Exploratory (written before data): M1 adapter beats alone, M2 adapter at least as good as generic, M3 adapter beats mismatched; deviation in log-odds from the reference arm's mean answers on described cases; exact permutation p over session splits.",
       "outcome": "120 of 120 sessions over 13 roots (provider capacity errors; a driver re-collected failed runs), about 56M input tokens; the last root's summary failed on a headline gap (fixed in tasks 0.45.1; data unaffected). M1 holds for all four: Astra 1.39 to 0.38 log-odds (p 0.001), Sol 1.23 to 0.31 (0.001), Luna 1.01 to 0.62 (0.008), Terra 1.08 to 0.58 (0.010); mapping distance 0.29-0.42 to 0.17-0.18. M2 and M3 null (generic and mismatched preambles do as well). The passport's value here is diagnostic (which structures), not dosing. Side finding: Terra's considered selective-disclosure prior ignores the company descriptions (0.36 at every level)."
+    },
+    {
+      "id": "adapter-matching",
+      "date": "2026-10-05",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Does matching the passport adapter matter? (state-then-apply on stated-applied gap tasks)",
+      "question": "With adapter 0.2.0 (state-then-apply where the passport shows a stated-applied gap), does a configuration's own adapter leave a smaller gap than another configuration's adapter whose component differs?",
+      "doc": "docs/passport-adapter-design.md",
+      "roots": [
+        "output/adapter-matching-20261005-1",
+        "output/adapter-matching-20261005-2",
+        "output/adapter-matching-20261005-3",
+        "output/adapter-matching-20261005-4",
+        "output/adapter-matching-20261005-5",
+        "output/adapter-matching-20261005-6"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory (written before data): for Luna and Terra, own (with the component) beats mismatched (without), M3 > 0; for Astra and Sol, the unneeded component neither helps nor hurts.",
+      "outcome": "96 of 96 sessions over six roots (capacity errors re-collected), about 45M input tokens; tasks 0.46.0 validated on both seeds. Luna: own adapter halved its gap (0.26 to 0.12) while Astra's adapter left 0.22; M3 +0.10, p 0.07 (suggestive). Terra: no help (0.11 alone, 0.10 own, 0.07 mismatched). Astra and Sol: unneeded component harmless; any adapter roughly halved their small copying-task gap. Identity binding matters where the passport finds a large, distinctive failure (Luna's gap)."
     }
   ],
   "next": [

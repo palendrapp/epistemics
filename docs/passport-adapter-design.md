@@ -339,3 +339,41 @@ Older manifests have none. Evident and hinted modules keep their arms in the var
 - For Astra and Sol, the mismatched adapter's unneeded C2 neither helps nor hurts: M3 near 0, at the cost of extra instruction length.
 
 Together these would say that the adapter must come from the configuration's own passport to carry what it needs, and need carry nothing it does not. M1 (own against none) checks that C2 works at all. Exploratory: the confirmatory version would be preregistered.
+
+## Matching results (5 October 2026)
+
+**Collection.** All 96 planned sessions completed and verified (three per cell), about 45 million input tokens, across six roots (`output/adapter-matching-20261005-*`). The retrying driver re-collected runs stopped by "model at capacity" errors. Task validation 0.46 passed on both seeds. The full suite's one failure was an older test reading the planned-run tuple, which now has a trailing adapter field; fixed in 99ed3f8.
+
+```bash
+uv run python -m epistemics.ledger adapter-matching output/adapter-matching-20261005-* --output output/adapter-matching-eval-20261005.json
+```
+
+**Stated–applied gap per arm** (mean over levels 1–3; lower is better; six sessions per arm). Brackets show the copying (abstract) and disclosure (finance) tasks.
+
+| | No adapter | Own adapter | Mismatched | Generic |
+| --- | --- | --- | --- | --- |
+| Astra (no C2) | 0.060 (0.107; 0.013) | 0.024 (0.048; 0.000) | 0.043, Luna's with C2 (0.085; 0.000) | 0.029 |
+| Sol (no C2) | 0.056 (0.113; 0.000) | 0.022 (0.042; 0.001) | 0.012, Terra's with C2 (0.025; 0.000) | 0.030 |
+| Luna (C2) | 0.260 (0.417; 0.102) | **0.120** (0.176; 0.064) | 0.223, Astra's without C2 (0.324; 0.122) | 0.117 |
+| Terra (C2) | 0.110 (0.190; 0.030) | 0.098 (0.124; 0.072) | 0.074, Sol's without C2 (0.084; 0.064) | 0.098 |
+
+**Contrasts** (other arm minus own adapter, exact one-sided p over session splits):
+
+| | M1: none − own | M2: generic − own | M3: mismatched − own |
+| --- | --- | --- | --- |
+| Astra | +0.036 (0.13) | +0.005 (0.42) | +0.019 (0.27) |
+| Sol | +0.035 (0.26) | +0.008 (0.40) | −0.009 (0.75) |
+| Luna | **+0.140 (0.07)** | −0.003 (0.53) | **+0.103 (0.07)** |
+| Terra | +0.012 (0.40) | −0.000 (0.50) | −0.024 (0.66) |
+
+**Reading.**
+- **Luna, the configuration with the largest gap, is where matching shows.** Its own adapter, carrying state-then-apply, halved its gap (0.26 to 0.12), most clearly on the copying task (0.42 to 0.18). Another configuration's adapter, without that component, left most of the gap (0.22). The direction is as predicted, but p 0.07 with six sessions per arm is suggestive, not established.
+- **Terra: the component did not help.** Its gap here is small (0.11), its own adapter left it at 0.10, and the adapter without the component did no worse (0.07). The trigger came from battery v2's mean gap (0.12), which is near the threshold. On these tasks, Terra's gap is not large enough for the component to matter.
+- **Astra and Sol: the unneeded component did no harm.** Their gaps are near zero whatever the arm. Any adapter, with or without the component, roughly halved their small copying-task gap (about 0.11 to 0.02–0.06). The structure guidance itself seems to help them apply the copying rates they state.
+- **Generic equals own for Luna and Terra, as constructed.** Their sessions with identical instructions still differ by task, for example Luna's copying gap of 0.07 under generic against 0.18 under its own adapter. That shows the session noise behind the p values.
+
+**What this says about identity binding.** Matching matters where the passport finds a distinctive, large failure: Luna's stated–applied gap. There, another configuration's adapter leaves most of the failure in place. It does not matter where the failure is small (Terra) or absent (Astra, Sol): a component triggered for another configuration costs only instruction length. The evidence is one collection and suggestive (p 0.07).
+
+**Next.**
+- A confirmatory, preregistered test of M3 for Luna alone, sized from these effects: the gap 0.22 against 0.12, session SD about 0.1.
+- A stronger form of the component (a calculation tool that applies the stated rate) where the instruction is not enough.

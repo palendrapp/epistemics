@@ -919,3 +919,15 @@ See [passport-adapter-design.md](passport-adapter-design.md#redesign-results-5-o
 **Ideas:**
 40. **Preregister M1 on fresh sessions.** The effects are large, so it is cheap.
 41. **Identity binding needs differential neglect.** Use structures some configurations handle unprompted and others miss (the abstract checks differ), so a tailored adapter's omissions and inclusions both matter, and over-prompting has a cost.
+
+## 5 October: does matching the adapter matter? Results
+
+See [passport-adapter-design.md](passport-adapter-design.md#matching-results-5-october-2026). 96 sessions; adapter 0.2.0 adds state-then-apply where the passport shows a stated–applied gap (Luna, Terra).
+- **Luna:** its own adapter halved its gap (0.26 to 0.12). Astra's adapter, which lacks the component, left 0.22. M3 +0.10, p 0.07: suggestive.
+- **Terra:** the component did not help; its gap on these tasks is small (0.11).
+- **Astra and Sol:** the unneeded component did no harm.
+- **Identity binding** matters where the passport finds a large, distinctive failure, and costs only length elsewhere.
+
+**Ideas:**
+42. **Preregister M3 for Luna,** sized from these effects.
+43. **A calculation tool as a stronger form of state-then-apply.**
