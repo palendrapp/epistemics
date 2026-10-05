@@ -193,3 +193,37 @@ Analysis: `uv run python -m epistemics.ledger adapter-eval <roots> --output <fil
 | 20261027 | `9e20c01d…` |
 
 **Tasks 0.44.1 (a fix before any data).** The first attempt to prepare the pilot failed with "Snapshot mismatch". A collection's implementation snapshot copied only Python files and assets, so the frozen adapters were missing. The snapshot's fingerprint therefore differed, and its sessions could not have loaded their adapters. The snapshot now also copies `disposition_tasks/adapters/*.json` (`runner.snapshot_sources`). A test rebuilds a snapshot and reproduces the fingerprint. No session was collected under 0.44.0. Re-validated as 0.44.1.
+
+## Pilot (5 October 2026)
+
+**Collection.** Root `output/adapter-pilot-20261005`: 32 of 32 sessions (four configurations × four arms × two modules, one session each), 17.5 million input tokens, no failures. Tasks 0.44.1, validated on both seeds; the full suite (684 tests) passed. Analysis: `uv run python -m epistemics.ledger adapter-eval output/adapter-pilot-20261005 --output output/adapter-pilot-eval-20261005.json`.
+
+**Mean absolute log-odds error against the correct forecast, both modules.** The figure in brackets is the fitted structure use on present cases.
+
+| | Alone | Generic | Own adapter | Mismatched |
+| --- | --- | --- | --- | --- |
+| Astra | 0.03 (1.00) | 0.03 (0.97) | 0.03 (1.00) | 0.03 (1.00) |
+| Sol | 0.03 (1.00) | 0.03 (1.00) | 0.03 (1.00) | 0.03 (1.00) |
+| Luna | 0.22 (0.68) | 0.47 (0.50) | 0.10 (1.00) | 0.04 (1.00) |
+| Terra | 0.06 (1.00) | 0.03 (1.00) | 0.18 (1.00) | 0.06 (1.00) |
+
+Adapters add 698–857 characters of instructions.
+
+**Reading.**
+- **Ceiling.** The evident-structure cases are solved unprompted by Astra, Sol and Terra: structure use 1.00 and errors at the level of rounding. When the evidence about a source is in its own documents (an "According to …" story, a "no reporters" profile, an investor FAQ, a withholding record), these configurations use it without being told. That is the "too evident" risk named in the design.
+  - The neglect the passport records was measured with descriptive cues. A profile line suggested that an outlet copies or a company withholds, and the structure had to be inferred rather than read off the page.
+- **Luna fails intermittently, and instructions did not fix it.**
+  - On disclosure, Luna ignored the "we report only on-target indicators" FAQ entirely in the generic-arm session (use 0.00, error 0.91), and partly when alone (use 0.35). It used the FAQ fully in the adapter-Luna session, whose instructions are identical to the generic arm's.
+  - On relay, its alone-arm error came from overcorrection on absent cases (0.48), not neglect.
+  - This is the session-mode behaviour seen before. Identical guidance gave use 0.00 in one session and 1.00 in another.
+- **Terra's one poor session** (own adapter, disclosure) used the structure fully (use 1.00). Its errors come from answers more extreme than the correct posterior (0.02 against 0.05, 0.96 against 0.90), which is readout and extremity, not neglect.
+- **No contrast is interpretable.** M1, M2 and M3 are about 0 for Astra and Sol, at the ceiling. For Luna and Terra, sessions with identical instructions (adapter against generic) differ more than any arm effect could. One session per cell cannot separate arms from session modes.
+
+**What the pilot says about the design.**
+1. **Easy cases leave nothing to mitigate.** An adapter can only be shown to help where the configuration neglects a structure unprompted. Those cases need subtler, inferential cues, like the descriptions where neglect was measured. Their correct answer is then not fixed by the documents. Two ways forward:
+   - **Score against the configuration's own considered answer.** A fully prompted reference arm (rung 3, mechanism named, rate asked, each case probed) on the same held-out cases gives a self-consistency target: the adapter succeeds if it brings the configuration's unprompted forecasts to what it forecasts when the structure is fully put to it.
+   - **Grade the evidence.** Run cases from the descriptive to the evident and find, per configuration, where unprompted use starts. That is itself a passport reading, and it gives the adapter cases where it has something to do.
+2. **Luna's failure is a session mode.** The passport's session-variation finding points to aggregation (C4: several independent answers, a trimmed mean, Halawi et al. 2024) rather than more instructions. Phase 2's aggregation component is the mitigation to test for Luna.
+3. **Replication.** At least three sessions per cell, and identical-instruction arms reported as a replication check.
+
+No mitigation effect is claimed from this pilot.

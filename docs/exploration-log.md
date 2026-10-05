@@ -893,3 +893,16 @@ Stretch goal (user): show that a configuration with a mitigation generated from 
   - Present and absent cases are balanced, so overcorrection is measured.
 - **Phase 2:** state-then-compute with a calculation tool (Luna's stated–applied gap), record before wording (Terra and Luna), and aggregation (session variation).
 - **Literature** added to the [reading list](reading-list.md): BiasBuster, self-adaptive debiasing, Just ask for calibration, Halawi et al.'s aggregation, PAL, consider-the-opposite, Fischhoff and Larrick on debiasing, the outside view, natural frequencies, and Mellers et al.
+
+## 5 October: passport adapter pilot
+
+See [passport-adapter-design.md](passport-adapter-design.md#pilot-5-october-2026). 32 sessions; tasks 0.44.1.
+- **The evident-structure cases are at the ceiling** for Astra, Sol and Terra unprompted (error 0.03–0.06, structure use 1.00). Evidence printed in a source's own documents is used without guidance, so there is nothing for an adapter to fix.
+- **Luna neglects intermittently.** One session ignored an explicit "we report only on-target indicators" FAQ entirely; another, with identical instructions, used it fully. Instructions do not fix a session mode.
+- **No contrast is interpretable:** ceiling for two configurations, session variation for the other two, with one session per cell.
+
+**Next options:**
+- held-out cases with inferential cues, scored against the configuration's own fully prompted answers;
+- a graded-evidence ladder showing where each configuration starts using a structure unprompted;
+- the aggregation component for Luna;
+- three or more sessions per cell.

@@ -1406,6 +1406,21 @@
       "status": "complete",
       "prediction": "Phase 1: structure checks for finance dossiers (relay, disclosure) at each configuration's recommended rung, delivered as an instructions preamble; held-out dossier set B with determinate structures; arms alone, generic, adapter, mismatched; error against the exact posterior; M1 adapter beats alone per configuration (Holm), M2 not worse than generic and better on absent cases, M3 beats mismatched.",
       "outcome": "Built (phase 1, recommended defaults): adapter generator epistemics.passport.adapter (frozen adapters for Astra, Sol, Luna, Terra and the generic comparator, covered by the tasks fingerprint); held-out modules relay-evident and disclosure-evident (design 0.32.0, tasks 0.44.0; structure determinate from the documents; exact correct forecasts); arms as variants (alone, generic, adapter-<configuration>); preset adapter-pilot (32 sessions); ledger adapter-eval. Validation 0.44 passed on both seeds. Luna's and Terra's adapters equal the generic comparator in phase 1."
+    },
+    {
+      "id": "adapter-pilot",
+      "date": "2026-10-05",
+      "track": "dispositions",
+      "kind": "acceptance",
+      "title": "Passport adapter pilot (evident-structure finance dossiers, four arms)",
+      "question": "Does a configuration with its passport adapter forecast closer to the correct answer than alone, than with a generic adapter, and than with another configuration's adapter, on held-out finance dossiers where the hidden structure is evident from the documents?",
+      "doc": "docs/passport-adapter-design.md",
+      "roots": [
+        "output/adapter-pilot-20261005"
+      ],
+      "status": "complete",
+      "prediction": "Pilot (range-finding): estimate effects and session variation; check that arm A is not at ceiling.",
+      "outcome": "32 of 32 sessions, 17.5M input tokens, no failures; tasks 0.44.1 (0.44.0 failed preparation on a snapshot mismatch: the snapshot omitted the frozen adapters; fixed before any session). Ceiling: Astra, Sol and Terra use the evident structures unprompted (error 0.03-0.06, structure use 1.00), so there is nothing to mitigate. Luna neglects intermittently: one session ignored an explicit selective-disclosure FAQ entirely (use 0.00, generic arm), another with identical instructions used it fully (adapter arm). No contrast interpretable. Next: inferential cues scored against the configuration's own fully prompted answers, a graded-evidence ladder, aggregation for Luna, three or more sessions per cell."
     }
   ],
   "next": [
