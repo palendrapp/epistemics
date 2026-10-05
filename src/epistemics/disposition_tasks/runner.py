@@ -44,6 +44,8 @@ from epistemics.disposition_tasks.render import (
     DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
+    EVIDENT_MODULES,
+    EVIDENT_VARIANTS,
     FOLLOWUP_MODULES,
     FOLLOWUP_VARIANTS,
     LEARNING_RATES,
@@ -177,6 +179,7 @@ AUDITED_CASES = (
     + 24 * len(CORRELATED_MODULES) * len(CORRELATED_VARIANTS)
     + 24 * len(CALLS_MODULES) * len(CALLS_VARIANTS)
     + 24 * len(WORDING_MODULES) * len(WORDING_VARIANTS)
+    + 24 * len(EVIDENT_MODULES) * len(EVIDENT_VARIANTS)
 )
 PRESETS["transfer"] = (
     {
@@ -497,6 +500,22 @@ PRESETS["single-judgment-transfer"] = (
         "contexts": (("announced", "markets", 1),),
     },
 )
+# Passport adapter pilot (docs/passport-adapter-design.md): Astra, Sol, Luna and Terra on the two
+# evident-structure modules, in four arms each: alone, generic, its own passport adapter, and the
+# pre-specified mismatched adapter (the one whose doses differ most from its own; ties go to the
+# lighter dose).
+ADAPTER_MISMATCH = {"astra": "sol", "sol": "astra", "luna": "astra", "terra": "sol"}
+PRESETS["adapter-pilot"] = tuple(
+    {
+        "configurations": (config,),
+        "modules": EVIDENT_MODULES,
+        "contexts": tuple(
+            (arm, "markets", 1)
+            for arm in ("alone", "generic", f"adapter-{config}", f"adapter-{other}")
+        ),
+    }
+    for config, other in ADAPTER_MISMATCH.items()
+)
 # Capacity battery pilot (docs/capacity-battery-design.md): the high-effort configurations on two
 # load modules (Part A) and two matched-strength audit tasks (Part B), one context each.
 PRESETS["capacity-pilot"] = (
@@ -697,6 +716,7 @@ def check_groups(groups):
             + CORRELATED_VARIANTS
             + CALLS_VARIANTS
             + WORDING_VARIANTS
+            + EVIDENT_VARIANTS
             or cover not in COVERS
             or repeat < 1
             for variant, cover, repeat in contexts
@@ -1031,6 +1051,10 @@ def headline(analysis):
         return {"parameter": "announced", **analysis["announced"]["mean_step"]}
     if "wording" in analysis:
         return {"parameter": "wording", **analysis["wording"]["mean_weight"]}
+    if "evident" in analysis:
+        e = analysis["evident"]
+        return {"parameter": "evident", "error": e["error"], **e["error_by_type"],
+                "structure_use": e["structure_use"], "false_structure": e["false_structure"]}  # fmt: skip
     if "followup" in analysis:
         g = analysis["followup"]["grain"]
         return {

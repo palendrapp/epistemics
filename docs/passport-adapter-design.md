@@ -140,3 +140,54 @@ Each component comes from a passport reading and has a dose. Fischhoff (1982) an
 1. **Phase 1 scope:** structure checks only (recommended), or C2 to C4 as well.
 2. **A literature generic arm** (a BiasBuster-style self-help prompt), alongside the full-dose generic. Recommended only if budget allows.
 3. **Budget:** pilot about 15 million input tokens; main collection about 45 million at three sessions per cell, to be confirmed by the power simulation.
+
+## Built (5 October 2026)
+
+Decisions (user, "build it with the recommended defaults"): phase 1 is structure checks only, there is no literature generic arm, and the budget is the pilot first.
+
+**Adapter generator:** `epistemics.passport.adapter` (passport-adapter/0.1.0).
+- Command: `uv run python -m epistemics.passport.adapter --out src/epistemics/disposition_tasks/adapters`.
+- It reads the ledger's structure checks and writes one adapter per configuration plus the generic comparator. Each is a JSON document whose digest covers its contents.
+- The frozen adapters were generated from the ledger at reading guide 0.8.0.
+
+| Adapter | Relay | Disclosure | Basis | Digest |
+| --- | --- | --- | --- | --- |
+| Astra | Rung 2 | Rung 3 | Relay recommended; disclosure check undetermined, so full dose | `02371ee8…` |
+| Sol | Rung 3 | Rung 2 | Both recommended | `ce15c8d1…` |
+| Luna | Rung 3 | Rung 3 | Both recommended | `e46c006b…` |
+| Terra | Rung 3 | Rung 3 | Relay recommended; disclosure undetermined | `9d7ae8e5…` |
+| Generic | Rung 3 | Rung 3 | Full dose for all | `0a9d9e03…` |
+
+**The adapters are frozen into the task package** (`disposition_tasks/adapters/*.json`). The tasks fingerprint now covers them, so a session's implementation digest binds the exact adapter it ran with.
+
+**The arm is the session's variant** (`alone`, `generic`, `adapter-<configuration>`). The instructions are the standard dossier instructions, plus the adapter's guidance for every arm except `alone`.
+
+**Held-out modules:** `relay-evident` and `disclosure-evident` (design 0.32.0, tasks 0.44.0; `dispositions.evident`, `disposition_tasks.evident_texts`). They are new modules rather than a set-B variant of the unprompted dossiers, because the structure has to be determinate case by case.
+- **Cases.** 24 per module with new companies and outlets: eight where the structure is evidently present, eight evidently absent, and eight controls.
+- **Relay evidence.**
+  - Present: an "According to …" story, or a profile saying the outlet has no reporters and republishes others' calls.
+  - Absent: the outlet's own retailer survey.
+  - Controls: a single call, or conflicting calls.
+- **Disclosure evidence.**
+  - Present: an investor FAQ saying updates report only indicators that met target, or a record of withheld indicators later shown below target.
+  - Absent: an auditor's fixed template, where gaps mean late data. Nothing below target is shared, so a selective company could have sent the update. The audit caught a first version where this was not true, which would have made those cases uninformative about overcorrection.
+  - Controls: complete updates.
+- **Correct forecasts.** The observers with the structure's prior at 1 or 0. Ignoring a present structure costs 1.7 log-odds on relay cases and 2.2 on disclosure. Treating an absent one as present costs 1.7 and 1.65.
+- **Session analysis.** Error by case type, plus the fitted structure use (present cases) and false structure (absent cases). Validation recovers both.
+
+**Pilot preset** `adapter-pilot`: Astra, Sol, Luna and Terra, each on both modules in four arms. That is 32 sessions:
+- alone;
+- generic;
+- its own adapter;
+- the mismatched adapter: Astra gets Sol's, Sol gets Astra's, Luna gets Astra's and Terra gets Sol's (the adapter whose doses differ most, ties to the lighter dose).
+
+Analysis: `uv run python -m epistemics.ledger adapter-eval <roots> --output <file>`.
+
+**A limitation of phase 1.** Luna's and Terra's adapters give both structures the full dose, so their instructions are identical to the generic comparator's. For them, M2 (adapter against generic) is null by construction. M3 then tests whether a lighter dose (Astra's or Sol's adapter) would have done as well, which is a test of the passport's recommendation. The tailoring contrasts are informative for Astra and Sol, whose doses differ (relay 2 and disclosure 3 against relay 3 and disclosure 2). Phase 2's components (calculation, record before wording, aggregation) are where Luna's and Terra's adapters would diverge from generic.
+
+**Task validation 0.44** passed on both seeds (4,944 cases, 201 contexts; evident-structure recovery error 0.00–0.05). Fingerprint `bb256033b80e4bc9b95bced64ed8c4a1fce6433a718ce4451965b38571f732e3`.
+
+| Seed | SHA-256 |
+| --- | --- |
+| 20260927 | `6a14c2eb…` |
+| 20261027 | `9e20c01d…` |

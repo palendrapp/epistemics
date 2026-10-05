@@ -1,0 +1,39 @@
+{
+  "adapter_sha256": "e46c006b64847478fb374dedfa503b02f2f930b2c8af92ba28271dc71dc5489a",
+  "components": [
+    {
+      "basis": "recommended rung 3",
+      "id": "C1",
+      "reading": "check-relay",
+      "rung": 3,
+      "structure": "relay"
+    },
+    {
+      "basis": "recommended rung 3",
+      "id": "C1",
+      "reading": "check-disclosure",
+      "rung": 3,
+      "structure": "disclosure"
+    }
+  ],
+  "generator": {
+    "version": "passport-adapter/0.1.0"
+  },
+  "instructions": "Guidance for this session (it applies to every case; read each case on its own evidence):\nSome news sources repeat another source's report instead of checking for themselves; a repeated report adds nothing to the report it repeats. Before forecasting, ask yourself how common that is among sources like the ones in front of you. Then, for each source whose report matches another's, ask whether it could be repeating that report rather than checking for itself, and weigh it accordingly.\nSome companies stay silent about their numbers when the numbers are bad; what a company leaves out of an update can be informative. Before forecasting, ask yourself how common that is among companies like the one in front of you. Then, for each update with something left out, ask whether it could have been left out because it was bad, and weigh the gap accordingly.",
+  "name": "adapter-luna",
+  "passport": {
+    "guide_version": "reading-guide/0.8.0",
+    "ledger_sha256": "c4e4d0d47b6a355b8fa5c7c66e6d4708bb57bae80e14636420d13bbbd9575a9a",
+    "ledger_version": "ledger/0.2.0"
+  },
+  "schema_version": "epistemics.passport-adapter.v1",
+  "subject": {
+    "configuration": {
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "medium"
+    },
+    "configuration_id": "configuration:90ecbd716b0c7dfa118f8057745fefaaed7d047584ca903f8ee12bd52bd9cee0",
+    "label": "luna"
+  },
+  "tools": []
+}

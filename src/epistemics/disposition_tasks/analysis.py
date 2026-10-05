@@ -15,6 +15,7 @@ from epistemics.disposition_tasks.render import (
     COHERE_MODULES,
     CORRELATED_MODULES,
     DELIBERATION_MODULES,
+    EVIDENT_MODULES,
     FOLLOWUP_MODULES,
     SCREEN_MODULES,
     STATEMENT_MODULES,
@@ -195,6 +196,15 @@ def analyze(manifest, observations):
         {"case": case + 1, "item": index, "response": float(responses[index])}
         for case, index in enumerate(manifest.order)
     ]
+    if manifest.module in EVIDENT_MODULES:
+        from epistemics.dispositions import evident
+
+        return {
+            "module": manifest.module,
+            "variant": manifest.variant,
+            "evident": evident.session(manifest.module, items, responses),
+            "rows": rows,
+        }
     if manifest.module in WORDING_MODULES:
         from epistemics.dispositions import wording
 

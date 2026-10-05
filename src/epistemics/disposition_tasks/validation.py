@@ -36,6 +36,8 @@ from epistemics.disposition_tasks.render import (
     DELIBERATION_VARIANTS,
     DOSSIER_MODULES,
     DOSSIER_VARIANTS,
+    EVIDENT_MODULES,
+    EVIDENT_VARIANTS,
     FOLLOWUP_MODULES,
     FOLLOWUP_VARIANTS,
     LEARNING_RATES,
@@ -137,7 +139,11 @@ TOLERANCE = {
     "correlated_step": 0.15,
     # Confident wording: each case's weight within 0.15 log-odds of the respondent's, on average.
     "wording_weight": 0.15,
+    # Evident structures: the fitted structure use and false structure within 0.15 of the
+    # respondent's (grid step 0.05).
+    "evident_structure": 0.15,
 }
+EVIDENT_RESPONDENT = {"use": 0.6, "false": 0.2, "tau": 0.1}
 WORDING_RESPONDENT = {"w": [0.5, 1.0, 1.5, 2.0], "tau": 0.05}
 CALLS_RESPONDENT = {"w": [0.5, 1.0, 1.5], "p": 0.8, "tau": 0.05}
 CORRELATED_RESPONDENT = {
@@ -720,6 +726,53 @@ def wording_audit():
     return {"items": len(seen)}
 
 
+def evident_audit():
+    """Evident structures: eight present, eight absent and eight control cases per module, call
+    directions balanced; the structure changes the correct forecast on every present and absent
+    case and on no control; each case's documents carry its evidence, and none states the
+    mechanism as a general rule; every arm's instructions are the standard ones plus, except for
+    "alone", its adapter's guidance, which names no company, outlet or case."""
+    from epistemics.disposition_tasks import evident_texts, presentation
+    from epistemics.dispositions import evident
+
+    names = evident_texts.COMPANIES + evident_texts.OUTLETS_A + evident_texts.OUTLETS_B
+    standard = presentation.instructions("relay-evident", "alone")
+    for arm in EVIDENT_VARIANTS:
+        text = presentation.instructions("relay-evident", arm)
+        if not text.startswith(standard) or (arm == "alone") != (text == standard):
+            raise ValueError(f"{arm}: instructions are not the standard ones plus its guidance")
+        if any(n in text for n in names):
+            raise ValueError(f"{arm}: guidance names a case")
+    general = ("Some outlets relay", "Some companies share every on-target", "Background:")
+    markers = {
+        "attribution": "According to", "profile": "has no reporters", "survey": "Our survey",
+        "policy": "report only the indicators that met", "history": "later shown",
+        "template": "fixed template",
+    }  # fmt: skip
+    for module in EVIDENT_MODULES:
+        items = items_for(module)
+        for t in evident.TYPES:
+            if (items["type"] == t).sum() != 8:
+                raise ValueError(f"{module}: {t} is not eight cases")
+        with_structure = evident.observe(module, items, 1.0, 1.0)
+        without = evident.observe(module, items, 0.0, 0.0)
+        moves = np.abs(with_structure - without) > 0.05
+        if not np.array_equal(moves, items["type"] != "control"):
+            raise ValueError(f"{module}: the structure must matter exactly where it is in play")
+        if "report_a" in items:
+            for t in ("present", "absent"):
+                if (items["report_a"][items["type"] == t] > 0).sum() != 4:
+                    raise ValueError(f"{module}: {t} calls are not balanced")
+        for i in range(CASES):
+            case = render(module, "markets", i, "alone")["case"]
+            if any(g in case for g in general):
+                raise ValueError(f"{module}/{i}: states the mechanism as a general rule")
+            style = str(items["style"][i])
+            if style in markers and markers[style] not in case:
+                raise ValueError(f"{module}/{i}: its evidence is missing")
+    return {"cases": 2 * CASES, "arms": len(EVIDENT_VARIANTS)}
+
+
 def followup_audit():
     """Follow-up modules: each pair consecutive in a "sequences" order and its first case the
     likely-or-unlikely form of the follow-up's question; every base case fresh in one form and a
@@ -753,6 +806,8 @@ def followup_audit():
 
 
 def variants_of(module):
+    if module in EVIDENT_MODULES:
+        return EVIDENT_VARIANTS
     if module in CALLS_MODULES:
         return CALLS_VARIANTS
     if module in WORDING_MODULES:
@@ -836,6 +891,7 @@ def covers_of(module):
         + CORRELATED_MODULES
         + CALLS_MODULES
         + WORDING_MODULES
+        + EVIDENT_MODULES
         else COVERS
     )
 
@@ -1009,6 +1065,7 @@ def audit():
         "correlated": correlated_audit(),
         "calls": calls_audit(),
         "wording": wording_audit(),
+        "evident": evident_audit(),
     }
 
 
@@ -1105,6 +1162,8 @@ def contexts_to_validate():
         yield module, "markets", "calls", CALLS_RESPONDENT
     for module in WORDING_MODULES:
         yield module, "markets", "wording", WORDING_RESPONDENT
+    for module in EVIDENT_MODULES:
+        yield module, "markets", "alone", EVIDENT_RESPONDENT
     for module in SCREEN_MODULES:
         family = module.split("-")[1]
         if module.endswith("-c"):
@@ -1115,6 +1174,13 @@ def contexts_to_validate():
 
 
 def estimate(module, analysis, truth):
+    if "evident" in analysis:
+        # The fitted structure use and false structure against the respondent's.
+        e = analysis["evident"]
+        error = max(
+            abs(e["structure_use"] - truth["use"]), abs(e["false_structure"] - truth["false"])
+        )
+        return error, bool(error <= TOLERANCE["evident_structure"])
     if "wording" in analysis:
         # Each case's weight against the respondent's weight for its wording.
         rows = analysis["wording"]["cases"]

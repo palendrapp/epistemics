@@ -1403,9 +1403,9 @@
       "question": "Does a configuration with a mitigation generated from its passport (its passport adapter) do better than the configuration alone, than a generic mitigation, and than another configuration's adapter?",
       "doc": "docs/passport-adapter-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Phase 1: structure checks for finance dossiers (relay, disclosure) at each configuration's recommended rung, delivered as an instructions preamble; held-out dossier set B with determinate structures; arms alone, generic, adapter, mismatched; error against the exact posterior; M1 adapter beats alone per configuration (Holm), M2 not worse than generic and better on absent cases, M3 beats mismatched.",
-      "outcome": "Awaiting decisions: phase-1 scope (structure checks only, recommended), a literature generic arm, budget (pilot about 15M, main about 45M input tokens)."
+      "outcome": "Built (phase 1, recommended defaults): adapter generator epistemics.passport.adapter (frozen adapters for Astra, Sol, Luna, Terra and the generic comparator, covered by the tasks fingerprint); held-out modules relay-evident and disclosure-evident (design 0.32.0, tasks 0.44.0; structure determinate from the documents; exact correct forecasts); arms as variants (alone, generic, adapter-<configuration>); preset adapter-pilot (32 sessions); ledger adapter-eval. Validation 0.44 passed on both seeds. Luna's and Terra's adapters equal the generic comparator in phase 1."
     }
   ],
   "next": [

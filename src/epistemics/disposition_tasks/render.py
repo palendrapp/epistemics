@@ -140,6 +140,8 @@ MODULES = (
     "wording-policy3-a",
     "wording-policy3-b",
     "wording-policy3-c",
+    "relay-evident",
+    "disclosure-evident",
 )
 CUE_MODULES = ("corroboration-cues", "disclosure-cues")
 # Transfer: the description modules' items rendered as realistic document dossiers.
@@ -273,6 +275,18 @@ WORDING_MODULES = tuple(
     f"wording-{family}-{form}" for family in ("urn3", "policy3") for form in "abc"
 )  # the original three wordings (tasks 0.40)
 WORDING_VARIANTS = ("wording",)
+# Evident structures (tasks 0.44): held-out finance dossiers for the passport adapter
+# (dispositions.evident). The variant is the arm: the standard instructions alone, the generic
+# comparator, or a configuration's passport adapter (disposition_tasks/adapters/*.json).
+EVIDENT_MODULES = ("relay-evident", "disclosure-evident")
+EVIDENT_VARIANTS = (
+    "alone",
+    "generic",
+    "adapter-astra",
+    "adapter-sol",
+    "adapter-luna",
+    "adapter-terra",
+)
 PEER_VARIANTS = {
     "advice-peer": ("peer-a", "peer-open"),
     "copying-peer": ("urn2-vig2",),
@@ -623,6 +637,10 @@ def items_for(module):
         from epistemics.dispositions import wording
 
         return wording.design(module)
+    if module in EVIDENT_MODULES:
+        from epistemics.dispositions import evident
+
+        return evident.design(module)
     if module in V31_MODULES + V32_MODULES:
         from epistemics.dispositions import decisions
 
@@ -997,7 +1015,14 @@ RENDERERS = {
     **{m: (lambda *a: _correlated(*a)) for m in CORRELATED_MODULES},
     **{m: (lambda *a: _calls(*a)) for m in CALLS_MODULES},
     **{m: (lambda *a: _wording(*a)) for m in WORDING_MODULES},
+    **{m: (lambda *a: _evident(*a)) for m in EVIDENT_MODULES},
 }
+
+
+def _evident(items, i, cover, variant):
+    from epistemics.disposition_tasks import evident_texts
+
+    return evident_texts.trial(items, i, cover, variant)
 
 
 def _wording(items, i, cover, variant):
@@ -1123,6 +1148,8 @@ def allowed(module, cover, variant):
         return cover == "markets" and variant in CALLS_VARIANTS
     if module in WORDING_MODULES:
         return cover == "markets" and variant in WORDING_VARIANTS
+    if module in EVIDENT_MODULES:
+        return cover == "markets" and variant in EVIDENT_VARIANTS
     if module in V3_MODULES:
         return cover == "markets" and variant in V3_VARIANTS
     if module in PEER_MODULES:
@@ -1208,6 +1235,10 @@ def stated_percentages(module, index, variant=None):
         return stated(items, index)  # the urn's prior
     if module in WORDING_MODULES:
         from epistemics.disposition_tasks.wording_texts import stated
+
+        return stated(items, index)  # the stated prior
+    if module in EVIDENT_MODULES:
+        from epistemics.disposition_tasks.evident_texts import stated
 
         return stated(items, index)  # the stated prior
     if module in V3_MODULES + V31_MODULES + V32_MODULES:

@@ -1,5 +1,8 @@
 """Public protocol and checkpoint contracts. No module, parameter or model names are shown."""
 
+import functools
+import json
+from pathlib import Path
 from typing import Annotated
 
 from pydantic import Field, model_validator
@@ -200,7 +203,21 @@ RESPONSE_V31 = (
 )
 
 
+ADAPTERS = Path(__file__).parent / "adapters"
+
+
+@functools.cache
+def adapter(name):
+    """A frozen passport adapter (or the generic comparator) by arm name (tasks 0.44)."""
+    return json.loads((ADAPTERS / f"{name}.json").read_text())
+
+
 def instructions(module, variant="paired", cover="markets"):
+    if module in ("relay-evident", "disclosure-evident"):
+        # The arm is the variant: the standard dossier instructions, plus the adapter's guidance.
+        standard = " ".join([INTRO, SEPARATE, RULES, PROBABILITY])
+        guidance = "" if variant == "alone" else adapter(variant)["instructions"]
+        return standard + (f"\n\n{guidance}" if guidance else "")
     if module.startswith("coherence-"):
         context = LOADED_V3 if variant == "v3-loaded" else SEPARATE
         return " ".join([INTRO_V3, context, RULES, RESPONSE_V3])

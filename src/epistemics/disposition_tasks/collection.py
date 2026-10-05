@@ -162,6 +162,8 @@ Module = Literal[
     "wording-policy3-a",
     "wording-policy3-b",
     "wording-policy3-c",
+    "relay-evident",
+    "disclosure-evident",
 ]
 Cover = Literal["markets", "ecology"]
 Variant = Literal[
@@ -203,6 +205,12 @@ Variant = Literal[
     "correlated",
     "calls",
     "wording",
+    "alone",
+    "generic",
+    "adapter-astra",
+    "adapter-sol",
+    "adapter-luna",
+    "adapter-terra",
 ]
 CASES = 24
 
@@ -217,6 +225,11 @@ def fingerprint():
                 for package in (root, root.parent / "dispositions")
                 for p in sorted(package.glob("*.py"))
             }
+            # Tasks 0.44: the frozen passport adapters the evident modules' arms deliver.
+            | {
+                f"adapters/{p.name}": digest(p.read_bytes())
+                for p in sorted((root / "adapters").glob("*.json"))
+            }
         )
     )
 
@@ -225,9 +238,9 @@ class Manifest(Model):
     schema_version: Literal["epistemics.disposition-collection.v3"] = (
         "epistemics.disposition-collection.v3"
     )
-    battery_version: Literal["disposition-tasks/0.43.0"] = VERSION
+    battery_version: Literal["disposition-tasks/0.44.0"] = VERSION
     model_version: Literal["disposition-model/0.21.0"] = MODEL_VERSION
-    design_version: Literal["disposition-design/0.31.0"] = DESIGN_VERSION
+    design_version: Literal["disposition-design/0.32.0"] = DESIGN_VERSION
     study_id: str
     created_at: AwareDatetime
     implementation_sha256: Digest

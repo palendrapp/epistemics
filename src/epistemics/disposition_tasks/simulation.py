@@ -36,6 +36,10 @@ def responses(module, truth, rng, order=None, revealed=None, variant=None):
         return coherence_responses(items, truth, rng)
     if module.startswith(("decision-", "decision2-")):
         return decision_responses(items, truth, rng)
+    if module in ("relay-evident", "disclosure-evident"):
+        from epistemics.dispositions import evident
+
+        return evident.respond(module, items, truth, rng)
     if module.startswith("wording-"):
         from epistemics.dispositions import wording
 
