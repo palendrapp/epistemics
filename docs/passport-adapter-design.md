@@ -191,3 +191,5 @@ Analysis: `uv run python -m epistemics.ledger adapter-eval <roots> --output <fil
 | --- | --- |
 | 20260927 | `6a14c2eb…` |
 | 20261027 | `9e20c01d…` |
+
+**Tasks 0.44.1 (a fix before any data).** The first attempt to prepare the pilot failed with "Snapshot mismatch". A collection's implementation snapshot copied only Python files and assets, so the frozen adapters were missing. The snapshot's fingerprint therefore differed, and its sessions could not have loaded their adapters. The snapshot now also copies `disposition_tasks/adapters/*.json` (`runner.snapshot_sources`). A test rebuilds a snapshot and reproduces the fingerprint. No session was collected under 0.44.0. Re-validated as 0.44.1.

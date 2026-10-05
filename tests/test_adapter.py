@@ -82,3 +82,28 @@ def test_adapter_eval_reads_arms_and_contrasts(monkeypatch):
     assert abs(out["contrasts"]["M1"]["error"] - 1.1) < 1e-9
     assert abs(out["contrasts"]["M2"]["error_absent"] - 0.1) < 1e-9
     assert out["arms"]["generic"]["extra_instruction_characters"] > 0
+
+
+def test_implementation_snapshot_carries_the_adapters_and_reproduces_the_fingerprint(tmp_path):
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from epistemics.disposition_tasks.collection import fingerprint
+    from epistemics.source_learning.storage import save
+
+    src = Path(runner.__file__).resolve().parents[2]
+    files = runner.snapshot_sources(src)
+    assert any(p.parent.name == "adapters" and p.suffix == ".json" for p in files)
+    snapshot = tmp_path / "src"
+    for source in files:
+        target = snapshot / source.relative_to(src)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        save(target, source.read_bytes())
+    actual = subprocess.check_output(
+        [sys.executable, "-c",
+         "from epistemics.disposition_tasks.collection import fingerprint; print(fingerprint())"],
+        cwd=tmp_path, env={**os.environ, "PYTHONPATH": str(snapshot)}, text=True,
+    ).strip()  # fmt: skip
+    assert actual == fingerprint()

@@ -765,6 +765,22 @@ def check_groups(groups):
     return [(*key, *runs[key]) for key in sorted(runs)]
 
 
+def snapshot_sources(src):
+    """The files a collection's implementation snapshot copies: every Python file, the ledger's
+    assets, and (tasks 0.44.1) the frozen passport adapters the evident modules deliver, which
+    the tasks fingerprint covers."""
+    return [
+        p
+        for p in sorted(src.rglob("*"))
+        if p.is_file()
+        and (
+            p.suffix == ".py"
+            or "assets" in p.parts
+            or (p.suffix == ".json" and "adapters" in p.parts)
+        )
+    ]
+
+
 def prepare(
     root,
     validation_paths,
@@ -794,11 +810,10 @@ def prepare(
     repo = Path(__file__).resolve().parents[3]
     snapshot = root / "implementation/src"
     snapshot.mkdir(mode=0o700, parents=True)
-    for source in (repo / "src").rglob("*"):
-        if source.is_file() and (source.suffix == ".py" or "assets" in source.parts):
-            target = snapshot / source.relative_to(repo / "src")
-            target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-            save(target, source.read_bytes())
+    for source in snapshot_sources(repo / "src"):
+        target = snapshot / source.relative_to(repo / "src")
+        target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        save(target, source.read_bytes())
     for name in ("pyproject.toml", "uv.lock"):
         save(root / "implementation" / name, (repo / name).read_bytes())
     actual = subprocess.check_output(
