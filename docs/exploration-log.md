@@ -1000,3 +1000,11 @@ See [clef-desk-demo.md](clef-desk-demo.md#results-6-october-2026). 60 simulated 
 **Ideas:**
 54. **The demo shows the three lanes live** on the same episodes, with a classification badge on every remark.
 55. **A passport reading for decision models:** "classifies single signals reliably; aggregates and times poorly".
+
+## 6 October: correction, sample-size transfer is not quantitative
+
+Building the demo exposed this. The earlier entry said Clef-flash's urn fit "predicted the far ratios (1.45 against 1.65; 1.90 against 1.87)". That holds for the regression estimator (every sample, including mixed ones). Using unanimous samples only, where the prior cancels with no regression, the urn gives 1.20 and 1.30 against 1.65 and 1.87. Both estimators are now in the ledger (`unanimous` in `clef-battery`, `urn_predicted_unanimous` in `clef-far`).
+
+**What stands:** compression transfers in direction. Five agreeing remarks are worth about twice one, far below Bayes, in every domain and for both models.
+
+**What does not:** a quantitative prediction from the urns.

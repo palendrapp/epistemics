@@ -5,7 +5,8 @@ probabilities, probabilities for choices):
 
   bookbag  Grether regression z = alpha*prior + beta*evidence + bias (log-odds); with confirmation
            asymmetry delta (extra evidence weight when the sample agrees with the prior's
-           leaning); and evidence weight by sample size (1, 3, 5 draws)
+           leaning); and evidence weight by sample size (1, 3, 5 draws), from the regression and
+           from unanimous samples only (which need no regression: the prior cancels)
   beads    P(decide now) = sigmoid(kappa * (|posterior log-odds| - theta)) per ratio, against the
            optimal threshold for the payoffs; expected draws before deciding along each pattern;
            belief slope from the belief questions
@@ -95,6 +96,19 @@ def _design_matrices(items):
     return lp, llr, basic, asym, by_n
 
 
+def unanimous(items, z):
+    """Sample-size compression from unanimous samples only: per prior and hit rate, half the
+    difference between n draws all for A and all for B (the prior cancels), in units of one
+    draw's Bayesian weight; averaged, then as ratios of n to 1 (Bayes: 3 and 5)."""
+    index = {(it["prior"], it["accuracy"], it["n"], it["r"]): k for k, it in enumerate(items)}
+    weight = {}
+    for n in (1, 3, 5):
+        weight[n] = float(np.mean([(z[index[(p, q, n, n)]] - z[index[(p, q, n, 0)]]) / 2 / battery.logit(q)
+                                   for p in battery.PRIORS for q in battery.ACCURACIES]))  # fmt: skip
+    return {"single_weight": weight[1], "ratio_3_to_1": weight[3] / weight[1],
+            "ratio_5_to_1": weight[5] / weight[1]}  # fmt: skip
+
+
 def bookbag(values, model, domain):
     items = battery.bookbag_items()
     z, sd = _phrased(values, model, "bookbag", domain, len(items))
@@ -110,6 +124,7 @@ def bookbag(values, model, domain):
     n_coef, _ = _lstsq(by_n[fit], z[fit])
     bayes = lp + llr
     return {
+        "unanimous": unanimous(items, z),
         "items_fitted": int(fit.sum()),
         "alpha": float(a), "alpha_90": [float(lo[0]), float(hi[0])],
         "beta": float(b), "beta_90": [float(lo[1]), float(hi[1])],

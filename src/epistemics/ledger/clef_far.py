@@ -10,8 +10,9 @@ no exact Bayesian answer; each test uses a property a Bayesian answer must have 
   inversion      the answers inverted through the model's urn-fitted map (and the other model's);
                  the price weight after inversion should be 1
   sample size    the evidence of 3 and 5 agreeing remarks against 1 (price removed with alpha):
-                 Bayes 3 and 5 for independent speakers; the urn fit predicts 3*beta_3/beta_1 and
-                 5*beta_5/beta_1
+                 Bayes 3 and 5 for independent speakers; the urn regression predicts
+                 3*beta_3/beta_1 and 5*beta_5/beta_1, and the urn's unanimous samples their own
+                 ratios (the two urn estimators differ; neither is privileged)
   waiting        P(take a position now) with no remarks heard, and by net count, against the near
                  desk of the battery
 
@@ -126,6 +127,9 @@ def summary(root, urn, near_wait=None):
                 "ratio_3_to_1": e[3] / e[1], "ratio_5_to_1": e[5] / e[1],
                 "bayes": [3.0, 5.0],
                 "urn_predicted": [3 * b["3"] / b["1"], 5 * b["5"] / b["1"]],
+                **({"urn_predicted_unanimous": [urn[m]["unanimous"]["ratio_3_to_1"],
+                                                urn[m]["unanimous"]["ratio_5_to_1"]]}
+                   if "unanimous" in urn[m] else {}),
                 "mean_abs_answer_5_agreeing": float(np.mean(np.abs(z[np.abs(nets) == 5]))),
             }  # fmt: skip
         witems = far.wait_items()

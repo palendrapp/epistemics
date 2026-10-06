@@ -211,14 +211,22 @@ The price weight is the slope on the price's log-odds, with a fixed effect per s
 - **The two models no longer differ,** so Clef-flash's base-rate neglect does not carry to this desk. It is specific to explicit-probability problems.
 - **Inversion makes it worse.** Through Clef-flash's own urn map the far slope goes from 1.39 to 1.82; through Clef's map it stays at 1.40.
 
-### Sample size: the urn fit predicts the far desk
+### Sample size: compression carries over; the exact ratio depends on the urn estimator
 
-| | Evidence of 3 agreeing remarks against 1 | 5 against 1 | Bayes | Urn fit predicted |
-| --- | --- | --- | --- | --- |
-| Clef | 2.14 | 2.27 | 3, 5 | 2.02, 2.78 |
-| Clef-flash | 1.65 | 1.87 | 3, 5 | 1.45, 1.90 |
+| | 3 agreeing remarks vs 1 | 5 vs 1 | Bayes | Urn, regression (3β₃/β₁, 5β₅/β₁) | Urn, unanimous samples only |
+| --- | --- | --- | --- | --- | --- |
+| Clef | 2.14 | 2.27 | 3, 5 | 2.02, 2.78 | 1.81, 1.97 |
+| Clef-flash | 1.65 | 1.87 | 3, 5 | 1.45, 1.90 | 1.20, 1.30 |
 
-**Evidence is compressed.** Five agreeing remarks are worth about twice one remark, not five times. Clef-flash's ratios match the urn prediction closely, and Clef's 3:1 ratio does too. The answers with five agreeing remarks average 3.3–3.5 log-odds, well inside the clip.
+**Five agreeing remarks are worth about twice one, not five times,** and the urns show the same compression.
+
+**The exact ratio depends on how the urn is read.** There are two estimators:
+- **The regression** uses every sample, including mixed ones. It matches Clef-flash's far ratio closely (1.90 against 1.87).
+- **Unanimous samples only** cancel the prior without any regression. They give 1.30.
+
+Neither is privileged, so transfer of the compression is established, but a quantitative prediction is not. An earlier version of this section called the match quantitative; this table corrects it, with the unanimous estimator now in the ledger.
+
+On the near desk the unanimous estimator gives 1.94 for Clef-flash and 2.12 for Clef. The answers with five agreeing remarks average 3.3–3.5 log-odds, well inside the clip.
 
 ### Waiting: jumping to conclusions carries over
 
@@ -235,7 +243,7 @@ Of the three near-transfer results:
 
 | Result | Far transfer |
 | --- | --- |
-| Sample-size neglect, shared | Survives, and quantitatively for Clef-flash: the urn fit predicts the far ratios |
+| Sample-size neglect, shared | Survives (five agreeing remarks worth about twice one); the exact urn-predicted ratio depends on the estimator |
 | Jumping to conclusions, shared | Survives |
 | Clef-flash's base-rate neglect, model-specific | Does not survive |
 

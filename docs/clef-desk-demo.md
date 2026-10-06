@@ -107,3 +107,38 @@ The passport lane comes out slightly above the Bayes lane. That is within noise,
 - **Gating the model's own beliefs helps less.** Its beliefs carry the same distortions: amplified prices and an over-weighted first remark. Acting on them at the right threshold still acts on the wrong number.
 - **For the passport:** trust these models' classifications of single signals; do not trust their aggregation of several, or their choice of when to act.
 
+## Live demo (`epistemics.clef.demo`)
+
+```
+uv run python -m epistemics.clef.demo            # live and replay, http://127.0.0.1:8765
+uv run python -m epistemics.clef.demo --replay   # replay only, no credentials needed
+```
+
+**How it works.** A standard-library server bound to 127.0.0.1 serves one page and streams each act as server-sent events.
+- **Live mode** calls Workers AI, six requests at a time. Credentials come from the environment or `.env` and never reach the page.
+- **Replay mode** reads the recorded roots. Clef is deterministic, so live and replay give the same numbers. A live run of act 1 reproduced the recorded values to every digit (Clef-flash: five draws worth 1.2972… times one; decides with nothing drawn 31.6%).
+- `tests/test_clef_demo.py` checks that replay reproduces the ledger in every act.
+
+**The acts.** Model (Clef or Clef-flash), mode and speed are chosen at the top of the page.
+1. **Passport: abstract tasks.** Unanimous bookbag samples at every prior and hit rate (the ledger's `unanimous` estimator), and six beads states. The passport card fills in:
+   - five draws worth X times one (Bayes 5);
+   - one draw weighted Y times its worth;
+   - decides with no evidence;
+   - decides on a lead of one.
+2. **Transfer: the central-bank desk.** Unanimous remark sets at every price. The ratio of several speakers to one is drawn against Bayes and against the urns' ratio. Also shown: the share of positions taken with nothing heard.
+3. **Mitigation: trading it.** The 60 desk meetings, traded by the three lanes and the Bayes reference. Each remark gets a classification badge, and the cumulative P&L chart and per-meeting scores update as the run goes.
+
+**Numbers on screen** (identical to the ledger):
+
+| | Five draws vs one (urns) | Five speakers vs one (desk) | P&L per meeting: alone, gated, passport (Bayes 38.2) |
+| --- | --- | --- | --- |
+| Clef-flash | 1.30 | 1.87 | 20.2, 27.8, 44.0 |
+| Clef | 1.97 | 2.27 | 21.6, 31.5, 44.4 |
+
+**Timing live:** act 1 takes about a minute and act 2 about half a minute. Act 3 makes three calls per step: about 3–4 minutes for 60 meetings, so use replay or Fast for the full set on stage.
+
+**Framing for the audience.**
+- Everything is task-conditional and exploratory: one simulated desk, 60 meetings, a stated 70% record, fictional officials.
+- Answers are elicited outputs of a trained head, not beliefs.
+- The traits shown are shared by both Clef models. This is a passport for a class of decision models, not a contrast between them.
+
