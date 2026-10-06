@@ -79,10 +79,25 @@ def rate(answer):
     return float(p @ levels), float(levels[int(np.argmax(p))])
 
 
+def options(answer):
+    """A choice answer over any options: {option: probability}, normalised to sum to 1."""
+    p = _probabilities(answer.get("probabilities")) if isinstance(answer, dict) else {}
+    total = sum(p.values())
+    if not p or min(p.values()) < 0 or not 0.98 <= total <= 1.02:
+        raise ValueError(f"Unrecognised choice answer: {answer!r}")
+    return {k: v / total for k, v in p.items()}
+
+
 def parse(response, questions):
-    """{question id: value} for one call: a probability for noul, the mean rate for choice."""
+    """{question id: value} for one call: a probability for noul, the mean rate for a base-rate
+    choice, and {option: probability} for any other choice ("options")."""
     answers = unwrap(response)["answers"]
     out = {}
     for qid, kind in questions.items():
-        out[qid] = noul(answers[qid]) if kind == "noul" else rate(answers[qid])[0]
+        if kind == "noul":
+            out[qid] = noul(answers[qid])
+        elif kind == "options":
+            out[qid] = options(answers[qid])
+        else:
+            out[qid] = rate(answers[qid])[0]
     return out

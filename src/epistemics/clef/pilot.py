@@ -13,7 +13,9 @@ smoke  one call per question type per model, raw responses to <out>/smoke.jsonl,
 import datetime
 import json
 import os
+import threading
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from epistemics.clef import requests
@@ -41,23 +43,34 @@ def _lines(path):
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
-def plan(root, models=tuple(requests.MODELS)):
+def _design(name):
+    """(call builder, version, items digests) of a design: the pilot or the cognitive battery."""
+    if name == "battery":
+        from epistemics.clef import battery
+
+        return battery.calls, battery.VERSION, {"battery": battery.items_digest()}
+    modules = requests.EVIDENT + requests.HINTED + requests.CUES
+    return requests.calls, requests.VERSION, {m: requests.items_digest(m) for m in modules}
+
+
+def plan(root, models=tuple(requests.MODELS), design="pilot"):
     root = Path(root)
     if (root / "plan.json").exists():
         raise ClefError(f"{root} already has a plan; a frozen plan is never rewritten")
     root.mkdir(parents=True, exist_ok=True)
-    planned = requests.calls(models)
+    build, version, items = _design(design)
+    planned = build(models)
     calls = [{"id": cid, **meta, "digest": requests.digest(b)} for cid, meta, b in planned]
     if len({c["id"] for c in calls}) != len(calls):
         raise ClefError("Duplicate call ids")
-    modules = requests.EVIDENT + requests.HINTED + requests.CUES
     document = {
         "schema_version": PLAN_SCHEMA,
-        "version": requests.VERSION,
+        "design": design,
+        "version": version,
         "created": _now(),
         "models": {m: requests.MODELS[m] for m in models},
         "cover": requests.COVER,
-        "items": {m: requests.items_digest(m) for m in modules},
+        "items": items,
         "counts": dict(Counter(f"{c['model']}/{c['part']}" for c in calls)),
         "calls": calls,
     }
@@ -86,43 +99,61 @@ def answered(root):
     return {r["id"]: r for r in _lines(Path(root) / "calls.jsonl") if r["status"] == "ok"}
 
 
-def run(root, client, limit=None, log=print):
+def run(root, client, limit=None, log=print, workers=1):
+    """Send unanswered calls (`workers` at a time); stop after STOP_AFTER_FAILURES consecutive
+    failures."""
     root = Path(root)
     document, bodies = load(root)
     done = answered(root)
     pending = [c for c in document["calls"] if c["id"] not in done]
     if limit is not None:
         pending = pending[:limit]
-    failures = sent = 0
-    for c in pending:
+    lock = threading.Lock()
+    state = {"failures": 0, "sent": 0, "stop": False}
+
+    def send(c):
+        if state["stop"]:
+            return
         try:
             payload, elapsed, attempts = client.run(document["models"][c["model"]], bodies[c["id"]])
             output = unwrap(payload)
             if not isinstance(output, dict) or "answers" not in output:
                 raise ClefError(f"No answers in response: {json.dumps(payload)[:300]}")
         except ClefError as error:
-            failures += 1
-            _append(root / "errors.jsonl", {"id": c["id"], "time": _now(), "error": str(error)})
-            log(f"error {c['id']}: {error}")
-            if failures >= STOP_AFTER_FAILURES:
-                raise ClefError(f"Stopped after {failures} consecutive failures") from None
-            continue
-        failures = 0
+            with lock:
+                state["failures"] += 1
+                _append(root / "errors.jsonl", {"id": c["id"], "time": _now(), "error": str(error)})
+                log(f"error {c['id']}: {error}")
+                if state["failures"] >= STOP_AFTER_FAILURES:
+                    state["stop"] = True
+            return
         try:
             parse(payload, c["questions"])
             parsed = True
         except (ValueError, KeyError, TypeError):
             parsed = False
-        _append(root / "calls.jsonl", {"id": c["id"], "digest": c["digest"], "status": "ok",
-                                       "parsed": parsed, "response": payload,
-                                       "response_digest": requests.digest(payload),
-                                       "elapsed_seconds": round(elapsed, 4), "attempts": attempts,
-                                       "time": _now()})  # fmt: skip
-        sent += 1
-        if sent % 50 == 0:
-            log(f"{sent}/{len(pending)} calls")
+        record = {"id": c["id"], "digest": c["digest"], "status": "ok", "parsed": parsed,
+                  "response": payload, "response_digest": requests.digest(payload),
+                  "elapsed_seconds": round(elapsed, 4), "attempts": attempts, "time": _now()}  # fmt: skip
+        with lock:
+            state["failures"] = 0
+            _append(root / "calls.jsonl", record)
+            state["sent"] += 1
+            if state["sent"] % 100 == 0:
+                log(f"{state['sent']}/{len(pending)} calls")
+
+    if workers <= 1:
+        for c in pending:
+            send(c)
+            if state["stop"]:
+                break
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            list(pool.map(send, pending))
+    if state["stop"]:
+        raise ClefError(f"Stopped after {state['failures']} consecutive failures")
     remaining = len(document["calls"]) - len(answered(root))
-    log(f"sent {sent}; {remaining} of {len(document['calls'])} planned calls remain")
+    log(f"sent {state['sent']}; {remaining} of {len(document['calls'])} planned calls remain")
     return remaining
 
 

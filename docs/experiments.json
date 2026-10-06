@@ -1496,6 +1496,21 @@
       "status": "complete",
       "prediction": "Exploratory (design written before data): Q4 method checks first; if Clef cannot compute without a reasoning trace, Q1 far from the posterior (regime account); Q2 neglect as in the agents would mean neglect does not depend on verbal readout or session state.",
       "outcome": "768 of 768 calls, no errors, 421K Workers AI input tokens (about $0.10). Q4: deterministic (repeat spread 0) but schema-sensitive: paraphrase 0.30-0.34 log-odds, question order 0.2-0.9, a forecast inside a joint call against alone 0.3-1.2 (agents' session spread 0.11-0.69). Q1: error 0.94/0.97 (Clef), 0.76/1.66 (flash) against 0.03-0.22 for the agents; structure use 0.30/0.00 (Clef): reads selected good news at face value despite the company's own FAQ, double-counts a republisher. Q2: flat implied priors across source descriptions in both arms; stating the mechanism moves answers about half as much as for the agents (0.40-0.69 against 1.01-1.39). Q3: stated-applied gap 0.14-0.41 against 0.00-0.13; within one call the forecast is no closer to its own stated base rate than to another case's, while Clef's probes partly follow it. Not entered in the passport: readings are schema-conditional."
+    },
+    {
+      "id": "clef-battery",
+      "date": "2026-10-06",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Clef cognitive battery: decision parameters on urns, tested on a central-bank desk",
+      "question": "Do computational-psychiatry-style parameters (Grether prior and evidence weights, confirmation asymmetry, beads decision threshold, weight on confident wording) fitted on urn tasks predict Clef's and Clef-flash's answers on a mirrored central-bank desk, and does inverting a model's own fitted map correct its desk answers?",
+      "doc": "docs/clef-battery-design.md",
+      "roots": [
+        "output/clef-battery-20261006"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory (written before data): Clef near Bayes on the bookbag (alpha, beta about 1); Clef-flash base-rate neglect and conservatism with a negative bias, as in the pilot's plain cases. If general, each model's urn fit predicts its desk answers better than Bayes and than the other model's parameters, and inversion with its own parameters lowers its desk error. No prediction for beads or tone.",
+      "outcome": "2,800 of 2,800 calls, no errors, about 8 minutes and 640K Workers AI input tokens (about $0.15). Bookbag: Clef-flash's base-rate neglect transfers (alpha 0.40 urn, 0.28 desk; beta 1.21, 1.10; confirmation delta 0.26, 0.28); its urn parameters predict its desk answers almost as well as the desk's own fit (RMSE 0.84 against 0.81; Bayes 1.41, Clef's parameters 1.18), and inverting its desk answers through its own urn map halves its error (1.17 to 0.57; Clef's map 0.69). Clef: milder neglect (alpha 0.83, 0.70); beta and bias shift between domains; no transfer beyond Bayes. Sample-size neglect in both models and domains (a single signal weighted 1.9-2.8 times, five about 1). Beads: both jump to conclusions in both domains (thresholds 0.0-1.55 log-odds against an optimal 0.81-3.47; about 1-1.9 draws against 3.25; 13-34% decide before any draw) while stating calibrated beliefs (slopes 0.98-1.13); shared, not model-specific. Tone: no consistent wording trait (Clef-flash reverses sign); both over-weight bare reports, and Clef ignores a stated record on the desk. Near transfer only (the desk mirrors the urn numbers); exploratory."
     }
   ],
   "next": [

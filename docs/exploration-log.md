@@ -964,3 +964,18 @@ See [clef-pilot-design.md](clef-pilot-design.md#results-6-october-2026). 768 cal
 46. **Schema-ensemble readings for decision models.** Define a reading over a fixed set of paraphrases and question orders, and report its spread as a trait (schema sensitivity), the analogue of session noise.
 47. **Adapter as instructions for Clef.** Clef is deterministic and costs cents, which makes it a clean test bed. Does the passport adapter's structure text in `instructions` restore structure use on the evident cases?
 48. **Forecast as a choice over probability bins** (as the base rates are), against `noul`, to separate the head's readout from its judgement.
+
+## 6 October: Clef cognitive battery, results
+
+See [clef-battery-design.md](clef-battery-design.md#results-6-october-2026). Bookbag, beads and tone tasks on urns, each mirrored on a central-bank desk; 2,800 calls in 8 minutes.
+- **A transferable parameter with a mitigation bound to the model.** Clef-flash neglects base rates (prior weight 0.40 on urns, 0.28 on the desk) and weights confirming evidence more. Its urn fit predicts its desk answers almost as well as the desk's own fit (0.84 against 0.81; Bayes 1.41). Inverting its desk answers through its own urn map halves its error (1.17 to 0.57); Clef's map gets only to 0.69.
+- **Shared regularities that transfer.** In both models:
+  - Sample-size neglect: one signal counts two to three times its worth.
+  - Jumping to conclusions: they decide on about one bead or speaker, where about three are warranted, and 13–34% decide before any evidence. Their stated beliefs stay calibrated.
+- **No wording trait.** Neither model has one that carries across domains. Both over-weight a bare report.
+- **Near transfer only.** The desk uses the urn's numbers.
+
+**Ideas:**
+49. **Far transfer.** Fed-style remarks without stated hit rates or counts, with the market prior given. Do the urn parameters still predict, and does inversion still help?
+50. **A live demo built from this battery.** Stream urn trials and show the parameter fingerprint (prior weight, evidence weight by sample size, decision threshold) settling. Then run the desk feed with each answer inverted through the model's own map, and the mismatched map beside it.
+51. **Decide-from-belief mitigation for jumping to conclusions.** Ask for the belief, then act at the optimal threshold. The beliefs are calibrated, so this should remove the early decisions.

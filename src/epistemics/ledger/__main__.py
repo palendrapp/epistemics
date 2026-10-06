@@ -63,6 +63,7 @@ uv run python -m epistemics.ledger adapter-hinted <roots...> --output <file>
 uv run python -m epistemics.ledger adapter-matching <roots...> --output <file>
 uv run python -m epistemics.ledger clef-pilot <root> [--evident-roots ...] [--hinted-roots ...]
     [--cues-roots ...] --output <file>
+uv run python -m epistemics.ledger clef-battery <root> --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -228,6 +229,9 @@ def main():
     sjr = sub.add_parser("single-judgment-preregistered")
     sjr.add_argument("roots", type=Path, nargs="+")
     sjr.add_argument("--output", type=Path, required=True)
+    cb = sub.add_parser("clef-battery")
+    cb.add_argument("root", type=Path)
+    cb.add_argument("--output", type=Path, required=True)
     cp = sub.add_parser("clef-pilot")
     cp.add_argument("root", type=Path)
     cp.add_argument("--evident-roots", type=Path, nargs="*", default=())
@@ -640,6 +644,36 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command == "clef-battery":
+        from epistemics.ledger import clef_battery
+
+        run = clef_battery.summary(a.root)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        r2 = lambda x: round(x, 2)  # noqa: E731
+        for model, m in run["models"].items():
+            print(model, run["calls"][model])
+            for d in ("urn", "desk"):
+                b, t = m["bookbag"][d], m["tone"][d]
+                if b:
+                    print(
+                        f"  {d} bookbag alpha {r2(b['alpha'])} beta {r2(b['beta'])} bias {r2(b['bias'])}"
+                        f" delta {r2(b['confirmation_delta'])} r2 {r2(b['r2'])}"
+                    )
+                if m["beads"][d]:
+                    print(
+                        f"  {d} beads",
+                        {
+                            q: (r2(v["theta"]), r2(v["optimal_theta"]), r2(v["expected_draws"]))
+                            for q, v in m["beads"][d]["ratios"].items()
+                        },
+                    )
+                if t:
+                    print(
+                        f"  {d} tone index {r2(t['tone_index'])}",
+                        {k: {w: r2(x) for w, x in v.items()} for k, v in t["shift"].items()},
+                    )
+            print("  transfer", json.dumps(run["transfer"][model], default=str)[:600])
     elif a.command == "clef-pilot":
         from epistemics.ledger import clef
 
