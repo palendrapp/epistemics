@@ -31,10 +31,51 @@ def run_execution(directory):
     }
 
 
+CLEF_PLAN = "epistemics.clef-pilot-plan.v1"
+
+
+def clef_facts(root, plan):
+    """Facts for a Clef pilot root (docs/clef-pilot-design.md): a run is one model's full set of
+    calls; usage is Workers AI input tokens."""
+    lines = lambda name: [  # noqa: E731
+        json.loads(line) for line in (root / name).read_text().splitlines() if line.strip()
+    ] if (root / name).exists() else []  # fmt: skip
+    answered = {r["id"]: r for r in lines("calls.jsonl") if r["status"] == "ok"}
+    usage = {k: 0 for k in USAGE}
+    for r in answered.values():
+        response = r["response"].get("result", r["response"])
+        for k in ("input_tokens", "output_tokens"):
+            usage[k] += (response.get("usage") or {}).get(k, 0)
+    models = sorted(plan["models"])
+    complete = [
+        m for m in models
+        if all(c["id"] in answered for c in plan["calls"] if c["model"] == m)
+    ]  # fmt: skip
+    return {
+        "root": str(root),
+        "phase": "clef-pilot",
+        "created_at": plan.get("created"),
+        "implementation_sha256": plan.get("plan_digest"),
+        "configurations": models,
+        "runs_planned": len(models),
+        "runs_completed": len(complete),
+        "runs_failed": 0,
+        "tool_errors": len(lines("errors.jsonl")),
+        "usage": usage,
+        "status": "completed" if len(complete) == len(models) else "stopped",
+        "runner_error": None,
+        "finished_at": max((r["time"] for r in answered.values()), default=None),
+        "sha256": {name: sha256(root / name) for name in ("plan.json", "calls.jsonl")},
+        "per_run": {},
+    }
+
+
 def facts(root):
     """Plan, execution and per-run facts for one collection root."""
     root = Path(root)
     plan = json.loads((root / "plan.json").read_text())
+    if plan.get("schema_version") == CLEF_PLAN:
+        return clef_facts(root, plan)
     runs = {e["run_id"]: e for e in plan["runs"]}
     per_run = {run_id: run_execution(root / "collections" / run_id) for run_id in runs}
     execution_path = root / "execution.json"

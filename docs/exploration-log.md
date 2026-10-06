@@ -947,3 +947,20 @@ Change of direction (user): what Cloudflare's decision model Clef makes possible
 **Ideas:**
 44. **A decision-model passport.** If the method checks pass, Clef and Clef-flash become passport configurations without session noise. Repeated measures are then free, and parameter recovery can be run on the model itself.
 45. **Dense response surfaces.** Sweep prior, likelihood and description level on a grid. This maps the whole updating function, not a fitted point.
+
+## 6 October: Clef pilot, results
+
+See [clef-pilot-design.md](clef-pilot-design.md#results-6-october-2026). 768 calls, about $0.10, both models; same cases as the agents.
+- **Deterministic, not stable.** Identical calls give identical answers. Rewording a question moves a forecast 0.3 log-odds, question order up to 0.9, and adding the base-rate and probe questions up to 1.2. That is as large as the agents' session-to-session spread (0.11–0.69). Schema dependence replaces session noise.
+- **Far from the posterior on explicit dossiers.** Errors are 0.8–1.7 log-odds, where Astra, Sol and Terra are within 0.06.
+- **Structure-blind even when the documents settle it:**
+  - It takes a company's selected good news at face value despite the company's own FAQ.
+  - It counts a republisher's repeat as a second, independent call.
+  - Its implied priors are flat across source descriptions, and stating the mechanism hardly helps.
+- **States, does not apply.** Its stated base rates rise with the description, but its forecasts ignore them. This holds even within one call, where its probes do partly follow its stated rate.
+- **What this means for neglect.** The agents' structure neglect on hinted cases is not specific to verbal readout or sessions: a model with neither neglects more, and neglects evident cases too.
+
+**Ideas:**
+46. **Schema-ensemble readings for decision models.** Define a reading over a fixed set of paraphrases and question orders, and report its spread as a trait (schema sensitivity), the analogue of session noise.
+47. **Adapter as instructions for Clef.** Clef is deterministic and costs cents, which makes it a clean test bed. Does the passport adapter's structure text in `instructions` restore structure use on the evident cases?
+48. **Forecast as a choice over probability bins** (as the base rates are), against `noul`, to separate the head's readout from its judgement.

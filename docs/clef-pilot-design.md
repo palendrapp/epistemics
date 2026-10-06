@@ -1,6 +1,6 @@
 # Clef pilot: Bayesian dispositions of a decision model (design)
 
-Written 5 October 2026. Status: built with the recommended defaults (see [Built](#built-5-october-2026)); nothing collected yet.
+Written 5 October 2026. Status: built with the recommended defaults and run on 6 October 2026; see [Results](#results-6-october-2026).
 
 ## Why Clef
 
@@ -218,6 +218,134 @@ uv run python -m epistemics.ledger clef-pilot output/clef-pilot-<date> \
 3. Freeze the plan.
 4. Run, about 768 calls.
 5. Analysis.
+
+## Results (6 October 2026)
+
+**The run.**
+- The root is `output/clef-pilot-20261006`: 768 of 768 calls on the plan, frozen with digest `87cea5c3`.
+- No errors or retries; every answer parsed.
+- 421K Workers AI input tokens (about $0.10); median latency 0.57 s.
+- Smoke tests are in `output/clef-smoke-20261006` and `-b`. `noul` is returned as `{"type": "noul", "noul": p}`. A direction check confirms that p is the probability of true: a statement the state makes false got 0.007 from Clef and 0.008 from Clef-flash.
+
+**Regenerating the tables.**
+
+```
+uv run python -m epistemics.ledger clef-pilot output/clef-pilot-20261006 \
+    --evident-roots output/adapter-pilot-20261005 \
+    --hinted-roots output/adapter-hinted-20261005-{1,2,3,c1,d1,d2,d3,d4,d5,d6,d7,d8,d9} \
+    --cues-roots output/finance-transfer-20261004 output/finance-transfer-20261004-b output/finance-transfer-20261004-c \
+    --output output/clef-pilot-20261006.json
+```
+
+Every number below comes from that file.
+- **Units.** Log-odds distances are mean absolute differences.
+- **Agent values** are each configuration's alone arm on the same cases:
+  - evident cases: the adapter pilot, 2 sessions each;
+  - hinted cases: adapter-hinted, 6 sessions each;
+  - cues-a: finance-transfer, 4 sessions each.
+
+### Q4 first: deterministic, but sensitive to the schema
+
+| Check | Clef | Clef-flash |
+| --- | --- | --- |
+| Repeat identical calls (24 cases × 3) | max spread 0.000 | max spread 0.000 |
+| Paraphrase ("Is it true that X's demand is high?" against "Is X's demand high?") | 0.30 | 0.34 |
+| Question order in joint calls, forecast | 0.53–0.89 | 0.18–0.53 |
+| Question order in joint calls, base rate (proportion) | 0.06–0.11 | 0.05–0.09 |
+| Forecast asked alone against inside a joint call: cue cases (mechanism already described) | 0.86, 1.12 | 0.28, 0.76 |
+| The same, hinted cases (the joint questions name the mechanism) | 1.13, 1.22 | 0.48, 0.72 |
+
+**Same call, same answer.** Clef has no sampling noise.
+
+**Rewording or extra questions do move it.**
+- Rewording the question moves a forecast by 0.3 log-odds.
+- Adding the base-rate and probe questions to the same state moves it by up to 1.2.
+
+**The agents' scale.** On the hinted reference cases, a configuration's session-to-session spread is 0.11 (Astra), 0.20 (Sol), 0.51 (Luna) and 0.69 (Terra).
+
+**Reading.** Clef trades session noise for schema dependence of a similar size. Every Clef reading below holds for this exact schema. Joint answers cannot stand in for single ones.
+
+### Q1: far from the posterior, and blind to evident structure
+
+| | Error, relay | Error, disclosure | Structure use (relay, disclosure) | False structure (relay, disclosure) |
+| --- | --- | --- | --- | --- |
+| Clef | 0.94 | 0.97 | 0.30, 0.00 | 0.00, 0.05 |
+| Clef-flash | 0.76 | 1.66 | 0.40, 0.10 | 0.00, 0.35 |
+
+**Agents, alone** (error pooled over both modules; structure use and false structure):
+
+| | Error | Structure use | False structure |
+| --- | --- | --- | --- |
+| Astra | 0.03 | 1.00 | 0.00 |
+| Sol | 0.03 | 1.00 | 0.00 |
+| Luna | 0.22 | 0.68 | 0.00 |
+| Terra | 0.06 | 1.00 | 0.00 |
+
+**Clef's error by case type:**
+
+| | Present | Absent | Control |
+| --- | --- | --- | --- |
+| Relay | 1.48 | 0.60 | 0.75 |
+| Disclosure | 2.22 | 0.33 | 0.37 |
+
+**Case by case:**
+- **Disclosure.** When a company's own investor FAQ says its updates report only indicators that met target, or its record shows that every omitted indicator was below target, Clef still reads the reported good news at face value. On the five present cases where the structure should pull the forecast to 0.50 or below (correct 0.05–0.50), Clef answers 0.52–0.93.
+- **Relay.** When an outlet's profile says it has no reporters and republishes others' calls within minutes, Clef counts its repeat as a second, independent call: 0.02–0.16 where the correct answer is 0.16–0.37.
+- **Agents.** Astra, Sol and Terra use both structures fully on these cases.
+
+**Plain updating.** Clef is closer on the controls but still 0.4–0.75 log-odds off. Clef-flash's disclosure controls are worse (2.0).
+
+### Q2: no reading of source descriptions, with or without the mechanism
+
+**Distance between alone and reference answers** on described cases (relay, disclosure):
+- Clef 0.40, 0.60; Clef-flash 0.61, 0.69.
+- The agents 1.01–1.39.
+- So stating the mechanism moves Clef about half as much as it moves the agents.
+
+**Implied structure priors per description level** (levels 0–4, from a research desk that visits factories to a one-person blog that posts within minutes):
+
+| | Relay, alone | Relay, reference | Disclosure, alone | Disclosure, reference |
+| --- | --- | --- | --- | --- |
+| Clef | 0.64 0.56 0.61 0.54 0.61 | 0.50 0.53 0.62 0.48 0.74 | 0.08 0.15 0.22 0.09 0.08 | 0.16 0.15 0.24 0.23 0.10 |
+| Astra, reference | | 0.02 0.25 0.32 0.65 0.87 | | 0.17 0.48 0.50 0.69 0.72 |
+| Sol, reference | | 0.00 0.38 0.25 0.63 0.88 | | 0.12 0.37 0.44 0.58 0.72 |
+
+The agents' considered priors rise with the description. Clef's are flat in both arms: a relay prior near 0.55 and a disclosure prior near 0.15, whatever the source.
+
+### Q3: states base rates, does not apply them, even within one call
+
+**Across cases, the stated–applied gap** (relay, disclosure):
+- Clef 0.18, 0.14; Clef-flash 0.30, 0.41.
+- The agents: Astra 0.02, Sol 0.00, Luna 0.13, Terra 0.06.
+- **Clef's stated relay rates** rise with the description: 0.26, 0.35, 0.52 at levels 1–3. The rates its forecasts imply do not: 0.14, 0.10, 0.35.
+- **Clef-flash** states 0.33–0.86 across levels, while its forecasts imply 0.05–0.09: a structure ignored in every forecast.
+
+**Within state.** Each forecast is compared with the Bayesian observer given the base rate Clef stated in the same call, and with the same observer given another case's base rate (the rotated column):
+
+| Module | Clef: own | Clef: rotated | Clef-flash: own | Clef-flash: rotated |
+| --- | --- | --- | --- | --- |
+| relay-hinted | 1.15 | 1.15 | 1.00 | 0.97 |
+| disclosure-hinted | 0.76 | 0.82 | 0.83 | 0.86 |
+| corroboration-cues | 0.96 | 0.93 | 0.53 | 0.46 |
+| disclosure-cues | 0.76 | 0.73 | 0.81 | 0.85 |
+
+**Forecasts.** Within a call, a forecast is no closer to its own stated base rate than to another case's.
+
+**Probes.** Clef's structure probes partly follow its own base rate: relay-hinted 0.98 against 1.78 rotated, the other modules 0.72–1.45 against 0.90–1.58. Clef-flash's probes do not: own and rotated are within 0.2 on every module, and on three modules its base rates barely vary (SD 0.03–0.12).
+
+**Reading.** Clef's answers about the source cohere with each other. Its forecast does not use them.
+
+### Reading (task-conditional, exploratory)
+
+These are elicited outputs on 144 finance dossier cases under one schema. They are not a general verdict on Clef, which is built for classification and routing rather than numerical updating.
+
+On these cases, a decision-model passport for Clef would read as follows:
+1. **Deterministic but schema-sensitive.** Paraphrase 0.3 log-odds, order up to 0.9, added questions up to 1.2. A reading holds only for its exact schema.
+2. **Far from the posterior on explicit Bayesian dossiers.** 0.8–1.7 log-odds, where three of the four agent configurations are within 0.06.
+3. **Structure-blind.** It neglects selective disclosure and double-counts a republisher even when the documents settle it, and it ignores source descriptions whether or not the mechanism is stated.
+4. **A stated–applied gap that survives a single call.** It states differentiated base rates and its probes follow them, but its forecasts do not.
+
+**Passport status.** The repeat check passes, but the schema sensitivity is as large as the agents' session noise. Clef and Clef-flash therefore stay out of the passport until a reading is defined over an ensemble of schemas (exploration log, idea 46).
 
 ## Sources
 

@@ -1478,9 +1478,24 @@
       "question": "On the cases the agent configurations already answered, does Cloudflare's decision model Clef (and Clef-flash) match the exact posterior when the structure is evident, neglect structures that are only hinted, and apply the base rates it states, including within a single call?",
       "doc": "docs/clef-pilot-design.md",
       "roots": [],
-      "status": "planned",
+      "status": "complete",
       "prediction": "Design only. States are the rendered cases; probability questions become noul (probability of true), base rates a 21-option choice (probability-weighted mean). Q1 evident (48 cases): error against the exact posterior, structure use, false structure. Q2 hinted alone and reference (96): implied priors and alone-to-reference distance. Q3 cues-a (48): stated-applied gap; within-state joint calls on 60 described forecast cases (base rate, probe, forecast): forecast and probe against the observer given Clef's own base rate. Q4 method: repeats, alone against joint, question order, paraphrase. 384 calls per model, both models, about $0.10.",
-      "outcome": "Built with the recommended defaults (Workers AI with the user's own token, both models, adapter arm later): package epistemics.clef (requests, client, answers, pilot; clef-pilot/0.1.0; 768 calls, 384 per model), ledger clef-pilot with the agents' values from their roots, offline tests with a mocked client and a synthetic Bayesian responder (recovers its implied priors, zero gaps against rotated baselines of 0.4-1.2 log-odds). Next: the user exports CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; smoke test; freeze the plan; run."
+      "outcome": "Built with the recommended defaults (Workers AI with the user's own token, both models, adapter arm later): package epistemics.clef (requests, client, answers, pilot; clef-pilot/0.1.0; 768 calls, 384 per model), ledger clef-pilot with the agents' values from their roots, offline tests with a mocked client and a synthetic Bayesian responder (recovers its implied priors, zero gaps against rotated baselines of 0.4-1.2 log-odds). Next: the user exports CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN; smoke test; freeze the plan; run. Run on 6 October 2026: see clef-pilot."
+    },
+    {
+      "id": "clef-pilot",
+      "date": "2026-10-06",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Clef pilot: Bayesian dispositions of Cloudflare's decision models",
+      "question": "On the 144 finance dossier cases the agent configurations answered, how close are Clef's and Clef-flash's probabilities to the exact posterior, do they read hinted and evident structures, do they apply the base rates they state (also within one call), and is the elicitation stable?",
+      "doc": "docs/clef-pilot-design.md",
+      "roots": [
+        "output/clef-pilot-20261006"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory (design written before data): Q4 method checks first; if Clef cannot compute without a reasoning trace, Q1 far from the posterior (regime account); Q2 neglect as in the agents would mean neglect does not depend on verbal readout or session state.",
+      "outcome": "768 of 768 calls, no errors, 421K Workers AI input tokens (about $0.10). Q4: deterministic (repeat spread 0) but schema-sensitive: paraphrase 0.30-0.34 log-odds, question order 0.2-0.9, a forecast inside a joint call against alone 0.3-1.2 (agents' session spread 0.11-0.69). Q1: error 0.94/0.97 (Clef), 0.76/1.66 (flash) against 0.03-0.22 for the agents; structure use 0.30/0.00 (Clef): reads selected good news at face value despite the company's own FAQ, double-counts a republisher. Q2: flat implied priors across source descriptions in both arms; stating the mechanism moves answers about half as much as for the agents (0.40-0.69 against 1.01-1.39). Q3: stated-applied gap 0.14-0.41 against 0.00-0.13; within one call the forecast is no closer to its own stated base rate than to another case's, while Clef's probes partly follow it. Not entered in the passport: readings are schema-conditional."
     }
   ],
   "next": [

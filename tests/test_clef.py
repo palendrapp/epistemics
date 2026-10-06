@@ -175,12 +175,12 @@ class _Synthetic:
             value = _truth(meta, qid)
             if q["type"] == "choice":
                 key = f"p{round(value * 20) * 5:02d}"
-                answers[qid] = {"choice": key, "confidence": 1.0,
+                answers[qid] = {"type": "choice", "choice": key, "confidence": 1.0,
                                 "probabilities": {k: float(k == key) for k in requests.RATE_KEYS}}  # fmt: skip
             else:
-                answers[qid] = {"probabilities": {"true": value, "false": 1 - value}}
+                answers[qid] = {"type": "noul", "noul": value}  # as Workers AI returns it
         self.sent += 1
-        return {"result": {"model": model, "answers": answers, "usage": {"prompt_tokens": 300}},
+        return {"result": {"model": model, "answers": answers, "usage": {"input_tokens": 300, "output_tokens": 0}},
                 "success": True}, 0.01, 1  # fmt: skip
 
 
@@ -204,13 +204,16 @@ def test_plan_is_frozen_and_runs_resume(tmp_path):
 
 
 def test_analysis_recovers_a_synthetic_bayesian(tmp_path):
-    from epistemics.ledger import clef
+    from epistemics.ledger import clef, roots
 
     root = tmp_path / "pilot"
     pilot.plan(root, ("clef",))
     assert pilot.run(root, _Synthetic(("clef",)), log=lambda *_: None) == 0
     out = clef.summary(root)
     m = out["models"]["clef"]
+    facts = roots.facts(root)
+    assert (facts["runs_planned"], facts["runs_completed"], facts["status"]) == (1, 1, "completed")
+    assert facts["usage"]["input_tokens"] == 300 * 384
     assert m["calls"] == {"planned": 384, "answered": 384}
     for module in requests.EVIDENT:
         assert m["q1"][module]["structure_use"] == 1.0
