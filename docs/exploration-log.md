@@ -979,3 +979,14 @@ See [clef-battery-design.md](clef-battery-design.md#results-6-october-2026). Boo
 49. **Far transfer.** Fed-style remarks without stated hit rates or counts, with the market prior given. Do the urn parameters still predict, and does inversion still help?
 50. **A live demo built from this battery.** Stream urn trials and show the parameter fingerprint (prior weight, evidence weight by sample size, decision threshold) settling. Then run the desk feed with each answer inverted through the model's own map, and the mismatched map beside it.
 51. **Decide-from-belief mitigation for jumping to conclusions.** Ask for the belief, then act at the optimal threshold. The beliefs are calibrated, so this should remove the early decisions.
+
+## 6 October: Clef battery, far transfer
+
+See [clef-battery-design.md](clef-battery-design.md#far-transfer-results-6-october-2026). Natural-language central-bank remarks with a stated market price and no hit rates; 516 calls.
+- **Clef-flash's base-rate neglect does not transfer.** With natural remarks both models over-weight the market price (slope about 1.3–1.4) and sharpen it when there is no news (35% becomes 7–16%). The urn-fitted inversion would make far answers worse.
+- **Sample-size neglect transfers quantitatively.** Five agreeing remarks are worth about twice one. Clef-flash's urn fit predicted the far ratios (1.45 against 1.65; 1.90 against 1.87).
+- **Jumping to conclusions transfers.** About one in eight positions is taken with nothing heard, and about half are taken on a lead of one remark.
+
+**Ideas:**
+52. **Natural-language urn tasks.** If a model-specific parameter is the goal, the abstract tasks must share the target's surface: verbal reports, no stated probabilities. Test whether price amplification appears on a verbal urn.
+53. **The demo leads with sample-size neglect and jumping to conclusions.** For the first, a pooled-speakers aggregator. For the second, decide from the stated belief at the optimal threshold. Check first whether the far beliefs are calibrated.

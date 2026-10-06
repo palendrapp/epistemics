@@ -161,3 +161,89 @@ These are two models on one mirrored desk. The desk uses the same numbers as the
 3. **Jumping to conclusions is also shared and transferable.** Both models decide on about one piece of evidence where the payoffs warrant about three, while their stated beliefs remain appropriately uncertain. The mitigation follows directly: decide from the stated belief with an external threshold.
 4. **Tone does not separate these models.** Both over-weight bare reports.
 
+## Far transfer (design, written 6 October 2026 before its data)
+
+The near desk mirrored the urn task's numbers. The far desk uses natural-language remarks from fictional committee members, with the market price stated but no hit rates and no counts. There is no exact Bayesian answer, so each test uses a property that any Bayesian answer must have.
+
+**Remarks** (65 items). The market-implied probability of a rate rise takes five levels (20–80%). Thirteen sets of remarks run from none to five, each remark pointing to a rise or a hold, with the same remarks at every price. Three phrasings each.
+- **Price weight α.** The slope of the answer on the price's log-odds, with a fixed effect per set of remarks. A Bayesian moves one-for-one with the price (α = 1). The primary estimate uses the sets with a net of at most one remark, which keeps answers away from saturation; all sets are a check.
+- **Inversion.** Apply the urn-fitted map to the far answers and refit α, which should then be 1. Repeat with the other model's map.
+- **Sample size.** The evidence from 3 and from 5 agreeing remarks, relative to 1, after removing the price with α. For independent speakers Bayes gives 3 and 5. The urn fit predicts 3β₃/β₁ and 5β₅/β₁.
+
+**Waiting** (21 states). Even odds, remarks heard so far, and the choice: take a position now or wait (the beads payoffs). Measured: P(take a position) with nothing heard, and by net count, against the near desk.
+
+**Calls.** 258 per model. Analysis: `ledger/clef_far.py`. Recovery test: `tests/test_clef_far.py`. The synthetic responder recovers α within 0.03 and the sample-size ratios within 0.05. Inversion with the model's own map restores α to 1; the mismatched map does not.
+
+**Prediction (exploratory):**
+- **Clef-flash's price weight** stays well below 1, near its urn value (0.40). If so, inversion with its own urn map brings it near 1, and Clef's map leaves it short.
+- **Clef's price weight** is nearer 1.
+- **Sample-size ratios** fall below Bayes for both models, towards the urn predictions.
+- **Both models** sometimes take a position with nothing heard.
+
+```
+uv run python -m epistemics.clef plan --root output/clef-far-<date> --design far
+uv run python -m epistemics.clef run --root output/clef-far-<date> --workers 4
+uv run python -m epistemics.ledger clef-far output/clef-far-<date> --battery output/clef-battery-20261006 --output output/clef-far-<date>.json
+```
+
+## Far-transfer results (6 October 2026)
+
+**The run.** The root is `output/clef-far-20261006`: 516 of 516 calls, no errors, 141K input tokens, about a minute.
+
+**Regenerating the tables.**
+
+```
+uv run python -m epistemics.ledger clef-far output/clef-far-20261006 --battery output/clef-battery-20261006 --output output/clef-far-20261006.json
+```
+
+### Price weight: the prediction failed
+
+The price weight is the slope on the price's log-odds, with a fixed effect per set of remarks. A Bayesian answer has a slope of 1.
+
+| | Urn α | Far α (sets with net ≤ 1) | Far α (with at least one remark) | Far α (no remarks) | Far α (all sets) |
+| --- | --- | --- | --- | --- | --- |
+| Clef | 0.83 | 1.42 [1.22, 1.64] | 1.31 [1.12, 1.51] | 2.10 | 0.99 |
+| Clef-flash | 0.40 | 1.39 [1.20, 1.60] | 1.32 [1.11, 1.53] | 1.84 | 0.88 |
+
+**What they do instead.** With natural remarks, both models amplify the market's lean rather than neglecting it.
+- **With no remarks,** a 20% price becomes a 5–8% answer, 35% becomes 7–16%, and 80% becomes 89–92%.
+- **With remarks,** the slope is still about 1.3.
+- **The two models no longer differ,** so Clef-flash's base-rate neglect does not carry to this desk. It is specific to explicit-probability problems.
+- **Inversion makes it worse.** Through Clef-flash's own urn map the far slope goes from 1.39 to 1.82; through Clef's map it stays at 1.40.
+
+### Sample size: the urn fit predicts the far desk
+
+| | Evidence of 3 agreeing remarks against 1 | 5 against 1 | Bayes | Urn fit predicted |
+| --- | --- | --- | --- | --- |
+| Clef | 2.14 | 2.27 | 3, 5 | 2.02, 2.78 |
+| Clef-flash | 1.65 | 1.87 | 3, 5 | 1.45, 1.90 |
+
+**Evidence is compressed.** Five agreeing remarks are worth about twice one remark, not five times. Clef-flash's ratios match the urn prediction closely, and Clef's 3:1 ratio does too. The answers with five agreeing remarks average 3.3–3.5 log-odds, well inside the clip.
+
+### Waiting: jumping to conclusions carries over
+
+| | Position with nothing heard | Net 0 (after remarks) | Net 1 | Net 2 | Near desk: nothing heard, net 1 |
+| --- | --- | --- | --- | --- | --- |
+| Clef | 13% | 18% | 40% | 93% | 15%, 55% |
+| Clef-flash | 11% | 26% | 47% | 70% | 15%, 67% |
+
+Both models still sometimes take a position with nothing heard, and nearly half decide on a lead of one remark.
+
+### Reading (exploratory)
+
+Of the three near-transfer results:
+
+| Result | Far transfer |
+| --- | --- |
+| Sample-size neglect, shared | Survives, and quantitatively for Clef-flash: the urn fit predicts the far ratios |
+| Jumping to conclusions, shared | Survives |
+| Clef-flash's base-rate neglect, model-specific | Does not survive |
+
+**What replaces it.** With natural remarks, both models over-weight the market price (about 1.3–1.4) and sharpen it when there is no news. The inversion that halved Clef-flash's near-desk error would make its far answers worse. A parameter-based correction therefore needs the parameter to be measured in the domain where it is applied, or a battery whose urn tasks carry the same features: natural language and no stated probabilities.
+
+**For the demo, the transferable traits are sample-size neglect and jumping to conclusions.** Both have direct mitigations:
+- **Sample-size neglect:** pool speakers before asking, or correct by the urn-fitted compression curve.
+- **Jumping to conclusions:** ask for the belief, then act at the optimal threshold.
+
+Neither is model-specific between Clef and Clef-flash.
+

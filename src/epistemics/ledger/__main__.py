@@ -64,6 +64,7 @@ uv run python -m epistemics.ledger adapter-matching <roots...> --output <file>
 uv run python -m epistemics.ledger clef-pilot <root> [--evident-roots ...] [--hinted-roots ...]
     [--cues-roots ...] --output <file>
 uv run python -m epistemics.ledger clef-battery <root> --output <file>
+uv run python -m epistemics.ledger clef-far <root> --battery <battery root> --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -229,6 +230,10 @@ def main():
     sjr = sub.add_parser("single-judgment-preregistered")
     sjr.add_argument("roots", type=Path, nargs="+")
     sjr.add_argument("--output", type=Path, required=True)
+    cf = sub.add_parser("clef-far")
+    cf.add_argument("root", type=Path)
+    cf.add_argument("--battery", type=Path, required=True)
+    cf.add_argument("--output", type=Path, required=True)
     cb = sub.add_parser("clef-battery")
     cb.add_argument("root", type=Path)
     cb.add_argument("--output", type=Path, required=True)
@@ -644,6 +649,17 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command == "clef-far":
+        from epistemics.ledger import clef_battery, clef_far
+
+        battery_run = clef_battery.summary(a.battery)
+        urn = {m: v["bookbag"]["urn"] for m, v in battery_run["models"].items()}
+        run = clef_far.summary(a.root, urn, clef_far.near_waiting(a.battery))
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for model, m in run["models"].items():
+            print(model, run["calls"][model])
+            print(" ", json.dumps(m, default=str)[:900])
     elif a.command == "clef-battery":
         from epistemics.ledger import clef_battery
 

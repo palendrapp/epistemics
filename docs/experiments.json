@@ -1511,6 +1511,21 @@
       "status": "complete",
       "prediction": "Exploratory (written before data): Clef near Bayes on the bookbag (alpha, beta about 1); Clef-flash base-rate neglect and conservatism with a negative bias, as in the pilot's plain cases. If general, each model's urn fit predicts its desk answers better than Bayes and than the other model's parameters, and inversion with its own parameters lowers its desk error. No prediction for beads or tone.",
       "outcome": "2,800 of 2,800 calls, no errors, about 8 minutes and 640K Workers AI input tokens (about $0.15). Bookbag: Clef-flash's base-rate neglect transfers (alpha 0.40 urn, 0.28 desk; beta 1.21, 1.10; confirmation delta 0.26, 0.28); its urn parameters predict its desk answers almost as well as the desk's own fit (RMSE 0.84 against 0.81; Bayes 1.41, Clef's parameters 1.18), and inverting its desk answers through its own urn map halves its error (1.17 to 0.57; Clef's map 0.69). Clef: milder neglect (alpha 0.83, 0.70); beta and bias shift between domains; no transfer beyond Bayes. Sample-size neglect in both models and domains (a single signal weighted 1.9-2.8 times, five about 1). Beads: both jump to conclusions in both domains (thresholds 0.0-1.55 log-odds against an optimal 0.81-3.47; about 1-1.9 draws against 3.25; 13-34% decide before any draw) while stating calibrated beliefs (slopes 0.98-1.13); shared, not model-specific. Tone: no consistent wording trait (Clef-flash reverses sign); both over-weight bare reports, and Clef ignores a stated record on the desk. Near transfer only (the desk mirrors the urn numbers); exploratory."
+    },
+    {
+      "id": "clef-far",
+      "date": "2026-10-06",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Clef battery, far transfer: natural-language central-bank remarks",
+      "question": "With natural-language remarks, a stated market price and no hit rates, do the urn-fitted parameters still describe Clef and Clef-flash: price weight (base-rate use), sample-size compression and taking positions with nothing heard? Does inverting through the model's own urn map restore a one-for-one response to the price?",
+      "doc": "docs/clef-battery-design.md",
+      "roots": [
+        "output/clef-far-20261006"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory (written before data): Clef-flash's price weight well below 1 near its urn value 0.40, restored near 1 by inversion with its own urn map and not by Clef's; Clef's nearer 1; sample-size ratios below Bayes (3, 5) for both, towards the urn predictions; both sometimes take a position with nothing heard.",
+      "outcome": "516 of 516 calls, no errors, 141K input tokens. Price weight did not transfer: with natural remarks both models amplify the market's lean (alpha 1.42 and 1.39 on sets with a net of at most one remark; 1.31 and 1.32 with at least one remark; 2.10 and 1.84 with none) instead of Clef-flash's urn neglect (0.40); inversion through Clef-flash's own urn map makes it worse (1.82). Sample-size neglect transferred quantitatively: 3 and 5 agreeing remarks worth 2.14 and 2.27 times one (Clef; urn predicted 2.02, 2.78) and 1.65 and 1.87 (Clef-flash; predicted 1.45, 1.90), against Bayes 3 and 5. Jumping to conclusions transferred: 13% and 11% take a position with nothing heard (near desk 15%); 40% and 47% decide on a lead of one remark. The model-specific trait does not survive far transfer; the shared ones do."
     }
   ],
   "next": [
