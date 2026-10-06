@@ -1,5 +1,5 @@
 """Clef pilot commands (docs/clef-pilot-design.md). Live commands need CLOUDFLARE_ACCOUNT_ID and
-CLOUDFLARE_API_TOKEN in the environment.
+CLOUDFLARE_API_TOKEN in the environment or in .env at the repository root.
 
 uv run python -m epistemics.clef smoke --out output/clef-smoke-<date> [--model clef ...]
 uv run python -m epistemics.clef plan --root output/clef-pilot-<date> [--model clef ...]
@@ -10,7 +10,7 @@ import argparse
 import sys
 
 from epistemics.clef import pilot, requests
-from epistemics.clef.client import ClefError, Client
+from epistemics.clef.client import ClefError, Client, load_env_file
 
 
 def main(argv=None):
@@ -27,6 +27,8 @@ def main(argv=None):
     run.add_argument("--limit", type=int)
     args = parser.parse_args(argv)
     models = tuple(args.model) if getattr(args, "model", None) else tuple(requests.MODELS)
+    if args.command != "plan":
+        load_env_file()
     try:
         if args.command == "plan":
             document = pilot.plan(args.root, models)

@@ -1,8 +1,9 @@
 """Workers AI REST client for Clef.
 
-Credentials come from the environment only (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN), set by
-the user in the shell that runs the pilot. They are never logged, stored or written into a record,
-and error messages never include them.
+Credentials come from the environment (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN), set by the
+user in the shell or in a gitignored .env file at the repository root; a variable already set in
+the shell wins. They are never logged, stored or written into a record, and error messages never
+include them.
 """
 
 import json
@@ -13,10 +14,35 @@ import urllib.request
 
 ENDPOINT = "https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/{model}"
 TRANSIENT = {408, 409, 425, 429, 500, 502, 503, 504}
+VARIABLES = ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN")
 
 
 class ClefError(RuntimeError):
     pass
+
+
+def load_env_file(path=".env", names=VARIABLES):
+    """Set the named variables from a KEY=VALUE file (optional `export`, optional quotes) where the
+    environment does not already have them. Returns the names it set, never the values."""
+    try:
+        lines = open(path).read().splitlines()
+    except FileNotFoundError:
+        return []
+    found = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith("export "):
+            line = line[len("export ") :].lstrip()
+        key, sep, value = line.partition("=")
+        key, value = key.strip(), value.strip()
+        if not sep or key not in names or os.environ.get(key):
+            continue
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+            value = value[1:-1]
+        if value:
+            os.environ[key] = value
+            found.append(key)
+    return found
 
 
 class Client:
@@ -34,8 +60,8 @@ class Client:
         token = os.environ.get("CLOUDFLARE_API_TOKEN")
         if not account or not token:
             raise ClefError(
-                "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in this shell (a token with "
-                "the Workers AI permission)."
+                "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in this shell or in .env (a "
+                "token with the Workers AI Read and Edit permissions)."
             )
         return cls(account, token, **kwargs)
 

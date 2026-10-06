@@ -1,8 +1,9 @@
 """Parsing Clef answers.
 
 The documentation names the fields only loosely (noul: "the probability of true"; choice:
-choice, confidence and probabilities), so the parsers accept the plausible shapes and fail loudly
-on anything else. Raw responses are always recorded, so a parser fix never needs a new call.
+choice, confidence and probabilities). The smoke test (output/clef-smoke-20261006) showed noul as
+{"type": "noul", "noul": p} and choice as {"type", "choice", "probabilities", "confidence"}; the
+parsers accept those and the other plausible shapes, and fail loudly on anything else. Raw responses are always recorded, so a parser fix never needs a new call.
 """
 
 import numbers
@@ -11,7 +12,8 @@ import numpy as np
 
 from epistemics.clef.requests import RATE_KEYS, RATE_LEVELS
 
-_TRUE = ("probability", "p_true", "true", "yes", "value")
+# Workers AI returns {"type": "noul", "noul": p} (smoke test, 6 October 2026).
+_TRUE = ("noul", "probability", "p_true", "true", "yes", "value")
 
 
 def unwrap(response):

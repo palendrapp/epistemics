@@ -15,7 +15,7 @@ import pytest
 
 from epistemics.clef import pilot, requests
 from epistemics.clef.answers import choice, noul, parse, rate
-from epistemics.clef.client import ClefError, Client
+from epistemics.clef.client import ClefError, Client, load_env_file
 from epistemics.disposition_tasks.render import items_for, render
 from epistemics.dispositions import evident, observers
 
@@ -66,6 +66,7 @@ def test_joint_calls_order_questions():
 
 def test_answer_shapes():
     assert noul(0.7) == 0.7
+    assert noul({"type": "noul", "noul": 0.9379}) == 0.9379  # the shape Workers AI returns
     assert noul({"probability": 0.7}) == 0.7
     assert noul({"probabilities": {"true": 0.7, "false": 0.3}}) == 0.7
     assert noul({"probabilities": [{"option": "TRUE", "probability": 0.7}]}) == 0.7
@@ -117,6 +118,21 @@ def test_client_needs_both_environment_variables(monkeypatch):
     monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "acct")
     with pytest.raises(ClefError):
         Client.from_env()
+
+
+def test_env_file_fills_only_missing_variables(tmp_path, monkeypatch):
+    env = tmp_path / ".env"
+    env.write_text(
+        "# Cloudflare\nexport CLOUDFLARE_ACCOUNT_ID='acct'\nCLOUDFLARE_API_TOKEN=\"tok\"\nOTHER=x\n"
+    )
+    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "from-shell")
+    monkeypatch.delenv("OTHER", raising=False)
+    assert load_env_file(env) == ["CLOUDFLARE_ACCOUNT_ID"]
+    client = Client.from_env()
+    assert client._account == "acct" and client._token == "from-shell"
+    assert "OTHER" not in __import__("os").environ
+    assert load_env_file(tmp_path / "missing") == []
 
 
 # A synthetic Clef: an exact Bayesian observer whose structure prior for a described source is

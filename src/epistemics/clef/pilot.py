@@ -132,6 +132,10 @@ SMOKE_STATE = (
 )
 SMOKE_QUESTIONS = {
     "noul": {"red": {"type": "noul", "instructions": "Is it true that the drawn marble is red?"}},
+    # Direction check: the state makes this false, so the probability of true should be low.
+    "noul-false": {
+        "twenty": {"type": "noul", "instructions": "Is it true that the jar holds 20 marbles?"}
+    },
     "choice": {
         "share": requests.rate_choice(
             "Among jars like this one, what proportion of marbles are red?"
