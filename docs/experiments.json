@@ -1594,10 +1594,12 @@
       "title": "Second confirmation: the calibrated passport mitigation against the model alone (preregistered)",
       "question": "On 1,000 fresh held-out meetings, does the passport mitigation with its remark classifier calibrated on the desk's labelled past remarks earn more than the model alone (H1) and more than generic recalibration on 10 own-forecast meetings (H2), for Clef and Clef-flash?",
       "doc": "docs/clef-desk4-preregistration.md",
-      "roots": [],
-      "status": "running",
+      "roots": [
+        "output/clef-desk4-20261006"
+      ],
+      "status": "complete",
       "prediction": "Preregistered (second attempt after desk3's H2 failed; both reported together): H1 passes for Clef-flash, uncertain for Clef (power about 0.65 if the post-hoc +6 is real); H2 passes for both. One-sided sign-flip permutation, Holm across four tests, alpha 0.05.",
-      "outcome": null
+      "outcome": "30,492 of 30,492 calls (13.5M input tokens); 1,000 fresh held-out meetings. All four primary hypotheses pass: calibrated passport minus alone +9.4 (Clef, SE 2.8, Holm p 0.0004) and +24.6 (Clef-flash, SE 3.7, Holm p < 0.0001); minus recalibration on 10 own-forecast meetings +20.9 and +18.2 (both p < 0.0001). Calibration on 186 labelled past remarks adds +5.1 and +9.0 over the uncalibrated passport lane (mild-remark accuracy 82% to 98%, 74% to 99%). Oracle exceeds passport by 9.3 and 11.4. Descriptive: the generic gated lane matches the passport lane on this desk (+0.7, +0.8) but earned 34.1 and 24.0 on the first confirmation desk, where the model's belief with nothing heard crossed the threshold; the passport lane was stable across both. Second attempt after desk3's H2 failed; reported together."
     }
   ],
   "next": [

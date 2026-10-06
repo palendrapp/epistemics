@@ -82,4 +82,60 @@ uv run python -m epistemics.ledger clef-desk4 output/clef-desk4-20261006 --outpu
 
 ## Deviations
 
-None so far. Any deviation will be recorded here before the analysis is run.
+**None to the primary analysis.** After it ran, one descriptive secondary was added to the ledger output: the passport lane minus the gated lane (no test).
+
+## Results (6 October 2026)
+
+**The run.** The root is `output/clef-desk4-20261006`: 30,492 of 30,492 calls, no errors, 13.5M Workers AI input tokens (about $3.25). The 1,000 test meetings include 480 rises. The committee's mean estimated record is 0.76.
+
+**Regenerating the tables.**
+
+```
+uv run python -m epistemics.ledger clef-desk4 output/clef-desk4-20261006 --output output/clef-desk4-20261006.json
+```
+
+### Primary: all four hypotheses pass
+
+| | Mean paired difference ($k per meeting) | SE | One-sided p | Holm p | Result |
+| --- | --- | --- | --- | --- | --- |
+| Clef, H1: calibrated passport − alone | +9.4 | 2.8 | 0.0004 | 0.0004 | **passes** |
+| Clef-flash, H1 | +24.6 | 3.7 | < 0.0001 | < 0.0001 | **passes** |
+| Clef, H2: calibrated passport − recalibrated on 10 | +20.9 | 2.2 | < 0.0001 | < 0.0001 | **passes** |
+| Clef-flash, H2 | +18.2 | 2.3 | < 0.0001 | < 0.0001 | **passes** |
+
+### Secondary (descriptive)
+
+**P&L per meeting** ($k):
+
+| Lane | Clef | Clef-flash |
+| --- | --- | --- |
+| alone | 35.0 | 17.7 |
+| gated | 43.6 | 41.5 |
+| recalibrated, k = 5, 10, 20, 40, 100 | 22.8, 23.4, 35.5, 38.0, 42.5 | 18.8, 24.1, 33.9, 35.5, 39.6 |
+| passport, uncalibrated | 39.2 | 33.3 |
+| **passport, calibrated** | **44.3** | **42.3** |
+| oracle | 53.7 | 53.7 |
+
+**Calibration.** It adds +5.1 (SE 2.2) and +9.0 (SE 2.5) over the uncalibrated passport lane. The classifier's accuracy on mild remarks rises from 82% to 98% (Clef) and from 74% to 99% (Clef-flash). On mixed remarks it falls from 93% to 87% and from 100% to 89%. The map was fitted on 186 labelled remarks.
+
+**Gaps:**
+- The oracle exceeds the calibrated passport lane by 9.3 (SE 2.2) and 11.4 (SE 2.3).
+- Recalibration needs about 100 of the model's own forecast meetings to come within 2–3 of the passport lane.
+
+**Positions with nothing heard:** 33% (Clef) and 67% (Clef-flash) alone; 0% in every other lane.
+
+**The generic gated lane** (the model's own belief, acted on at the optimal threshold) matches the passport lane on this desk: passport minus gated is +0.7 (SE 2.2) and +0.8 (SE 2.3). On the first confirmation desk the same lane earned 34.1 and 24.0, because there the model's belief with nothing heard (amplifying the price) crossed the threshold in two meetings of three or more. Across the two desks:
+
+| Lane | First desk (Clef, flash) | This desk (Clef, flash) |
+| --- | --- | --- |
+| gated | 34.1, 24.0 | 43.6, 41.5 |
+| calibrated passport | 45.8, 44.6 (exploratory) | 44.3, 42.3 (confirmed) |
+
+### Reading (task-conditional)
+
+1. **Confirmed on 1,000 fresh meetings, for both Clef models: the passport mitigation beats the model alone.** It classifies single remarks with a classifier calibrated on labelled past remarks, adds the evidence in code with each speaker's record as weight, and acts at the optimal threshold. The gain is +9.4k per meeting for Clef and +24.6k for Clef-flash. It is also confirmed, for the second time, to beat generic recalibration when only ten meetings of the model's own forecasts exist.
+2. **Read with the first confirmation.** That test's H2 failed. The calibration step was chosen after it failed, on that desk's data, and this test confirms it on fresh meetings. Both results stand together.
+3. **The mitigation needs no record of the model's own forecasts,** only domain facts: who said what before, and how often each speaker was right.
+4. **A simpler generic fix, acting on the model's own belief at a threshold, can match it.** That holds only when the model's belief distortions happen not to cross the threshold, which they did on one desk and not the other. The passport lane does not rely on the model's beliefs at all.
+5. **Scope:** one simulated desk family, fictional officials, two Clef models, P&L under stated payoffs. These are elicited outputs of a trained head, not beliefs.
+

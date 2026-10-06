@@ -134,6 +134,8 @@ def summary(root, k_values=None, draws=None, permutations=100000):
                 passport_pnl - np.array(lanes["passport_raw"])
             ),
             "oracle_minus_passport": _summary(np.array(lanes["oracle"]) - passport_pnl),
+            # Descriptive, added after the primary analysis: the generic belief-gating lane.
+            "passport_minus_gated": _summary(passport_pnl - np.array(lanes["gated"])),
         }
     for key, p in holm(ps).items():
         model, h = key.split("/")

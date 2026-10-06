@@ -1033,3 +1033,16 @@ See [clef-desk3-preregistration.md](clef-desk3-preregistration.md#results-6-octo
 **Ideas:**
 58. **Second preregistered confirmation:** the passport mitigation with its classifier calibrated on labelled domain remarks, on fresh meetings. Primary: beats the model alone (both models) and beats recalibration on 10 own-forecast meetings.
 59. **Make the classification question better** rather than calibrating after the fact: a contrastive choice (rise / hold / unclear) instead of "Is this remark signalling a rate rise?". Test it on labelled remarks first.
+
+## 6 October: second confirmation, the calibrated passport mitigation beats the model alone
+
+See [clef-desk4-preregistration.md](clef-desk4-preregistration.md#results-6-october-2026). 1,000 fresh meetings; all four preregistered hypotheses pass.
+- **Against the model alone:** +9.4k per meeting for Clef, +24.6k for Clef-flash.
+- **Against generic recalibration on ten of the model's own forecasts:** +20.9 and +18.2.
+- **Calibrating the remark classifier on labelled past remarks** adds +5 and +9 over the uncalibrated passport lane.
+- **This is the second attempt** after desk3's H2 failed; both are reported.
+- **The generic belief gate** matched the passport lane here but not on desk3. The passport lane was stable across both desks.
+
+**Ideas:**
+60. **Rebuild demo Act 3 on this desk.** Lanes: alone, gated, recalibrated with 10 own-forecast meetings, calibrated passport. Show the classifier calibration step live, on the labelled past remarks.
+61. **Stress the gate.** Vary the market-price distribution and the record to show where the belief gate breaks and the passport lane holds. That is the product case for not relying on the model's beliefs.
