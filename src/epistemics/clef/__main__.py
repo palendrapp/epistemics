@@ -3,7 +3,7 @@ CLOUDFLARE_API_TOKEN in the environment or in .env at the repository root.
 
 uv run python -m epistemics.clef smoke --out output/clef-smoke-<date> [--model clef ...]
 uv run python -m epistemics.clef plan --root output/clef-pilot-<date> [--model clef ...]
-    [--design pilot|battery|far|desk|desk2|desk3|desk3-record]
+    [--design pilot|battery|far|desk|desk2|desk3|desk3-record|desk4]
 uv run python -m epistemics.clef run --root output/clef-pilot-<date> [--limit N] [--workers N]
 """
 
@@ -25,7 +25,7 @@ def main(argv=None):
     plan.add_argument("--model", action="append", choices=tuple(requests.MODELS))
     plan.add_argument(
         "--design",
-        choices=("pilot", "battery", "far", "desk", "desk2", "desk3", "desk3-record"),
+        choices=("pilot", "battery", "far", "desk", "desk2", "desk3", "desk3-record", "desk4"),
         default="pilot",
     )
     run = sub.add_parser("run")

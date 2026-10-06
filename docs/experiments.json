@@ -1585,6 +1585,19 @@
       "status": "complete",
       "prediction": "Preregistered: H1 passes for both models; H2 passes for Clef-flash, uncertain for Clef (power about 0.4); recalibration catches up by k = 40-100. One-sided sign-flip permutation, Holm across four tests, alpha 0.05.",
       "outcome": "13,314 of 13,314 calls (5.8M input tokens); 400 fresh held-out meetings. H1 passes for both models: passport beats generic recalibration on 10 own-forecast meetings by 16.4 (Clef) and 14.7 (Clef-flash) per meeting, Holm p < 0.0001 and 0.0004. H2 fails for both: passport minus alone -0.3 (Clef, p 0.53) and +10.3 (Clef-flash, p 0.049, Holm 0.098). Recalibration needs about 100 own-forecast meetings to approach the passport lane (Clef never does). Oracle exceeds passport by 17-23. Exploratory (post hoc, supplementary root of 348 record-remark classifications): most of the loss is misclassified mild remarks (accuracy 82% and 75%); calibrating the classifier on the desk's labelled record remarks lifts the passport lane to 45.8 and 44.6 (minus alone +6.0 and +21.8), to be confirmed on fresh meetings."
+    },
+    {
+      "id": "clef-desk4",
+      "date": "2026-10-06",
+      "track": "dispositions",
+      "kind": "preregistered",
+      "title": "Second confirmation: the calibrated passport mitigation against the model alone (preregistered)",
+      "question": "On 1,000 fresh held-out meetings, does the passport mitigation with its remark classifier calibrated on the desk's labelled past remarks earn more than the model alone (H1) and more than generic recalibration on 10 own-forecast meetings (H2), for Clef and Clef-flash?",
+      "doc": "docs/clef-desk4-preregistration.md",
+      "roots": [],
+      "status": "running",
+      "prediction": "Preregistered (second attempt after desk3's H2 failed; both reported together): H1 passes for Clef-flash, uncertain for Clef (power about 0.65 if the post-hoc +6 is real); H2 passes for both. One-sided sign-flip permutation, Holm across four tests, alpha 0.05.",
+      "outcome": null
     }
   ],
   "next": [

@@ -65,6 +65,10 @@ def _design(name):
         from epistemics.clef import desk3
 
         return desk3.calls, desk3.VERSION, {"desk3": desk3.items_digest()}
+    if name == "desk4":
+        from epistemics.clef import desk4
+
+        return desk4.calls, desk4.VERSION, {"desk4": desk4.items_digest()}
     if name == "desk3-record":
         from epistemics.clef import desk3
 
