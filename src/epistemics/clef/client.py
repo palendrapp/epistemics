@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 
 ENDPOINT = "https://api.cloudflare.com/client/v4/accounts/{account}/ai/run/{model}"
-TRANSIENT = {408, 409, 425, 429, 500, 502, 503, 504}
+TRANSIENT = {408, 409, 425, 429, 500, 502, 503, 504, 529}
 VARIABLES = ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN")
 
 

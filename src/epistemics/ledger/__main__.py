@@ -65,6 +65,7 @@ uv run python -m epistemics.ledger clef-pilot <root> [--evident-roots ...] [--hi
     [--cues-roots ...] --output <file>
 uv run python -m epistemics.ledger clef-battery <root> --output <file>
 uv run python -m epistemics.ledger clef-far <root> --battery <battery root> --output <file>
+uv run python -m epistemics.ledger clef-desk <root> --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -230,6 +231,9 @@ def main():
     sjr = sub.add_parser("single-judgment-preregistered")
     sjr.add_argument("roots", type=Path, nargs="+")
     sjr.add_argument("--output", type=Path, required=True)
+    cd = sub.add_parser("clef-desk")
+    cd.add_argument("root", type=Path)
+    cd.add_argument("--output", type=Path, required=True)
     cf = sub.add_parser("clef-far")
     cf.add_argument("root", type=Path)
     cf.add_argument("--battery", type=Path, required=True)
@@ -649,6 +653,25 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command == "clef-desk":
+        from epistemics.ledger import clef_desk
+
+        run = clef_desk.summary(a.root)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for model, m in run["models"].items():
+            print(model, run["calls"][model], m["classification"])
+            for lane, v in m["lanes"].items():
+                print(
+                    f"  {lane:9s} pnl {v['pnl']:7.1f} {[round(x, 1) for x in v['pnl_90']]} nothing heard "
+                    f"{v['nothing_heard']:.2f} heard {v['speakers_heard']:.2f} right {v['right']:.2f} "
+                    f"log loss {v['log_loss']:.2f}"
+                )
+            print("  ", {k: round(v["mean"], 1) for k, v in m["differences"].items()})
+            print(
+                "   belief shift by net",
+                {k: round(v, 2) for k, v in m["belief_shift_by_net"].items()},
+            )
     elif a.command == "clef-far":
         from epistemics.ledger import clef_battery, clef_far
 

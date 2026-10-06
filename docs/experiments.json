@@ -1526,6 +1526,21 @@
       "status": "complete",
       "prediction": "Exploratory (written before data): Clef-flash's price weight well below 1 near its urn value 0.40, restored near 1 by inversion with its own urn map and not by Clef's; Clef's nearer 1; sample-size ratios below Bayes (3, 5) for both, towards the urn predictions; both sometimes take a position with nothing heard.",
       "outcome": "516 of 516 calls, no errors, 141K input tokens. Price weight did not transfer: with natural remarks both models amplify the market's lean (alpha 1.42 and 1.39 on sets with a net of at most one remark; 1.31 and 1.32 with at least one remark; 2.10 and 1.84 with none) instead of Clef-flash's urn neglect (0.40); inversion through Clef-flash's own urn map makes it worse (1.82). Sample-size neglect transferred quantitatively: 3 and 5 agreeing remarks worth 2.14 and 2.27 times one (Clef; urn predicted 2.02, 2.78) and 1.65 and 1.87 (Clef-flash; predicted 1.45, 1.90), against Bayes 3 and 5. Jumping to conclusions transferred: 13% and 11% take a position with nothing heard (near desk 15%); 40% and 47% decide on a lead of one remark. The model-specific trait does not survive far transfer; the shared ones do."
+    },
+    {
+      "id": "clef-desk",
+      "date": "2026-10-06",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "The central-bank desk: mitigations for sample-size neglect and jumping to conclusions, scored against outcomes",
+      "question": "On simulated episodes with known outcomes (natural-language remarks with a stated 70% record), does acting on the model's stated belief at the optimal threshold (gated), or letting it only classify each remark and adding the evidence in code (passport), earn more than the model's own act-or-wait choices (alone)?",
+      "doc": "docs/clef-desk-demo.md",
+      "roots": [
+        "output/clef-desk-20261006"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory (written before data): alone takes some positions with nothing heard and on a lead of one; gated and passport none with nothing heard; P&L passport > gated > alone, passport near Bayes if classification is accurate; beliefs scale less than the exact evidence.",
+      "outcome": "1,958 of 1,958 calls (two provider overloads retried on resume). P&L per episode ($k): passport 44.4 and 44.0 (Clef, Clef-flash) against alone 21.6 and 20.2 (paired +22.8 [1.1, 44.2] and +23.8 [2.8, 44.1]), Bayes 38.2; gated 31.5 and 27.8 (against alone, intervals include 0). Classification of single remarks perfect (139 of 139). Beliefs over-weight the first remark (net 1: 1.98 and 1.42 log-odds against Bayes 0.85) and compress later ones; Clef's belief with nothing heard amplifies the price (35/50/65% to 3/16/88%) and it takes a position at 65% with nothing heard (33% of episodes alone; gated 67%). The mitigation designed from the passport (classify, add in code, wait for the threshold) roughly doubles P&L; gating the model's own beliefs helps less because they carry the distortions."
     }
   ],
   "next": [

@@ -53,6 +53,10 @@ def _design(name):
         from epistemics.clef import far
 
         return far.calls, far.VERSION, {"far": far.items_digest()}
+    if name == "desk":
+        from epistemics.clef import desk
+
+        return desk.calls, desk.VERSION, {"desk": desk.items_digest()}
     modules = requests.EVIDENT + requests.HINTED + requests.CUES
     return requests.calls, requests.VERSION, {m: requests.items_digest(m) for m in modules}
 

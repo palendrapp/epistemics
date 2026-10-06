@@ -990,3 +990,13 @@ See [clef-battery-design.md](clef-battery-design.md#far-transfer-results-6-octob
 **Ideas:**
 52. **Natural-language urn tasks.** If a model-specific parameter is the goal, the abstract tasks must share the target's surface: verbal reports, no stated probabilities. Test whether price amplification appears on a verbal urn.
 53. **The demo leads with sample-size neglect and jumping to conclusions.** For the first, a pooled-speakers aggregator. For the second, decide from the stated belief at the optimal threshold. Check first whether the far beliefs are calibrated.
+
+## 6 October: the central-bank desk, mitigations scored
+
+See [clef-desk-demo.md](clef-desk-demo.md#results-6-october-2026). 60 simulated episodes with known outcomes; natural-language remarks with a stated 70% record.
+- **Letting the model only classify each remark, adding the evidence in code and waiting for the optimal threshold roughly doubles P&L** ($44k against $21k per episode, both models; paired intervals exclude 0) and matches Bayes. Classification is perfect.
+- **Acting on the model's own beliefs at the right threshold helps less.** Its beliefs amplify the price with nothing heard (Clef: 35/50/65% become 3/16/88%) and over-weight the first remark two to two and a half times.
+
+**Ideas:**
+54. **The demo shows the three lanes live** on the same episodes, with a classification badge on every remark.
+55. **A passport reading for decision models:** "classifies single signals reliably; aggregates and times poorly".
