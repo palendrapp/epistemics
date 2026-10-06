@@ -120,10 +120,10 @@ def _value_tables(q=Q, win=WIN, cost=COST, max_speakers=MAX_SPEAKERS):
 TABLES = _value_tables()
 
 
-def act(t, logodds):
+def act(t, logodds, tables=None):
     """The optimal action with `t` speakers heard and posterior log-odds `logodds`: 'rise',
-    'hold' or 'wait'."""
-    decide, cont = TABLES[t]
+    'hold' or 'wait' (`tables` from _value_tables; default the desk's own)."""
+    decide, cont = (tables or TABLES)[t]
     i = int(np.clip(np.searchsorted(GRID, logodds), 0, len(GRID) - 1))
     if decide[i] >= cont[i]:
         return "rise" if logodds > 0 else "hold" if logodds < 0 else "rise"

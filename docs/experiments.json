@@ -1554,6 +1554,21 @@
       "status": "complete",
       "prediction": "Record.",
       "outcome": "Built epistemics.clef.demo (local server, server-sent events, live Workers AI calls or replay of the recorded roots) with three acts: urn traits filling a passport card, the desk ratio against the urns and Bayes, and 60 desk meetings traded by the alone, gated and passport lanes with a running P&L. Replay reproduces the ledger in every act (tested); a live run of act 1 reproduced the recorded values to every digit. Correction made while building: the urn-to-desk sample-size match is not quantitative (estimator-dependent); the demo shows the unanimous estimator, which the ledger reports."
+    },
+    {
+      "id": "clef-desk2",
+      "date": "2026-10-06",
+      "track": "dispositions",
+      "kind": "experiment",
+      "title": "Robustness desk: the passport mitigation with unequal and echoing speakers, ambiguous remarks and learned parameters",
+      "question": "When speakers differ in (unstated) reliability, two of them echo, remarks vary in strength and all parameters are learned from a scorecard of past meetings, does classify-then-add still beat the model alone and a generic recalibration of the model's own beliefs on held-out meetings?",
+      "doc": "docs/clef-desk-demo.md",
+      "roots": [
+        "output/clef-desk2-20261006"
+      ],
+      "status": "complete",
+      "prediction": "Exploratory (written before data): passport beats alone; passport against recalibrated decides whether the failure is calibration (recalibration closes the gap) or aggregation and timing (passport stays ahead); echoes cost the passport lane on meetings containing them; mixed remarks classified less confidently.",
+      "outcome": "2,686 of 2,686 calls, 1.1M input tokens; 60 held-out meetings. P&L per meeting ($k): passport 48.8 and 52.9 (Clef, Clef-flash), generic recalibration 48.9 and 55.3, alone 38.8 and 14.3, gated 44.8 and 50.5, oracle 64.0. Passport minus recalibrated -0.2 [-10.7, 10.4] and -2.4 [-14.5, 10.1]: the generic fix does as well. Passport minus alone +9.9 [-12.5, 30.5] (Clef, not distinguishable from 0) and +38.6 [14.7, 63.2] (Clef-flash). Most of the gain is taking the act-or-wait decision away from the model (Clef-flash alone takes a position with nothing heard in 67% of meetings; alone to gated +36.2); calibration adds about 4-5; classify-then-add adds nothing beyond recalibration. The first desk's passport advantage came largely from a world matching the lane's assumptions. Mild hawkish remarks often read as ambiguous (P(hawkish) 0.64 and 0.51)."
     }
   ],
   "next": [

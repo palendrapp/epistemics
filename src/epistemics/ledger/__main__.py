@@ -66,6 +66,7 @@ uv run python -m epistemics.ledger clef-pilot <root> [--evident-roots ...] [--hi
 uv run python -m epistemics.ledger clef-battery <root> --output <file>
 uv run python -m epistemics.ledger clef-far <root> --battery <battery root> --output <file>
 uv run python -m epistemics.ledger clef-desk <root> --output <file>
+uv run python -m epistemics.ledger clef-desk2 <root> --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -231,6 +232,9 @@ def main():
     sjr = sub.add_parser("single-judgment-preregistered")
     sjr.add_argument("roots", type=Path, nargs="+")
     sjr.add_argument("--output", type=Path, required=True)
+    cd2 = sub.add_parser("clef-desk2")
+    cd2.add_argument("root", type=Path)
+    cd2.add_argument("--output", type=Path, required=True)
     cd = sub.add_parser("clef-desk")
     cd.add_argument("root", type=Path)
     cd.add_argument("--output", type=Path, required=True)
@@ -653,6 +657,27 @@ def main():
         print("H1", {k: h1.get(k) for k in ("rho", "p_one_sided", "pass", "below_minimum")})
         for k, v in run["secondary"].items():
             print(k, {kk: (v or {}).get(kk) for kk in ("rho", "p_one_sided", "p_holm", "pass")})
+    elif a.command == "clef-desk2":
+        from epistemics.ledger import clef_desk2
+
+        run = clef_desk2.summary(a.root)
+        a.output.parent.mkdir(parents=True, exist_ok=True)
+        a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
+        for model, m in run["models"].items():
+            print(model, {k: round(v["accuracy"], 2) for k, v in m["classification"].items()})
+            for lane, v in m["lanes"].items():
+                print(
+                    f"  {lane:14s} pnl {v['pnl']:6.1f} {[round(x, 1) for x in v['pnl_90']]} heard "
+                    f"{v['speakers_heard']:.2f} nothing {v['nothing_heard']:.2f} right {v['right']:.2f} "
+                    f"echo/no-echo {v['pnl_meetings_with_echo']:.0f}/{v['pnl_meetings_without_echo']:.0f}"
+                )
+            print(
+                "  ",
+                {
+                    k: (round(v["mean"], 1), [round(x, 1) for x in v["pnl_90"]])
+                    for k, v in m["differences"].items()
+                },
+            )
     elif a.command == "clef-desk":
         from epistemics.ledger import clef_desk
 

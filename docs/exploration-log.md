@@ -1008,3 +1008,14 @@ Building the demo exposed this. The earlier entry said Clef-flash's urn fit "pre
 **What stands:** compression transfers in direction. Five agreeing remarks are worth about twice one, far below Bayes, in every domain and for both models.
 
 **What does not:** a quantitative prediction from the urns.
+
+## 6 October: robustness desk, the passport mitigation under realistic conditions
+
+See [clef-desk-demo.md](clef-desk-demo.md#robustness-test-results-6-october-2026). The setup: speakers with unstated and unequal reliability, two echoers, mild and mixed remarks, every parameter learned from a scorecard of 40 past meetings, and 60 held-out meetings. The user's question prompted it: is the first desk just handing the passport lane the ground truth?
+- **Classify-then-add is no better than a generic recalibration** of the model's own beliefs (−0.2 and −2.4k per meeting). The first desk's advantage was largely the world matching the lane's assumptions.
+- **Most of the money is in timing.** Taking the act-or-wait decision away from Clef-flash is worth +36k per meeting; it takes a position with nothing heard in two meetings of three. For Clef the gain is smaller and uncertain.
+- **The passport's value here is diagnosis,** not a better fix: it identifies which model jumps to conclusions. The fix itself is generic: a calibrated probability and a threshold.
+
+**Ideas:**
+56. **A diagnosis-led demo.** The passport predicts which model will lose money by acting early (Clef-flash much more than Clef). Test that prediction directly: abstract beads JTC rate against the desk's nothing-heard rate across many configurations (agents too). That is the transferable, model-specific claim worth showing.
+57. **Where decomposition might still beat recalibration:** with no outcome history to calibrate on, and with a scorecard of the speakers only. A cold-start desk.
