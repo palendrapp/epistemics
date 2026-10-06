@@ -105,6 +105,88 @@ def _summary(x):
     return {"mean": float(x.mean()), "se": float(x.std(ddof=1) / np.sqrt(len(x)))}
 
 
+def exploratory(root, record_root):
+    """Post hoc, after H2 failed (not preregistered): where the passport lane loses against the
+    oracle, and the passport lane with its classifier calibrated on the labelled record remarks
+    (logistic on the classifier's log-odds; domain facts only, not the model's forecasts)."""
+    _, values = load(root)
+    rdoc, _ = pilot.load(record_root)
+    if (
+        rdoc.get("design") != "desk3-record"
+        or rdoc["items"]["desk3-record"] != desk3.record_digest()
+    ):
+        raise ClefError(f"{record_root} is not this desk's record-classification root")
+    records = pilot.answered(record_root)
+    rvalues = {c["id"]: parse(records[c["id"]]["response"], c["questions"]) for c in rdoc["calls"]}
+    card = desk3.scorecard()
+    est = desk2.estimated_reliability(card)
+    tables = desk._value_tables(
+        q=float(np.mean(list(est.values()))), max_speakers=desk3.PER_MEETING
+    )
+    true_w = dict(enumerate(desk2.RELIABILITY))
+    test = desk3.meetings("test")
+    uniq = desk2.unique_remarks(test)
+    labelled = sorted(desk3.record_remarks().items())
+    out = {}
+    for model in rdoc["models"]:
+        rz = np.array(
+            [_z(rvalues[f"{model}/record-classify/{i}"]["answer"]) for i in range(len(labelled))]
+        )
+        ry = np.array([float(sign > 0) for _, sign in labelled])
+        w = logistic(np.c_[np.ones(len(rz)), rz], ry)
+
+        def hawks(m, model=model):
+            return [
+                values[f"{model}/classify/{uniq[(r['speaker'], r['text'])]}"]["answer"]
+                for r in m["remarks"]
+            ]
+
+        def evidence(m, variant, model=model, w=w):
+            h = hawks(m)
+            if variant in ("perfect_classification", "both"):
+                return [r["sign"] for r in m["remarks"]]
+            if variant == "calibrated":
+                return [2 / (1 + np.exp(-(w[0] + w[1] * _z(p)))) - 1 for p in h]
+            return [2 * p - 1 for p in h]
+
+        variants = {}
+        alone = [_alone(m, lambda t, m=m, model=model: values[f"{model}/choice/{m['meeting']}/{t}"]["decision"])[0]
+                 for m in test]  # fmt: skip
+        for variant in ("as_run", "true_weights", "perfect_classification", "both", "calibrated"):
+            weights = true_w if variant in ("true_weights", "both") else est
+            pnl = []
+            for m in test:
+                ev = evidence(m, variant)
+
+                def logodds(t, m=m, ev=ev, weights=weights):
+                    return desk2.logit(m["price"]) + sum(
+                        ev[k] * desk2.logit(weights[m["remarks"][k]["index"]]) for k in range(t)
+                    )
+
+                pnl.append(_play(m, logodds, tables)[0])
+            variants[variant] = {
+                **_summary(pnl),
+                "minus_alone": _summary(np.array(pnl) - np.array(alone)),
+            }
+        accuracy = {}
+        for strength, _ in desk2.STRENGTH:
+            pairs = [(p, r["sign"]) for m in test for p, r in zip(hawks(m), m["remarks"], strict=True)
+                     if r["strength"] == strength]  # fmt: skip
+            accuracy[strength] = {
+                "raw": float(np.mean([(p > 0.5) == (s > 0) for p, s in pairs])),
+                "calibrated": float(
+                    np.mean([((w[0] + w[1] * _z(p)) > 0) == (s > 0) for p, s in pairs])
+                ),
+            }
+        out[model] = {"passport_variants": variants, "classification_accuracy": accuracy,
+                      "record_remarks": len(labelled),
+                      "calibration": {"intercept": float(w[0]), "slope": float(w[1])}}  # fmt: skip
+    return {
+        "note": "Exploratory, post hoc on the same test meetings; not preregistered.",
+        "models": out,
+    }
+
+
 def summary(root, k_values=None, draws=None):
     document, values = load(root)
     k_values = k_values or desk3.K_VALUES

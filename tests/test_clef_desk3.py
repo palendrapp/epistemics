@@ -33,8 +33,9 @@ def test_design_is_fixed():
 class _Exact:
     def __init__(self):
         self.meta = {}
-        for _, meta, body in desk3.calls(("clef",)):
+        for _, meta, body in desk3.calls(("clef",)) + desk3.record_calls(("clef",)):
             self.meta.setdefault(requests.digest(body), meta)
+        self.record = [sign for _, sign in sorted(desk3.record_remarks().items())]
         self.by = {"pool-belief": desk3.meetings("pool"), "belief": desk3.meetings("test"),
                    "choice": desk3.meetings("test")}  # fmt: skip
         uniq = desk2.unique_remarks(desk3.meetings("test"))
@@ -47,12 +48,11 @@ class _Exact:
 
     def run(self, model, body):
         meta = self.meta[requests.digest(body)]
-        if meta["part"] == "classify":
+        if meta["part"] in ("classify", "record-classify"):
+            signs = self.sign if meta["part"] == "classify" else dict(enumerate(self.record))
+            # Under-reads hawkish remarks, as Clef does with mild ones: calibration should fix it.
             answers = {
-                "answer": {
-                    "type": "noul",
-                    "noul": 0.95 if self.sign[int(meta["key"])] > 0 else 0.05,
-                }
+                "answer": {"type": "noul", "noul": 0.4 if signs[int(meta["key"])] > 0 else 0.02}
             }
         else:
             e, t = (int(x) for x in meta["key"].split("/"))
@@ -91,3 +91,10 @@ def test_analysis_path(tmp_path, monkeypatch):
     # Exact beliefs at the same threshold are the oracle; acting at once is never waiting.
     assert m["lanes"]["gated"]["mean"] == m["lanes"]["oracle"]["mean"]
     assert m["nothing_heard"]["alone"] == 1.0
+    record_root = tmp_path / "record"
+    pilot.plan(record_root, ("clef",), design="desk3-record")
+    assert pilot.run(record_root, _Exact(), log=lambda *_: None, workers=4) == 0
+    e = clef_desk3.exploratory(root, record_root)["models"]["clef"]
+    assert e["classification_accuracy"]["strong"]["raw"] < 1.0
+    assert e["classification_accuracy"]["strong"]["calibrated"] == 1.0
+    assert e["passport_variants"]["calibrated"]["mean"] >= e["passport_variants"]["as_run"]["mean"]

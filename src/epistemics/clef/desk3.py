@@ -69,3 +69,37 @@ def calls(models=tuple(MODELS)):
         for (speaker, text), i in uniq.items():
             add(model, "classify", str(i), *desk.classify_text(speaker, text))
     return out
+
+
+def record_remarks():
+    """{(speaker, text): sign} for every remark in the record meetings (the desk knows their
+    directions; that is what its scorecard is built from)."""
+    return {(r["speaker"], r["text"]): r["sign"] for m in meetings("record") for r in m["remarks"]}
+
+
+def record_digest():
+    return digest(sorted([list(k) + [v] for k, v in record_remarks().items()]))
+
+
+def record_calls(models=tuple(MODELS)):
+    """Exploratory supplement (docs/clef-desk3-preregistration.md, "Exploratory"): the model's
+    classification of every record remark, to calibrate its classifier on labelled domain
+    remarks."""
+    out = []
+    for model in models:
+        for i, key in enumerate(sorted(record_remarks())):
+            state, questions = desk.classify_text(*key)
+            meta = {
+                "model": model,
+                "part": "record-classify",
+                "key": str(i),
+                "questions": {"answer": "noul"},
+            }
+            out.append(
+                (
+                    f"{model}/record-classify/{i}",
+                    meta,
+                    {"model": model, "state": state, "questions": questions},
+                )
+            )
+    return out

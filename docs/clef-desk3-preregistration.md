@@ -88,4 +88,73 @@ uv run python -m epistemics.ledger clef-desk3 output/clef-desk3-20261006 --outpu
 
 ## Deviations
 
-None so far. Any deviation will be recorded here before the analysis is run.
+None. The analysis ran as registered.
+
+## Results (6 October 2026)
+
+**The run.** The root is `output/clef-desk3-20261006`: 13,314 of 13,314 calls, no errors, 5.8M Workers AI input tokens (about $1.40). The 400 test meetings include 202 rises.
+
+**Regenerating the tables.**
+
+```
+uv run python -m epistemics.ledger clef-desk3 output/clef-desk3-20261006 --record-root output/clef-desk3-record-20261006 --output output/clef-desk3-20261006.json
+```
+
+### Primary
+
+| | Mean paired difference ($k per meeting) | SE | One-sided p | Holm p | Result |
+| --- | --- | --- | --- | --- | --- |
+| Clef, H1: passport − recalibrated on 10 | +16.4 | 3.8 | < 0.0001 | < 0.0001 | **passes** |
+| Clef-flash, H1 | +14.7 | 4.0 | 0.0001 | 0.0004 | **passes** |
+| Clef, H2: passport − alone | −0.3 | 5.1 | 0.53 | 0.53 | fails |
+| Clef-flash, H2 | +10.3 | 6.3 | 0.049 | 0.098 | fails |
+
+**H1 is confirmed for both models.** When only ten meetings of the model's own forecasts are available, the passport mitigation earns 15–16k per meeting more than generic recalibration.
+
+**H2 is not.** On these meetings the passport mitigation does not earn more than the model alone. For Clef the difference is zero. For Clef-flash it is +10, which does not survive the Holm correction.
+
+### Secondary (descriptive)
+
+**P&L per meeting** ($k):
+
+| Lane | Clef | Clef-flash |
+| --- | --- | --- |
+| alone | 39.8 | 22.8 |
+| gated | 34.1 | 24.0 |
+| recalibrated, k = 5, 10, 20, 40, 100 | 10.8, 23.1, 33.1, 34.6, 35.8 | 11.7, 18.4, 28.4, 30.0, 35.2 |
+| passport | 39.5 | 33.1 |
+| oracle | 56.1 | 56.1 |
+
+**Positions with nothing heard:**
+- alone: 33% (Clef) and 67% (Clef-flash);
+- gated: 67% and 100%, because the model's belief with nothing heard amplifies the price past the threshold;
+- passport and oracle: 0%.
+
+**Recalibration** does not catch up with the passport lane for Clef even at k = 100 (35.8 against 39.5). For Clef-flash it does by k = 100 (35.2 against 33.1).
+
+**The oracle exceeds the passport lane** by 16.7 (SE 4.2) and 23.0 (SE 4.4).
+
+**Acting on the price at once is a strong baseline.** Betting the market's side at 35% or 65% earns about 30 per meeting with no waiting. The model alone does much of that.
+
+### Exploratory (post hoc, after H2 failed; not preregistered)
+
+The evidence is the same 400 test meetings. One added input is the model's classification of the 174 labelled remarks from the record meetings, collected after the primary analysis in root `output/clef-desk3-record-20261006` (348 calls). The desk knows those remarks' directions: that is what its scorecard is built from.
+
+**Where the passport lane loses against the oracle:**
+
+| Passport variant | Clef | Clef-flash | Minus alone (Clef, flash) |
+| --- | --- | --- | --- |
+| as run | 39.5 | 33.1 | −0.3, +10.3 |
+| true speaker reliabilities | 42.3 | 39.0 | +2.5, +16.3 |
+| perfect classification | 46.7 | 46.7 | +6.9, +23.9 |
+| both | 54.5 | 54.5 | +14.7, +31.7 |
+| **classifier calibrated on the record remarks** | **45.8** | **44.6** | **+6.0, +21.8** |
+
+**Most of the loss is classification of mild remarks.** Raw accuracy is 82% (Clef) and 75% (Clef-flash). Clef reads mild hawkish remarks as barely signalling a rise.
+
+**Calibration on labelled domain remarks fixes most of it.** A logistic map from the classifier's log-odds to the known directions of the record remarks raises mild accuracy to 99% (mixed falls to 83–86%) and recovers most of the gap to perfect classification.
+
+**Echoes cost little.** An echo-aware version with estimated weights did not improve the passport lane.
+
+**What this means.** These numbers come from a variant chosen after seeing the primary result, on the same test meetings. They motivate a second confirmation on fresh meetings and are not a result.
+

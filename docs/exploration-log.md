@@ -1019,3 +1019,17 @@ See [clef-desk-demo.md](clef-desk-demo.md#robustness-test-results-6-october-2026
 **Ideas:**
 56. **A diagnosis-led demo.** The passport predicts which model will lose money by acting early (Clef-flash much more than Clef). Test that prediction directly: abstract beads JTC rate against the desk's nothing-heard rate across many configurations (agents too). That is the transferable, model-specific claim worth showing.
 57. **Where decomposition might still beat recalibration:** with no outcome history to calibrate on, and with a scorecard of the speakers only. A cold-start desk.
+
+## 6 October: confirmation desk, preregistered results
+
+See [clef-desk3-preregistration.md](clef-desk3-preregistration.md#results-6-october-2026). 400 fresh held-out meetings.
+
+**H1 passes for both models.** With only ten meetings of the model's own forecast record, the passport mitigation beats generic recalibration by 15–16k per meeting (Holm p < 0.001). Recalibration needs about 100 own-forecast meetings to approach it.
+
+**H2 fails for both.** The passport mitigation does not beat the model alone here: −0.3 for Clef, +10.3 for Clef-flash (Holm p 0.098). Acting on the market price at once earns about 30 per meeting, and the model alone does much of that.
+
+**Exploratory.** Most of the passport lane's loss is misclassified mild remarks. Calibrating the classifier on the desk's labelled past remarks (domain facts only) lifts it to +6 (Clef) and +22 (Clef-flash) over the model alone. This was found after seeing H2 fail; it needs fresh meetings.
+
+**Ideas:**
+58. **Second preregistered confirmation:** the passport mitigation with its classifier calibrated on labelled domain remarks, on fresh meetings. Primary: beats the model alone (both models) and beats recalibration on 10 own-forecast meetings.
+59. **Make the classification question better** rather than calibrating after the fact: a contrastive choice (rise / hold / unclear) instead of "Is this remark signalling a rate rise?". Test it on labelled remarks first.

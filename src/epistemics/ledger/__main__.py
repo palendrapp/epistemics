@@ -67,7 +67,7 @@ uv run python -m epistemics.ledger clef-battery <root> --output <file>
 uv run python -m epistemics.ledger clef-far <root> --battery <battery root> --output <file>
 uv run python -m epistemics.ledger clef-desk <root> --output <file>
 uv run python -m epistemics.ledger clef-desk2 <root> --output <file>
-uv run python -m epistemics.ledger clef-desk3 <root> --output <file>
+uv run python -m epistemics.ledger clef-desk3 <root> [--record-root <root>] --output <file>
 uv run python -m epistemics.ledger finance-transfer-preregistered <roots...> --output <file>
 uv run python -m epistemics.ledger statements-probe <roots...> --output <file>
 uv run python -m epistemics.ledger statements-a <roots...> --output <file>
@@ -235,6 +235,7 @@ def main():
     sjr.add_argument("--output", type=Path, required=True)
     cd3 = sub.add_parser("clef-desk3")
     cd3.add_argument("root", type=Path)
+    cd3.add_argument("--record-root", type=Path)
     cd3.add_argument("--output", type=Path, required=True)
     cd2 = sub.add_parser("clef-desk2")
     cd2.add_argument("root", type=Path)
@@ -665,6 +666,8 @@ def main():
         from epistemics.ledger import clef_desk3
 
         run = clef_desk3.summary(a.root)
+        if a.record_root:
+            run["exploratory"] = clef_desk3.exploratory(a.root, a.record_root)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(run, indent=2, sort_keys=True, allow_nan=False) + "\n")
         for model, m in run["models"].items():
@@ -676,6 +679,15 @@ def main():
                 )
             print("  lanes", {k: round(v["mean"], 1) for k, v in m["lanes"].items()})
             print("  nothing heard", {k: round(v, 2) for k, v in m["nothing_heard"].items()})
+            if "exploratory" in run:
+                e = run["exploratory"]["models"][model]
+                print(
+                    "  exploratory",
+                    {
+                        k: (round(v["mean"], 1), round(v["minus_alone"]["mean"], 1))
+                        for k, v in e["passport_variants"].items()
+                    },
+                )
     elif a.command == "clef-desk2":
         from epistemics.ledger import clef_desk2
 
