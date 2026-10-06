@@ -73,8 +73,12 @@ def logit(p):
 
 
 def meetings(kind):
-    rng = np.random.default_rng(SEEDS[kind])
-    n = HISTORY if kind == "history" else TEST
+    return generate(SEEDS[kind], HISTORY if kind == "history" else TEST, kind)
+
+
+def generate(seed, n, kind):
+    """n meetings of the robustness world from `seed` (shared with the confirmation desk)."""
+    rng = np.random.default_rng(seed)
     out = []
     for e in range(n):
         p = desk.PRICES[e % len(desk.PRICES)]
