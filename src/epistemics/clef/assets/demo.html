@@ -30,8 +30,6 @@ h1 small { color: var(--muted); font-weight: 400; font-size: 15px; margin-left: 
 .tabs b { color: var(--faint); margin-right: 6px; font-family: var(--mono); }
 .act { display: none; gap: 16px; }
 .act.on { display: grid; }
-.lede { color: var(--muted); max-width: 90ch; margin: 0; }
-.lede strong { color: var(--ink); }
 .run { display: flex; align-items: center; gap: 12px; }
 .go { background: var(--passport); color: #04140d; border: 0; font: 700 14px var(--sans); padding: 9px 18px; border-radius: 8px; cursor: pointer; }
 .go:disabled { opacity: 0.45; cursor: default; }
@@ -84,6 +82,8 @@ svg .lab { fill: var(--ink); font: 700 14px var(--mono); }
 .legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
 .score { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
 .calib.collapsed { display: none; }
+.stat { font: 13px var(--mono); color: var(--ink); }
+.stat:empty { display: none; }
 .calib { display: grid; gap: 6px; }
 .calib-row { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 10px; align-items: center; background: var(--panel-2); border-radius: 8px; padding: 6px 10px; animation: pop 0.35s ease; }
 .calib-row .txt { font-size: 13px; color: #c8d3e0; }
@@ -100,14 +100,13 @@ svg .lab { fill: var(--ink); font: 700 14px var(--mono); }
 .score div { background: var(--panel-2); border-radius: 8px; padding: 8px 10px; }
 .score b { display: block; font: 700 20px var(--mono); }
 .score span { font-size: 12px; color: var(--muted); }
-.callout { font-size: 14px; color: var(--ink); background: var(--panel-2); border-left: 3px solid var(--passport); padding: 8px 12px; border-radius: 0 8px 8px 0; min-height: 38px; }
 .foot { color: var(--faint); font-size: 12px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Decision Passport <small>Cloudflare Clef on abstract tasks and a central-bank desk</small></h1>
+    <h1>Decision Passport <small>Clef</small></h1>
     <div class="controls">
       <div class="seg" id="model" role="group" aria-label="Model">
         <button data-v="clef-flash" aria-pressed="true">Clef-flash</button>
@@ -127,15 +126,14 @@ svg .lab { fill: var(--ink); font: 700 14px var(--mono); }
   </header>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-act="1" aria-selected="true"><b>1</b>Passport: abstract tasks</button>
-    <button role="tab" data-act="2" aria-selected="false"><b>2</b>Transfer: the central-bank desk</button>
-    <button role="tab" data-act="3" aria-selected="false"><b>3</b>Mitigation: trading it</button>
+    <button role="tab" data-act="1" aria-selected="true"><b>1</b>Passport</button>
+    <button role="tab" data-act="2" aria-selected="false"><b>2</b>Transfer</button>
+    <button role="tab" data-act="3" aria-selected="false"><b>3</b>Mitigation</button>
   </nav>
 
   <!-- Act 1 -->
   <section class="act on" id="act1">
-    <p class="lede">Classic decision-making tasks from computational psychiatry, posed to the model. <strong>Bookbag:</strong> two urns, draws with replacement: how far should one, three or five draws move you? <strong>Beads:</strong> decide which jar, or pay to draw again?</p>
-    <div class="run"><button class="go" data-run="1">Run the abstract tasks</button><span class="status" id="s1"></span></div>
+    <div class="run"><button class="go" data-run="1">Run</button><span class="status" id="s1"></span></div>
     <div class="grid3">
       <div style="display:grid;gap:16px;min-width:0">
         <div class="grid2">
@@ -145,61 +143,55 @@ svg .lab { fill: var(--ink); font: 700 14px var(--mono); }
               <div class="bar"><span id="urn-bayes-l">Bayes</span><div class="track"><div class="fill" id="urn-bayes" style="background:var(--bayes);width:0"></div></div><span class="num" id="urn-bayes-n">—</span></div>
             </div>
           </div>
-          <div class="card"><h3>How much is the evidence worth?</h3><svg id="urn-chart" viewBox="0 0 420 260" width="100%"></svg>
+          <div class="card"><h3>Evidence weight · × one draw</h3><svg id="urn-chart" viewBox="0 0 420 260" width="100%"></svg>
             <div class="legend"><span><i style="background:var(--passport)"></i>model</span><span><i style="background:var(--bayes)"></i>Bayes</span></div></div>
         </div>
-        <div class="card"><h3>Beads (85:15 jars): decide now, or draw again?</h3><div class="beads" id="beads"></div>
-          <p class="foot">With these payoffs the optimal policy waits until one colour leads by two.</p></div>
+        <div class="card"><h3>Beads · decide or draw</h3><div class="beads" id="beads"></div></div>
       </div>
       <div class="card passport"><h3>Passport</h3><div id="passport">
-        <div class="trait"><span class="k">Five draws are worth</span><span class="v pending" id="p-comp">—</span><span class="d">as much as one draw. Bayes: 5×. Sample-size neglect.</span></div>
-        <div class="trait"><span class="k">One draw is weighted</span><span class="v pending" id="p-single">—</span><span class="d">times its Bayesian worth.</span></div>
-        <div class="trait"><span class="k">Decides with no evidence</span><span class="v pending" id="p-nothing">—</span><span class="d">Optimal: never. Jumping to conclusions.</span></div>
-        <div class="trait"><span class="k">Decides on a lead of one</span><span class="v pending" id="p-one">—</span><span class="d">Optimal: wait.</span></div>
-      </div>
-      <div class="callout" id="c1">Run the tasks to measure the traits.</div></div>
+        <div class="trait"><span class="k">5 draws vs 1</span><span class="v pending" id="p-comp">—</span><span class="d">Bayes 5×</span></div>
+        <div class="trait"><span class="k">1 draw vs its worth</span><span class="v pending" id="p-single">—</span><span class="d">Bayes 1×</span></div>
+        <div class="trait"><span class="k">Decides with no evidence</span><span class="v pending" id="p-nothing">—</span><span class="d">Optimal 0%</span></div>
+        <div class="trait"><span class="k">Decides on a lead of 1</span><span class="v pending" id="p-one">—</span><span class="d">Optimal: wait</span></div>
+      </div></div>
     </div>
   </section>
 
   <!-- Act 2 -->
   <section class="act" id="act2">
-    <p class="lede">The same traits, now on <strong>natural-language remarks</strong> from (fictional) rate-setters, with the market price stated and no hit rates. <strong>Does the urn measurement predict the desk?</strong></p>
-    <div class="run"><button class="go" data-run="2">Run the central-bank desk</button><span class="status" id="s2"></span></div>
+    <div class="run"><button class="go" data-run="2">Run</button><span class="status" id="s2"></span></div>
     <div class="grid3">
-      <div class="card"><h3>Remarks heard <span id="far-answer" style="float:right;color:var(--ink)"></span></h3><div class="remarks" id="far-remarks"></div></div>
+      <div class="card"><h3>Remarks <span id="far-answer" style="float:right;color:var(--ink)"></span></h3><div class="remarks" id="far-remarks"></div></div>
       <div style="display:grid;gap:16px;min-width:0">
-        <div class="card"><h3>Evidence from several speakers, relative to one</h3><svg id="far-chart" viewBox="0 0 420 260" width="100%"></svg>
-          <div class="legend"><span><i style="background:var(--bayes)"></i>Bayes</span><span><i style="background:var(--passport);height:0;border-top:2px dashed var(--passport)"></i>predicted from the urns</span><span><i style="background:var(--hawk)"></i>desk, measured</span></div></div>
-        <div class="card"><h3>Takes a position before anyone has spoken</h3><div class="bar"><span>Desk</span><div class="track"><div class="fill" id="far-wait" style="background:var(--alone);width:0"></div></div><span class="num" id="far-wait-n">—</span></div></div>
-        <div class="callout" id="c2">Run the desk to test the prediction.</div>
+        <div class="card"><h3>Agreeing speakers · × one speaker</h3><svg id="far-chart" viewBox="0 0 420 260" width="100%"></svg>
+          <div class="legend"><span><i style="background:var(--bayes)"></i>Bayes</span><span id="urn-legend" hidden><i style="background:var(--passport);height:0;border-top:2px dashed var(--passport)"></i>urns</span><span><i style="background:var(--hawk)"></i>desk</span></div></div>
+        <div class="card"><h3>Position before anyone speaks</h3><div class="bar"><span>Desk</span><div class="track"><div class="fill" id="far-wait" style="background:var(--alone);width:0"></div></div><span class="num" id="far-wait-n">—</span></div></div>
       </div>
     </div>
   </section>
 
   <!-- Act 3 -->
   <section class="act" id="act3">
-    <p class="lede">Simulated rate-setting meetings with a known outcome, from the <strong>preregistered confirmation desk</strong>: ten fictional officials whose reliability is never stated, two who tend to echo the previous speaker, remarks from blunt to ambiguous. The desk has only its own records: a scorecard of past meetings and the direction of past remarks. Four ways to trade: <strong style="color:var(--alone)">the model alone</strong> chooses when to act; <strong style="color:var(--gated)">gated</strong> acts on the model's belief at the optimal threshold; <strong style="color:var(--recal)">recalibrated</strong> corrects that belief using ten of the model's own past forecasts (the standard fix); <strong style="color:var(--passport)">passport</strong> uses the model only to read each remark, calibrated on the desk's past remarks, then adds the evidence in code and waits for the threshold.</p>
-    <div class="run"><button class="go" data-run="3">Trade meetings</button>
+    <div class="run"><button class="go" data-run="3">Trade</button>
       <div class="seg" id="episodes" role="group" aria-label="Meetings"><button data-v="60" aria-pressed="true">60</button><button data-v="200" aria-pressed="false">200</button><button data-v="1000" aria-pressed="false">all 1,000</button></div>
       <span class="status" id="s3"></span></div>
     <div class="grid3">
       <div style="display:grid;gap:16px;min-width:0">
-        <div class="card"><h3>Step 1 · Calibrate the remark reader on the desk's past remarks</h3>
-          <div class="calib" id="calib"></div>
-          <div class="callout" id="calib-sum">The model reads each past remark; its readings are mapped to the known directions.</div></div>
-        <div class="card"><div class="price"><h3 style="margin-right:auto">Meeting <span id="ep-n">—</span></h3><span>Market price of a rise</span><span class="big" id="ep-price">—</span></div>
-          <div class="remarks" id="desk-remarks" style="max-height:300px"></div></div>
+        <div class="card"><div class="price"><h3 style="margin-right:auto">Meeting <span id="ep-n">—</span></h3><span>Price of a rise</span><span class="big" id="ep-price">—</span></div>
+          <div class="remarks" id="desk-remarks" style="max-height:215px"></div></div>
         <div class="card"><h3>Lanes</h3><div class="lanes" id="lanes"></div><div class="outcome" id="outcome"></div></div>
       </div>
       <div style="display:grid;gap:16px;min-width:0;align-content:start">
+        <div class="card"><h3>Reader calibrated on past remarks</h3>
+          <div class="calib" id="calib"></div>
+          <div class="stat" id="calib-sum"></div></div>
         <div class="card"><h3>Cumulative P&amp;L ($k)</h3><svg id="pnl-chart" viewBox="0 0 420 280" width="100%"></svg>
           <div class="legend"><span><i style="background:var(--alone)"></i>alone</span><span><i style="background:var(--gated)"></i>gated</span><span><i style="background:var(--recal)"></i>recalibrated</span><span><i style="background:var(--passport)"></i>passport</span><span><i style="background:var(--bayes)"></i>oracle</span></div></div>
         <div class="score" id="score"></div>
-        <div class="callout" id="c3">Run the desk to see the lanes trade.</div>
-        <div class="card prereg"><h3>Preregistered result · 1,000 held-out meetings</h3><div id="prereg">Loads with the run.</div></div>
+        <div class="card prereg"><h3>Preregistered · 1,000 meetings</h3><div id="prereg">—</div></div>
       </div>
     </div>
-    <p class="foot">Officials, statements and meetings are simulated; nothing here is a real institution or person. Answers are elicited outputs of a trained head, not direct access to beliefs. Replaying all 1,000 meetings reproduces the preregistered ledger exactly (docs/clef-desk4-preregistration.md). This was the second preregistered test: the first failed against the model alone, and the calibration step was added after it.</p>
+    <p class="foot">Simulated meetings · fictional officials</p>
   </section>
 </div>
 
@@ -271,13 +263,13 @@ function beadRow(ev) {
   for (const c of ev.sequence) { const d = document.createElement("span"); d.className = `dot ${c === "+" ? "r" : "b"}`; dots.appendChild(d); }
   const bar = document.createElement("div"); bar.className = "bar"; bar.style.gridTemplateColumns = "1fr 48px";
   bar.innerHTML = `<div class="track"><div class="fill" style="background:var(--alone);width:${Math.round(ev.decide * 100)}%"></div></div><span class="num">${pct(ev.decide)}</span>`;
-  const opt = document.createElement("span"); opt.innerHTML = `decides · optimal: <span class="tag ${ev.optimal ? "decide" : "wait"}">${ev.optimal ? "decide" : "wait"}</span>`;
+  const opt = document.createElement("span"); opt.innerHTML = `optimal <span class="tag ${ev.optimal ? "decide" : "wait"}">${ev.optimal ? "decide" : "wait"}</span>`;
   row.append(dots, bar, opt); $("beads").appendChild(row);
 }
 function resetAct1() {
   urnChart(); $("beads").replaceChildren(); $("urn-stim").textContent = "—";
   for (const id of ["p-comp", "p-single", "p-nothing", "p-one"]) { $(id).textContent = "—"; $(id).classList.add("pending"); }
-  setBar("urn-model", 0); setBar("urn-bayes", 0); $("c1").textContent = "Measuring…";
+  setBar("urn-model", 0); setBar("urn-bayes", 0);
 }
 
 // ---------- Act 2 ----------
@@ -287,6 +279,7 @@ function farChart() {
   axes(svg, farX, farY, "agreeing speakers", "× one speaker", [0, 1, 3, 5], [0, 1, 2, 3, 4, 5]);
   svgEl("line", { x1: farX(0), y1: farY(0), x2: farX(5), y2: farY(5), stroke: "var(--bayes)", "stroke-width": 2 }, svg);
   const r5 = state.urnRatio;
+  $("urn-legend").hidden = !r5;
   if (r5) {
     // The urns give the 5:1 ratio; draw the predicted curve as a power law through it.
     const k = Math.log(r5) / Math.log(5);
@@ -352,13 +345,13 @@ function calibRow(ev) {
 function deskRemark(ev) {
   const d = document.createElement("div"); d.className = "remark";
   const hawk = ev.calibrated > 0.5;
-  d.innerHTML = `<span class="who"></span><span class="badge ${hawk ? "hawk" : "dove"}">${hawk ? "HAWKISH" : "DOVISH"} ${pct(hawk ? ev.calibrated : 1 - ev.calibrated)}<small>raw reading ${pct(ev.raw)} · record ${pct(ev.record)}</small></span><span class="txt"></span>`;
+  d.innerHTML = `<span class="who"></span><span class="badge ${hawk ? "hawk" : "dove"}">${hawk ? "HAWKISH" : "DOVISH"} ${pct(hawk ? ev.calibrated : 1 - ev.calibrated)}<small>raw ${pct(ev.raw)} · record ${pct(ev.record)}</small></span><span class="txt"></span>`;
   d.querySelector(".who").textContent = ev.speaker; d.querySelector(".txt").textContent = `“${ev.text}”`;
   return d;
 }
 function lanesInit() {
-  const names = { alone: ["Model alone", "chooses when to act"], gated: ["Gated", "its belief, optimal threshold"],
-    recalibrated: ["Recalibrated", "10 past forecasts · 20 fits"], passport: ["Passport", "read · add · wait"], oracle: ["Oracle", "true reliabilities"] };
+  const names = { alone: ["Alone", "model decides"], gated: ["Gated", "belief + threshold"],
+    recalibrated: ["Recalibrated", "10 past forecasts"], passport: ["Passport", "read · add · wait"], oracle: ["Oracle", "ceiling"] };
   $("lanes").replaceChildren(...LANES3.map(k => {
     const [a, b] = names[k];
     const d = document.createElement("div"); d.className = "lane"; d.id = `lane-${k}`;
@@ -373,23 +366,23 @@ function updateLanes(ev) {
     row.querySelector(".num").textContent = pct(p);
     const st = row.querySelector(".state");
     if (lane === "recalibrated") {
-      st.textContent = ev.recal_decided === ev.recal_fits ? `${ev.recal_fits}/${ev.recal_fits} fits in` : `${ev.recal_decided}/${ev.recal_fits} fits in`;
+      st.textContent = `${ev.recal_decided}/${ev.recal_fits} fits in`;
       st.style.color = ev.recal_decided ? LANE3[lane] : "var(--muted)";
       continue;
     }
     const d = ev.decided[lane];
-    st.textContent = d ? `${d[0] === "rise" ? "▲ RISE" : "▼ HOLD"} @${d[1]}${d[1] === 0 ? " (no one spoke)" : ""}` : "waiting";
+    st.textContent = d ? `${d[0] === "rise" ? "▲ RISE" : "▼ HOLD"} @${d[1]}${d[1] === 0 ? " · no one spoke" : ""}` : "waiting";
     st.style.color = d ? LANE3[lane] : "var(--muted)";
   }
 }
 function score(cum, n) {
-  $("score").innerHTML = LANES3.map(l => `<div><b style="color:${LANE3[l]}">${n ? (cum[l] / n).toFixed(1) : "—"}</b><span>${l} · $k per meeting</span></div>`).join("");
+  $("score").innerHTML = LANES3.map(l => `<div><b style="color:${LANE3[l]}">${n ? (cum[l] / n).toFixed(1) : "—"}</b><span>${l}</span></div>`).join("");
 }
 function prereg(p) {
   if (!p) { $("prereg").textContent = "Preregistered result not found on this machine."; return; }
-  $("prereg").innerHTML = `<table><tr><th>Lane</th><th>$k per meeting</th><th>passport minus</th></tr>` +
+  $("prereg").innerHTML = `<table><tr><th></th><th>$k / meeting</th><th>passport −</th></tr>` +
     LANES3.map(l => `<tr><td style="color:${LANE3[l]}">${l}</td><td>${p[l].toFixed(1)}</td><td>${l === "passport" ? "" : (p.passport - p[l] >= 0 ? "+" : "") + (p.passport - p[l]).toFixed(1)}</td></tr>`).join("") +
-    `</table><p class="foot" style="margin-top:8px">${state.model === "clef" ? "Clef" : "Clef-flash"}. H1 (passport &gt; alone) and H2 (passport &gt; recalibrated on 10) passed for both models, Holm-corrected.</p>`;
+    `</table>`;
 }
 
 // ---------- Streaming ----------
@@ -402,8 +395,8 @@ function run(act) {
   if (act === 3) q.set("episodes", state.episodes);
   if (act === 1) resetAct1();
   let nEp = Number(state.episodes), epCount = 0;
-  if (act === 2) { farChart(); $("far-remarks").replaceChildren(); $("far-answer").textContent = ""; setBar("far-wait", 0); $("c2").textContent = "Measuring…"; }
-  if (act === 3) { resetHist(); lanesInit(); drawPnl(nEp); score({}, 0); $("calib").replaceChildren(); $("calib").classList.remove("collapsed"); $("desk-remarks").replaceChildren(); $("outcome").textContent = ""; $("c3").textContent = "Calibrating…"; $("calib-sum").textContent = "The model reads each past remark; its readings are mapped to the known directions."; }
+  if (act === 2) { farChart(); $("far-remarks").replaceChildren(); $("far-answer").textContent = ""; setBar("far-wait", 0); }
+  if (act === 3) { resetHist(); lanesInit(); drawPnl(nEp); score({}, 0); $("calib").replaceChildren(); $("calib").classList.remove("collapsed"); $("desk-remarks").replaceChildren(); $("outcome").textContent = ""; $("calib-sum").textContent = ""; }
   const src = new EventSource(`/events?${q}`); state.source = src;
   src.onmessage = (m) => {
     const ev = JSON.parse(m.data);
@@ -420,30 +413,25 @@ function run(act) {
       set("p-comp", `${ev.compression.toFixed(1)}×`); set("p-single", `${ev.single_overweight.toFixed(1)}×`);
       set("p-nothing", pct(ev.decide_with_nothing)); set("p-one", pct(ev.decide_on_one));
       state.urnRatio = ev.compression;
-      $("c1").textContent = `One draw counts ${ev.single_overweight.toFixed(1)}× its worth, but five count only ${ev.compression.toFixed(1)}× one (Bayes: 5×). And it acts before the evidence: ${pct(ev.decide_with_nothing)} with no beads drawn.`;
     } else if (ev.type === "far_set") {
       $("far-remarks").replaceChildren(...ev.remarks.map(r => remarkEl(r)));
       $("far-answer").textContent = `price ${pct(ev.price)} → P(rise) ${pct(ev.answer)}`;
     } else if (ev.type === "far_weight") {
       farPoint(ev.n, ev.ratio);
-      if (ev.n === 5) $("c2").textContent = state.urnRatio
-        ? `Five speakers count ${ev.ratio.toFixed(1)}× one on the desk; five draws ${state.urnRatio.toFixed(1)}× one on the urns. Bayes: 5×. The compression carries over.`
-        : `Five speakers count ${ev.ratio.toFixed(2)}× one (Bayes: 5×). Run act 1 first to draw the urn prediction.`;
     } else if (ev.type === "far_wait") {
       setBar("far-wait", ev.decide_with_nothing);
     } else if (ev.type === "act" && ev.act === 3) {
       nEp = ev.episodes; drawPnl(nEp); prereg(ev.preregistered);
     } else if (ev.type === "status") {
-      $("c3").textContent = ev.text;
+      $("s3").textContent = ev.text;
     } else if (ev.type === "calib_remark") {
       calibRow(ev);
     } else if (ev.type === "calibration") {
       const a = ev.accuracy;
-      $("calib-sum").textContent = `Calibrated on ${ev.remarks} labelled past remarks. Read correctly: mild ${pct(a.mild.raw)} → ${pct(a.mild.calibrated)}, mixed ${pct(a.mixed.raw)} → ${pct(a.mixed.calibrated)}, strong ${pct(a.strong.raw)} → ${pct(a.strong.calibrated)}.`;
+      $("calib-sum").textContent = `Mild remarks read correctly: ${pct(a.mild.raw)} → ${pct(a.mild.calibrated)}`;
     } else if (ev.type === "recalibration") {
-      $("c3").textContent = `Standard fix fitted: ${ev.fits} recalibrations, each on ${ev.meetings} of the model's own past forecasts. Trading…`;
+      $("s3").textContent = "trading…";
     } else if (ev.type === "episode") {
-      if (ev.index === 1) $("calib").classList.add("collapsed");
       $("ep-n").textContent = `${ev.index} of ${nEp}`; $("ep-price").textContent = pct(ev.price);
       $("desk-remarks").replaceChildren(); $("outcome").textContent = ""; lanesInit();
     } else if (ev.type === "remark") {
@@ -458,8 +446,6 @@ function run(act) {
       if (epCount % (nEp > 200 ? 5 : 1) === 0 || epCount === nEp) drawPnl(nEp);
       score(ev.cumulative, epCount);
     } else if (ev.type === "summary") {
-      const c = ev.cumulative, n = ev.episodes;
-      $("c3").textContent = `Over ${n} meetings: passport ${(c.passport / n).toFixed(1)}k per meeting, the model alone ${(c.alone / n).toFixed(1)}k, the standard fix with ten past forecasts ${(c.recalibrated / n).toFixed(1)}k. The model alone took a position before anyone spoke in ${pct(ev.nothing_heard.alone)} of meetings.`;
       drawPnl(nEp);
     } else if (ev.type === "error") {
       status.textContent = `error: ${ev.message}`;

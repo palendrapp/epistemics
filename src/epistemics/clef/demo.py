@@ -207,7 +207,7 @@ def act2(model, answers, emit, pace, urn_ratio=None):
 # ---------- Act 3: the preregistered desk ----------
 
 LANES = ("alone", "gated", "recalibrated", "passport", "oracle")
-SHOWCASE = {"mild": 3, "mixed": 1, "strong": 1}
+SHOWCASE = {"mild": 3}
 
 
 def _showcase(labelled, strength, raw):
@@ -255,7 +255,7 @@ def act3(model, answers, emit, pace, episodes=60):
     )
 
     # 1. Calibrate the remark reader on the desk's labelled past remarks.
-    emit({"type": "status", "text": "Classifying the desk's labelled past remarks…"})
+    emit({"type": "status", "text": "calibrating…"})
     labelled = desk4.record_remarks()
     strength = {
         (r["speaker"], r["text"]): r["strength"]
@@ -274,7 +274,7 @@ def act3(model, answers, emit, pace, episodes=60):
         raw = values[f"{model}/record-classify/{i}"]["answer"]
         emit({"type": "calib_remark", "speaker": speaker, "text": text, "strength": strength[(speaker, text)],
               "hawkish": sign > 0, "raw": raw, "calibrated": calibrate(cal, raw)})  # fmt: skip
-        pace(0.8)
+        pace(2)
     accuracy = {}
     for name, _ in desk2.STRENGTH:
         rows = [(values[f"{model}/record-classify/{i}"]["answer"], sign)
@@ -282,9 +282,10 @@ def act3(model, answers, emit, pace, episodes=60):
         accuracy[name] = {"raw": float(np.mean([(p > 0.5) == (s > 0) for p, s in rows])),
                           "calibrated": float(np.mean([(calibrate(cal, p) > 0.5) == (s > 0) for p, s in rows]))}  # fmt: skip
     emit({"type": "calibration", "remarks": len(labelled), "accuracy": accuracy})
+    pace(3)
 
     # 2. The generic fix: recalibrate the model's own beliefs on ten of its past forecasts.
-    emit({"type": "status", "text": "Fitting the generic recalibration on ten past forecasts…"})
+    emit({"type": "status", "text": "fitting recalibration…"})
     subsets = recal_subsets()[desk4.PRIMARY_K]
     pool = desk4.meetings("pool")
     card = desk4.scorecard()
