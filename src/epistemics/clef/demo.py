@@ -8,13 +8,17 @@ Serves a page on 127.0.0.1 and streams each act as server-sent events while Clef
          and whether it decides before the evidence warrants (jumping to conclusions)
   act 2  transfer: the same measures on natural-language central-bank remarks, against the
          curve the urns predict
-  act 3  mitigation: simulated desk episodes traded by three lanes (the model alone, its belief
-         gated at the optimal threshold, and the passport lane: classify each remark, add in
-         code, wait for the threshold), with the outcome and a running P&L
+  act 3  mitigation, on the preregistered confirmation desk (docs/clef-desk4-preregistration.md):
+         the model's remark classifier is calibrated on the desk's labelled past remarks, the
+         generic recalibration is fitted on ten of the model's own past forecasts, and held-out
+         meetings are traded by the model alone, its belief gated at the optimal threshold, the
+         recalibrated belief, the passport lane (calibrated classification, evidence added in
+         code, optimal threshold) and the oracle, with the outcome and a running P&L
 
 Live mode calls Workers AI with credentials from the environment or .env (never sent to the
-page). Replay mode reads the recorded runs (output/clef-battery-*, clef-far-*, clef-desk-*);
-Clef is deterministic, so a live run reproduces them.
+page). Replay mode reads the recorded runs (output/clef-battery-*, clef-far-*, clef-desk4-*);
+Clef is deterministic, so a live run reproduces them, and replaying all 1,000 meetings of act 3
+reproduces the preregistered ledger (tests/test_clef_demo.py).
 """
 
 import argparse
@@ -28,15 +32,16 @@ from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 
-from epistemics.clef import battery, desk, far, requests
+from epistemics.clef import battery, desk, desk2, desk4, far, requests
 from epistemics.clef.answers import parse
 from epistemics.clef.client import Client, load_env_file
 
 ROOTS = {
     "battery": "output/clef-battery-20261006",
     "far": "output/clef-far-20261006",
-    "desk": "output/clef-desk-20261006",
+    "desk4": "output/clef-desk4-20261006",
 }
+PREREGISTERED = "output/clef-desk4-20261006.json"
 PAGE = Path(__file__).parent / "assets" / "demo.html"
 CLIP = 0.0005
 
@@ -64,6 +69,8 @@ class Answers:
             for line in path.read_text().splitlines():
                 r = json.loads(line)
                 if r["status"] == "ok":
+                    if r["id"] in self.recorded:
+                        raise ValueError(f"call id {r['id']} is recorded in more than one root")
                     self.recorded[r["id"]] = parse(r["response"], kinds[r["id"]])
         if live:
             load_env_file()
@@ -197,70 +204,177 @@ def act2(model, answers, emit, pace, urn_ratio=None):
     )
 
 
-# ---------- Act 3: the desk ----------
+# ---------- Act 3: the preregistered desk ----------
+
+LANES = ("alone", "gated", "recalibrated", "passport", "oracle")
+SHOWCASE = {"mild": 3, "mixed": 1, "strong": 1}
+
+
+def _showcase(labelled, strength, raw):
+    """Typical cases for the calibration panel: hawkish remarks with distinct wording, for mild
+    ones those the raw reader gets wrong (P(hawkish) below one half), closest to the line first.
+    The panel's summary reports the accuracy over all labelled remarks."""
+    picked, seen = [], set()
+    for name, n in SHOWCASE.items():
+        rows = [i for i, (key, sign) in enumerate(labelled) if strength[key] == name and sign > 0
+                and (name != "mild" or raw[i] < 0.5)]  # fmt: skip
+        rows.sort(key=lambda i: -raw[i])
+        for i in rows:
+            text = labelled[i][0][1]
+            if (
+                text not in seen
+                and len([j for j in picked if strength[labelled[j][0]] == name]) < n
+            ):
+                picked.append(i)
+                seen.add(text)
+    return picked
 
 
 def act3(model, answers, emit, pace, episodes=60):
-    emit({"type": "act", "act": 3, "model": model, "episodes": episodes})
-    eps = desk.episodes()[:episodes]
-    uniq = desk.unique_remarks(desk.episodes())
-    cum = {lane: 0.0 for lane in ("alone", "gated", "passport", "bayes")}
-    for ep in eps:
-        emit({"type": "episode", "episode": ep["episode"], "price": ep["price"]})
-        decided, hawks = {}, []
-        for t in range(desk.MAX_SPEAKERS + 1):
+    from epistemics.ledger.clef_desk4 import (
+        calibrate,
+        calibration_map,
+        recal_subsets,
+        recal_weights,
+    )
+
+    preregistered = None
+    if Path(PREREGISTERED).exists():
+        lanes = json.loads(Path(PREREGISTERED).read_text())["models"][model]["lanes"]
+        preregistered = {k: lanes[v]["mean"] for k, v in (("alone", "alone"), ("gated", "gated"),
+                         ("recalibrated", "recalibrated_10"), ("passport", "passport_calibrated"),
+                         ("oracle", "oracle"))}  # fmt: skip
+    emit(
+        {
+            "type": "act",
+            "act": 3,
+            "model": model,
+            "episodes": episodes,
+            "preregistered": preregistered,
+        }
+    )
+
+    # 1. Calibrate the remark reader on the desk's labelled past remarks.
+    emit({"type": "status", "text": "Classifying the desk's labelled past remarks…"})
+    labelled = desk4.record_remarks()
+    strength = {
+        (r["speaker"], r["text"]): r["strength"]
+        for m in desk4.meetings("record")
+        for r in m["remarks"]
+    }
+    jobs = [
+        _job(f"{model}/record-classify/{i}", model, *desk.classify_text(*key))
+        for i, (key, _) in enumerate(labelled)
+    ]
+    values = {j[0]: g for j, g in zip(jobs, answers.many(jobs), strict=True)}
+    cal = calibration_map(values, model)
+    raw_readings = [values[f"{model}/record-classify/{i}"]["answer"] for i in range(len(labelled))]
+    for i in _showcase(labelled, strength, raw_readings):
+        (speaker, text), sign = labelled[i]
+        raw = values[f"{model}/record-classify/{i}"]["answer"]
+        emit({"type": "calib_remark", "speaker": speaker, "text": text, "strength": strength[(speaker, text)],
+              "hawkish": sign > 0, "raw": raw, "calibrated": calibrate(cal, raw)})  # fmt: skip
+        pace(0.8)
+    accuracy = {}
+    for name, _ in desk2.STRENGTH:
+        rows = [(values[f"{model}/record-classify/{i}"]["answer"], sign)
+                for i, (key, sign) in enumerate(labelled) if strength[key] == name]  # fmt: skip
+        accuracy[name] = {"raw": float(np.mean([(p > 0.5) == (s > 0) for p, s in rows])),
+                          "calibrated": float(np.mean([(calibrate(cal, p) > 0.5) == (s > 0) for p, s in rows]))}  # fmt: skip
+    emit({"type": "calibration", "remarks": len(labelled), "accuracy": accuracy})
+
+    # 2. The generic fix: recalibrate the model's own beliefs on ten of its past forecasts.
+    emit({"type": "status", "text": "Fitting the generic recalibration on ten past forecasts…"})
+    subsets = recal_subsets()[desk4.PRIMARY_K]
+    pool = desk4.meetings("pool")
+    card = desk4.scorecard()
+    needed = sorted({int(i) for idx in subsets for i in idx})
+    jobs = [_job(f"{model}/pool-belief/{pool[i]['meeting']}/{t}", model, desk2.state_text(pool[i], t, card),
+                 desk.belief_question()) for i in needed for t in range(desk4.PER_MEETING + 1)]  # fmt: skip
+    values.update({j[0]: g for j, g in zip(jobs, answers.many(jobs), strict=True)})
+    fits = recal_weights(values, model, subsets)
+    emit({"type": "recalibration", "fits": len(fits), "meetings": desk4.PRIMARY_K})
+
+    # 3. Trade the held-out meetings.
+    est = desk2.estimated_reliability(card)
+    tables = desk._value_tables(
+        q=float(np.mean(list(est.values()))), max_speakers=desk4.PER_MEETING
+    )
+    emit({"type": "scorecard", "records": [{"speaker": desk2.SPEAKERS[j], "matched": m_, "of": n_}
+                                           for j, (m_, n_) in sorted(card.items())]})  # fmt: skip
+    test = desk4.meetings("test")[:episodes]
+    uniq = desk2.unique_remarks(desk4.meetings("test"))
+    last = desk4.PER_MEETING
+    cum = dict.fromkeys(LANES, 0.0)
+    nothing_heard = dict.fromkeys(LANES, 0)
+    for n_done, m in enumerate(test, start=1):
+        emit({"type": "episode", "episode": m["meeting"], "index": n_done, "price": m["price"]})
+        decided, fit_decided, evidence = {}, [None] * len(fits), 0.0
+        for t in range(last + 1):
             if t > 0:
-                r = ep["remarks"][t - 1]
-                cid = f"{model}/classify/{uniq[(r['speaker'], r['text'])]}"
-                hawk = answers.get(*_job(cid, model, *desk.classify_text(r["speaker"], r["text"])))[
-                    "answer"
-                ]
-                hawks.append(hawk)
-                emit(
-                    {
-                        "type": "remark",
-                        "t": t,
-                        "speaker": r["speaker"],
-                        "text": r["text"],
-                        "hawk": hawk,
-                    }
-                )
-            key = f"{ep['episode']}/{t}"
+                r = m["remarks"][t - 1]
+                raw = answers.get(*_job(f"{model}/classify/{uniq[(r['speaker'], r['text'])]}", model,
+                                        *desk.classify_text(r["speaker"], r["text"])))["answer"]  # fmt: skip
+                p = calibrate(cal, raw)
+                evidence += (2 * p - 1) * desk2.logit(est[r["index"]])
+                emit({"type": "remark", "t": t, "speaker": r["speaker"], "text": r["text"], "raw": raw,
+                      "calibrated": p, "record": est[r["index"]]})  # fmt: skip
+            key = f"{m['meeting']}/{t}"
             choice, belief = answers.many([
-                _job(f"{model}/choice/{key}", model, desk.state_text(ep, t), desk.choice_question()),
-                _job(f"{model}/belief/{key}", model, desk.state_text(ep, t), desk.belief_question()),
+                _job(f"{model}/choice/{key}", model, desk2.state_text(m, t, card), desk.choice_question()),
+                _job(f"{model}/belief/{key}", model, desk2.state_text(m, t, card), desk.belief_question()),
             ])  # fmt: skip
-            choice, belief = choice["decision"], belief["answer"]
-            lanes = {
-                "alone": {"a": "rise", "b": "hold", "draw": "wait"}[max(choice, key=choice.get)],
-                "gated": desk.act(t, _z(belief)),
-                "passport": desk.act(
-                    t, desk.logit(ep["price"]) + desk.LQ * sum(2 * h - 1 for h in hawks)
-                ),
-                "bayes": desk.act(t, desk.bayes_logodds(ep, t)),
-            }
-            if t == desk.MAX_SPEAKERS and lanes["alone"] == "wait":
-                lanes["alone"] = "rise" if choice["a"] >= choice["b"] else "hold"
-            beliefs = {"alone": belief, "gated": belief,
-                       "passport": 1 / (1 + np.exp(-(desk.logit(ep["price"]) + desk.LQ * sum(2 * h - 1 for h in hawks)))),
-                       "bayes": 1 / (1 + np.exp(-desk.bayes_logodds(ep, t)))}  # fmt: skip
-            for lane, action in lanes.items():
+            choice, zb = choice["decision"], _z(belief["answer"])
+            alone = {"a": "rise", "b": "hold", "draw": "wait"}[max(choice, key=choice.get)]
+            if alone == "wait" and t == last:
+                alone = "rise" if choice["a"] >= choice["b"] else "hold"
+            passport = desk2.logit(m["price"]) + evidence
+            oracle = desk2.oracle_logodds(m, t)
+            recal = [float(w @ [1.0, zb, desk2.logit(m["price"])]) for w in fits]
+            actions = {"alone": alone, "gated": desk.act(t, zb, tables), "passport": desk.act(t, passport, tables),
+                       "oracle": desk.act(t, oracle, tables)}  # fmt: skip
+            for lane, action in actions.items():
                 if lane not in decided and action != "wait":
                     decided[lane] = (action, t)
-            emit({"type": "step", "t": t, "choice": choice,
-                  "beliefs": {k: float(v) for k, v in beliefs.items()},
-                  "decided": {k: list(v) for k, v in decided.items()}})  # fmt: skip
+            for f, logodds in enumerate(recal):
+                if fit_decided[f] is None:
+                    action = desk.act(t, logodds, tables)
+                    if action != "wait":
+                        fit_decided[f] = (action, t)
+            done = sum(d is not None for d in fit_decided)
+            sig = lambda x: float(1 / (1 + np.exp(-x)))  # noqa: E731
+            emit({"type": "step", "t": t,
+                  "beliefs": {"alone": sig(zb), "gated": sig(zb), "recalibrated": float(np.mean([sig(x) for x in recal])),
+                              "passport": sig(passport), "oracle": sig(oracle)},
+                  "decided": {k: list(v) for k, v in decided.items()}, "recal_decided": done, "recal_fits": len(fits)})  # fmt: skip
             pace(0.6)
-            if len(decided) == 4:
+            if len(decided) == 4 and done == len(fits):
                 break
-        pnl = {}
-        for lane, (action, t) in decided.items():
-            right = (action == "rise") == ep["rise"]
-            pnl[lane] = (desk.WIN if right else -desk.WIN) - desk.COST * t
+
+        def payoff(action, heard, m=m):
+            right = (action == "rise") == m["rise"]
+            return (desk2.WIN if right else -desk2.WIN) - desk2.COST * heard
+
+        pnl = {
+            lane: float(payoff(*decided[lane])) for lane in ("alone", "gated", "passport", "oracle")
+        }
+        pnl["recalibrated"] = float(np.mean([payoff(*d) for d in fit_decided]))
+        for lane in ("alone", "gated", "passport", "oracle"):
+            nothing_heard[lane] += decided[lane][1] == 0
+        for lane in LANES:
             cum[lane] += pnl[lane]
-        emit({"type": "outcome", "rise": ep["rise"], "pnl": pnl, "cumulative": dict(cum)})
+        emit(
+            {
+                "type": "outcome",
+                "rise": m["rise"],
+                "pnl": pnl,
+                "cumulative": dict(cum),
+                "index": n_done,
+            }
+        )
         pace(1.5)
-    emit({"type": "summary", "cumulative": dict(cum), "episodes": len(eps)})
+    emit({"type": "summary", "cumulative": dict(cum), "episodes": len(test),
+          "nothing_heard": {k: v / len(test) for k, v in nothing_heard.items() if k != "recalibrated"}})  # fmt: skip
 
 
 # ---------- Server ----------

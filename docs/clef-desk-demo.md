@@ -233,3 +233,32 @@ uv run python -m epistemics.ledger clef-desk2 output/clef-desk2-20261006 --outpu
 
 **Consequence for the demo.** Act 3 (the first desk) shows that the model fails when handed everything it needs; it does not show a mitigation that beats a generic one. If Act 3 stays, its claim should be "taking the decision away from the model recovers the money", with the recalibrated lane shown beside the passport lane.
 
+## Live demo, Act 3 rebuilt on the confirmation desk (7 October 2026)
+
+Act 3 now trades the meetings of the second preregistered confirmation ([clef-desk4-preregistration.md](clef-desk4-preregistration.md)), not the first desk. The first desk's world matched the passport lane's assumptions and was retired from the demo.
+
+**Step 1: calibration.**
+- The model reads the desk's 186 labelled past remarks.
+- The panel shows typical mild hawkish remarks that the raw reader gets wrong and calibration fixes (for Clef-flash, 47% → 100%, 22% → 87%, 17% → 70%), with one mixed and one strong.
+- It then states the accuracy over all labelled remarks (mild 81% → 99%, mixed 100% → 89%, strong 100%).
+
+**Step 2: the standard fix is fitted.** That is 20 recalibrations, each on ten of the model's own past forecasts.
+
+**Trading.** The first 60, 200 or all 1,000 held-out meetings, in five lanes:
+- **alone:** the model chooses when to act. A position taken before anyone speaks is flagged "(no one spoke)".
+- **gated:** its belief at the optimal threshold.
+- **recalibrated:** the share of the 20 fits that have decided, with P&L averaged over the fits.
+- **passport:** calibrated reading, evidence added with each speaker's record, threshold. Each remark shows its calibrated and raw reading and the speaker's record.
+- **oracle.**
+
+The page also shows the preregistered 1,000-meeting result for the chosen model.
+
+**Fidelity.**
+- **Replay against the ledger.** Replaying all 1,000 meetings reproduces the preregistered lane means exactly for both models (`tests/test_clef_demo.py`). The lane logic and the ledger share `calibration_map`, `calibrate`, `recal_subsets` and `recal_weights`; the ledger output was byte-identical after the refactor.
+- **Live against replay.** A live run of three meetings, with its setup (calibration and recalibration, about 800 calls, 85 seconds), produced an event stream identical to replay.
+
+**On stage.**
+- Use replay.
+- 60 meetings at 1× takes about 80 seconds; all 1,000 at Max about 2 minutes.
+- In the first 60 meetings for Clef-flash, the gated lane is slightly ahead of the passport lane. Over all 1,000 they tie (+0.8), and both are far ahead of the model alone and the standard fix. Say so: the confirmed claims are passport > alone and passport > the standard fix with little history.
+

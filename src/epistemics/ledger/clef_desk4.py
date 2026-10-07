@@ -40,6 +40,44 @@ def load(root):
     return document, values
 
 
+def calibration_map(values, model):
+    """The logistic map from the classifier's log-odds to P(hawkish), fitted on the record
+    meetings' labelled remarks."""
+    labelled = desk4.record_remarks()
+    rz = np.array(
+        [_z(values[f"{model}/record-classify/{i}"]["answer"]) for i in range(len(labelled))]
+    )
+    ry = np.array([float(sign > 0) for _, sign in labelled])
+    return logistic(np.c_[np.ones(len(rz)), rz], ry)
+
+
+def calibrate(cal, p):
+    return float(1 / (1 + np.exp(-(cal[0] + cal[1] * _z(p)))))
+
+
+def recal_subsets(k_values=None, draws=None):
+    """{k: [pool indices per draw]}, drawn in the registered order from DRAW_SEED."""
+    k_values = k_values or desk4.K_VALUES
+    draws = draws or desk4.DRAWS
+    n = desk4.COUNTS["pool"]
+    rng = np.random.default_rng(desk4.DRAW_SEED)
+    return {k: [np.arange(n)] if k >= n else [rng.choice(n, k, replace=False) for _ in range(draws)]
+            for k in k_values}  # fmt: skip
+
+
+def recal_weights(values, model, subsets):
+    """One logistic recalibration (on belief and price log-odds) per subset of pool meetings."""
+    pool = desk4.meetings("pool")
+    out = []
+    for idx in subsets:
+        rows = [(i, t) for i in idx for t in range(desk4.PER_MEETING + 1)]
+        X = np.array([[1.0, _z(values[f"{model}/pool-belief/{pool[i]['meeting']}/{t}"]["answer"]),
+                       desk2.logit(pool[i]["price"])] for i, t in rows])  # fmt: skip
+        y = np.array([float(pool[i]["rise"]) for i, _ in rows])
+        out.append(logistic(X, y))
+    return out
+
+
 def summary(root, k_values=None, draws=None, permutations=100000):
     document, values = load(root)
     k_values = k_values or desk4.K_VALUES
@@ -48,16 +86,12 @@ def summary(root, k_values=None, draws=None, permutations=100000):
     est = desk2.estimated_reliability(card)
     qbar = float(np.mean(list(est.values())))
     tables = desk._value_tables(q=qbar, max_speakers=desk4.PER_MEETING)
-    pool, test = desk4.meetings("pool"), desk4.meetings("test")
+    test = desk4.meetings("test")
     uniq = desk2.unique_remarks(test)
     labelled = desk4.record_remarks()
     out, ps = {}, {}
     for model in document["models"]:
-        rz = np.array(
-            [_z(values[f"{model}/record-classify/{i}"]["answer"]) for i in range(len(labelled))]
-        )
-        ry = np.array([float(sign > 0) for _, sign in labelled])
-        cal = logistic(np.c_[np.ones(len(rz)), rz], ry)
+        cal = calibration_map(values, model)
 
         def raw(m, model=model):
             return [
@@ -66,7 +100,7 @@ def summary(root, k_values=None, draws=None, permutations=100000):
             ]
 
         def calibrated(m, cal=cal, raw=raw):
-            return [1 / (1 + np.exp(-(cal[0] + cal[1] * _z(p)))) for p in raw(m)]
+            return [calibrate(cal, p) for p in raw(m)]
 
         def passport(m, probs):
             ev = [2 * p - 1 for p in probs]
@@ -91,18 +125,9 @@ def summary(root, k_values=None, draws=None, permutations=100000):
             ("oracle", [_play(m, lambda t, m=m: desk2.oracle_logodds(m, t), tables) for m in test]),
         ):  # fmt: skip
             lanes[name], heard[name] = [r[0] for r in rows], [r[1] for r in rows]
-        rng = np.random.default_rng(desk4.DRAW_SEED)
-        for k in k_values:
-            subsets = [np.arange(len(pool))] if k >= len(pool) else [
-                rng.choice(len(pool), k, replace=False) for _ in range(draws)]  # fmt: skip
+        for k, subsets in recal_subsets(k_values, draws).items():
             per_draw = []
-            for idx in subsets:
-                X = np.array([[1.0, belief("pool-belief", pool[i], t), desk2.logit(pool[i]["price"])]
-                              for i in idx for t in range(desk4.PER_MEETING + 1)])  # fmt: skip
-                y = np.array(
-                    [float(pool[i]["rise"]) for i in idx for t in range(desk4.PER_MEETING + 1)]
-                )
-                w = logistic(X, y)
+            for w in recal_weights(values, model, subsets):
                 per_draw.append([_play(m, lambda t, m=m, w=w: float(
                     w @ [1.0, belief("belief", m, t), desk2.logit(m["price"])]), tables)[0] for m in test])  # fmt: skip
             lanes[f"recalibrated_{k}"] = list(np.mean(per_draw, axis=0))
